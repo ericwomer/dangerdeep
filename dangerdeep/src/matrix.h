@@ -132,6 +132,15 @@ public:
 		elem(3, 3) = e15;
 	}
 
+	/// construct NxN matrix from one with different template type but same dimension
+	template<class E> matrixt(const matrixt<E, size>& other) {
+		for (unsigned i = 0; i < size; ++i) {
+			for (unsigned j = 0; j < size; ++j) {
+				elem(j, i) = D(other.elem(j, i));
+			}
+		}
+	}
+
 	template<unsigned subsize> matrixt<D, subsize> sub() const {
 		matrixt<D, subsize> r;
 		for (unsigned i = 0; i < subsize; ++i) {
@@ -318,6 +327,7 @@ public:
 		values[3] = values[7] = values[11] = D(0.0);
 	}
 
+	/// multiply NxN matrix with N-vector
 	vector4t<D> operator* (const vector4t<D>& v) const {
 		D r[4];
 		for (unsigned j = 0; j < 4; ++j) {	// rows of "this"
@@ -328,6 +338,7 @@ public:
 
 	// ----------------- special code for dim=3 or 4
 
+	/// multiply 3x3 matrix with 3-vector
 	vector3t<D> mul3vec3 (const vector3t<D>& v) const {
 		D r[3];
 		for (unsigned j = 0; j < 3; ++j) {	// rows of "this"
@@ -336,6 +347,7 @@ public:
 		return vector3t<D>(r[0], r[1], r[2]);
 	}
 
+	/// multiply 4x4 matrix with 3-vector, with w-renormalization
 	vector3t<D> mul4vec3 (const vector3t<D>& v) const {
 		D r[4];
 		for (unsigned j = 0; j < 4; ++j) {	// rows of "this"
@@ -343,6 +355,15 @@ public:
 		}
 		// divide x,y,z by w
 		return vector3t<D>(r[0]/r[3], r[1]/r[3], r[2]/r[3]);
+	}
+
+	/// multiply 4x4 matrix with 3-vector, ignore projection part (faster)
+	vector3t<D> mul4vec3xlat (const vector3t<D>& v) const {
+		D r[3];
+		for (unsigned j = 0; j < 3; ++j) {	// rows of "this"
+			r[j] = values[j*4+0] * v.x + values[j*4+1] * v.y + values[j*4+2] * v.z + values[j*4+3];
+		}
+		return vector3t<D>(r[0], r[1], r[2]);
 	}
 };
 

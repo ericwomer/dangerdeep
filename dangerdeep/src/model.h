@@ -184,7 +184,8 @@ public:
 
 		void display(const texture *caustic_map=NULL) const;
 		void display_mirror_clip() const;
-		void compute_bounds();	
+		void compute_vertex_bounds();
+		void compute_bounds(vector3f& totmin, vector3f& totmax, const matrix4f& transmat);
 		void compute_normals();
 		bool compute_tangentx(unsigned i0, unsigned i1, unsigned i2);
 
@@ -211,10 +212,12 @@ public:
 		// give plane equation (abc must have length 1)
 		std::pair<mesh*, mesh*> split(const vector3f& abc, float d) const;
 
+		/// check if a given point is inside the mesh
+		///@param p - point in vertex space, transformation not applied
 		bool is_inside(const vector3f& p) const;
 		//fixme: add function to compute total volume
 		vector3 compute_center_of_gravity() const;
-		matrix3 compute_inertia_tensor() const;
+		matrix3 compute_inertia_tensor(const matrix4f& transmat) const;
 	};
 
 	struct light {
@@ -230,7 +233,7 @@ public:
 	class voxel
 	{
 	public:
-		/// position of center of voxel relative to the model
+		/// position of center of voxel relative to the base mesh
 		vector3f relative_position;
 		/// part of voxel that is filled with model volume (0...1)
 		float part_of_volume;
@@ -246,7 +249,7 @@ protected:
 	struct object {
 		unsigned id;
 		std::string name;
-		const mesh* mymesh;
+		mesh* mymesh;
 		vector3f translation;
 		int translation_constraint_axis;	// can be 0/1/2 for x/y/z
 		float trans_val_min;	// minimum value for translation along axis
@@ -256,15 +259,16 @@ protected:
 		float rotat_angle_min;	// in degrees
 		float rotat_angle_max;	// in degrees
 		std::vector<object> children;
-		object(unsigned id_ = 0, const std::string& nm = "???", const mesh* m = 0)
+		object(unsigned id_ = 0, const std::string& nm = "???", mesh* m = 0)
 			: id(id_), name(nm), mymesh(m), rotat_angle(0), rotat_angle_min(0),
 			  rotat_angle_max(0) { rotat_axis.z = 1; }
 		bool set_angle(float ang);
 		bool set_translation(float value);
 		object* find(unsigned id);
 		object* find(const std::string& name);
-		void display(const texture *caustic_map=NULL) const;
-		void compute_bounds(vector3f& min, vector3f& max) const;
+		void display(const texture *caustic_map = 0) const;
+		void compute_bounds(vector3f& min, vector3f& max, const matrix4f& transmat) const;
+		matrix4f get_transformation() const;
 	};
 
 	// store that for debugging purposes.
@@ -426,9 +430,11 @@ public:
 
 	std::string get_filename() const { return filename; }
 
+	/*
 	/// check if a given point is inside the model
 	///@param p - a point in world space
 	bool is_inside(const vector3f& p) const;
+	*/
 
 	/// request voxel data resolution
 	const vector3i& get_voxel_resolution() const { return voxel_resolution; }
@@ -438,6 +444,9 @@ public:
 	float get_voxel_radius() const { return voxel_radius; }
 	/// request voxel data
 	const std::vector<voxel>& get_voxel_data() const { return voxel_data; }
+
+	/// get transformation of root node (object tree translation + mesh transformation)
+	matrix4f get_rootnode_transformation() const;
 };	
 
 #endif

@@ -121,9 +121,6 @@ void measure_mass_distribution(const std::string& massmapfn, const vector3i& res
 			       vector<float>& mass_part, const vector<uint8_t>& is_inside)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
-	draw_model(90.0);
-	sys().swap_buffers();
-	glClear(GL_COLOR_BUFFER_BIT);
 	texture massmap(massmapfn, texture::LINEAR, texture::CLAMP_TO_EDGE);
 	glEnable(GL_TEXTURE_2D);
 	sys().prepare_2d_drawing();
@@ -175,19 +172,21 @@ class worker : public thread
 	vector3i resolution;
 	unsigned slice;
 	unsigned nr_slices;
+	int& counter;
+	mutex& counter_mtx;
 	unsigned samples_per_voxel;
 public:
 	worker(model& m, vector<uint8_t>& ii, const vector3i& res, unsigned s, unsigned nrs,
-	       unsigned samplespervoxel = 4)
+	       int& ctr, mutex& cm, unsigned samplespervoxel = 4)
 		: mdl(m), is_inside(ii), resolution(res), slice(s), nr_slices(nrs),
-		  samples_per_voxel(samplespervoxel) {}
+		  counter(ctr), counter_mtx(cm), samples_per_voxel(samplespervoxel) {}
 	void loop()
 	{
 		int zmin = resolution.z * slice / nr_slices;
 		int zmax = (slice + 1 == nr_slices) ? resolution.z : (resolution.z * (slice+1) / nr_slices);
 
-		const vector3f& bmax = mdl.get_max();
-		const vector3f& bmin = mdl.get_min();
+		const vector3f& bmax = mdl.get_base_mesh().max;
+		const vector3f& bmin = mdl.get_base_mesh().min;
 		const vector3f bsize = bmax - bmin;
 		const double csx = bsize.x / resolution.x;
 		const double csy = bsize.y / resolution.y;
@@ -208,7 +207,7 @@ public:
 						for (unsigned y = 0; y < samples_per_voxel; ++y) {
 							double xc2 = xc + csx2 * 0.5;
 							for (unsigned x = 0; x < samples_per_voxel; ++x) {
-								bool is_in = mdl.is_inside(vector3f(xc2, yc2, zc2));
+								bool is_in = mdl.get_base_mesh().is_inside(vector3f(xc2, yc2, zc2));
 								inside += is_in ? 1 : 0;
 								xc2 += csx2;
 							}
@@ -222,10 +221,10 @@ public:
 					xc += csx;
 				}
 				yc += csy;
+				mutex_locker ml(counter_mtx);
+				--counter;
 			}
 			zc += csz;
-			cout << ".";
-			cout.flush();
 		}
 		request_abort();
 	}
@@ -324,20 +323,35 @@ int mymain(list<string>& args)
 	physcs.add_child_text(osscs.str());
 
 	// some measurements
-	const vector3f& bmax = mdl->get_max();
-	const vector3f& bmin = mdl->get_min();
+	const vector3f& bmax = mdl->get_base_mesh().max;
+	const vector3f& bmin = mdl->get_base_mesh().min;
 	const vector3f bsize = bmax - bmin;
 	const double vol = bsize.x * bsize.y * bsize.z;
 
 	vector<uint8_t> is_inside(resolution.x*resolution.y*resolution.z);
 	// start workers and let them compute data, then wait for them to finish
+	unsigned tm0 = sys().millisec();
 	{
-		thread::auto_ptr<worker> w0(new worker(*mdl, is_inside, resolution, 0, 2));
-		thread::auto_ptr<worker> w1(new worker(*mdl, is_inside, resolution, 1, 2));
+		mutex ctrmtx;
+		int ctr = resolution.z * resolution.y;
+		thread::auto_ptr<worker> w0(new worker(*mdl, is_inside, resolution, 0, 2, ctr, ctrmtx));
+		thread::auto_ptr<worker> w1(new worker(*mdl, is_inside, resolution, 1, 2, ctr, ctrmtx));
 		w0->start();
 		w1->start();
+		sys().prepare_2d_drawing();
+		glColor3f(1, 0, 0);
+		while (ctr > 0) {
+			int h = res_y - res_y * ctr / (resolution.z * resolution.y);
+			sys().draw_rectangle(0, 0, res_x/10, h);
+			sys().swap_buffers();
+			thread::sleep(100);
+		}
+		glColor3f(1, 1, 1);
+		sys().unprepare_2d_drawing();
 	}
 	cout << "\n";
+	unsigned tm1 = sys().millisec();
+	cout << "time needed " << tm1-tm0 << "\n";
 
 	unsigned nr_inside = 0;
 	unsigned inside_vol = 0;
@@ -382,6 +396,10 @@ int mymain(list<string>& args)
 	catch (std::exception& e) {
 		cout << e.what() << "\n";
 		//fixme: show model here as reference, correctly centered
+		//that is, render base_mesh, so that it fits to the screen,
+		//without handling its transformation!
+		//so multiply inverse mesh transformation, then call display().
+		//before set scale/trans according to mesh min/max so that it fits...
 		sleep(10);
 	}
 
@@ -389,19 +407,9 @@ int mymain(list<string>& args)
 	//cout << "Inside volume " << vol_inside << " (" << vol_inside/2.8317 << " BRT) of " << vol << "\n";
 	physroot.add_child("volume").set_attr(vol_inside);
 	physroot.add_child("center-of-gravity").set_attr(mdl->get_base_mesh().compute_center_of_gravity());
-	//fixme: instead of mesh #0, use mesh at root of object tree, if that exists...
-	//maybe add extra-function to model class for this...
-	matrix3 ten = mdl->get_base_mesh().compute_inertia_tensor();
+	matrix3 ten = mdl->get_base_mesh().compute_inertia_tensor(mdl->get_rootnode_transformation());
 	ostringstream ossit; ten.to_stream(ossit);
 	physroot.add_child("inertia-tensor").add_child_text(ossit.str());
-	// better change only the translation? and do not transform other meshes
-/*
-	mdl->get_base_mesh().transform(matrix4f::trans(-mdl->get_base_mesh().compute_center_of_gravity()));
-	physroot.add_child("center-of-gravity2").set_attr(mdl->get_base_mesh().compute_center_of_gravity());
-	ten = mdl->get_base_mesh().compute_inertia_tensor();
-	ostringstream ossit2; ten.to_stream(ossit2);
-	physroot.add_child("inertia-tensor2").add_child_text(ossit2.str());
-*/
 
 	physdat.save();
 

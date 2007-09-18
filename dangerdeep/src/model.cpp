@@ -131,18 +131,24 @@ void model::object::display(const texture *caustic_map) const
 
 
 
-void model::object::compute_bounds(vector3f& min, vector3f& max) const
+void model::object::compute_bounds(vector3f& min, vector3f& max, const matrix4f& transmat) const
 {
-	vector3f min2, max2;
+	matrix4f mytransmat = get_transformation() * transmat;
+	// handle vertices of mymesh if present
 	if (mymesh) {
-		min2 = mymesh->min;
-		max2 = mymesh->max;
+		mymesh->compute_bounds(min, max, mytransmat);
 	}
+	// handle children
 	for (vector<object>::const_iterator it = children.begin(); it != children.end(); ++it) {
-		it->compute_bounds(min2, max2);
+		it->compute_bounds(min, max, mytransmat);
 	}
-	min = min2 + translation;
-	max = max2 + translation;
+}
+
+
+
+matrix4f model::object::get_transformation() const
+{
+	return matrix4f::trans(translation) * quaternionf::rot(rotat_angle, rotat_axis).rotmat4();
 }
 
 
@@ -265,23 +271,19 @@ void model::compute_bounds()
 {
 	if (meshes.size() == 0) return;
 
-	// compute bounds for all meshes
+	// could be done once... not here
 	for (vector<model::mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it)
-		(*it)->compute_bounds();
+		(*it)->compute_vertex_bounds();
 
 	// with an objectree, we need to iterate the meshes along the tree and handle
-	// per-object translations, without the tree, just build extremum over all
-	// meshes.
-	if (scene.children.size() == 0 && scene.mymesh == 0) {
-		min = meshes[0]->min;
-		max = meshes[0]->max;
-		for (vector<model::mesh*>::iterator it = ++meshes.begin(); it != meshes.end(); ++it) {
-			min = (*it)->min.min(min);
-			max = (*it)->max.max(max);
-		}
+	// per-object translations, without object tree just handle all meshes
+	min = vector3f(1e30, 1e30, 1e30);
+	max = -min;
+	if (!scene.children.empty() || scene.mymesh) {
+		scene.compute_bounds(min, max, matrix4f::one());
 	} else {
-		min = max = vector3f(); // not fully correct in general, but ok here, fixme
-		scene.compute_bounds(min, max);
+		for (vector<model::mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it)
+			(*it)->compute_bounds(min, max, matrix4f::one());
 	}
 }
 
@@ -397,15 +399,29 @@ bool model::mesh::triangle_strip_iterator::next()
 
 
 
-void model::mesh::compute_bounds()
+void model::mesh::compute_vertex_bounds()
 {
 	if (vertices.size() == 0) return;
-	min = max = transformation * vertices[0];
+	min = max = vertices[0];
 
 	for (vector<vector3f>::iterator it2 = ++vertices.begin(); it2 != vertices.end(); ++it2) {
-		vector3f tmp = transformation * *it2;
-		min = tmp.min(min);
-		max = tmp.max(max);
+		min = it2->min(min);
+		max = it2->max(max);
+	}
+}
+
+
+
+void model::mesh::compute_bounds(vector3f& totmin, vector3f& totmax, const matrix4f& transmat)
+{
+	if (vertices.size() == 0) return;
+	matrix4f mytransmat = transmat * transformation;
+	totmin = totmax = mytransmat * vertices[0];
+
+	for (vector<vector3f>::iterator it2 = ++vertices.begin(); it2 != vertices.end(); ++it2) {
+		vector3f tmp = mytransmat * *it2;
+		totmin = tmp.min(totmin);
+		totmax = tmp.max(totmax);
 	}
 }
 
@@ -869,20 +885,16 @@ pair<model::mesh*, model::mesh*> model::mesh::split(const vector3f& abc, float d
 
 bool model::mesh::is_inside(const vector3f& p) const
 {
-	// transform p to mesh space
-	matrix4f invtrans = transformation.inverse();
-	vector3f pp = invtrans * p;
-
 	/* algorithm:
 	   for every triangle of the mesh, build a tetrahedron of the three
 	   points of the triangle and the center of the mesh (e.g. center
-	   of gravity). For all tetrahedrons that pp is in, count the
+	   of gravity). For all tetrahedrons that p is in, count the
 	   tetrahedrons with "positive" volume and "negative" volume.
 	   The former are all tetrahedrons where the triangle is facing
 	   away from the center point, the latter are all tetrahedrons,
 	   where the triangle is facing the center point.
-	   A point pp is inside the tetrahedron consisting of A, B, C, D
-	   when: b = B-A, c = C-A, d = D-A, and pp = A+r*b+s*c+t*d
+	   A point p is inside the tetrahedron consisting of A, B, C, D
+	   when: b = B-A, c = C-A, d = D-A, and p = A+r*b+s*c+t*d
 	   and r,s,t >= 0 and r+s+t <= 1.
 	   We can compute if the triangle is facing the center point D,
 	   by computing the sign of the dot product of the normal of
@@ -903,16 +915,16 @@ bool model::mesh::is_inside(const vector3f& p) const
 		vector3f c = C - A;
 		vector3f d = D - A;
 		float s, r, t;
-		if ((pp - A).solve(b, c, d, s, r, t)) {
+		if ((p - A).solve(b, c, d, s, r, t)) {
 			if (r >= 0.0f && s >= 0.0f && t >= 0.0f && r+s+t <= 1.0f) {
-				// pp is inside the tetrahedron
+				// p is inside the tetrahedron
 				bool facing_to_D = b.cross(c) * d >= 0;
 				in_out_count += facing_to_D ? -1 : 1;
 			}
 		}
 	} while (tit->next());
 	// for tests:
-	//std::cout << "is_inside p=" << p << " pp=" << pp << " ioc=" << in_out_count << "\n";
+	//std::cout << "is_inside p=" << p << " p=" << p << " ioc=" << in_out_count << "\n";
 	return in_out_count > 0;
 }
 
@@ -946,7 +958,7 @@ vector3 model::mesh::compute_center_of_gravity() const
 		vdiv += V_i;
 	} while (tit->next());
 	//std::cout << "center of gravity is " << vsum << "/" << vdiv << " = " << ((1.0/vdiv) * vsum) << "\n";
-	//fixme: transform result by transformation matrix?
+	// result is always matching vertex data, NOT treating the transformation!
 	return (1.0/vdiv) * vsum;
 }
 
@@ -974,20 +986,21 @@ vector3 model::mesh::compute_center_of_gravity() const
    object - but this can give problems for simulation later,
    if the c.o.g is not at 0,0,0 ...
 */
-matrix3 model::mesh::compute_inertia_tensor() const
+matrix3 model::mesh::compute_inertia_tensor(const matrix4f& transmat) const
 {
 	matrix3 msum;
-	const double mass = 1.0; // fixme
-	const vector3 center_of_gravity = compute_center_of_gravity(); // fixme, set later
+	matrix4f transformmat = transmat * transformation;
+	const double mass = 1.0; // is just a scalar to the matrix
+	const vector3 center_of_gravity = transformmat.mul4vec3xlat(compute_center_of_gravity());
 	double vdiv = 0;
 	std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
 	do {
 		unsigned i0 = tit->i0();
 		unsigned i1 = tit->i1();
 		unsigned i2 = tit->i2();
-		vector3 A = vertices[i0];
-		vector3 B = vertices[i1];
-		vector3 C = vertices[i2];
+		vector3 A = transformmat * vertices[i0];
+		vector3 B = transformmat * vertices[i1];
+		vector3 C = transformmat * vertices[i2];
 		const vector3& D = center_of_gravity;
 		vector3 abcd = A + B + C + D;
 		double V_i = (1.0/6.0) * ((A - D) * (B - D).cross(C - D));
@@ -1013,7 +1026,7 @@ matrix3 model::mesh::compute_inertia_tensor() const
 		msum = msum + im;
 		vdiv += V_i;
 	} while (tit->next());
-	//fixme: transform result by transformation matrix?
+	// result is in model-space, not mesh-space
 	return msum * (mass/vdiv);
 }
 
@@ -1714,7 +1727,7 @@ const model::mesh& model::get_mesh(unsigned nr) const
 model::mesh& model::get_base_mesh()
 {
 	if (scene.mymesh)
-		return *(mesh*)(scene.mymesh);
+		return *scene.mymesh;
 	return *meshes.at(0);
 }
 
@@ -1783,7 +1796,7 @@ void model::read_phys_file(const string& filename)
 	}
 
 	// set inertia tensor of mesh #0
-	mesh& m = get_mesh(0);
+	mesh& m = get_base_mesh();
 	istringstream iss2(physroot.child("inertia-tensor").child_text());
 	m.inertia_tensor = matrix3(iss2);
 
@@ -2915,6 +2928,7 @@ void model::get_all_layout_names(std::set<std::string>& result) const
 
 
 
+/* must handle object-tree, later...
 bool model::is_inside(const vector3f& p) const
 {
 	for (vector<mesh*>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
@@ -2922,4 +2936,14 @@ bool model::is_inside(const vector3f& p) const
 			return true;
 	}
 	return false;
+}
+*/
+
+
+
+matrix4f model::get_rootnode_transformation() const
+{
+	if (scene.mymesh)
+		return scene.get_transformation();
+	return matrix4f::one();
 }
