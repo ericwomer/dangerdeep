@@ -1741,7 +1741,7 @@ const model::mesh& model::get_mesh(unsigned nr) const
 model::mesh& model::get_base_mesh()
 {
 	if (scene.children.empty())
-		throw error("can't compute base mesh");
+		return get_mesh(0);
 	mesh* m = scene.children.front().mymesh;
 	if (!m)
 		throw error("can't compute base mesh, mymesh=0");
@@ -1751,7 +1751,7 @@ model::mesh& model::get_base_mesh()
 const model::mesh& model::get_base_mesh() const
 {
 	if (scene.children.empty())
-		throw error("can't compute base mesh");
+		return get_mesh(0);
 	mesh* m = scene.children.front().mymesh;
 	if (!m)
 		throw error("can't compute base mesh, mymesh=0");
