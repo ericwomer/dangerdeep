@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "sea_object.h"
 #include "color.h"
 #include "coastmap.h"
+#include "caustics.h"
 #include "ptrvector.h"
 #include "user_display.h"
 #include "user_popup.h"
@@ -95,6 +96,7 @@ protected:
 
 	// environmental data
 	std::auto_ptr<class sky> mysky;	// the one and only sky
+	caustics mycaustics;	//	caustic map
 	coastmap mycoastmap;	// this may get moved to game.h, yet it is used for display only, that's why it is here
 
 	// is display in day mode (or night/redlight mode)?
@@ -153,6 +155,7 @@ public:
 	static user_interface* create(game& gm);
 
 	const sky& get_sky() const { return *(mysky.get()); }
+	const caustics& get_caustics() const { return mycaustics; }
 	const water& get_water() const;
 	const coastmap& get_coastmap() const { return mycoastmap; }
 

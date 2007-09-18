@@ -42,6 +42,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 using std::isfinite;
 #endif
 
+#include "caustics.h"
 #include "system.h"
 #include "datadirs.h"
 #include "oglext/OglExt.h"
@@ -61,6 +62,8 @@ bool model::use_shaders = false;
 
 auto_ptr<glsl_shader_setup> model::glsl_color_normal;
 auto_ptr<glsl_shader_setup> model::glsl_color_normal_specular;
+auto_ptr<glsl_shader_setup> model::glsl_color_normal_caustic;
+auto_ptr<glsl_shader_setup> model::glsl_color_normal_specular_caustic;
 auto_ptr<glsl_shader_setup> model::glsl_mirror_clip;
 
 const std::string model::default_layout = "*default*";
@@ -114,14 +117,14 @@ model::object* model::object::find(const std::string& name_)
 
 
 
-void model::object::display() const
+void model::object::display(const texture *caustic_map) const
 {
 	glPushMatrix();
 	glTranslated(translation.x, translation.y, translation.z);
 	glRotated(rotat_angle, rotat_axis.x, rotat_axis.y, rotat_axis.z);
-	if (mymesh) mymesh->display();
+	if (mymesh) mymesh->display(caustic_map);
 	for (vector<object>::const_iterator it = children.begin(); it != children.end(); ++it) {
-		it->display();
+		it->display(caustic_map);
 	}
 	glPopMatrix();
 }
@@ -157,6 +160,11 @@ void model::render_init()
 		glsl_color_normal.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
 							      get_shader_dir() + "modelrender.fshader"));
 		glsl_color_normal_specular.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
+								       get_shader_dir() + "modelrender.fshader", dl));
+		dl.push_back("USE_CAUSTIC");
+		glsl_color_normal_caustic.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
+							      get_shader_dir() + "modelrender.fshader"));
+		glsl_color_normal_specular_caustic.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
 								       get_shader_dir() + "modelrender.fshader", dl));
  		glsl_mirror_clip.reset(new glsl_shader_setup(get_shader_dir() + "modelrender_mirrorclip.vshader",
 							     get_shader_dir() + "modelrender_mirrorclip.fshader"));
@@ -1159,7 +1167,7 @@ void model::material::map::set_texture(texture* t)
 
 
 
-void model::material::set_gl_values() const
+void model::material::set_gl_values(const texture *caustic_map) const
 {
 	if (use_shaders) {
 		glsl_program::use_fixed();
@@ -1185,15 +1193,31 @@ void model::material::set_gl_values() const
 				glMaterialfv(GL_FRONT, GL_SPECULAR, coltmp);
 				glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
-				if (specularmap.get()) {
+				if (specularmap.get() && !caustic_map) {
 					glsl_color_normal_specular->use();
 					specularmap->set_gl_texture(*glsl_color_normal_specular, "tex_specular", 2);
 					normalmap->set_gl_texture(*glsl_color_normal_specular, "tex_normal", 1);
 					colormap->set_gl_texture(*glsl_color_normal_specular, "tex_color", 0);
-				} else {
+				} else
+				if (specularmap.get() && caustic_map) {
+					glsl_color_normal_specular_caustic->use();
+					glsl_color_normal_specular_caustic->set_gl_texture(*const_cast<texture *>(caustic_map), "tex_caustic", 3);
+					specularmap->set_gl_texture(*glsl_color_normal_specular_caustic, "tex_specular", 2);
+					normalmap->set_gl_texture(*glsl_color_normal_specular_caustic, "tex_normal", 1);
+					colormap->set_gl_texture(*glsl_color_normal_specular_caustic, "tex_color", 0);
+				} else
+				if (!specularmap.get() && !caustic_map)
+				{
 					glsl_color_normal->use();
 					normalmap->set_gl_texture(*glsl_color_normal, "tex_normal", 1);
 					colormap->set_gl_texture(*glsl_color_normal, "tex_color", 0);
+				} else
+				if (!specularmap.get() && caustic_map)
+				{
+					glsl_color_normal_caustic->use();
+					glsl_color_normal_caustic->set_gl_texture(*const_cast<texture *>(caustic_map), "tex_caustic", 2);
+					normalmap->set_gl_texture(*glsl_color_normal_caustic, "tex_normal", 1);
+					colormap->set_gl_texture(*glsl_color_normal_caustic, "tex_color", 0);
 				}
 
 			} else {
@@ -1346,11 +1370,11 @@ void model::material::get_all_layout_names(std::set<std::string>& result) const
 
 
 
-void model::mesh::display() const
+void model::mesh::display(const texture *caustic_map) const
 {
 	// set up material
 	if (mymaterial != 0) {
-		mymaterial->set_gl_values();
+		mymaterial->set_gl_values(caustic_map);
 	} else {
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glColor3f(0.5,0.5,0.5);
@@ -1461,6 +1485,22 @@ void model::mesh::display() const
 		} else {
 			glDisableClientState(GL_COLOR_ARRAY);
 		}
+		//	caustics
+		if(caustic_map)
+		{
+			GLfloat plane_s[4] = { 0.05, 0.0, 0.03, 0.0 };
+			GLfloat plane_t[4] = { 0.0, 0.05, 0.03, 0.0 };
+			glActiveTexture(GL_TEXTURE2);
+			glEnable(GL_TEXTURE_2D);
+			caustic_map->set_gl_texture();
+			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, 2);
+			glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+			glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+			glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s);
+			glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t);
+			glEnable(GL_TEXTURE_GEN_S);
+			glEnable(GL_TEXTURE_GEN_T);
+		}
 	}
 
 	// unbind VBOs (can't be static or we would need to define type of VBO vert/index)
@@ -1488,7 +1528,25 @@ void model::mesh::display() const
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex1
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
+	
+	//  caustics
+	if(caustic_map)
+	{
+		if(use_shaders)
+		{
+		}
+		else
+		{
+			glActiveTexture(GL_TEXTURE2);
+			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, 1);
+			glDisable(GL_TEXTURE_GEN_S);
+			glDisable(GL_TEXTURE_GEN_T);
+			glDisable(GL_TEXTURE_2D);
+			glActiveTexture(GL_TEXTURE0);
+		}
 
+	}
+    
 	// local transformation matrix.
 	glPopMatrix();
 
@@ -1587,7 +1645,7 @@ void model::set_layout(const std::string& layout)
 
 
 
-void model::display() const
+void model::display(const texture *caustic_map) const
 {
 	if (current_layout.length() == 0) {
 		throw error(filename + ": trying to render model, but no layout was set yet");
@@ -1596,10 +1654,10 @@ void model::display() const
 	// default scene: no objects, just draw all meshes.
 	if (scene.children.size() == 0) {
 		for (vector<model::mesh*>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
-			(*it)->display();
+			(*it)->display(caustic_map);
 		}
 	} else {
-		scene.display();
+		scene.display(caustic_map);
 	}
 
 	// reset texture units

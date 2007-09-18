@@ -401,6 +401,7 @@ void user_interface::set_time(double tm)
 	}
 
 	mysky->set_time(tm);
+	mycaustics.set_time(tm);
 	mygame->get_water().set_time(tm);
 }
 

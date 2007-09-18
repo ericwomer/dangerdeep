@@ -11,6 +11,12 @@ uniform sampler2D tex_specular;	// (if existent) specular map, LUMINANCE
 varying vec2 texcoord;
 varying vec3 lightdir, halfangle;
 
+#ifdef USE_CAUSTIC
+varying vec2 caustic_texcoord;
+uniform sampler2D tex_caustic; // (if existent) caustic map, LUMINANCE
+#endif
+
+
 void main()
 {
 	// get and normalize vector to light source
@@ -39,6 +45,9 @@ void main()
 
 	// final color of fragment
 	vec3 final_color = (diffuse_color + specular_color) * vec3(gl_LightSource[0].diffuse /*light_color*/);
+#ifdef USE_CAUSTIC
+    final_color *= max(texture2D(tex_caustic, caustic_texcoord.xy).x *2.0, 0.5);
+#endif
 
 	// add linear fog
 //	float fog_factor = clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0);

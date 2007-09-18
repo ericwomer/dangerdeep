@@ -721,12 +721,12 @@ vector2 sea_object::get_engine_noise_source () const
 
 
 
-void sea_object::display() const
+void sea_object::display(const texture *caustic_map) const
 {
 	if (mymodel) {
 //		cout << "render with skin layout = " << skin_name << "\n";
 		mymodel->set_layout(skin_name);
-		mymodel->display();
+		mymodel->display(caustic_map);
 	}
 }
 

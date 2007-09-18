@@ -104,7 +104,7 @@ public:
 		
 		material(const std::string& nm = "Unnamed material");
 		virtual ~material() {}
-		virtual void set_gl_values() const;
+		virtual void set_gl_values(const texture *caustic_map) const;
 		virtual void set_gl_values_mirror_clip() const;
 		virtual void register_layout(const std::string& name, const std::string& basepath);
 		virtual void unregister_layout(const std::string& name);
@@ -182,7 +182,7 @@ public:
 		matrix3 inertia_tensor;
 		double volume;
 
-		void display() const;
+		void display(const texture *caustic_map=NULL) const;
 		void display_mirror_clip() const;
 		void compute_bounds();	
 		void compute_normals();
@@ -263,7 +263,7 @@ protected:
 		bool set_translation(float value);
 		object* find(unsigned id);
 		object* find(const std::string& name);
-		void display() const;
+		void display(const texture *caustic_map=NULL) const;
 		void compute_bounds(vector3f& min, vector3f& max) const;
 	};
 
@@ -291,7 +291,9 @@ protected:
 
 	// Shader programs
 	static std::auto_ptr<glsl_shader_setup> glsl_color_normal;
+	static std::auto_ptr<glsl_shader_setup> glsl_color_normal_caustic;
 	static std::auto_ptr<glsl_shader_setup> glsl_color_normal_specular;
+	static std::auto_ptr<glsl_shader_setup> glsl_color_normal_specular_caustic;
 	static std::auto_ptr<glsl_shader_setup> glsl_mirror_clip;
 
 	// init / deinit
@@ -367,7 +369,7 @@ public:
 	~model();
 	static const std::string default_layout;
 	void set_layout(const std::string& layout = default_layout);
-	void display() const;
+	void display(const texture *caustic_map=NULL) const;
 	// display model but clip away coords with z < 0 in world space.
 	// set up modelview matrix with world->eye transformation before calling this function
 	// and give additional object->world transformation as matrix of texture unit #1 (2nd. unit).

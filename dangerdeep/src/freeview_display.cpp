@@ -197,6 +197,7 @@ struct alpha_cmp : public std::binary_function<water_splash*, water_splash*, boo
 void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 				    const vector<sea_object*>& objects,
 				    const colorf& light_color,
+					const bool under_water,
 				    bool mirrorclip) const
 {
 	// simulate horizon: d is distance to object (on perimeter of earth)
@@ -240,7 +241,7 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 			glMatrixMode(GL_MODELVIEW);
 			(*it)->display_mirror_clip();
 		} else {
-			(*it)->display();
+			(*it)->display(under_water ? ui.get_caustics().get_map() : NULL);
 		}
 		glPopMatrix();
 	}
@@ -264,7 +265,7 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 			vector3 pos = (*it)->get_pos() - viewpos;
 			glTranslated(pos.x, pos.y, pos.z);
 			glRotatef(-(*it)->get_heading().value(), 0, 0, 1);
-			(*it)->display();
+			(*it)->display(under_water ? ui.get_caustics().get_map() : NULL);
 			glPopMatrix();
 		}
 	}
@@ -640,7 +641,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 //	cout << "mv trans pos " << matrix4::get_gl(GL_MODELVIEW_MATRIX).column(3) << "\n";
 
 	// substract player pos.
-	draw_objects(gm, viewpos, objects, lightcol);
+	draw_objects(gm, viewpos, objects, lightcol, (above_water < 0) ? true : false /* under water */);
 
 	// ******************** draw the bridge in higher detail
 	if (aboard && drawbridge) {

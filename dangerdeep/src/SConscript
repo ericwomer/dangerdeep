@@ -67,6 +67,7 @@ dftdsources = Split("""subsim.cpp
 	torpedo_camera_display.cpp
 	triangulate.cpp
 	user_interface.cpp
+	caustics.cpp
 	water.cpp
 	water_splash.cpp""")
 

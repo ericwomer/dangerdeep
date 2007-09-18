@@ -20,8 +20,24 @@ varying vec2 texcoord;
 varying vec3 lightdir, halfangle;
 attribute vec4 tangentx_righthanded;
 
+#ifdef USE_CAUSTIC
+varying vec2 caustic_texcoord;
+const vec4 plane_s = { 0.05, 0.0, 0.03, 0.0 };
+const vec4 plane_t = { 0.0, 0.05, 0.03, 0.0 };
+
+float calculate_caustic_coords(vec3 pos, vec4 plane)
+{
+	return pos.x*plane.x + pos.y*plane.y + pos.z*plane.z + plane.w;
+}
+#endif
+
 void main()
 {
+#ifdef USE_CAUSTIC
+	caustic_texcoord = vec2( calculate_caustic_coords(gl_Vertex.xyz, plane_s),
+   					  		calculate_caustic_coords(gl_Vertex.xyz, plane_t) );
+#endif
+
 	// compute tangent space
 	// gl_Normal = tangentz
 	vec3 tangentx = vec3(tangentx_righthanded);
