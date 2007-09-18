@@ -518,10 +518,10 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 		// die normale umdrehen? n?ann geht der Rest nicht mehr. Wie viele lefthanded-Koordinaten gibt es denn so?
 		// was sagt Luis dazu?
 		// das wird sich aber wohl nicht vermeiden lassen?
-		// tangenty wird nicht  bertragen, aber wenn man tangentx umdreht, geht das auch?!
+		// tangenty wird nicht uebertragen, aber wenn man tangentx umdreht, geht das auch?!
 		// righthanded aber erst versuchen zu entfernen, wenn der rest geht!!!
 		// der mix aus zwei Koordinatensystemen kann eigentlich nicht gut gehen.
-		// wird aber vermutlich gebraucht um nur eine Seitenansicht f r beide Rumpfseiten zu nehmen, aber das macht
+		// wird aber vermutlich gebraucht um nur eine Seitenansicht fuer beide Rumpfseiten zu nehmen, aber das macht
 		// Luis ja gar nicht...
 		righthanded[i0] = !(g > 0); // fixme: negation seems needed???
 		return true;
