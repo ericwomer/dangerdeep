@@ -117,7 +117,8 @@ void sub_uzo_display::post_display(game& gm) const
 
 sub_uzo_display::sub_uzo_display(user_interface& ui_) : freeview_display(ui_), zoomed(false)
 {
-	add_pos = vector3(0, 0, 6);//fixme, depends on sub
+	submarine* sub = dynamic_cast<submarine*>( ui_.get_game().get_player() );
+	add_pos = sub->get_uzo_position();
 	aboard = true;
 	withunderwaterweapons = false;
 	drawbridge = false;

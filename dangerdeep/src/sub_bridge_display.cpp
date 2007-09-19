@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "user_interface.h"
 #include "keys.h"
 #include "cfg.h"
+#include "submarine.h"
 
 
 
@@ -67,7 +68,9 @@ void sub_bridge_display::post_display(game& gm) const
 
 sub_bridge_display::sub_bridge_display(user_interface& ui_) : freeview_display(ui_), glasses_in_use(false)
 {
-	add_pos = vector3(0, 0, 6);//fixme, depends on sub
+	submarine* sub = dynamic_cast<submarine*>( ui_.get_game().get_player() );
+	add_pos = sub->get_camera_position();
+
 	aboard = true;
 	withunderwaterweapons = false;
 	drawbridge = true;

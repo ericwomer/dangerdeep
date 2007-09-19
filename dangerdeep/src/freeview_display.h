@@ -48,7 +48,7 @@ protected:
 
 	// used only in 3d view. a bit hackish to place it here, but better than in global data.
 	// later store in class submarine. use cache to store, this is only a reference.
-	class model *conning_tower_typeVII;
+	class model *conning_tower;
 
 	class texture* underwater_background;
 

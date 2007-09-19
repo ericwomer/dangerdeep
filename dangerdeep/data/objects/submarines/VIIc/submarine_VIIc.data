@@ -45,5 +45,10 @@
   <gun_turrets>
   	<turret barrels="1" shell_capacity="220" initial_velocity="200.0" max_inclination="30" max_declination="0" time_to_man="20" time_to_unman="20" shell_damage="0.2" calibre="88.0" exclusion_radius_start="160" exclusion_radius_end="200"/>
   </gun_turrets>
+  <bridge model="conning_tower_typeVIIc.xml">
+  	<camera x="0.25" y="3.45" z="5.65"/>
+  	<uzo x="0" y="0" z="6"/>
+  	<freeview x="20" y="0" z="10"/>
+  </bridge>
 </dftd-submarine>
 

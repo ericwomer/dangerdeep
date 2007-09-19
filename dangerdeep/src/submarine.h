@@ -179,6 +179,12 @@ protected:
 	// sonar man. its contents must get saved... fixme
 	sonar_operator sonarman;
 
+	// bridge data
+	std::string bridge_model_name;
+	vector3 bridge_camera_pos;
+	vector3 bridge_uzo_pos;
+	vector3 bridge_freeview_pos;
+
 public:
 	// there were more types, I, X (mine layer), XIV (milk cow), VIIf, (and VIId)
 	// and some experimental types. (VIIc42, XVIIa/b)
@@ -204,6 +210,12 @@ public:
 	virtual void simulate(double delta_time);
 
 	void set_target(sea_object* s);
+
+	// get bridge data
+	std::string get_bridge_file()   { return bridge_model_name; }
+	vector3 get_camera_position()   { return bridge_camera_pos; }
+	vector3 get_uzo_position()      { return bridge_uzo_pos; }
+	vector3 get_freeview_position() { return bridge_freeview_pos; }
 
 	// fill available tubes with common types depending on time period (used for custom missions)
 	virtual void init_fill_torpedo_tubes(const class date& d);

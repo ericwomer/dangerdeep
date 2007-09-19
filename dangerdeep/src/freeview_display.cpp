@@ -100,13 +100,15 @@ void freeview_display::post_display(game& gm) const
 
 freeview_display::freeview_display(user_interface& ui_) :
 	user_display(ui_), aboard(false), withunderwaterweapons(true), drawbridge(false),
-	conning_tower_typeVII(0)
+	conning_tower(0)
 {
-	add_pos = vector3(20,0,10);
+	submarine* sub = dynamic_cast<submarine*>( ui_.get_game().get_player() );
+	add_pos = sub->get_freeview_position();
+	conning_tower = modelcache().ref( sub->get_bridge_file() );
+
 	texturecache().ref("splashring.png");
-	conning_tower_typeVII = modelcache().ref("conning_tower_typeVIIc.xml");
-	conning_tower_typeVII->register_layout();
-	conning_tower_typeVII->set_layout();
+	conning_tower->register_layout();
+	conning_tower->set_layout();
 	add_loading_screen("conning tower model loaded");
 	// valgrind reports lost memory in the following line, but why?!
 	std::auto_ptr<texture> uwbt(new texture(get_texture_dir() + "underwater_background.png", texture::LINEAR, texture::CLAMP_TO_EDGE));
@@ -119,7 +121,7 @@ freeview_display::freeview_display(user_interface& ui_) :
 freeview_display::~freeview_display()
 {
 	texturecache().unref("splashring.png");
-	modelcache().unref(conning_tower_typeVII);
+	modelcache().unref(conning_tower);
 	texturecache().unref(underwater_background);
 }
 
@@ -654,7 +656,8 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		//glRotatef(-player->get_heading().value(),0,0,1);
 		// fixme: rotate by player's orientation, but this looks strange, see above why.
 		player->get_orientation().rotmat4().multiply_gl();
-		conning_tower_typeVII->display();
+		glTranslated(conntowerpos.x, conntowerpos.y, conntowerpos.z);
+		conning_tower->display();
 		glPopMatrix();
 	}
 

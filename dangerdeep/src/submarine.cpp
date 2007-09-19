@@ -228,6 +228,14 @@ submarine::submarine(game& gm_, const xml_elem& parent)
 		hearing_device = hearing_device_GHG;
 	else
 		hearing_device = hearing_device_BG;
+
+	// load the bridge data
+	xml_elem br = parent.child("bridge");
+	bridge_model_name = br.attr("model");
+
+	bridge_camera_pos = br.child("camera").attrv3();
+	bridge_uzo_pos = br.child("uzo").attrv3();
+	bridge_freeview_pos = br.child("freeview").attrv3();
 }
 
 

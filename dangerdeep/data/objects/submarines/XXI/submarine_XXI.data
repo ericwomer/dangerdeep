@@ -31,4 +31,9 @@
   <battery capacity="100" consumption_a="1.3129e-6" consumption_t="0.77071" recharge_a="1" recharge_t="1"/>
   <torpedomanage image="../VIIc/type7c_torpmanage_sidetop.jpg|png" />
   <fuel capacity="1200" consumption_a="7.3405e-9" consumption_t="1.63535"/>  
+  <bridge model="conning_tower_typeVIIc.xml">
+  	<camera x="0.25" y="3.45" z="5.65"/>
+  	<uzo x="0" y="0" z="6"/>
+  	<freeview x="20" y="0" z="10"/>
+  </bridge>
 </dftd-submarine>
