@@ -297,6 +297,9 @@ int mymain(list<string>& args)
 	mdl->set_layout();
 	vector3f mmin = mdl->get_min();
 	vector3f mmax = mdl->get_max();
+	// modify min/max so that model is always fully visible, when it rotates.
+	mmin = mmin.min(-mmax);
+	mmax = -mmin;
 	mw = mmax.y - mmin.y;
 	mh = mmax.z - mmin.z;
 	screenarea_meters = mw * mh;
