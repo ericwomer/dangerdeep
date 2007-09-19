@@ -307,8 +307,8 @@ int mymain(list<string>& args)
 	// set up primary modelview matrix
 	glLoadIdentity();
 	glScalef(double(res_x)/mw, double(res_y)/mh, 0.0);
-	//fixme: min/max doesnt handle the translation, this could be the problem
 	cout << "min=" << mmin << " max=" << mmax << " mw=" << mw << " mh=" << mh << "\n";
+	//fixme: is not correct for y-assymetric models!
 	glTranslated(-mmin.y, -mmin.z, 0);
 
 	// voxel resolution
@@ -395,11 +395,21 @@ int mymain(list<string>& args)
 	}
 	catch (std::exception& e) {
 		cout << e.what() << "\n";
-		//fixme: show model here as reference, correctly centered
-		//that is, render base_mesh, so that it fits to the screen,
-		//without handling its transformation!
-		//so multiply inverse mesh transformation, then call display().
-		//before set scale/trans according to mesh min/max so that it fits...
+		mmin = mdl->get_base_mesh().min;
+		mmax = mdl->get_base_mesh().max;
+		mw = mmax.y - mmin.y;
+		mh = mmax.z - mmin.z;
+		glLoadIdentity();
+		glScalef(double(res_x)/mw, double(res_y)/mh, 0.0);
+		cout << "min=" << mmin << " max=" << mmax << " mw=" << mw << " mh=" << mh << "\n";
+		// sub's y-axis must point right, so that it fits massmap
+		glTranslated(-mmin.y, -mmin.z, 0);
+		glRotated(-90.0, 0, 1, 0);
+		glRotated(-90.0, 1, 0, 0);
+		mdl->get_base_mesh().transformation.inverse().multiply_gl();
+		glClear(GL_COLOR_BUFFER_BIT);
+		mdl->get_base_mesh().display();
+		sys().swap_buffers();
 		sleep(10);
 	}
 
