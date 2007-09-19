@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
-  <classification identifier="fortshipciv" modelname="fortshipciv.ddxml" type="merchant" country="US"/>
+  <classification identifier="fortshipciv" modelname="fortshipciv.ddxml" type="merchant" country="US" >
+    <skin name="americanexport" regions="WA,NA,CA,SA,CS,NP,CP,SP,GM,BB,UC,SC,CE,NW" from="1939/1/1" until="1945/12/31" />
+	<skin name="caribbean" regions="CS,CP,GM,UC,SC,SA,CA" from="1939/1/1" until="1944/12/31" />
+  </classification>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>
