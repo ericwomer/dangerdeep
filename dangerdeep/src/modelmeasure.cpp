@@ -342,10 +342,16 @@ int mymain(list<string>& args)
 		w0->start();
 		w1->start();
 		sys().prepare_2d_drawing();
-		glColor3f(1, 0, 0);
 		while (ctr > 0) {
-			int h = res_y - res_y * ctr / (resolution.z * resolution.y);
-			sys().draw_rectangle(0, 0, res_x/10, h);
+			int w = res_x - res_x * ctr / (resolution.z * resolution.y);
+			glBegin(GL_QUADS);
+			glColor3f(1, 0, 0);
+			glVertex2i(0, 0);
+			glVertex2i(0, res_y/10);
+			glColor3f(0, 0, 1);
+			glVertex2i(w, res_y/10);
+			glVertex2i(w, 0);
+			glEnd();
 			sys().swap_buffers();
 			thread::sleep(100);
 		}
@@ -413,7 +419,8 @@ int mymain(list<string>& args)
 		glClear(GL_COLOR_BUFFER_BIT);
 		mdl->get_base_mesh().display();
 		sys().swap_buffers();
-		sleep(10);
+		sys().screenshot(modelfilename.substr(0, st) + ".mass_map_draft");
+		sleep(3);
 	}
 
 	double vol_inside = (inside_vol * vol) / (255.0f*is_inside.size());

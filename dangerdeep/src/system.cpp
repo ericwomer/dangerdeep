@@ -545,7 +545,7 @@ list<SDL_Event> system::poll_event_queue()
 	return events;
 }
 
-void system::screenshot()
+void system::screenshot(const std::string& filename)
 {
 	Uint32 rmask, gmask, bmask;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -569,11 +569,17 @@ void system::screenshot()
 	}
 	SDL_Surface* tmp = SDL_CreateRGBSurfaceFrom(&pic[0], res_x, res_y,
 		24, res_x*3, rmask, gmask, bmask, 0);
-	ostringstream os;
-	os << "screenshot" << screenshot_nr++ << ".bmp";
-	SDL_SaveBMP(tmp, os.str().c_str());
+	std::string fn;
+	if (filename.empty()) {
+		ostringstream os;
+		os << screenshot_dir << "screenshot" << screenshot_nr++ << ".bmp";
+		fn = os.str();
+	} else {
+		fn = filename + ".bmp";
+	}
+	SDL_SaveBMP(tmp, fn.c_str());
 	SDL_FreeSurface(tmp);
-	add_console(string("screenshot taken as ")+os.str());
+	add_console(string("screenshot taken as ")+fn);
 }
 
 void system::draw_rectangle(int x, int y, int w, int h)

@@ -96,7 +96,7 @@ public:
 	void error(const char* msg, ...);
 	
 	void set_screenshot_directory(const string& s) { screenshot_dir = s; }
-	void screenshot();
+	void screenshot(const std::string& filename = std::string());
 
 	void draw_rectangle(int x, int y, int w, int h);
 	
