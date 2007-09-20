@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "tinyxml/tinyxml.h"
 #include "global_data.h"
 #include "system.h"
+#include "log.h"
 #include <sstream>
 #include "xml.h"
 using namespace std;
@@ -152,8 +153,7 @@ void cfg::load(const string& filename)
 					}
 				}
 				if (nr == NR_OF_KEY_IDS) {
-					sys().add_console(string("WARNING: found key with invalid name ") +
-								  keyname + string(" in config file"));
+					log_warning("found key with invalid name " << keyname << " in config file");
 					continue;
 				}
 				SDLKey keysym = SDLKey(XmlAttribu(ke, "keysym"));
@@ -166,7 +166,7 @@ void cfg::load(const string& filename)
 			string attrstr = XmlAttrib(eattr, "value");
 			bool found = set_str(eattr->Value(), attrstr);
 			if (!found)
-				sys().add_console(string("WARNING: config option not registered: ") + eattr->Value());
+				log_warning("config option not registered: " << eattr->Value());
 		}
 	}
 }
