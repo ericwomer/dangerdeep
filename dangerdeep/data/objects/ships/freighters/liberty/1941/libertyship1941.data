@@ -16,7 +16,8 @@
     <near lang="it">Nave di classe Liberty</near>
   </description>
   <motion maxspeed="1" maxrevspeed="0" acceleration="0.1" turnrate="0.1"/>
-  <tonnage min="7176" max="16176"/>
+  <tonnage value="7177" />
+  <mass value="14245000" />
   <smoke type="1" x="0" y="-2.2" z="18.7"/>
   <sensors>
     <sensor type="lookout"/>
