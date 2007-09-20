@@ -309,10 +309,12 @@ int mymain(list<string>& args)
 
 	// set up primary modelview matrix
 	glLoadIdentity();
-	glScalef(double(res_x)/mw, double(res_y)/mh, 0.0);
+	// do not show model centered at screen but only above waterline
+	//glScalef(double(res_x)/mw, double(res_y)/mh, 0.0);
+	glScalef(double(res_x)/mw, double(res_y)*2/mh, 0.0);
 	cout << "min=" << mmin << " max=" << mmax << " mw=" << mw << " mh=" << mh << "\n";
-	//fixme: is not correct for y-assymetric models!
-	glTranslated(-mmin.y, -mmin.z, 0);
+	//glTranslated(-mmin.y, -mmin.z, 0);
+	glTranslated(-mmin.y, 0, 0);
 
 	// voxel resolution
 	const vector3i resolution(5, 7, 7);
