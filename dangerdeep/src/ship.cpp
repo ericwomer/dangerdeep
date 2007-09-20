@@ -119,9 +119,14 @@ ship::ship(game& gm_, const xml_elem& parent)
 		tonnage = 0;
 	} else {
 		xml_elem etonnage = parent.child("tonnage");
-		unsigned minton = etonnage.attru("min");
-		unsigned maxton = etonnage.attru("max");
-		tonnage = minton + rnd(maxton - minton + 1);
+		if (etonnage.has_attr("value")) {
+		tonnage = parent.child("tonnage").attru();
+		} else {
+			sys().add_console(std::string("wrong <tonnage> tag in file ") + etonnage.doc_name());
+			unsigned minton = etonnage.attru("min");
+			unsigned maxton = etonnage.attru("max");
+			tonnage = minton + rnd(maxton - minton + 1);
+		}
 	}
 	xml_elem emotion = parent.child("motion");
 	if (myclass == TORPEDO) {
@@ -679,13 +684,6 @@ unsigned ship::calc_damage() const
 		return 100;
 	unsigned dmg = unsigned(round(15*(bow_damage + midship_damage + stern_damage)));
 	return dmg > 100 ? 100 : dmg;
-}
-
-
-
-double ship::get_roll_factor() const
-{
-	return 400.0 / (get_tonnage() + 6000.0);	// fixme: rather simple yet. should be overloaded by each ship
 }
 
 

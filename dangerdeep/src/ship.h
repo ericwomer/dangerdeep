@@ -75,7 +75,7 @@ class ship : public sea_object
 	};
 
  protected:
-	unsigned tonnage;	// in BRT, created after values from spec file (but maybe with some randomness), must get stored!
+	unsigned tonnage;	// in BRT, created after values from spec file, must get stored!
 
 	int throttle;		// if < 0: throttle_state, if > 0: knots
 
@@ -256,7 +256,6 @@ public:
 	virtual bool damage(const vector3& fromwhere, unsigned strength);
 	virtual unsigned calc_damage() const;	// returns damage in percent (100 means dead)
 	// this depends on ship's tonnage, type, draught and depth (subs/sinking ships)
-	virtual double get_roll_factor() const;
 	virtual unsigned get_tonnage() const { return tonnage; }
 	virtual double get_fuel_level () const { return fuel_level; }
 	virtual angle get_head_to() const { return head_to_fixed ? head_to : heading; };

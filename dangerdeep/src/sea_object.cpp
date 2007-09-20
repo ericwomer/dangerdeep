@@ -271,10 +271,12 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 //  	cout << "base c'tor: registered layout " << skin_name << "\n";
 	size3d = vector3f(mymodel->get_width(), mymodel->get_length(), mymodel->get_height());
 
-	// update inertia tensor as test hack, set to box with that size and given mass
-	// that matches the volume.
-	mass = mymodel->get_base_mesh().volume * 500; // assume 0,5tons per cubic meter as crude guess.
-	//std::cout << "size=" << size3d << " mass=" << mass << "\n";
+	// this constructor is used for simple models like depth charges and grenades.
+	// we use the displacement value as mass plus some extra part to make
+	// them sink.
+	// later we should give spec files for every object and then erase this
+	// constructor.
+	mass = mymodel->get_base_mesh().volume * 1100;
 	mass_inv = 1.0/mass;
 	inertia_tensor = mymodel->get_base_mesh().inertia_tensor * matrix3(mass,0,0,0,mass,0,0,0,mass); // fixme: handle mass!
 	inertia_tensor_inv = inertia_tensor.inverse();
@@ -332,12 +334,15 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 	mymodel = modelcache().ref(data_file().get_rel_path(specfilename) + modelname);
 	size3d = vector3f(mymodel->get_width(), mymodel->get_length(), mymodel->get_height());
 
-	// update inertia tensor as test hack, set to box with that size and given mass
-	// that matches the volume.
-	mass = mymodel->get_base_mesh().volume * 500; // assume 0,5tons per cubic meter as crude guess.
-	//std::cout << "size=" << size3d << " mass=" << mass << "\n";
+	// read mass from spec file
+	if (parent.has_child("mass")) {
+	mass = parent.child("mass").attrf();
+	} else {
+		sys().add_console(std::string("no <mass> tag in file ") + parent.doc_name());
+		mass = mymodel->get_base_mesh().volume * 500; // assume 0,5tons per cubic meter as crude guess.
+	}
 	mass_inv = 1.0/mass;
-	inertia_tensor = mymodel->get_base_mesh().inertia_tensor * matrix3(mass,0,0,0,mass,0,0,0,mass); // fixme: handle mass!
+	inertia_tensor = mymodel->get_base_mesh().inertia_tensor * mass;
 	inertia_tensor_inv = inertia_tensor.inverse();
 
 	string countrystr = cl.attr("country");
