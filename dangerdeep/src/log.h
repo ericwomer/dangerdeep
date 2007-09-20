@@ -24,9 +24,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef LOG_H
 #define LOG_H
 
-#include <iostream>
+#include <sstream>
 
-class log_stream : public std::ostream
+#define log_template(x, y) do { std::ostringstream oss; oss << x; log::instance().append(log::y, oss.str()); } while(0)
+#define log_debug(x) log_template(x, DEBUG)
+#define log_info(x) log_template(x, INFO)
+#define log_warning(x) log_template(x, WARNING)
+
+class log
 {
  public:
 	enum level {
@@ -35,23 +40,14 @@ class log_stream : public std::ostream
 		DEBUG,
 	};
 
-	log_stream(level l);
-	std::ostream& endl(std::ostream& os);
-
- protected:
-	level mylevel;
-};
-
-class log
-{
- public:
-	static log_stream debug, info, warning;
+	static log& instance();
 	log();
-	void write(std::ostream& out, log_stream::level limit_level) const;
-	void append(log_stream::level l, const std::string& msg);
+	void write(std::ostream& out, log::level limit_level) const;
+	void append(log::level l, const std::string& msg);
 
  protected:
 	class log_internal* mylogint;
+	static log* myinstance;
 };
 
 #endif

@@ -25,32 +25,18 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "mutex.h"
 #include <list>
 #include <string>
+#include <iostream>
 #include <SDL.h>
-
-log_stream::log_stream(level l)
-	: mylevel(l)
-{
-}
-
-// fixme: make access to list thread safe!
-
-
-std::ostream& log_stream::endl(std::ostream& os)
-{
-	// add a line to the log file
-	return os;
-}
-
 
 
 struct log_msg
 {
-	log_stream::level lvl;
+	log::level lvl;
 	Uint32 tid;
 	Uint32 time;
 	std::string msg;
 
-	log_msg(log_stream::level l, const std::string& m)
+	log_msg(log::level l, const std::string& m)
 		: lvl(l),
 		  tid(SDL_ThreadID()),
 		  time(SDL_GetTicks()),
@@ -58,9 +44,24 @@ struct log_msg
 	{
 	}
 
-	std::string pretty_print() const {
-		// fixme, use ansi coloring
-		return msg;
+	std::string pretty_print() const
+	{
+		std::ostringstream oss;
+		switch (lvl) {
+		case log::WARNING:
+			oss << "\033[1;31m";
+			break;
+		case log::INFO:
+			oss << "\033[1;34m";
+			break;
+		case log::DEBUG:
+			oss << "\033[1;32m";
+			break;
+		default:
+			oss << "\033[0m";
+		}
+		oss << "[" << std::hex << tid << "] <" << std::dec << time << "> " << msg << "\033[0m";
+		return oss.str();
 	}
 };
 
@@ -79,18 +80,31 @@ log::log()
 	mylogint = new log_internal();
 }
 
-void log::append(log_stream::level l, const std::string& msg)
+log* log::myinstance = 0;
+
+log& log::instance()
+{
+	if (!myinstance)
+		myinstance = new log();
+	return *myinstance;
+}
+
+void log::append(log::level l, const std::string& msg)
 {
 	mutex_locker ml(mylogint->mtx);
 	mylogint->loglines.push_back(log_msg(l, msg));
+#if 1
+	std::cout << mylogint->loglines.back().pretty_print() << std::endl;
+#endif
 }
 
-void log::write(std::ostream& out, log_stream::level limit_level) const
+void log::write(std::ostream& out, log::level limit_level) const
 {
 	// process log_msg and make ANSI colored text lines of it
 	mutex_locker ml(mylogint->mtx);
 	for (std::list<log_msg>::const_iterator it = mylogint->loglines.begin();
 	     it != mylogint->loglines.end(); ++it) {
-		out << it->pretty_print() << std::endl;
+		if (it->lvl <= limit_level)
+			out << it->pretty_print() << std::endl;
 	}
 }

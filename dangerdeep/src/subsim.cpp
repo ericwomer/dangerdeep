@@ -59,7 +59,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "faulthandler.h"
 #include "datadirs.h"
 #include "credits.h"
-
+#include "log.h"
 #include "mymain.cpp"
 
 using std::auto_ptr;
@@ -1744,11 +1744,12 @@ int mymain(list<string>& args)
 	mysys->set_screenshot_directory(savegamedirectory);
 	mysys->set_res_2d(1024, 768);
 	mysys->set_max_fps(maxfps);
-	
-	mysys->add_console("$ffffffDanger $c0c0c0from the $ffffffDeep");
-	mysys->add_console("$ffff00copyright and written 2003 by $ff0000Thorsten Jordan");
-	mysys->add_console(string("$ff8000version ") + get_program_version());
-	mysys->add_console("$80ff80*** welcome ***");
+
+	log_info("Danger from the Deep");
+	log_info("Copyright (C) 2003-2007  Thorsten Jordan, Luis Barrancos and others.");
+	log_info("Version " << get_program_version());
+	log_warning("add more log msgs");
+	log_debug("Hi Luis!");
 
 	GLfloat lambient[4] = {0.1,0.1,0.1,1};
 	GLfloat ldiffuse[4] = {1,1,1,1};
@@ -1889,6 +1890,8 @@ int mymain(list<string>& args)
 	widget::set_theme(auto_ptr<widget::theme>(0));	// clear allocated theme
 	deinit_global_data();
 	gbd.reset();
+
+	//log::instance().write(std::cout, log::DEBUG);
 
 	return 0;
 }
