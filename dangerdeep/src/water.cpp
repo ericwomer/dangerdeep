@@ -49,6 +49,7 @@ using std::ostringstream;
 using std::setw;
 using std::setfill;
 using std::vector;
+using std::list;
 
 #ifndef fmin
 #define fmin(x,y) (x<y) ? x : y

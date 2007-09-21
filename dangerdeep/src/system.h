@@ -24,16 +24,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define SYSTEM_H
 
 #include <SDL.h>
-#include <queue>
 #include <list>
 #include <set>
 #include <string>
 #include "vector2.h"
-
-using std::list;
-using std::string;
-using std::queue;
-using std::set;
 
 #ifdef WIN32
 #ifndef M_PI
@@ -62,7 +56,7 @@ public:
 	// the events are also bypassed to the application.
 	// if you want to interpret the events yourself, just call flush_key_queue()
 	// after poll_event_queue to avoid filling the queue.
-	list<SDL_Event> poll_event_queue();
+	std::list<SDL_Event> poll_event_queue();
 	//fixme: mouse position translation is now missing!!!!
 	//but if the position is translated here, e.g. from high to a low resolution
 	//many small movements may get mapped to < 1.0 movements, they are zero ->
@@ -72,7 +66,6 @@ public:
 
 	void screen_resize(unsigned w, unsigned h, double nearz, double farz);
 	
-	void add_console(const string& tx);
 	void draw_console_with(const font* fnt, const texture* background = 0);
 	void prepare_2d_drawing();	// must be called as pair!
 	void unprepare_2d_drawing();
@@ -80,10 +73,10 @@ public:
 	unsigned long millisec();	// returns time in milliseconds
 
 	static inline system& sys() { return *instance; };
-	void myassert(bool cond, const string& msg = "");
+	void myassert(bool cond, const std::string& msg = "");
 	void myassert(bool cond, const char* fmt, ...);
 	
-	void set_screenshot_directory(const string& s) { screenshot_dir = s; }
+	void set_screenshot_directory(const std::string& s) { screenshot_dir = s; }
 	void screenshot(const std::string& filename = std::string());
 
 	void draw_rectangle(int x, int y, int w, int h);
@@ -105,13 +98,13 @@ public:
 	vector2i get_res_2d() const { return vector2i(res_x_2d, res_y_2d); }
 	
 	// is a given OpenGL extension supported?
-	bool extension_supported(const string& s) const;
+	bool extension_supported(const std::string& s) const;
 
 	const std::list<vector2i>& get_available_resolutions() const { return available_resolutions; }
 	bool is_fullscreen_mode() const { return is_fullscreen; }
 	
 private:
-	system() {};
+	system() {}
 	unsigned res_x, res_y;		// virtual resolution (fixed for project)
 	double nearz, farz;
 	bool is_fullscreen;
@@ -119,7 +112,7 @@ private:
 	const font* console_font;
 	const texture* console_background;	
 	
-	set<string> supported_extensions;	// memory supported OpenGL extensions
+	std::set<std::string> supported_extensions;	// memory supported OpenGL extensions
 	
 	bool draw_2d;
 	unsigned res_x_2d, res_y_2d;	// real resolution (depends on user settings)
@@ -138,7 +131,7 @@ private:
 	double xscal_2d, yscal_2d;	// factors needed for 2d drawing
 	
 	int screenshot_nr;
-	string screenshot_dir;
+	std::string screenshot_dir;
 
 	// list of available resolutions
 	std::list<vector2i> available_resolutions;

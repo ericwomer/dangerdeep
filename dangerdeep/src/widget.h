@@ -62,13 +62,13 @@ class widget
 {
 protected:
 	vector2i pos, size;
-	string text;
+	std::string text;
 	widget* parent;
 	std::string background_image_name;
 	image* background; // if this is != 0, the image is rendered in the background, centered
 	const texture* background_tex; // drawn as tiles if != 0 and no image defined
 	bool enabled;
-	list<widget*> children;
+	std::list<widget*> children;
 	int retval;
 	bool closeme;	// is set to true by close(), stops run() the next turn
 	mutable bool redrawme;	// is set to true by redraw(), cleared each time draw() is called
@@ -119,7 +119,7 @@ public:
 	static void set_theme(std::auto_ptr<theme> t) { globaltheme = t; }
 	static const theme* get_theme() { return globaltheme.get(); }
 	static std::auto_ptr<theme> replace_theme(std::auto_ptr<theme> t);
-	widget(int x, int y, int w, int h, const string& text_, widget* parent_ = 0, const std::string& backgrimg = std::string());
+	widget(int x, int y, int w, int h, const std::string& text_, widget* parent_ = 0, const std::string& backgrimg = std::string());
 	virtual ~widget();
 	virtual void add_child(widget* w);
 	/** same as add_child, but place new child near last child.
@@ -142,8 +142,8 @@ public:
 	virtual void set_size(const vector2i& s) { size = s; }
 	virtual widget* get_parent() const { return parent; }
 	virtual void set_parent(widget* w) { parent = w; }
-	virtual string get_text() const { return text; }
-	virtual void set_text(const string& s) { text = s; }
+	virtual std::string get_text() const { return text; }
+	virtual void set_text(const std::string& s) { text = s; }
 	virtual const image* get_background() const { return background; }
 	virtual const texture* get_background_tex() const { return background_tex; }
 	//Note! such a function is a bad idea, as image is not unref'd then at the cache!
@@ -171,18 +171,18 @@ public:
 	// determine type of input, fetch it to on_* functions
 	virtual void process_input(const SDL_Event& event);
 	// just calls the previous function repeatedly
-	virtual void process_input(const list<SDL_Event>& events);
+	virtual void process_input(const std::list<SDL_Event>& events);
 
 	// check if event is mouse event and is over widget. In that case process_input()
 	// is called and true is returned
 	virtual bool check_for_mouse_event(const SDL_Event& event);
 
 	// run() always returns 1    - fixme: make own widget classes for them?
-	static widget* create_dialogue_ok(widget* parent_, const string& title, const string& text = "");
-	widget* create_dialogue_ok(const string& title, const string& text = "") { return create_dialogue_ok(this, title, text); }
+	static widget* create_dialogue_ok(widget* parent_, const std::string& title, const std::string& text = "");
+	widget* create_dialogue_ok(const std::string& title, const std::string& text = "") { return create_dialogue_ok(this, title, text); }
 	// run() returns 1 for ok, 0 for cancel
-	static widget* create_dialogue_ok_cancel(widget* parent_, const string& title, const string& text = "");
-	widget* create_dialogue_ok_cancel(const string& title, const string& text = "") { return create_dialogue_ok_cancel(this, title, text); }
+	static widget* create_dialogue_ok_cancel(widget* parent_, const std::string& title, const std::string& text = "");
+	widget* create_dialogue_ok_cancel(const std::string& title, const std::string& text = "") { return create_dialogue_ok_cancel(this, title, text); }
 
 	// show & exec. widget, automatically disable widgets below
 	// run() runs for "time" milliseconds (or forever if time == 0), then returns
@@ -191,7 +191,7 @@ public:
 	virtual void close(int val);	// close this widget (stops run() on next turn, returns val)
 	virtual void open();	// "open" this widget (reverts what close() did)
 	
-	static list<widget*> widgets;	// stack of dialogues, topmost is back
+	static std::list<widget*> widgets;	// stack of dialogues, topmost is back
 	static void ref_all_backgrounds();	// for all stacked widgets, ref backgrounds
 	static void unref_all_backgrounds();	// for all stacked widgets, unref backgrounds
 };
@@ -205,10 +205,10 @@ protected:
 	widget_text(const widget_text& );
 	widget_text& operator= (const widget_text& );
 public:
-	widget_text(int x, int y, int w, int h, const string& text_, widget* parent_ = 0, bool sunken_ = false)
+	widget_text(int x, int y, int w, int h, const std::string& text_, widget* parent_ = 0, bool sunken_ = false)
 		: widget(x, y, w, h, text_, parent_), sunken(sunken_) {}
 	void draw() const;
-	virtual void set_text_and_resize(const string& s);
+	virtual void set_text_and_resize(const std::string& s);
 };
 
 class widget_checkbox : public widget
@@ -220,7 +220,7 @@ protected:
 	widget_checkbox(const widget_checkbox& );
 	widget_checkbox& operator= (const widget_checkbox& );
 public:
-	widget_checkbox(int x, int y, int w, int h, bool checked_, const string& text_, widget* parent_ = 0)
+	widget_checkbox(int x, int y, int w, int h, bool checked_, const std::string& text_, widget* parent_ = 0)
 		: widget(x, y, w, h, text_, parent_), checked(checked_) {}
 	void draw() const;
 	void on_click(int mx, int my, int mb);
@@ -237,7 +237,7 @@ protected:
 	widget_button(const widget_button& );
 	widget_button& operator= (const widget_button& );
 public:
-	widget_button(int x, int y, int w, int h, const string& text_,
+	widget_button(int x, int y, int w, int h, const std::string& text_,
 		      widget* parent_ = 0, const std::string& backgrimg = std::string()) : widget(x, y, w, h, text_, parent_, backgrimg), pressed(false) {}
 	void draw() const;
 	void on_click(int mx, int my, int mb);
@@ -253,7 +253,7 @@ class widget_caller_button : public widget_button
 	Func func;
 public:
 	widget_caller_button(Obj* obj_, Func func_, int x = 0, int y = 0, int w = 0, int h = 0,
-		const string& text = "", widget* parent = 0)
+		const std::string& text = "", widget* parent = 0)
 		: widget_button(x, y, w, h, text, parent), obj(obj_), func(func_) {}
 	void on_release() { widget_button::on_release(); (obj->*func)(); }
 };
@@ -266,7 +266,7 @@ class widget_caller_arg_button : public widget_button
 	Arg arg;
 public:
 	widget_caller_arg_button(Obj* obj_, Func func_, Arg arg_, int x = 0, int y = 0, int w = 0, int h = 0,
-		const string& text = "", widget* parent = 0)
+		const std::string& text = "", widget* parent = 0)
 		: widget_button(x, y, w, h, text, parent), obj(obj_), func(func_), arg(arg_) {}
 	void on_release() { widget_button::on_release(); (obj->*func)(arg); }
 };
@@ -277,7 +277,7 @@ class widget_func_button : public widget_button
 	Func func;
 public:
 	widget_func_button(Func func_, int x = 0, int y = 0, int w = 0, int h = 0,
-		const string& text = "", widget* parent = 0)
+		const std::string& text = "", widget* parent = 0)
 		: widget_button(x, y, w, h, text, parent), func(func_) {}
 	void on_release() { widget_button::on_release(); func(); }
 };
@@ -289,7 +289,7 @@ class widget_func_arg_button : public widget_button
 	Arg arg;
 public:
 	widget_func_arg_button(Func func_, Arg arg_, int x = 0, int y = 0, int w = 0, int h = 0,
-		const string& text = "", widget* parent = 0)
+		const std::string& text = "", widget* parent = 0)
 		: widget_button(x, y, w, h, text, parent), func(func_), arg(arg_) {}
 	void on_release() { widget_button::on_release(); func(arg); }
 };
@@ -301,7 +301,7 @@ class widget_set_button : public widget_button
 	Obj value;
 public:
 	widget_set_button(Obj& obj_, const Obj& val, int x = 0, int y = 0, int w = 0, int h = 0,
-		const string& text = "", widget* parent = 0)
+		const std::string& text = "", widget* parent = 0)
 		: widget_button(x, y, w, h, text, parent), obj(obj_), value(val) {}
 	void on_release() { widget_button::on_release(); obj = value; }
 };
@@ -314,7 +314,7 @@ class widget_caller_checkbox : public widget_checkbox
 public:
 	widget_caller_checkbox(Obj* obj_, Func func_, int x = 0, int y = 0, int w = 0, int h = 0,
 			       bool checked = false,
-			       const string& text = "", widget* parent = 0)
+			       const std::string& text = "", widget* parent = 0)
 		: widget_checkbox(x, y, w, h, checked, text, parent), obj(obj_), func(func_) {}
 	void on_change() { widget_checkbox::on_change(); (obj->*func)(); }
 };
@@ -333,11 +333,11 @@ protected:
 	void add_child(widget* w) { widget::add_child(w); };	// clients must use add_entry
 	
 public:
-	widget_menu(int x, int y, int w, int h, const string& text_, bool horizontal_ = false,
+	widget_menu(int x, int y, int w, int h, const std::string& text_, bool horizontal_ = false,
 		    widget* parent_ = 0);
 	void set_entry_spacing(int spc) { entryspacing = spc; }
 	void adjust_buttons(unsigned totalsize);	// width or height
-	widget_button* add_entry(const string& s, widget_button* wb = 0); // wb's text is always set to s
+	widget_button* add_entry(const std::string& s, widget_button* wb = 0); // wb's text is always set to s
 	int get_selected() const;
 	void draw() const;
 };
@@ -373,14 +373,14 @@ public:
 class widget_list : public widget
 {
 protected:
-	list<string> entries;
+	std::list<std::string> entries;
 	unsigned listpos;
 	int selected;
 	widget_scrollbar* myscrollbar;	// stored also as child
 	int columnwidth;	// in pixels, translates tabs to column switches, set -1 for no columns (default)
 
-	list<string>::iterator ith(unsigned i);
-	list<string>::const_iterator ith(unsigned i) const;
+	std::list<std::string>::iterator ith(unsigned i);
+	std::list<std::string>::const_iterator ith(unsigned i) const;
 
 	widget_list();
 	widget_list(const widget_list& );
@@ -388,16 +388,16 @@ protected:
 public:
 	widget_list(int x, int y, int w, int h, widget* parent_ = 0);
 	void delete_entry(unsigned n);
-	void insert_entry(unsigned n, const string& s);
-	void append_entry(const string& s);
-	void set_entry(unsigned n, const string& s);
+	void insert_entry(unsigned n, const std::string& s);
+	void append_entry(const std::string& s);
+	void set_entry(unsigned n, const std::string& s);
 	void sort_entries();
 	void make_entries_unique();
-	string get_entry(unsigned n) const;
+	std::string get_entry(unsigned n) const;
 	unsigned get_listsize() const;
 	int get_selected() const;
 	void set_selected(unsigned n);
-	string get_selected_entry() const;
+	std::string get_selected_entry() const;
 	unsigned get_nr_of_visible_entries() const;
 	void clear();
 	void draw() const;
@@ -420,9 +420,9 @@ protected:
 	widget_edit(const widget_edit& );
 	widget_edit& operator= (const widget_edit& );
 public:
-	widget_edit(int x, int y, int w, int h, const string& text_, widget* parent_ = 0)
+	widget_edit(int x, int y, int w, int h, const std::string& text_, widget* parent_ = 0)
 		: widget(x, y, w, h, text_, parent_), cursorpos(0) {}
-	void set_text(const string& s) { widget::set_text(s); cursorpos = s.length(); }
+	void set_text(const std::string& s) { widget::set_text(s); cursorpos = s.length(); }
 	void draw() const;
 	void on_char(const SDL_keysym& ks);
 	virtual void on_enter() {}	// run on pressed ENTER-key
@@ -453,8 +453,8 @@ protected:
 	widget_fileselector(const widget_fileselector& );
 	widget_fileselector& operator= (const widget_fileselector& );
 public:
-	widget_fileselector(int x, int y, int w, int h, const string& text_, widget* parent_ = 0);
-	string get_filename() const { return current_path->get_text() + current_filename->get_text(); }
+	widget_fileselector(int x, int y, int w, int h, const std::string& text_, widget* parent_ = 0);
+	std::string get_filename() const { return current_path->get_text() + current_filename->get_text(); }
 	void listclick();
 };
 
@@ -499,7 +499,7 @@ protected:
 	widget_slider& operator= (const widget_slider& );
 public:
 	/// Note: height is for full widget, so give enough space for descriptions + text + slider bar
-	widget_slider(int x, int y, int w, int h, const string& text_,
+	widget_slider(int x, int y, int w, int h, const std::string& text_,
 		      int minv, int maxv, int currv, int descrstep,
 		      widget* parent_ = 0);
 	void draw() const;

@@ -46,7 +46,7 @@ protected:
 
 	// 2d drawing must be turned on for them
 	void draw_gauge(unsigned nr, int x, int y, unsigned wh, angle a,
-		const string& text) const;
+			const std::string& text) const;
 	void draw_vessel_symbol(const vector2& offset, const sea_object* so, color c) const;
 	void draw_trail(sea_object* so, const vector2& offset);
 

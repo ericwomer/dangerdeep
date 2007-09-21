@@ -37,6 +37,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <sstream> //for depthcharge testing
 
 using std::vector;
+using std::string;
 using std::pair;
 using std::make_pair;
 using std::ostringstream;

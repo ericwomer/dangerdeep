@@ -37,7 +37,7 @@ class sub_damage_display : public user_display
 public:
 	sub_damage_display(class user_interface& ui_);
 
-	virtual void display_popup (int x, int y, const string& text, bool atleft, bool atbottom) const;
+	virtual void display_popup (int x, int y, const std::string& text, bool atleft, bool atbottom) const;
 
 	virtual void display(class game& gm) const;
 	virtual void process_input(class game& gm, const SDL_Event& event);
