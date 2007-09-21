@@ -56,10 +56,12 @@ strv = '\t\t<vertices nr="' + str(nrv) + '">'
 strt = '\t\t<texcoords>'
 ptr = 4
 heightmult = 1.0
+xscal = 1.0
+yscal = 1.0
 for y in range(0, h):
     for x in range(0, w):
         ih = (int(l1[ptr][:-1]) - 128) * heightmult
-        strv += str(x-w*0.5) + ' ' + str(y-h*0.5) + ' ' + str(ih) + ' '
+        strv += str((x-w*0.5)*xscal) + ' ' + str((y-h*0.5)*yscal) + ' ' + str(ih) + ' '
         strt += str(float(x)/(w-1)) + ' ' + str(float(y)/(h-1)) + ' '
         ptr += 1
 strv += '</vertices>\n'
