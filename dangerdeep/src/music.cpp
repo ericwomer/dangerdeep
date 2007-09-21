@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "global_data.h"
 #include "error.h"
 #include "xml.h"
+#include "log.h"
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -123,10 +124,8 @@ void music::init()
 	if (!use_music) return;
 
 	if (SDL_Init(SDL_INIT_AUDIO) != 0) {
-		ostringstream oss;
-		oss << "Unable to to initialize SDL Audio: " << SDL_GetError();
+		log_warning("Unable to to initialize SDL Audio: " << SDL_GetError());
 		use_music = false;
-		sys().add_console(oss.str());
 		return;
 	}
 
@@ -136,10 +135,8 @@ void music::init()
 	int audio_buffers = 4096;
 
 	if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers) != 0) {
-		ostringstream oss;
-		oss << "Unable to initialize audio: " << Mix_GetError();
+		log_warning("Unable to initialize audio: " << Mix_GetError());
 		use_music = false;
-		sys().add_console(oss.str());
 		return;
 	}
 

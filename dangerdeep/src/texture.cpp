@@ -34,6 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <SDL_image.h>
 #include "vector3.h"
 #include "texture.h"
+#include "log.h"
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -57,7 +58,7 @@ bool texture::size_non_power_two()
 	if (size_non_power_2 < 0) {
 		size_non_power_2 = sys().extension_supported("GL_ARB_texture_non_power_of_two") ? 1 : 0;
 		if (size_non_power_2)
-			sys().add_console("Textures with non-power-two sizes are supported and used.");
+			log_info("Textures with non-power-two sizes are supported and used.");
 	}
 	return (size_non_power_2 > 0);
 }
@@ -167,7 +168,7 @@ sdl_image::sdl_image(const std::string& filename)
 			unsigned char* ptr = ((unsigned char*)(result->pixels));
 			unsigned char* offsetrgb = ((unsigned char*)(teximagergb->pixels));
 			unsigned char* offseta = ((unsigned char*)(teximagea->pixels));
-			// 2006-12-01 doc1972 images with negative width and height doesn´t exist, so we cast to unsigned
+			// 2006-12-01 doc1972 images with negative width and height doesn? exist, so we cast to unsigned
 			for (unsigned y = 0; y < (unsigned int)teximagergb->h; ++y) {
 				for (unsigned x = 0; x < (unsigned int)teximagergb->w; ++x) {
 					ptr[4*x  ] = offsetrgb[3*x  ];
@@ -563,11 +564,9 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 	if (do_mipmapping[mapping])
 		add_mem_used = (4*add_mem_used)/3;
 	mem_used += add_mem_used;
-	ostringstream oss; oss << "Allocated " << add_mem_used << " bytes of video memory for texture '" << texfilename << "', total video mem use " << mem_used/1024 << " kb";
-	sys().add_console(oss.str());
+	log_debug("Allocated " << add_mem_used << " bytes of video memory for texture '" << texfilename << "', total video mem use " << mem_used/1024 << " kb");
 	mem_alloced += add_mem_used;
-	ostringstream oss2; oss2 << "Video mem usage " << mem_alloced << " vs " << mem_freed;
-	sys().add_console(oss2.str());
+	log_debug("Video mem usage " << mem_alloced << " vs " << mem_freed);
 #endif
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapmodes[mapping]);
@@ -740,11 +739,9 @@ texture::~texture()
 	if (do_mipmapping[mapping])
 		sub_mem_used = (4*sub_mem_used)/3;
 	mem_used -= sub_mem_used;
-	ostringstream oss; oss << "Freed " << sub_mem_used << " bytes of video memory for texture '" << texfilename << "', total video mem use " << mem_used/1024 << " kb";
-	sys().add_console(oss.str());
+	log_debug("Freed " << sub_mem_used << " bytes of video memory for texture '" << texfilename << "', total video mem use " << mem_used/1024 << " kb");
 	mem_freed += sub_mem_used;
-	ostringstream oss2; oss2 << "Video mem usage " << mem_alloced << " vs " << mem_freed;
-	sys().add_console(oss2.str());
+	log_debug("Video mem usage " << mem_alloced << " vs " << mem_freed);
 #endif
 	glDeleteTextures(1, &opengl_name);
 }
