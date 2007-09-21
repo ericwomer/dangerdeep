@@ -8,15 +8,16 @@
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>
     <far lang="it">Nave a vapore</far>
-    <medium lang="en">Oil tanker</medium>
-    <medium lang="de">Öltanker</medium>
-    <medium lang="it">Petroliera</medium>
-    <near lang="en">Medium Oil Tanker ship</near>
-    <near lang="de">Mittlerer Öltanker</near>
-    <near lang="it">Petroliera di medio tonnellaggio</near>
+    <medium lang="en">T2 Oil tanker</medium>
+    <medium lang="de">T2 Öltanker</medium>
+    <medium lang="it">T2 Petroliera</medium>
+    <near lang="en">T2 Kennebec class Oil Tanker</near>
+    <near lang="de">T2 Kennebec Öltanker</near>
+    <near lang="it">Petroliera T2 Kennebec</near>
   </description>
   <motion maxspeed="9" maxrevspeed="0" acceleration="0.1" turnrate="0.1"/>
-  <tonnage min="5900" max="6200"/>
+  <tonnage value="9900" />
+  <mass value="16000000" />
   <smoke type="1" x="0" y="-59.2" z="24.4"/>
   <sensors>
     <sensor type="lookout"/>
