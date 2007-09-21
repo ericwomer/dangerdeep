@@ -24,8 +24,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "log.h"
 #include "mutex.h"
 #include <list>
+#include <map>
 #include <string>
 #include <iostream>
+#include <stdexcept>
 #include <SDL.h>
 
 
@@ -54,13 +56,16 @@ struct log_msg
 		case log::INFO:
 			oss << "\033[1;34m";
 			break;
+		case log::SYSINFO:
+			oss << "\033[1;33m";
+			break;
 		case log::DEBUG:
 			oss << "\033[1;32m";
 			break;
 		default:
 			oss << "\033[0m";
 		}
-		oss << "[" << std::hex << tid << "] <" << std::dec << time << "> " << msg << "\033[0m";
+		oss << "[" << log::instance().get_thread_name() << "] <" << std::dec << time << "> " << msg << "\033[0m";
 		return oss.str();
 	}
 
@@ -74,13 +79,16 @@ struct log_msg
 		case log::INFO:
 			oss << "$c0c0ff";
 			break;
+		case log::SYSINFO:
+			oss << "$ffff00";
+			break;
 		case log::DEBUG:
 			oss << "$b0ffb0";
 			break;
 		default:
 			oss << "$c0c0c0";
 		}
-		oss << "[" << std::hex << tid << "] <" << std::dec << time << "> " << msg;
+		oss << "[" << log::instance().get_thread_name() << "] <" << std::dec << time << "> " << msg;
 		return oss.str();
 	}
 };
@@ -90,6 +98,7 @@ class log_internal
 public:
 	mutex mtx;
 	std::list<log_msg> loglines;
+	std::map<Uint32, const char* > threadnames;
 	log_internal() {}
 };
 
@@ -98,6 +107,7 @@ log::log()
 	: mylogint(0)
 {
 	mylogint = new log_internal();
+	mylogint->threadnames[SDL_ThreadID()] = "__main__";
 }
 
 log* log::myinstance = 0;
@@ -147,3 +157,28 @@ std::string log::get_last_n_lines(unsigned n) const
 	}
 	return result;
 }
+
+void log::new_thread(const char* name)
+{
+	{
+		mutex_locker ml(mylogint->mtx);
+		mylogint->threadnames[SDL_ThreadID()] = name;
+	}
+	log_sysinfo("---------- < NEW > THREAD ----------");
+}
+
+void log::end_thread()
+{
+	log_sysinfo("---------- > END < THREAD ----------");
+	mutex_locker ml(mylogint->mtx);
+	mylogint->threadnames.erase(SDL_ThreadID());
+}
+
+const char* log::get_thread_name() const
+{
+	std::map<Uint32, const char * >::const_iterator it = mylogint->threadnames.find(SDL_ThreadID());
+	if (it == mylogint->threadnames.end())
+		throw std::runtime_error("no thread name registered for thread! BUG!");
+	return it->second;
+}
+

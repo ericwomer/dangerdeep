@@ -44,7 +44,8 @@ music* music::instance = 0;
 
 
 music::music(bool useit)
-	: nr_reserved_channels(1),
+	: thread("music___"),
+	  nr_reserved_channels(1),
 	  current_track(0),
 	  usersel_next_track(-1),
 	  usersel_fadein(0),

@@ -72,8 +72,6 @@ bad_typeid
 
 class system* system::instance = 0;
 
-static char sprintf_tmp[1024];
-
 system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bool fullscreen) :
 	res_x(res_x_), res_y(res_y_), nearz(nearz_), farz(farz_), is_fullscreen(fullscreen),
 	show_console(false), console_font(0), console_background(0),
@@ -187,9 +185,9 @@ system::~system()
 		throw sdl_error("system destruction: system instance doesn't exist");
 	}
 	SDL_Quit();
-	log::instance().write(std::cerr, log::INFO);
+	log::instance().write(std::cerr, log::SYSINFO);
 	std::ofstream f("log.txt");
-	log::instance().write(f, log::INFO);
+	log::instance().write(f, log::SYSINFO);
 	instance = 0;
 }
 
@@ -370,10 +368,10 @@ list<SDL_Event> system::poll_event_queue()
 					break;
 #else
 					SDL_Quit();	// to clean up mouse etc. after kill
-					log::instance().write(std::cerr, log::INFO);
+					log::instance().write(std::cerr, log::SYSINFO);
 					{
 						std::ofstream f("log.txt");
-						log::instance().write(f, log::INFO);
+						log::instance().write(f, log::SYSINFO);
 					}
 					exit(0);	// fixme
 #endif

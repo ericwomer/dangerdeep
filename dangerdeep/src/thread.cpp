@@ -48,10 +48,11 @@ int thread::thread_entry(void* arg)
 
 
 
-thread::thread()
+thread::thread(const char* name)
 	: thread_id(0),
 	  thread_abort_request(false),
-	  thread_state(THRSTAT_NONE)
+	  thread_state(THRSTAT_NONE),
+	  myname(name)
 {
 }
 
@@ -60,7 +61,7 @@ thread::thread()
 void thread::run()
 {
 	try {
-		log_info("---------- New thread ----------");
+		log::instance().new_thread(myname);
 		init();
 	}
 	catch (std::exception& e) {
@@ -90,7 +91,7 @@ void thread::run()
 			loop();
 		}
 		deinit();
-		log_info("---------- END thread ----------");
+		log::instance().end_thread();
 	}
 	catch (std::exception& e) {
 		// thread execution failed

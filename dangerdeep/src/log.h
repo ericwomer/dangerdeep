@@ -29,6 +29,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define log_template(x, y) do { std::ostringstream oss; oss << x; log::instance().append(log::y, oss.str()); } while(0)
 #define log_debug(x) log_template(x, DEBUG)
 #define log_info(x) log_template(x, INFO)
+// use this only internally for special events
+#define log_sysinfo(x) log_template(x, SYSINFO)
 #define log_warning(x) log_template(x, WARNING)
 
 /// manager class for a global threadsafe log
@@ -39,6 +41,7 @@ class log
 	enum level {
 		WARNING,
 		INFO,
+		SYSINFO,
 		DEBUG,
 		NR_LEVELS
 	};
@@ -55,10 +58,18 @@ class log
 	/// get the last N lines in one string with return characters after each line, threadsafe
 	std::string get_last_n_lines(unsigned n) const;
 
+	/// report a new thread - call from its context, use 8 characters for name always for nice logs
+	void new_thread(const char* name);
+
+	/// report end of a thread - call from its context
+	void end_thread();
+
  protected:
 	log();
 	class log_internal* mylogint;
 	static log* myinstance;
+	const char* get_thread_name() const;
+	friend class log_msg;
 };
 
 #endif

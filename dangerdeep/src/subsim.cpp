@@ -1746,8 +1746,6 @@ int mymain(list<string>& args)
 	log_info("Danger from the Deep");
 	log_info("Copyright (C) 2003-2007  Thorsten Jordan, Luis Barrancos and others.");
 	log_info("Version " << get_program_version());
-	log_warning("add more log msgs");
-	log_debug("Hi Luis!");
 
 	GLfloat lambient[4] = {0.1,0.1,0.1,1};
 	GLfloat ldiffuse[4] = {1,1,1,1};

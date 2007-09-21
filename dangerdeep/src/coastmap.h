@@ -155,7 +155,7 @@ class coastmap
 	{
 		coastmap& cm;
 	public:
-		worker(coastmap& c) : cm(c) {}
+		worker(coastmap& c) : thread("coastmap"), cm(c) {}
 		void loop()
 		{
 			cm.construction_threaded();

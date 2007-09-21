@@ -178,7 +178,7 @@ class worker : public thread
 public:
 	worker(model& m, vector<uint8_t>& ii, const vector3i& res, unsigned s, unsigned nrs,
 	       int& ctr, mutex& cm, unsigned samplespervoxel = 4)
-		: mdl(m), is_inside(ii), resolution(res), slice(s), nr_slices(nrs),
+		: thread("modelmsr"), mdl(m), is_inside(ii), resolution(res), slice(s), nr_slices(nrs),
 		  counter(ctr), counter_mtx(cm), samples_per_voxel(samplespervoxel) {}
 	void loop()
 	{

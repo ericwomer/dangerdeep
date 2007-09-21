@@ -50,12 +50,14 @@ class thread
 	mutex thread_state_mutex;
 	condvar thread_start_cond;
 	std::string thread_error_message; // to pass exception texts via thread boundaries
+	const char* myname;
 
 	void run();
 
 	// can't copy thread objects
 	thread(const thread& );
 	thread& operator=(const thread& );
+	thread();
 
  public:
 	static int thread_entry(void* arg);
@@ -69,7 +71,7 @@ class thread
 	bool abort_requested() const { return thread_abort_request; }
  public:
 	/// create a thread
-	thread();
+	thread(const char* name /* = "fixme"*/);
 
 	/// abort thread (do not force, just request)
 	virtual void request_abort();
