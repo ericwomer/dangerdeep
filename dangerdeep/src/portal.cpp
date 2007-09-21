@@ -182,8 +182,6 @@ int mymain(list<string>& args)
 
 	run();
 
-	mysys->write_console(true);
-
 // 	delete font_arial;
 	delete mysys;
 

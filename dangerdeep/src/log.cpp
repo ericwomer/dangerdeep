@@ -116,7 +116,6 @@ void log::append(log::level l, const std::string& msg)
 #if 1
 	std::cout << mylogint->loglines.back().pretty_print() << std::endl;
 #endif
-	sys().add_console(mylogint->loglines.back().pretty_print_console());
 }
 
 void log::write(std::ostream& out, log::level limit_level) const
@@ -128,4 +127,23 @@ void log::write(std::ostream& out, log::level limit_level) const
 		if (it->lvl <= limit_level)
 			out << it->pretty_print() << std::endl;
 	}
+}
+
+std::string log::get_last_n_lines(unsigned n) const
+{
+	std::string result;
+	mutex_locker ml(mylogint->mtx);
+	unsigned l = mylogint->loglines.size();
+	if (n > l) {
+		for (unsigned k = 0; k < n - l; ++k)
+			result += "\n";
+		n = l;
+	}
+	std::list<log_msg>::const_iterator it = mylogint->loglines.end();
+	for ( ; n > 0; --n)
+		--it;
+	for ( ; it != mylogint->loglines.end(); ++it) {
+		result += it->pretty_print_console() + "\n";
+	}
+	return result;
 }

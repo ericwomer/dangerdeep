@@ -116,8 +116,8 @@ void ships_sunk_display::display ( class game& gm ) const
 			mdl->set_layout(it->layoutname);
 			mdl->display();
 		} else {
-			log_warn("can't find model for that name, BUG?!" <<
-				 data_file().get_rel_path(it->specfilename) << it->mdlname);
+			log_warning("can't find model for that name, BUG?!" <<
+				    data_file().get_rel_path(it->specfilename) << it->mdlname);
 		}
 		glPopMatrix ();
 	}

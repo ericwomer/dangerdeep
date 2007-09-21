@@ -770,8 +770,6 @@ int mymain(list<string>& args)
 		view_model(modelfilename,datafilename);
         }
 
-	mysys->write_console(true);
-
 	delete font_arial;
         delete font_vtremington12;
 	delete mysys;

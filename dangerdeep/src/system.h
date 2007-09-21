@@ -74,7 +74,6 @@ public:
 	
 	void add_console(const string& tx);
 	void draw_console_with(const font* fnt, const texture* background = 0);
-	void write_console(bool fileonly = false) const;
 	void prepare_2d_drawing();	// must be called as pair!
 	void unprepare_2d_drawing();
 
@@ -119,7 +118,6 @@ private:
 	bool show_console;
 	const font* console_font;
 	const texture* console_background;	
-	list<string> console_text;
 	
 	set<string> supported_extensions;	// memory supported OpenGL extensions
 	

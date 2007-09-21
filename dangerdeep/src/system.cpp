@@ -21,13 +21,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // (C)+(W) by Thorsten Jordan. See LICENSE
 // Parts taken and adapted from Martin Butterwecks's OOML SDL code (wws.sourceforget.net/projects/ooml/)
 
-#include <iostream>
-#include <sstream>
-#include <cmath>
-#include <cstdarg>
-#include <stdexcept>
-using namespace std;
-
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -41,6 +34,15 @@ using namespace std;
 #include "system.h"
 #include "texture.h"
 #include "font.h"
+#include "log.h"
+
+#include <iostream>
+#include <sstream>
+#include <cmath>
+#include <cstdarg>
+#include <stdexcept>
+#include <fstream>
+using namespace std;
 
 /*
 standard exceptions:
@@ -185,9 +187,9 @@ system::~system()
 		throw sdl_error("system destruction: system instance doesn't exist");
 	}
 	SDL_Quit();
-	write_console();
-	log::instance().write(log::INFO, std::cerr);
-	log::instance().write(log::INFO, std::ofstream("log.txt"));
+	log::instance().write(std::cerr, log::INFO);
+	// doesn't work, but ofstream heirs from ostream! why it does not work then?!
+	//log::instance().write(std::ofstream("log.txt"), log::INFO);
 	instance = 0;
 }
 
@@ -254,17 +256,6 @@ void system::screen_resize(unsigned w, unsigned h, double nearz, double farz)
 
 
 
-void system::add_console(const string& tx)
-{
-	if (instance == 0) {
-		cerr << tx << " (SYSTEM not yet initialized)\n";
-		return;
-	}
-	console_text.push_back(tx);
-}
-
-
-
 void system::draw_console_with(const font* fnt, const texture* background)
 {
 	console_font = fnt;
@@ -294,27 +285,8 @@ void system::draw_console()
 	
 	unsigned fh = console_font->get_height();
 	unsigned lines = res_y/(2*fh)-2;
-	unsigned s = console_text.size();
-	list<string>::const_iterator it = console_text.begin();
-	while (s-- > lines) ++it;
-	unsigned y = fh;
-	for ( ; it != console_text.end(); ++it, y+=fh)
-		console_font->print(fh, y, *it);
+	console_font->print(fh, fh, log::instance().get_last_n_lines(lines));
 	unprepare_2d_drawing();
-}
-
-void system::write_console(bool fileonly) const
-{
-	FILE* f = fopen("console_log.txt", "wb");
-	if (!f) return;
-	const char* rtn = "\n";
-	for (list<string>::const_iterator it = console_text.begin(); it != console_text.end(); ++it) {
-		if (!fileonly)
-			cerr << "console log: " << *it << "\n";
-		fwrite(&((*it)[0]), it->length(), 1, f);
-		fwrite(rtn, strlen(rtn), 1, f);
-	}
-	fclose(f);	
 }
 
 void system::prepare_2d_drawing()
@@ -373,7 +345,6 @@ void system::myassert(bool cond, const string& msg)
 		else
 			log_warning("unknown error");
 		SDL_Quit();
-		write_console();
 #ifdef THROWERR
 		throw std::exception();
 #endif
@@ -432,8 +403,8 @@ list<SDL_Event> system::poll_event_queue()
 					break;
 #else
 					SDL_Quit();	// to clean up mouse etc. after kill
-					log::instance().write(log::INFO, std::cerr);
-					log::instance().write(log::INFO, std::ofstream("log.txt"));
+					log::instance().write(std::cerr, log::INFO);
+					//log::instance().write(std::ofstream("log.txt"), log::INFO);
 					exit(0);	// fixme
 #endif
 				

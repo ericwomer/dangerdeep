@@ -1877,8 +1877,6 @@ int mymain(list<string>& args)
 	mmusic->stop(1000);
 	mmusic.reset();
 
-	mysys->write_console(true);
-
 	hsl_mission.save(highscoredirectory + HSL_MISSION_NAME);
 	hsl_career.save(highscoredirectory + HSL_CAREER_NAME);
 	mycfg.save(configdirectory + "config");

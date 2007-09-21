@@ -38,6 +38,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <iostream>
 #include <sstream>
 #include "image.h"
+#include "log.h"
 #define VIEWMODEL
 
 class system* mysys;
@@ -214,7 +215,6 @@ int main(int argc, char** argv)
 
 	view_model(modelfilename);	
 
-	mysys->write_console(true);
 	delete font_vtremington10;
 	delete mysys;
 

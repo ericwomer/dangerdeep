@@ -31,21 +31,32 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define log_info(x) log_template(x, INFO)
 #define log_warning(x) log_template(x, WARNING)
 
+/// manager class for a global threadsafe log
 class log
 {
  public:
+	/// level of log message, in descending importance
 	enum level {
 		WARNING,
 		INFO,
 		DEBUG,
+		NR_LEVELS
 	};
 
+	/// get the one and only log instance
 	static log& instance();
-	log();
-	void write(std::ostream& out, log::level limit_level) const;
+
+	/// write the log to a stream, with optional filtering of importance, threadsafe
+	void write(std::ostream& out, log::level limit_level = log::NR_LEVELS) const;
+
+	/// append a message to the log, threadsafe
 	void append(log::level l, const std::string& msg);
 
+	/// get the last N lines in one string with return characters after each line, threadsafe
+	std::string get_last_n_lines(unsigned n) const;
+
  protected:
+	log();
 	class log_internal* mylogint;
 	static log* myinstance;
 };
