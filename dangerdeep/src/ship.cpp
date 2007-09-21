@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gun_shell.h"
 #include "global_data.h"
 #include "physics.h"
+#include "log.h"
 
 using std::vector;
 using std::list;
@@ -122,7 +123,7 @@ ship::ship(game& gm_, const xml_elem& parent)
 		if (etonnage.has_attr("value")) {
 		tonnage = parent.child("tonnage").attru();
 		} else {
-			sys().add_console(std::string("wrong <tonnage> tag in file ") + etonnage.doc_name());
+			log_warning("wrong <tonnage> tag in file " << etonnage.doc_name());
 			unsigned minton = etonnage.attru("min");
 			unsigned maxton = etonnage.attru("max");
 			tonnage = minton + rnd(maxton - minton + 1);

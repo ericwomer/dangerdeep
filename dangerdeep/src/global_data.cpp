@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <iomanip>
 #include "oglext/OglExt.h"
 #include "system.h"
+#include "log.h"
 #include "datadirs.h"
 #include <SDL_image.h>
 #include <stdexcept>
@@ -128,7 +129,7 @@ void reset_loading_screen()
 {
 	loading_screen_messages.clear();
 	loading_screen_messages.push_back("Loading...");
-	sys().add_console("Loading...");
+	log_info("Loading...");
 	display_loading_screen();
 	starttime = sys().millisec();
 }
@@ -141,7 +142,7 @@ void add_loading_screen(const string& msg)
 	ostringstream oss;
 	oss << msg << " (" << deltatime << "ms)";
 	loading_screen_messages.push_back(oss.str());
-	sys().add_console(oss.str());
+	log_info(oss.str());
 	display_loading_screen();
 }
 

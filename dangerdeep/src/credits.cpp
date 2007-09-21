@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "sky.h"
 #include "angle.h"
 #include "bspline.h"
+#include "log.h"
 
 using namespace std;
 
@@ -1076,10 +1077,8 @@ void show_credits()
 		totaltime = tm2 / 1000.0;
 		if (totaltime - fpstime >= measuretime) {
 			fpstime = totaltime;
-			ostringstream os;
-			os << "$c0fffffps " << (frames - lastframes)/measuretime;
+			log_info("fps " << (frames - lastframes)/measuretime);
 			lastframes = frames;
-			sys().add_console(os.str());
 		}
 
 		sys().swap_buffers();

@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "system.h"
 #include "texture.h"
 #include "error.h"
+#include "log.h"
 #include <stdexcept>
 #include <fstream>
 using namespace std;
@@ -104,19 +105,18 @@ glsl_shader::glsl_shader(const string& filename, type stype, const glsl_shader::
 		// get compile log
 		GLint maxlength = 0;
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &maxlength);
-		string log(maxlength+1, ' ');
+		string compilelog(maxlength+1, ' ');
 		GLsizei length = 0;
-		glGetShaderInfoLog(id, maxlength, &length, &log[0]);
+		glGetShaderInfoLog(id, maxlength, &length, &compilelog[0]);
 
 		if (!compiled) {
-			sys().add_console("compiling failed, log:");
-			sys().add_console(log);
-			//printf("compiling of shader failed:\n%s\n", log.c_str());
+			log_warning("compiling failed, log:");
+			log_warning(compilelog);
 			throw runtime_error(string("compiling of shader failed : ") + filename);
 		}
 
-		sys().add_console("shader compiled successfully, log:");
-		sys().add_console(log);
+		log_info("shader compiled successfully, log:");
+		log_info(compilelog);
 	}
 	catch (exception& e) {
 		glDeleteShader(id);
@@ -149,7 +149,7 @@ glsl_program::~glsl_program()
 {
 	if (used_program == this) {
 		// rather use some kind of "bug!"-exception here
-		sys().add_console("warning: deleting bound glsl program!");
+		log_warning("deleting bound glsl program!");
 		use_fixed();
 	}
 	// if shaders are still attached, it is rather a bug...
@@ -191,13 +191,13 @@ void glsl_program::link()
 	glGetProgramiv(id, GL_LINK_STATUS, &waslinked);
 
 	if (!waslinked) {
-		sys().add_console("linking failed, log:");
+		log_warning("linking failed, log:");
 		GLint maxlength = 0;
 		glGetProgramiv(id, GL_INFO_LOG_LENGTH, &maxlength);
-		string log(maxlength+1, ' ');
+		string compilelog(maxlength+1, ' ');
 		GLsizei length = 0;
-		glGetProgramInfoLog(id, maxlength, &length, &log[0]);
-		sys().add_console(log);
+		glGetProgramInfoLog(id, maxlength, &length, &compilelog[0]);
+		log_warning(compilelog);
 		throw runtime_error("linking of program failed");
 	}
 
