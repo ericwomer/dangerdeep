@@ -183,6 +183,11 @@ vertex data is constant). So calling the terrain height function twice
 per newly created vertex should be acceptable, and this eats less memory
 and doesn't trash the cache.
 
+We have to test if linear interpolation instead of cosine interpolation
+for perlin noise generation would look good enough, because the height
+values are transformed by the terrace function later anyway.
+Linear interpolation is much faster.
+
 */
 
 
