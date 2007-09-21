@@ -236,11 +236,6 @@ void texture::sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned
 	gl_width = tw;
 	gl_height = th;
 
-//	not longer necessary because of automatic texture resize in update()
-//	(use throw here if enabled again!)
-//	sys().myassert(tw <= get_max_size(), "texture: texture width too big");
-//	sys().myassert(th <= get_max_size(), "texture: texture height too big");
-
 	SDL_LockSurface(teximage);
 
 	const SDL_PixelFormat& fmt = *(teximage->format);

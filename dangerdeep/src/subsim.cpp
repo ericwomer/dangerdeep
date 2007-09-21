@@ -839,7 +839,7 @@ bool server_wait_for_clients(network_connection& sv, Uint16 server_port, vector<
 {
 	IPaddress hostip;
 	int error = SDLNet_ResolveHost(&hostip, 0, server_port);
-	sys().myassert(error == 0, "can resolve host ip for this computer");
+	//sys().myassert(error == 0, "can resolve host ip for this computer");
 	
 	widget w(0, 0, 1024, 768, texts::get(22), 0, "swordfish.jpg");
 	w.add_child(new widget_text(40, 60, 0, 0, texts::get(195)));
@@ -1005,9 +1005,9 @@ void play_network_game()
 	
 	// initialize network play
 	int network_ok = SDLNet_Init();
-	sys().myassert(network_ok != -1, "failed to initialize SDLnet");
+	//sys().myassert(network_ok != -1, "failed to initialize SDLnet");
 	int error = SDLNet_ResolveHost(&computer_ip, NULL, local_port);
-	sys().myassert(error == 0, "can't resolve host ip for this computer");
+	//sys().myassert(error == 0, "can't resolve host ip for this computer");
 
 	network_connection client;	// used for scanning and later for playing
 

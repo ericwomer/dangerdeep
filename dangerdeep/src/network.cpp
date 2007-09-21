@@ -35,23 +35,23 @@ void network_connection::init(Uint16 local_port)
 {
 	// open a socket on a port
 	sock = SDLNet_UDP_Open(local_port);
-	sys().myassert(sock != 0, "can't open UDP socket");
+	//sys().myassert(sock != 0, "can't open UDP socket");
 
 	// allocate packets to work with
 	in = SDLNet_AllocPacket(PACKETSIZE);
 	out = SDLNet_AllocPacket(PACKETSIZE);
-	sys().myassert(in != 0, "can't alloc UDP input packet");
-	sys().myassert(out != 0, "can't alloc UDP output packet");
+	//sys().myassert(in != 0, "can't alloc UDP input packet");
+	//sys().myassert(out != 0, "can't alloc UDP output packet");
 }
 
 void network_connection::send_packet(const vector<Uint8>& data)
 {
 	unsigned ds = data.size();
-	sys().myassert(ds <= PACKETSIZE, "packet too long");
+	//sys().myassert(ds <= PACKETSIZE, "packet too long");
 	out->len = ds;
 	memcpy(out->data, &data[0], out->len);
 	int error = SDLNet_UDP_Send(sock, CHANNEL, out);
-	sys().myassert(error != 0, "can't send UDP packet");
+	//sys().myassert(error != 0, "can't send UDP packet");
 }
 
 vector<Uint8> network_connection::receive_packet(IPaddress* ip)
@@ -108,7 +108,7 @@ void network_connection::bind(IPaddress ip)
 {
 	// bind server address to channel
 	int error = SDLNet_UDP_Bind(sock, CHANNEL, &ip);
-	sys().myassert(error != -1, "can't bind UDP socket");
+	//sys().myassert(error != -1, "can't bind UDP socket");
 }
 
 void network_connection::bind(const string& servername, Uint16 server_port)

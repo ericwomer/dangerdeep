@@ -73,8 +73,6 @@ public:
 	unsigned long millisec();	// returns time in milliseconds
 
 	static inline system& sys() { return *instance; };
-	void myassert(bool cond, const std::string& msg = "");
-	void myassert(bool cond, const char* fmt, ...);
 	
 	void set_screenshot_directory(const std::string& s) { screenshot_dir = s; }
 	void screenshot(const std::string& filename = std::string());

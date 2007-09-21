@@ -328,39 +328,6 @@ unsigned long system::millisec()
 	return SDL_GetTicks() - time_passed_while_sleeping;
 }
 
-// fixme: replace this ASAP
-void system::myassert(bool cond, const string& msg)
-{
-	if (this == 0 && !cond) {
-		cerr << msg << "\n";
-#ifdef THROWERR
-		throw std::exception();
-#endif
-		exit(0);
-	}
-	if (!cond) {
-		log_warning("!ERROR!");
-		if (msg != "")
-			log_warning(msg);
-		else
-			log_warning("unknown error");
-		SDL_Quit();
-#ifdef THROWERR
-		throw std::exception();
-#endif
-		exit(0);
-	}
-}
-
-void system::myassert(bool cond, const char* fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	vsnprintf(sprintf_tmp, 1024, fmt, args);
-	va_end(args);
-	myassert(cond, string(sprintf_tmp));
-}
-
 void system::swap_buffers()
 {
 	if (show_console) {

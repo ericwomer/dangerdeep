@@ -1459,7 +1459,7 @@ void game::unregister_job(job* j)
 			return;
 		}
 	}
-	sys().myassert(false, "[game::unregister_job] job not found in list");
+	throw error("[game::unregister_job] job not found in list");
 }
 
 template<class C>

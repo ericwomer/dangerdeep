@@ -2506,7 +2506,7 @@ void model::m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, model::mesh& m)
 		return;
 	}
 
-//	use exception here:  sys().myassert(nr_uv_coords == m.vertices.size(), "number of texture coordinates doesn't match number of vertices");
+//	if (nr_uv_coords != m.vertices.size()) throw error("number of texture coordinates doesn't match number of vertices");
 
 	m.texcoords.clear();
 	m.texcoords.reserve(nr_uv_coords);		
