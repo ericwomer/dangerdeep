@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "system.h"
 #include "game.h"
 #include "sensors.h"
+#include "log.h"
 #include "submarine.h"
 using std::string;
 using std::vector;
@@ -383,7 +384,7 @@ torpedo::torpedo(game& gm_, sea_object* parent, torpedo::types type_, bool usebo
 	turn_rate = 1; // ? is this needed somewhere?!
 	max_accel_forward = 1;
 
-	sys().add_console("torpedo created");
+	log_info("torpedo created");
 }
 #endif
 

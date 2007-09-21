@@ -49,6 +49,7 @@ using std::isfinite;
 #include "matrix4.h"
 #include "binstream.h"
 #include "xml.h"
+#include "log.h"
 #include <sstream>
 #include <map>
 
@@ -173,7 +174,7 @@ void model::render_init()
 
 	// initialize shaders if wanted
 	if (use_shaders) {
-		sys().add_console("Using OpenGL GLSL shaders...");
+		log_info("Using OpenGL GLSL shaders...");
 
 		glsl_shader::defines_list dl;
 		dl.push_back("USE_SPECULARMAP");

@@ -39,6 +39,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "datadirs.h"
 #include "polygon.h"
 #include "frustum.h"
+#include "log.h"
 #include <fstream>
 #include <sstream>
 #include <iomanip>
@@ -235,9 +236,9 @@ water::water(double tm) :
 	// fixme: auto mipmap?
 	reflectiontex.reset(new texture(rx, ry, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 
-	sys().add_console("wave resolution %u (%u)",wave_resolution,wave_resolution_shift);
-	sys().add_console("reflection image size %u*%u",rx,ry);
-	sys().add_console("water detail: %u", geoclipmap_resolution);
+	log_info("wave resolution " << wave_resolution << " (shift=" << wave_resolution_shift << ")");
+	log_info("reflection image size " << rx << "x" << ry);
+	log_info("water detail: " << geoclipmap_resolution);
 
 	use_shaders = glsl_program::supported() &&
 		cfg::instance().getb("use_shaders") && cfg::instance().getb("use_shaders_for_water");
@@ -266,7 +267,7 @@ water::water(double tm) :
 
 	// check FBO usage
 	if (framebufferobject::supported()) {
-		sys().add_console("using opengl frame buffer objects");
+		log_info("using opengl frame buffer objects");
 		reflectiontex_fbo.reset(new framebufferobject(*reflectiontex, true));
 		foamamounttex_fbo.reset(new framebufferobject(*foamamounttex, false));
 	}

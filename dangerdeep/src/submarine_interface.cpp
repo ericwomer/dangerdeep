@@ -49,6 +49,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "global_data.h"
 #include "music.h"
 #include "particle.h" // for hack, fixme
+#include "log.h"
 
 #include "sub_gauges_display.h"
 #include "sub_periscope_display.h"
@@ -510,7 +511,7 @@ void submarine_interface::process_input(const SDL_Event& event)
 				break;
 			case SDLK_PRINT:
 				sys().screenshot();
-				sys().add_console("screenshot taken.");
+				log_info("screenshot taken.");
 				break;
 			case SDLK_PAUSE:
 				toggle_pause();

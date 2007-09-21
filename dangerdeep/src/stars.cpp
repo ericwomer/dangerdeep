@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "system.h"
 #include "stars.h"
 #include "datadirs.h"
+#include "log.h"
 
 
 
@@ -119,7 +120,7 @@ stars::stars(const float max_magnitude)
 			star_count_static++;
 	}
 
-	sys().add_console("%d stars loaded.", star_pos.size());
+	log_info(star_pos.size() << " stars loaded.");
 	
 	star_positions.init_data(star_pos.size() * sizeof(vector3f), &star_pos[0], GL_STATIC_DRAW);
 }

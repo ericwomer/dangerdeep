@@ -20,10 +20,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // Object to create and display the number and tonnage of sunk ships.
 // subsim (C)+(W) Markus Petermann and Thorsten Jordan. SEE LICENSE
 
-#include <string>
-#include <iostream>
-#include <sstream>
-using namespace std;
 #include "system.h"
 #include "model.h"
 #include "texts.h"
@@ -32,6 +28,11 @@ using namespace std;
 #include "global_data.h"
 #include "ships_sunk_display.h"
 #include "user_interface.h"
+#include "log.h"
+#include <string>
+#include <iostream>
+#include <sstream>
+using namespace std;
 
 #define FONT_SCALE_FACTOR 0.7f
 
@@ -115,7 +116,8 @@ void ships_sunk_display::display ( class game& gm ) const
 			mdl->set_layout(it->layoutname);
 			mdl->display();
 		} else {
-			sys().add_console("can't find model for that name, BUG?!");
+			log_warn("can't find model for that name, BUG?!" <<
+				 data_file().get_rel_path(it->specfilename) << it->mdlname);
 		}
 		glPopMatrix ();
 	}

@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "system.h"
 #include "game.h"
 #include "environment.h"
+#include "log.h"
 
 
 
@@ -42,7 +43,7 @@ depth_charge::depth_charge(game& gm_, double expl_depth, const vector3& pos)
 {
 	// fixme depends on parent! and parent's size, dc's can be thrown, etc.!
 	position = pos;
-	system::sys().add_console("depth charge created");
+	log_info("depth charge created");
 }
 
 

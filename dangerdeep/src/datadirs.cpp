@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "datadirs.h"
 #include "error.h"
 #include "filehelper.h"
-//#include "system.h"
+#include "log.h"
 
 // Note! this is a global variable and is inited before main,
 // any data depening on that variable, like objcache, textures etc. etc.
@@ -71,7 +71,7 @@ void data_file_handler::parse_for_data_files(std::string dir, std::list<std::str
 			parse_for_data_files(dir + f + "/", idlist);
 		} else if (f.length() > data_file_ext.length() && f.substr(f.length() - data_file_ext.length()) == data_file_ext) {
 			std::string id = f.substr(0, f.length() - data_file_ext.length());
-// 			sys().add_console(std::string("found file ") + dir + std::string(" for id ") + id);
+// 			log_info("found file " << dir << " for id " << id);
 			data_files[id] = dir;
 			idlist.push_back(id);
 		}

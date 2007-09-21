@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "user_interface.h"
 #include "texts.h"
 #include "global_data.h"
+#include "log.h"
 
 #include <sstream> //for depthcharge testing
 
@@ -1030,15 +1031,13 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 	// explosion and shock wave strength depends on water depth... fixme
 	// damage/deadly radii depend on this power and on sub type. fixme
 		
-		ostringstream dcd;
-		dcd << "depth charge explosion distance to sub: " << relpos.length() << "m.";
-		sys().add_console(dcd.str());
+	log_debug("depth charge explosion distance to sub: " << relpos.length() << "m.");
 	vector3 sdist(relpos.x, relpos.y, relpos.z /* *2.0 */);
 	double sdlen = sdist.length();
 
 	// is submarine killed immidiatly?
 	if (sdlen <= deadly_radius) {
-		sys().add_console("depth charge hit!");
+		log_info("depth charge hit!");
 		kill();
 
 	} else if (sdlen <= damage_radius) {	// handle damages
@@ -1067,10 +1066,8 @@ void submarine::depth_charge_explosion(const class depth_charge& dc)
 			if (strength > 0 && strength <= 1) {
 				add_saturated(parts[i].status, strength, 1.0);
 			}
-	
-				ostringstream os;
-				os << "DC caused damage! relpos " << relpos.x << "," << relpos.y << "," << relpos.z << " dmg " << strength;
-				sys().add_console(os.str());
+
+			log_debug("DC caused damage! relpos " << relpos.x << "," << relpos.y << "," << relpos.z << " dmg " << strength);
 		}
 	}
 }

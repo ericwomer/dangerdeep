@@ -59,6 +59,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "matrix4.h"
 #include "quaternion.h"
 #include "water.h"
+#include "log.h"
 using std::ostringstream;
 using std::pair;
 using std::make_pair;
@@ -688,14 +689,14 @@ void game::simulate(double delta_t)
 
 	// this could be done in jobs, fixme
 	if (!player->is_alive()) {
-		sys().add_console("player killed!");//testing fixme
+		log_info("player killed!");//testing fixme
 		my_run_state = player_killed;
 		return;
 	}
 	
 	if (/* submarines.size() == 0 && */ ships.size() == 0 && torpedoes.size() == 0 && depth_charges.size() == 0 &&
 			airplanes.size() == 0 && gun_shells.size() == 0) {
-		sys().add_console("no objects except player left!");//testing fixme
+		log_info("no objects except player left!");//testing fixme
 		my_run_state = mission_complete; // or also contact lost?
 		return;
 	}
@@ -857,7 +858,7 @@ void game::simulate(double delta_t)
 	}
 	
 	if (nearest_contact > ENEMYCONTACTLOST) {
-		sys().add_console("player lost contact to enemy!");//testing fixme
+		log_info("player lost contact to enemy!");//testing fixme
 		my_run_state = contact_lost;
 	}
 }

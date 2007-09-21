@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "game.h"
 #include "datadirs.h"
 #include "environment.h"
+#include "log.h"
 
 
 const double earthperimeter2 = 20015086.795;
@@ -338,7 +339,7 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 	if (parent.has_child("mass")) {
 	mass = parent.child("mass").attrf();
 	} else {
-		sys().add_console(std::string("no <mass> tag in file ") + parent.doc_name());
+		log_warning("no <mass> tag in file " << parent.doc_name());
 		mass = mymodel->get_base_mesh().volume * 500; // assume 0,5tons per cubic meter as crude guess.
 	}
 	mass_inv = 1.0/mass;

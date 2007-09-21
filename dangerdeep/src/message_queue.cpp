@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "error.h"
 #include "system.h"
 #include "thread.h"
+#include "log.h"
 
 
 void message::evaluate() const
@@ -35,7 +36,7 @@ void message::evaluate() const
 	}
 	catch (std::exception& e) {
 		// avoid to spam the log. define when needed.
-		// sys().add_console(std::string("msg eval failed: ") + e.what());
+		// log_debug("msg eval failed: " << e.what());
 	}
 }
 

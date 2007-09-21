@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vertexbufferobject.h"
 #include "system.h"
 #include "oglext/OglExt.h"
+#include "log.h"
 #include <stdexcept>
 
 
@@ -100,6 +101,6 @@ void vertexbufferobject::unmap()
 	mapped = false;
 	bind();
 	if (glUnmapBufferARB(target) != GL_TRUE) {
-		sys().add_console("failed to unmap Vertex Buffer object, data invalid");
+		log_warning("failed to unmap Vertex Buffer object, data invalid");
 	}
 }

@@ -47,6 +47,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "filehelper.h"
 #include "widget.h"
 #include "objcache.h"
+#include "log.h"
 #define VIEWMODEL
 
 #include "mymain.cpp"
@@ -667,10 +668,8 @@ void view_model(const string& modelfilename, const string& datafilename)
 		totaltime = mysys->millisec() / 1000.0;
 		if (totaltime - fpstime >= measuretime) {
 			fpstime = totaltime;
-			ostringstream os;
-			os << "$c0fffffps " << (frames - lastframes)/measuretime;
+			log_info("fps " << (frames - lastframes)/measuretime);
 			lastframes = frames;
-			sys().add_console(os.str());
 		}
 
 		mysys->swap_buffers();

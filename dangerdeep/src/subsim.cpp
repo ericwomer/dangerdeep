@@ -436,10 +436,8 @@ game::run_state game__exec(game& gm, user_interface& ui)
 		// record fps
 		if (totaltime - fpstime >= measuretime) {
 			fpstime = totaltime;
-			ostringstream os;
-			os << "$c0fffffps " << (frames - lastframes)/measuretime;
+			log_info("fps " << (frames - lastframes)/measuretime);
 			lastframes = frames;
-			sys().add_console(os.str());
 		}
 		
 		sys().swap_buffers();
@@ -756,7 +754,7 @@ void choose_historical_mission()
 			gm.reset(new game(get_mission_dir() + missions[wmission->get_selected()]));
 		}
 		catch (error& e) {
-			sys().add_console(string("error loading game: ") + e.what());
+			log_warning("error loading game: " << e.what());
 			// fixme: show dialogue!
 			return;
 		}
@@ -985,7 +983,7 @@ void join_network_game(const string& servername, Uint16 server_port, network_con
 //		gm.reset(new game(iss));
 	}
 	catch (error& e) {
-		sys().add_console(string("error loading game: ") + e.what());
+		log_warning("error loading game: " << e.what());
 		// fixme: show dialogue!
 		return;
 	}
@@ -1185,7 +1183,7 @@ void apply_mode(widget_list* wlg)
 		cfg::instance().set("screen_res_x",width);
 	}
 	catch (exception& e) {
-		sys().add_console(string("Video mode setup failed: ") + e.what());
+		log_warning("Video mode setup failed: " << e.what());
 	}
 }
 
@@ -1840,7 +1838,7 @@ int mymain(list<string>& args)
 			gm.reset(new game(get_mission_dir() + cmdmissionfilename));
 		}
 		catch (error& e) {
-			sys().add_console(string("error loading mission: ")+ e.what());
+			log_warning("error loading mission: " << e.what());
 			// fixme: show dialogue!
 			ok = false;
 		}

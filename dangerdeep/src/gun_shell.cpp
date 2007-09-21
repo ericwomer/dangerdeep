@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "model.h"
 #include "system.h"
 #include "game.h"
+#include "log.h"
 
 gun_shell::gun_shell(game& gm_)
 	: sea_object(gm_, "gun_shell.3ds"), damage_amount(0)
@@ -46,7 +47,7 @@ gun_shell::gun_shell(game& gm_, const vector3& pos, angle direction, angle eleva
 	oldpos = position;
 	damage_amount = damage;
 
-	sys().add_console("shell created");
+	log_info("shell created");
 }
 
 
