@@ -188,8 +188,8 @@ system::~system()
 	}
 	SDL_Quit();
 	log::instance().write(std::cerr, log::INFO);
-	// doesn't work, but ofstream heirs from ostream! why it does not work then?!
-	//log::instance().write(std::ofstream("log.txt"), log::INFO);
+	std::ofstream f("log.txt");
+	log::instance().write(f, log::INFO);
 	instance = 0;
 }
 
@@ -404,7 +404,10 @@ list<SDL_Event> system::poll_event_queue()
 #else
 					SDL_Quit();	// to clean up mouse etc. after kill
 					log::instance().write(std::cerr, log::INFO);
-					//log::instance().write(std::ofstream("log.txt"), log::INFO);
+					{
+						std::ofstream f("log.txt");
+						log::instance().write(f, log::INFO);
+					}
 					exit(0);	// fixme
 #endif
 				
