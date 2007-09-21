@@ -22,7 +22,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "cfg.h"
 #include "keys.h"
-#include "tinyxml/tinyxml.h"
 #include "global_data.h"
 #include "system.h"
 #include "log.h"
@@ -34,25 +33,6 @@ using namespace std;
 
 cfg* cfg::myinst = 0;
 
-
-// later: remove that crap when tinyxml is not used directly any longer
-string XmlAttrib(class TiXmlElement* elem, const char* attrname)
-{
-	const char* tmp = elem->Attribute(attrname);
-	if (tmp) return string(tmp);
-	return string();
-}
-unsigned XmlAttribu(class TiXmlElement* elem, const char* attrname)
-{
-	return unsigned(atoi(XmlAttrib(elem, attrname).c_str()));
-}
-float XmlAttribf(class TiXmlElement* elem, const char* attrname)
-{
-	return float(atof(XmlAttrib(elem, attrname).c_str()));
-}
-
-
-	
 string cfg::key::get_name() const
 {
 	string result = SDL_GetKeyName(SDLKey(keysym));
@@ -126,25 +106,13 @@ bool cfg::set_str(const string& name, const string& value)
 
 void cfg::load(const string& filename)
 {
-	// test hack - later all xml code should be changed, so that it uses xml.h only
-	// and not tinyxml
-	/*
-	xml_doc doc2(filename);
-	doc2.load();
-	xml_elem root2 = doc2.child("dftd-cfg");
-	*/
-
-	TiXmlDocument doc(filename);
-	doc.LoadFile();
-	TiXmlElement* root = doc.FirstChildElement("dftd-cfg");
-	sys().myassert(root != 0, string("cfg: load(), no root element found in ") + filename);
-	TiXmlElement* eattr = root->FirstChildElement();
-	for ( ; eattr != 0; eattr = eattr->NextSiblingElement()) {
-		if (string(eattr->Value()) == "keys") {
-			// read keys
-			TiXmlElement* ke = eattr->FirstChildElement();
-			for ( ; ke != 0; ke = ke->NextSiblingElement()) {
-				string keyname = XmlAttrib(ke, "action");
+	xml_doc doc(filename);
+	doc.load();
+	xml_elem root = doc.child("dftd-cfg");
+	for (xml_elem::iterator it = root.iterate(); !it.end(); it.next()) {
+		if (it.elem().get_name() == "keys") {
+			for (xml_elem::iterator it2 = it.elem().iterate("key"); !it2.end(); it2.next()) {
+				string keyname = it2.elem().attr("action");
 				// get key number for this action from table
 				unsigned nr = NR_OF_KEY_IDS;
 				for (unsigned i = 0; i < NR_OF_KEY_IDS; ++i) {
@@ -156,17 +124,16 @@ void cfg::load(const string& filename)
 					log_warning("found key with invalid name " << keyname << " in config file");
 					continue;
 				}
-				SDLKey keysym = SDLKey(XmlAttribu(ke, "keysym"));
-				bool ctrl = XmlAttribu(ke, "ctrl") != 0;
-				bool alt = XmlAttribu(ke, "alt") != 0;
-				bool shift = XmlAttribu(ke, "shift") != 0;
+				SDLKey keysym = SDLKey(it2.elem().attri("keysym"));
+				bool ctrl = it2.elem().attrb("ctrl");
+				bool alt = it2.elem().attrb("alt");
+				bool shift = it2.elem().attrb("shift");
 				set_key(nr, keysym, ctrl, alt, shift);
 			}
 		} else {
-			string attrstr = XmlAttrib(eattr, "value");
-			bool found = set_str(eattr->Value(), attrstr);
+			bool found = set_str(it.elem().get_name(), it.elem().attr());
 			if (!found)
-				log_warning("config option not registered: " << eattr->Value());
+				log_warning("config option not registered: " << it.elem().get_name());
 		}
 	}
 }
@@ -175,45 +142,30 @@ void cfg::load(const string& filename)
 
 void cfg::save(const string& filename) const
 {
-	TiXmlDocument doc(filename);
-	TiXmlElement* root = new TiXmlElement("dftd-cfg");
-	doc.LinkEndChild(root);
+	xml_doc doc(filename);
+	xml_elem root = doc.add_child("dftd-cfg");
 	for (map<string, bool>::const_iterator it = valb.begin(); it != valb.end(); ++it) {
-		TiXmlElement* attr = new TiXmlElement(it->first);
-		attr->SetAttribute("value", (it->second) ? "true" : "false");
-		root->LinkEndChild(attr);
+		root.add_child(it->first).set_attr(it->second);
 	}
 	for (map<string, int>::const_iterator it = vali.begin(); it != vali.end(); ++it) {
-		TiXmlElement* attr = new TiXmlElement(it->first);
-		ostringstream oss;
-		oss << it->second;
-		attr->SetAttribute("value", oss.str());
-		root->LinkEndChild(attr);
+		root.add_child(it->first).set_attr(it->second);
 	}
 	for (map<string, float>::const_iterator it = valf.begin(); it != valf.end(); ++it) {
-		TiXmlElement* attr = new TiXmlElement(it->first);
-		ostringstream oss;
-		oss << it->second;
-		attr->SetAttribute("value", oss.str());
-		root->LinkEndChild(attr);
+		root.add_child(it->first).set_attr(it->second);
 	}
 	for (map<string, string>::const_iterator it = vals.begin(); it != vals.end(); ++it) {
-		TiXmlElement* attr = new TiXmlElement(it->first);
-		attr->SetAttribute("value", it->second);
-		root->LinkEndChild(attr);
+		root.add_child(it->first).set_attr(it->second);
 	}
-	TiXmlElement* keys = new TiXmlElement("keys");
-	root->LinkEndChild(keys);
+	xml_elem keys = root.add_child("keys");
 	for (map<unsigned, key>::const_iterator it = valk.begin(); it != valk.end(); ++it) {
-		TiXmlElement* attr = new TiXmlElement("key");
-		attr->SetAttribute("action", it->second.action);
-		attr->SetAttribute("keysym", it->second.keysym);
-		attr->SetAttribute("ctrl", it->second.ctrl);
-		attr->SetAttribute("alt", it->second.alt);
-		attr->SetAttribute("shift", it->second.shift);
-		keys->LinkEndChild(attr);
+		xml_elem key = keys.add_child("key");
+		key.set_attr(it->second.action, "action");
+		key.set_attr(int(it->second.keysym), "keysym");
+		key.set_attr(it->second.ctrl, "ctrl");
+		key.set_attr(it->second.alt, "alt");
+		key.set_attr(it->second.shift, "shift");
 	}
-	doc.SaveFile();
+	doc.save();
 }
 
 
@@ -254,7 +206,8 @@ void cfg::register_key(const string& name, SDLKey keysym, bool ctrl, bool alt, b
 			nr = i;
 		}
 	}
-	sys().myassert(nr != NR_OF_KEY_IDS, string("register_key with invalid name ")+ name);
+	if (nr == NR_OF_KEY_IDS)
+		throw error(string("register_key with invalid name ")+ name);
 	valk[nr] = key(name, keysym, ctrl, alt, shift);
 }
 
@@ -266,7 +219,7 @@ void cfg::set(const string& name, bool value)
 	if (it != valb.end())
 		it->second = value;
 	else
-		sys().myassert(false, string("cfg: set(), name not registered: ") + name);
+		throw error(string("cfg: set(), name not registered: ") + name);
 }
 
 
@@ -277,7 +230,7 @@ void cfg::set(const string& name, int value)
 	if (it != vali.end())
 		it->second = value;
 	else
-		sys().myassert(false, string("cfg: set(), name not registered: ") + name);
+		throw error(string("cfg: set(), name not registered: ") + name);
 }
 
 
@@ -288,7 +241,7 @@ void cfg::set(const string& name, float value)
 	if (it != valf.end())
 		it->second = value;
 	else
-		sys().myassert(false, string("cfg: set(), name not registered: ") + name);
+		throw error(string("cfg: set(), name not registered: ") + name);
 }
 
 
@@ -299,7 +252,7 @@ void cfg::set(const string& name, const string& value)
 	if (it != vals.end())
 		it->second = value;
 	else
-		sys().myassert(false, string("cfg: set(), name not registered: ") + name);
+		throw error(string("cfg: set(), name not registered: ") + name);
 }
 
 
@@ -310,7 +263,7 @@ void cfg::set_key(unsigned nr, SDLKey keysym, bool ctrl, bool alt, bool shift)
 	if (it != valk.end())
 		it->second = key(it->second.action, keysym, ctrl, alt, shift);
 	else
-		sys().myassert(false, string("cfg: set_key(), key number not registered: "));
+		throw error(string("cfg: set_key(), key number not registered: "));
 }
 
 
@@ -321,7 +274,7 @@ bool cfg::getb(const string& name) const
 	if (it != valb.end())
 		return it->second;
 	else
-		sys().myassert(false, string("cfg: get(), name not registered: ") + name);
+		throw error(string("cfg: get(), name not registered: ") + name);
 	return 0;
 }
 
@@ -333,7 +286,7 @@ int cfg::geti(const string& name) const
 	if (it != vali.end())
 		return it->second;
 	else
-		sys().myassert(false, string("cfg: get(), name not registered: ") + name);
+		throw error(string("cfg: get(), name not registered: ") + name);
 	return 0;
 }
 
@@ -345,7 +298,7 @@ float cfg::getf(const string& name) const
 	if (it != valf.end())
 		return it->second;
 	else
-		sys().myassert(false, string("cfg: get(), name not registered: ") + name);
+		throw error(string("cfg: get(), name not registered: ") + name);
 	return 0;
 }
 
@@ -357,7 +310,7 @@ string cfg::gets(const string& name) const
 	if (it != vals.end())
 		return it->second;
 	else
-		sys().myassert(false, string("cfg: get(), name not registered: ") + name);
+		throw error(string("cfg: get(), name not registered: ") + name);
 	return 0;
 }
 
@@ -369,7 +322,7 @@ cfg::key cfg::getkey(unsigned nr) const
 	if (it != valk.end())
 		return it->second;
 	else
-		sys().myassert(false, string("cfg: getkey(), key number not registered: "));
+		throw error(string("cfg: getkey(), key number not registered: "));
 	return key();
 }
 
