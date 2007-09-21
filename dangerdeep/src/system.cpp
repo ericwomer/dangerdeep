@@ -186,6 +186,8 @@ system::~system()
 	}
 	SDL_Quit();
 	write_console();
+	log::instance().write(log::INFO, std::cerr);
+	log::instance().write(log::INFO, std::ofstream("log.txt"));
 	instance = 0;
 }
 
@@ -252,14 +254,6 @@ void system::screen_resize(unsigned w, unsigned h, double nearz, double farz)
 
 
 
-void system::clear_console()
-{
-	console_text.clear();
-	add_console("$ffffffLog restart.");
-}
-
-
-
 void system::add_console(const string& tx)
 {
 	if (instance == 0) {
@@ -267,17 +261,6 @@ void system::add_console(const string& tx)
 		return;
 	}
 	console_text.push_back(tx);
-}
-
-
-
-void system::add_console(const char* fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	vsnprintf(sprintf_tmp, 1024, fmt, args);
-	va_end(args);
-	add_console(string(sprintf_tmp));
 }
 
 
@@ -373,6 +356,7 @@ unsigned long system::millisec()
 	return SDL_GetTicks() - time_passed_while_sleeping;
 }
 
+// fixme: replace this ASAP
 void system::myassert(bool cond, const string& msg)
 {
 	if (this == 0 && !cond) {
@@ -383,11 +367,11 @@ void system::myassert(bool cond, const string& msg)
 		exit(0);
 	}
 	if (!cond) {
-		add_console("!ERROR!");
+		log_warning("!ERROR!");
 		if (msg != "")
-			add_console(msg);
+			log_warning(msg);
 		else
-			add_console("unknown error");
+			log_warning("unknown error");
 		SDL_Quit();
 		write_console();
 #ifdef THROWERR
@@ -404,27 +388,6 @@ void system::myassert(bool cond, const char* fmt, ...)
 	vsnprintf(sprintf_tmp, 1024, fmt, args);
 	va_end(args);
 	myassert(cond, string(sprintf_tmp));
-}
-
-void system::error(const string& msg)
-{
-	if (!this) {
-		cerr << "ERROR: " << msg << "\n";
-	} else {
-		add_console(string("ERROR: ") + msg);
-		SDL_Quit();
-		write_console();
-	}
-	exit(0);
-}
-
-void system::error(const char* msg, ...)
-{
-	va_list args;
-	va_start(args, msg);
-	vsnprintf(sprintf_tmp, 1024, msg, args);
-	va_end(args);
-	error(string(sprintf_tmp));
 }
 
 void system::swap_buffers()
@@ -469,6 +432,8 @@ list<SDL_Event> system::poll_event_queue()
 					break;
 #else
 					SDL_Quit();	// to clean up mouse etc. after kill
+					log::instance().write(log::INFO, std::cerr);
+					log::instance().write(log::INFO, std::ofstream("log.txt"));
 					exit(0);	// fixme
 #endif
 				
@@ -531,7 +496,7 @@ list<SDL_Event> system::poll_event_queue()
 					break;
 					
 				default:			// Should NEVER happen !
-					add_console("unknown event caught");
+					log_info("unknown event caught");
 					break; // quick hack
 					//throw runtime_error("Unknown Event !");
 					//break;
@@ -579,7 +544,7 @@ void system::screenshot(const std::string& filename)
 	}
 	SDL_SaveBMP(tmp, fn.c_str());
 	SDL_FreeSurface(tmp);
-	add_console(string("screenshot taken as ")+fn);
+	log_info("screenshot taken as " << fn);
 }
 
 void system::draw_rectangle(int x, int y, int w, int h)

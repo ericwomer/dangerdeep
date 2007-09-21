@@ -63,6 +63,26 @@ struct log_msg
 		oss << "[" << std::hex << tid << "] <" << std::dec << time << "> " << msg << "\033[0m";
 		return oss.str();
 	}
+
+	std::string pretty_print_console() const
+	{
+		std::ostringstream oss;
+		switch (lvl) {
+		case log::WARNING:
+			oss << "$ff8080";
+			break;
+		case log::INFO:
+			oss << "$c0c0ff";
+			break;
+		case log::DEBUG:
+			oss << "$b0ffb0";
+			break;
+		default:
+			oss << "$c0c0c0";
+		}
+		oss << "[" << std::hex << tid << "] <" << std::dec << time << "> " << msg;
+		return oss.str();
+	}
 };
 
 class log_internal
@@ -96,6 +116,7 @@ void log::append(log::level l, const std::string& msg)
 #if 1
 	std::cout << mylogint->loglines.back().pretty_print() << std::endl;
 #endif
+	sys().add_console(mylogint->loglines.back().pretty_print_console());
 }
 
 void log::write(std::ostream& out, log::level limit_level) const

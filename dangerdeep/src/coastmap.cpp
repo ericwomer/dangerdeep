@@ -48,6 +48,13 @@ inline double round(double d) { return floor(d + 0.5); }
 #endif
 #endif
 
+// fixme: replace this
+#ifdef DEBUG
+#define ASSERT(a,...) do{if(!(a)){char __tmp[256];vsprintf(tmp, __VA_ARGS__);throw error(tmp);}}while(0)
+#else
+#define ASSERT(a,...)
+#endif
+
 const unsigned BSPLINE_SMOOTH_FACTOR = 16;//3;//16;	// should be 3...16
 const double BSPLINE_DETAIL = 8.0;//1.0;//4.0;            // should be 1.0...x
 const unsigned SEGSCALE = 65535;	// 2^16-1 so that per segment coordinates fit in a ushort value.

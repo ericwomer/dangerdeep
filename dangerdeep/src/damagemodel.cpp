@@ -196,8 +196,8 @@ int main(int argc, char** argv)
 	mysys = new class system(1.0, 1000.0, res_x, res_y, fullscreen);
 	mysys->set_res_2d(1024, 768);
 	
-	mysys->add_console("A simple model viewer for DftD-.mdl files");
-	mysys->add_console("copyright and written 2003 by Thorsten Jordan");
+	log_info("A simple model viewer for DftD-.mdl files");
+	log_info("copyright and written 2003 by Thorsten Jordan");
 
 	glMatrixMode(GL_PROJECTION);
 	gluOrtho2D(0,1024,0,768);//parameters are left,right,bottom,top

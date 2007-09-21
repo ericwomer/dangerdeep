@@ -44,6 +44,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "faulthandler.h"
 #include "datadirs.h"
 #include "frustum.h"
+#include "log.h"
 #include "mymain.cpp"
 
 #include <time.h>
@@ -166,9 +167,7 @@ int mymain(list<string>& args)
 	mysys->set_res_2d(1024, 768);
 	mysys->set_max_fps(60);
 	
-	mysys->add_console("$ffffffDanger $c0c0c0from the $ffffffDeep");
-	mysys->add_console("$ffff00copyright and written 2003 by $ff0000Thorsten Jordan");
-	mysys->add_console("$80ff80*** welcome ***");
+	log_info("Danger from the Deep");
 
 	GLfloat lambient[4] = {0.1,0.1,0.1,1};
 	GLfloat ldiffuse[4] = {1,1,1,1};

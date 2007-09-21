@@ -1889,8 +1889,6 @@ int mymain(list<string>& args)
 	deinit_global_data();
 	gbd.reset();
 
-	//log::instance().write(std::cout, log::DEBUG);
-
 	return 0;
 }
 

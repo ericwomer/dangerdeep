@@ -45,13 +45,6 @@ using std::set;
 #define system System
 #endif
 
-// a helpful macro
-#ifdef DEBUG
-#define ASSERT(a,...) {if(!(a)){sys().error(__VA_ARGS__);}}
-#else
-#define ASSERT(a,...)
-#endif
-
 class font;
 class texture;
 
@@ -79,9 +72,7 @@ public:
 
 	void screen_resize(unsigned w, unsigned h, double nearz, double farz);
 	
-	void clear_console();
 	void add_console(const string& tx);
-	void add_console(const char* fmt, ...);
 	void draw_console_with(const font* fnt, const texture* background = 0);
 	void write_console(bool fileonly = false) const;
 	void prepare_2d_drawing();	// must be called as pair!
@@ -92,8 +83,6 @@ public:
 	static inline system& sys() { return *instance; };
 	void myassert(bool cond, const string& msg = "");
 	void myassert(bool cond, const char* fmt, ...);
-	void error(const string& msg);
-	void error(const char* msg, ...);
 	
 	void set_screenshot_directory(const string& s) { screenshot_dir = s; }
 	void screenshot(const std::string& filename = std::string());
