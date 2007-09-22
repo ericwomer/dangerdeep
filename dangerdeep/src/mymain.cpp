@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
 #include "faulthandler.h"
+#include "log.h"
 #include <list>
 #include <string>
 #include <exception>
@@ -42,19 +43,25 @@ int mymain(list<string>& args);
 
 int call_mymain(list<string>& args)
 {
+	log_info("***** Log file started *****");
+	int result = 0;
 	try {
-		return mymain(args);
+		result = mymain(args);
 	}
 	catch (std::exception& e) {
-		cerr << "Caught exception: " << e.what() << "\n";
+		log_warning("Caught exception: " << e.what());
 		print_stack_trace();
-		return -1;
+		result = -1;
 	}
 	catch (...) {
-		cerr << "Caught unknown exception!\n";
+		log_warning("Caught unknown exception");
 		print_stack_trace();
-		return -2;
+		result = -2;
 	}
+	log::instance().write(std::cerr, log::SYSINFO);
+	std::ofstream f("log.txt");
+	log::instance().write(f, log::SYSINFO);
+	return result;
 }
 
 #ifdef WIN32

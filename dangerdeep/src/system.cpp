@@ -164,16 +164,17 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 	glGetIntegerv(GL_MAX_VIEWPORT_DIMS, maxviewportdims);
 	glGetIntegerv(GL_DEPTH_BITS, &depthbits);
 
-	cerr << "OpenGL vendor : " << vendor << "\n"
-	     << "GL renderer : " << renderer << "\n"
-	     << "GL version : " << version << "\n"
-	     << "GL max texture size : " << texture::get_max_size() << "\n"
-	     << "GL number of texture units : " << nrtexunits << "\n"
-	     << "GL number of lights : " << nrlights << "\n"
-	     << "GL number of clip planes : " << nrclipplanes << "\n"
-	     << "GL maximum viewport dimensions : " << maxviewportdims[0] << "x" << maxviewportdims[1] << "\n"
-	     << "GL depth bits (current) : " << depthbits << "\n"
-	     << "Supported GL extensions :\n" << extensions << "\n";
+	log_info("***** OpenGL Information *****\n\n\n"
+		 << "OpenGL vendor : " << vendor << "\n"
+		 << "GL renderer : " << renderer << "\n"
+		 << "GL version : " << version << "\n"
+		 << "GL max texture size : " << texture::get_max_size() << "\n"
+		 << "GL number of texture units : " << nrtexunits << "\n"
+		 << "GL number of lights : " << nrlights << "\n"
+		 << "GL number of clip planes : " << nrclipplanes << "\n"
+		 << "GL maximum viewport dimensions : " << maxviewportdims[0] << "x" << maxviewportdims[1] << "\n"
+		 << "GL depth bits (current) : " << depthbits << "\n"
+		 << "Supported GL extensions :\n" << extensions << "\n");
 		
 	instance = this;
 }
@@ -185,9 +186,6 @@ system::~system()
 		throw sdl_error("system destruction: system instance doesn't exist");
 	}
 	SDL_Quit();
-	log::instance().write(std::cerr, log::SYSINFO);
-	std::ofstream f("log.txt");
-	log::instance().write(f, log::SYSINFO);
 	instance = 0;
 }
 
@@ -368,6 +366,9 @@ list<SDL_Event> system::poll_event_queue()
 					break;
 #else
 					SDL_Quit();	// to clean up mouse etc. after kill
+					// we need to write the log here, since mymain
+					// can't write it, because we do exit here
+					log_info("---------- immediate exit ----------");
 					log::instance().write(std::cerr, log::SYSINFO);
 					{
 						std::ofstream f("log.txt");
