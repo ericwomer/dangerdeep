@@ -177,14 +177,15 @@ void model::render_init()
 		log_info("Using OpenGL GLSL shaders...");
 
 		glsl_shader::defines_list dl;
-		dl.push_back("USE_SPECULARMAP");
 		glsl_color_normal.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
 							      get_shader_dir() + "modelrender.fshader"));
+		dl.push_back("USE_SPECULARMAP");
 		glsl_color_normal_specular.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
 								       get_shader_dir() + "modelrender.fshader", dl));
-		dl.push_back("USE_CAUSTIC");
+		dl.clear(); dl.push_back("USE_CAUSTIC");
 		glsl_color_normal_caustic.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
-							      get_shader_dir() + "modelrender.fshader"));
+							      get_shader_dir() + "modelrender.fshader", dl));
+		dl.push_back("USE_SPECULARMAP");
 		glsl_color_normal_specular_caustic.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
 								       get_shader_dir() + "modelrender.fshader", dl));
  		glsl_mirror_clip.reset(new glsl_shader_setup(get_shader_dir() + "modelrender_mirrorclip.vshader",
@@ -199,7 +200,9 @@ void model::render_deinit()
 	if (use_shaders) {
 		glsl_program::use_fixed();
 		glsl_color_normal.reset();
+		glsl_color_normal_caustic.reset();
 		glsl_color_normal_specular.reset();
+		glsl_color_normal_specular_caustic.reset();
 		glsl_mirror_clip.reset();
 	}
 }
@@ -1542,7 +1545,11 @@ void model::mesh::display(const texture *caustic_map) const
 	// cleanup
 	if (use_shaders) {
 		glsl_shader_setup::use_fixed();
+		glActiveTexture(GL_TEXTURE3);
+		glDisable(GL_TEXTURE_2D);
 		glActiveTexture(GL_TEXTURE2);
+		glDisable(GL_TEXTURE_2D);
+		glActiveTexture(GL_TEXTURE1);
 		glDisable(GL_TEXTURE_2D);
 		glActiveTexture(GL_TEXTURE0);
 		glDisableVertexAttribArray(vertex_attrib_index);

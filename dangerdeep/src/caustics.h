@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 
+#include "ptrvector.h"
 #include "texture.h"
 
 
@@ -37,12 +38,11 @@ class caustics
 {
 protected:
 	double mytime;
-	std::vector<texture *> texture_pointers;
+	ptrvector<texture> texture_pointers;
 	unsigned int current_texture;
 
 public:
 	caustics();
-	~caustics();
 
 	void set_time(double tm);
 	texture *get_map() const;

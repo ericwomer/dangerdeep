@@ -427,7 +427,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 				objects_mirror.push_back(*it);
 			}
 		}
-		draw_objects(gm, viewpos_mirror, objects_mirror, lightcol, true /* mirror */);
+		draw_objects(gm, viewpos_mirror, objects_mirror, lightcol, false /* under_water */, true /* mirror */);
 
 		//fixme
 		glCullFace(GL_BACK);
@@ -643,7 +643,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 //	cout << "mv trans pos " << matrix4::get_gl(GL_MODELVIEW_MATRIX).column(3) << "\n";
 
 	// substract player pos.
-	draw_objects(gm, viewpos, objects, lightcol, (above_water < 0) ? true : false /* under water */);
+	draw_objects(gm, viewpos, objects, lightcol, (above_water < 0) ? true : false /* under water */, false /* mirrorclip */);
 
 	// ******************** draw the bridge in higher detail
 	if (aboard && drawbridge) {

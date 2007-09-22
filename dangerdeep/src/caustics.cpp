@@ -48,18 +48,7 @@ caustics::caustics()
 		stringstream filename;
 		filename << "caustic" << setfill('0') << setw(2) << i << ".png";
 
-		texture *map = new texture(get_texture_dir()+filename.str(), texture::LINEAR);
-		texture_pointers.push_back(map);
-	}
-}
-
-
-
-caustics::~caustics()
-{
-	for(vector<texture *>::iterator i=texture_pointers.begin(); i!=texture_pointers.end(); i++)
-	{
-		delete (*i);
+		texture_pointers.push_back(auto_ptr<texture>( new texture(get_texture_dir()+filename.str(), texture::LINEAR) ));
 	}
 }
 
