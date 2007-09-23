@@ -375,10 +375,10 @@ public:
 	static const std::string default_layout;
 	void set_layout(const std::string& layout = default_layout);
 	void display(const texture *caustic_map = 0) const;
-	// display model but clip away coords with z < 0 in world space.
-	// set up modelview matrix with world->eye transformation before calling this function
-	// and give additional object->world transformation as matrix of texture unit #1 (2nd. unit).
-	void display_mirror_clip() const;
+	/** display model but clip away coords with z < 0 in world space.
+	    @param pos_z z-position of object
+	*/
+	void display_mirror_clip(double pos_z) const;
 	mesh& get_mesh(unsigned nr);
 	const mesh& get_mesh(unsigned nr) const;
 	/// get mesh at root of object tree or first mesh if no tree defined

@@ -745,7 +745,7 @@ void sea_object::display_mirror_clip() const
 	if (mymodel) {
 //		cout << "renderMC with skin layout = " << skin_name << "\n";
 		mymodel->set_layout(skin_name);
-		mymodel->display_mirror_clip();
+		mymodel->display_mirror_clip(position.z);
 	}
 }
 

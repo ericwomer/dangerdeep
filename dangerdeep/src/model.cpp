@@ -137,10 +137,26 @@ void model::object::display_mirror_clip() const
 	glPushMatrix();
 	glTranslated(translation.x, translation.y, translation.z);
 	glRotated(rotat_angle, rotat_axis.x, rotat_axis.y, rotat_axis.z);
+
+	glActiveTexture(GL_TEXTURE1);
+	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	glTranslated(translation.x, translation.y, translation.z);
+	glRotated(rotat_angle, rotat_axis.x, rotat_axis.y, rotat_axis.z);
+	glMatrixMode(GL_MODELVIEW);
+	glActiveTexture(GL_TEXTURE0);
+
 	if (mymesh) mymesh->display_mirror_clip();
 	for (vector<object>::const_iterator it = children.begin(); it != children.end(); ++it) {
 		it->display_mirror_clip();
 	}
+
+	glActiveTexture(GL_TEXTURE1);
+	glMatrixMode(GL_TEXTURE);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glActiveTexture(GL_TEXTURE0);
+
 	glPopMatrix();
 }
 
@@ -148,7 +164,7 @@ void model::object::display_mirror_clip() const
 
 void model::object::compute_bounds(vector3f& min, vector3f& max, const matrix4f& transmat) const
 {
-	matrix4f mytransmat = get_transformation() * transmat;
+	matrix4f mytransmat = transmat * get_transformation();
 	// handle vertices of mymesh if present
 	if (mymesh) {
 		mymesh->compute_bounds(min, max, mytransmat);
@@ -1204,6 +1220,7 @@ void model::material::set_gl_values(const texture *caustic_map) const
 
 	glActiveTexture(GL_TEXTURE0);
 	if (colormap.get()) {
+		glMatrixMode(GL_TEXTURE);
 		if (normalmap.get()) {
 			// no opengl lighting in normal map mode.
 			glDisable(GL_LIGHTING);
@@ -1329,6 +1346,7 @@ void model::material::set_gl_values_mirror_clip() const
 	glsl_mirror_clip->use();
 
 	if (colormap.get()) {
+		glMatrixMode(GL_TEXTURE);
 		// plain texture mapping with diffuse lighting only, but with shaders
 		glColor4f(1, 1, 1, 1);
 		colormap->set_gl_texture(*glsl_mirror_clip, "tex_color", 0);
@@ -1601,6 +1619,10 @@ void model::mesh::display_mirror_clip() const
 	// plain OpenGL. But we need shaders for clipping.
 	// set simple shaders here, no matter which material we have...
 
+	// local transformation matrix.
+	glPushMatrix();
+	transformation.multiply_glf();
+
 	bool has_texture_u0 = false;
 	if (mymaterial != 0) {
 		if (mymaterial->colormap.get())
@@ -1616,6 +1638,7 @@ void model::mesh::display_mirror_clip() const
 	// multiply extra transformation to texture[1] matrix
 	glActiveTexture(GL_TEXTURE1);
 	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
 	transformation.multiply_glf();
 	glMatrixMode(GL_MODELVIEW);
 	glActiveTexture(GL_TEXTURE0);
@@ -1650,6 +1673,15 @@ void model::mesh::display_mirror_clip() const
 	if (use_shaders) {
 		glsl_shader_setup::use_fixed();
 	}
+
+	glActiveTexture(GL_TEXTURE1);
+	glMatrixMode(GL_TEXTURE);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glActiveTexture(GL_TEXTURE0);
+
+	// local transformation matrix.
+	glPopMatrix();
 
 	glEnable(GL_LIGHTING);
 	glDisableClientState(GL_VERTEX_ARRAY);
@@ -1708,10 +1740,17 @@ void model::display(const texture *caustic_map) const
 
 
 
-void model::display_mirror_clip() const
+void model::display_mirror_clip(double pos_z) const
 {
-	// default scene: no objects, just draw all meshes.
+	// set up a object->worldspace transformation matrix in tex unit#1 matrix.
+	glActiveTexture(GL_TEXTURE1);
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	glTranslatef(0, 0, pos_z);
+	glMatrixMode(GL_MODELVIEW);
+	glActiveTexture(GL_TEXTURE0);
 	if (scene.children.size() == 0) {
+		// default scene: no objects, just draw all meshes.
 		for (vector<model::mesh*>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
 			(*it)->display_mirror_clip();
 		}

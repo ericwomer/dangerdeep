@@ -1523,7 +1523,7 @@ void coastmap::render(const vector2& p, double vr, bool mirrored, int detail, bo
 			glTranslatef(it->pos.x - p.x, it->pos.y - p.y, 0); //- p.z
 			glRotatef(-it->dir, 0, 0, 1);
 			if (mirrored)
-				modelcache().find(it->modelname)->display_mirror_clip();
+				modelcache().find(it->modelname)->display_mirror_clip(0 /* pos.z */);
 			else
 				modelcache().find(it->modelname)->display();
 			glPopMatrix();

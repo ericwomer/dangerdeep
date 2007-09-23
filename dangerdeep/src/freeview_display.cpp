@@ -199,7 +199,7 @@ struct alpha_cmp : public std::binary_function<water_splash*, water_splash*, boo
 void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 				    const vector<sea_object*>& objects,
 				    const colorf& light_color,
-					const bool under_water,
+				    const bool under_water,
 				    bool mirrorclip) const
 {
 	// simulate horizon: d is distance to object (on perimeter of earth)
@@ -220,12 +220,8 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 		glPushMatrix();
 		// fixme: z translate according to water height here, only for ships
 		if (mirrorclip && !istorp) {
-			vector3 pos = (*it)->get_pos();
-			glTranslated(pos.x - viewpos.x, pos.y - viewpos.y, -viewpos.z);
-			glActiveTexture(GL_TEXTURE1);
-			glMatrixMode(GL_TEXTURE);
-			glLoadIdentity();
-			glTranslated(0, 0, pos.z);
+			vector3 pos = (*it)->get_pos() - viewpos;
+			glTranslated(pos.x, pos.y, pos.z);
 		} else {
 			vector3 pos = (*it)->get_pos() - viewpos;
 			//pos.z += EARTH_RADIUS * (sin(M_PI/2 - pos.xy().length()/EARTH_RADIUS) - 1.0);
