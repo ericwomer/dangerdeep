@@ -21,7 +21,8 @@
     <near lang="it">Cacciatorpediniere di classe O</near>
   </description>
   <motion maxspeed="37" maxrevspeed="0" acceleration="1.0" turnrate="0.15"/>
-  <tonnage min="2200" max="2625"/>
+  <tonnage value="1790" />
+  <mass value="2625000" />
   <smoke type="2" x="0" y="7" z="13.0"/>
   <sensors>
     <sensor type="lookout"/>

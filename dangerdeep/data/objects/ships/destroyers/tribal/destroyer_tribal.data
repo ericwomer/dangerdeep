@@ -19,7 +19,8 @@
     <near lang="it">Cacciatorpediniere di classe Tribal</near>
   </description>
   <motion maxspeed="36" maxrevspeed="0" acceleration="1.0" turnrate="0.15"/>
-  <tonnage min="1850" max="2520"/>
+  <tonnage value="1860" />
+  <mass value="2565360" />
   <smoke type="2" x="0" y="6" z="12.65"/>
   <sensors>
     <sensor type="lookout"/>
