@@ -49,6 +49,9 @@ class log
 	/// get the one and only log instance
 	static log& instance();
 
+	/// wether log output should go to console as well
+	static bool copy_output_to_console;
+
 	/// write the log to a stream, with optional filtering of importance, threadsafe
 	void write(std::ostream& out, log::level limit_level = log::NR_LEVELS) const;
 

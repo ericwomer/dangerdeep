@@ -112,6 +112,8 @@ log::log()
 
 log* log::myinstance = 0;
 
+bool log::copy_output_to_console = false;
+
 log& log::instance()
 {
 	if (!myinstance)
@@ -123,9 +125,9 @@ void log::append(log::level l, const std::string& msg)
 {
 	mutex_locker ml(mylogint->mtx);
 	mylogint->loglines.push_back(log_msg(l, msg));
-#if 1
-	std::cout << mylogint->loglines.back().pretty_print() << std::endl;
-#endif
+	if (copy_output_to_console) {
+		std::cout << mylogint->loglines.back().pretty_print() << std::endl;
+	}
 }
 
 void log::write(std::ostream& out, log::level limit_level) const

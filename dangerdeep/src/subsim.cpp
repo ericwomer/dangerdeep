@@ -1497,7 +1497,8 @@ int mymain(list<string>& args)
 #if !(defined (WIN32) || (defined (__APPLE__) && defined (__MACH__)))
 			     << "--vsync\tsync to vertical retrace signal (for nvidia cards)\n"
 #endif
-			     << "--maxfps x\tset maximum fps to x frames per second (default 60). Use x=0 to disable fps limit.\n";
+			     << "--maxfps x\tset maximum fps to x frames per second (default 60). Use x=0 to disable fps limit.\n"
+			     << "--consolelog\tcopy log output to current console\n";
 			return 0;
 		} else if (*it == "--nofullscreen") {
 			fullscreen = false;
@@ -1512,6 +1513,8 @@ int mymain(list<string>& args)
 			}
 		} else if (*it == "--editor") {
 			runeditor = true;
+		} else if (*it == "--consolelog") {
+			log::copy_output_to_console = true;
 		} else if (*it == "--nosound") {
 			use_sound = false;
 		} else if (*it == "--res") {
