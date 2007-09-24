@@ -39,6 +39,8 @@ using std::string;
 using std::map;
 using std::pair;
 using std::make_pair;
+using std::istringstream;
+using std::ostringstream;
 
 map<double, map<double, double> > ship::dist_angle_relation;
 #define MAX_INCLINATION 45.0
@@ -103,7 +105,6 @@ ship::ship(game& gm_, const xml_elem& parent)
 	  max_speed_forward(10),
 	  max_speed_reverse(0),
 	  fuel_level(0),
-	  mass_flooded(0),
 	  flooding_speed(0),
 	  max_flooded_mass(0),
 	  myfire(0),		
@@ -203,6 +204,7 @@ ship::ship(game& gm_, const xml_elem& parent)
 
 	if (mymodel) {
 		max_flooded_mass = mymodel->get_base_mesh().volume * 1000 /* density of water */;
+		flooded_mass.resize(mymodel->get_voxel_data().size());
 	}
 }
 
@@ -210,7 +212,7 @@ ship::ship(game& gm_, const xml_elem& parent)
 
 void ship::sink()
 {
-	flooding_speed += 20000; // 20 tons per second
+	flooding_speed += 40000; // 40 tons per second
 	sea_object::set_inactive();
 	if (myfire) {
 		myfire->kill();
@@ -393,8 +395,10 @@ void ship::load(const xml_elem& parent)
 	stern_damage = damage_status(dm.attru("stern"));
 	fuel_level = parent.child("fuel_level").attrf();
 	xml_elem esink = parent.child("sinking");
-	mass_flooded = esink.attrf("mass_flooded");
 	flooding_speed = esink.attrf("flooding_speed");
+	istringstream fiss(esink.child_text());
+	for (unsigned j = 0; j < flooded_mass.size(); ++j)
+		fiss >> flooded_mass[j];
 
 	// fixme load that
 	//list<prev_pos> previous_positions;
@@ -467,8 +471,11 @@ void ship::save(xml_elem& parent) const
 	dm.set_attr(unsigned(stern_damage), "stern");
 	parent.add_child("fuel_level").set_attr(fuel_level);
 	xml_elem esink = parent.add_child("sinking");
-	esink.set_attr(mass_flooded, "mass_flooded");
 	esink.set_attr(flooding_speed, "flooding_speed");
+	ostringstream foss;
+	for (unsigned j = 0; j < flooded_mass.size(); ++j)
+		foss << flooded_mass[j] << " ";
+	esink.add_child_text(foss.str());
 
 	// fixme save that
 	//list<prev_pos> previous_positions;
@@ -519,21 +526,30 @@ void ship::save(xml_elem& parent) const
 
 void ship::simulate(double delta_time)
 {
-	mass += mass_flooded;
 	sea_object::simulate(delta_time);
-	mass -= mass_flooded;
 
 	if ( myai.get() )
 		myai->act(gm, delta_time);
 
 	// calculate sinking, fixme replace by buoyancy...
 	if (is_inactive()) {
-		mass_flooded += delta_time * flooding_speed;
-		if (mass_flooded > max_flooded_mass) mass_flooded = max_flooded_mass;
+		// add mass to all voxels (flood them).
+		// this isn't too accurate, as voxels at bottom of ship or near
+		// the hole will fill up first, but it is accurate enough for us
+		// and for a believable display
+		const std::vector<model::voxel>& voxdat = mymodel->get_voxel_data();
+		//double totally_flooded = 0;
+		for (unsigned i = 0; i < voxdat.size(); ++i) {
+			flooded_mass[i] += delta_time * flooding_speed * voxdat[i].relative_volume;
+			// get max. flooded mass for voxel
+			double mfm = voxdat[i].relative_volume * max_flooded_mass;
+			if (flooded_mass[i] > mfm) flooded_mass[i] = mfm;
+			//totally_flooded += flooded_mass[i];
+		}
+		//log_debug("totally_flooded="<<totally_flooded<<" mass="<<mass);
 		if (position.z < -200)	// used for ships.
 			kill();
 		throttle = stop;
-		rudder_midships();
 		return;
 	}
 
@@ -689,8 +705,12 @@ bool ship::damage(const vector3& fromwhere, unsigned strength)
 	vector3f objrelpos = orientation.conj().rotate(relpos);
 	//log_debug("DAMAGE! relpos="<<relpos << " objrelpos="<<objrelpos);
 	vector<unsigned> voxlist = mymodel->get_voxels_within_sphere(objrelpos, strength/10.0);
-	//for (unsigned i = 0; i < voxlist.size(); ++i)
-	//	log_debug("i="<<i<<" idx="<<voxlist[i]<<" relpos="<<mymodel->get_voxel_data()[i].relative_position);
+	const std::vector<model::voxel>& voxdat = mymodel->get_voxel_data();
+	for (unsigned j = 0; j < voxlist.size(); ++j) {
+		unsigned i = voxlist[j];
+		// flood all damaged voxels instantly, so ship lists to hit side
+		flooded_mass[i] = voxdat[i].relative_volume * max_flooded_mass;
+	}
 
 	damage_status& where = midship_damage;//fixme
 	int dmg = int(where) + strength;
@@ -783,7 +803,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	matrix4f transmat = orientation.rotmat4() * mymodel->get_base_mesh_transformation()
 		* matrix4f::diagonal(voxel_size.x, voxel_size.y, voxel_size.z);
 	double vol_below_water=0;
-	double gravity_force = mass * GRAVITY;
+	double gravity_force = mass * -GRAVITY;
 	for (unsigned i = 0; i < voxel_data.size(); ++i) {
 		// instead of a per-voxel matrix-vector multiplication we could
 		// transform all other vectors to mesh-vertex-space and skip
@@ -806,8 +826,11 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 			dr_torque += lift_torque;
 			//std::cout << "i=" << i << " subm=" << submerged_part << " vdw=" << voxel_data[i].part_of_volume << " lift_force=" << lift_force << " lift_torque=" << lift_torque << "\n";
 		}
-		lift_force_sum += -gravity_force * voxel_data[i].relative_mass;
-		dr_torque += p.cross(vector3(0, 0, -gravity_force * voxel_data[i].relative_mass));
+		double relative_gravity_force = gravity_force * voxel_data[i].relative_mass;
+		// add part because of flooding
+		relative_gravity_force += flooded_mass[i] * -GRAVITY;
+		lift_force_sum += relative_gravity_force;
+		dr_torque += p.cross(vector3(0, 0, relative_gravity_force));
 	}
 //	std::cout << "mass=" << mass << " lift_force_sum=" << lift_force_sum << " grav=" << -GRAVITY*mass << "\n";
 //	std::cout << "vol below water=" << vol_below_water << " of " << voxel_data.size() << "\n";

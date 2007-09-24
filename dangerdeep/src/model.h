@@ -240,9 +240,12 @@ public:
 		float part_of_volume;
 		/// relative mass of the voxel of total mass (0...1)
 		float relative_mass;
+		/// relative volume of the voxel of total volume (0...1)
+		float relative_volume;
 		/// construct a voxel
-		voxel(const vector3f& rp, float pv, float m)
-			: relative_position(rp), part_of_volume(pv), relative_mass(m) {}
+		voxel(const vector3f& rp, float pv, float m, float rv)
+			: relative_position(rp), part_of_volume(pv), relative_mass(m),
+			relative_volume(rv) {}
 	};
 
 protected:	

@@ -1893,9 +1893,11 @@ void model::read_phys_file(const string& filename)
 	voxel_size = vector3f(bsize.x / voxel_resolution.x,
 			      bsize.y / voxel_resolution.y,
 			      bsize.z / voxel_resolution.z);
-	voxel_radius = pow(voxel_size.x * voxel_size.y * voxel_size.z * 3.0 / (4.0 * M_PI), 1.0/3); // sphere of same volume
+	double voxel_volume = voxel_size.x * voxel_size.y * voxel_size.z;
+	voxel_radius = pow(voxel_volume * 3.0 / (4.0 * M_PI), 1.0/3); // sphere of same volume
 	unsigned ptr = 0;
 	float mass_part_sum = 0;
+	double volume_rcp = 1.0/m.volume;
 	for (int izz = 0; izz < voxel_resolution.z; ++izz) {
 		// quick test hack, linear distribution top->down 0->1
 		float mass_part = (voxel_resolution.z - izz)/float(voxel_resolution.z);
@@ -1909,7 +1911,7 @@ void model::read_phys_file(const string& filename)
 					voxel_data.push_back(voxel(vector3f(ixx + 0.5 + bmin.x/voxel_size.x,
 									    iyy + 0.5 + bmin.y/voxel_size.y,
 									    izz + 0.5 + bmin.z/voxel_size.z),
-								   f, m));
+								   f, m, f * voxel_volume * volume_rcp));
 					mass_part_sum += m;
 				}
 				++ptr;
