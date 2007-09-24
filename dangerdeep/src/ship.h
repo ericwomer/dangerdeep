@@ -26,8 +26,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <map>
 #include "sea_object.h"
 
-#define SINK_SPEED 0.5  // m/sec, fixme move to ship. include in local drag.
-
 class game;
 
 ///\brief Base class for all ships and ship-like objects: ships, submarines, torpedoes.
@@ -115,6 +113,11 @@ class ship : public sea_object
 
 	shipclass myclass;	// read from spec file, e.g. warship/merchant/escort/...
 
+	// sinking simulation
+	double mass_flooded;	// mass in kg of flooded water (max: volume * density) [SAVE]
+	double flooding_speed;	// speed of flooding (kg per second), depends on damage grade [SAVE]
+	double max_flooded_mass; // maximum of additional mass because of flooding, comp. from spec/mdl file
+
 	void compute_force_and_torque(vector3& F, vector3& T) const; // drag must be already included!
 
 	/// implementation of the steering logic: helmsman simulation, or simpler model for torpedoes.
@@ -145,7 +148,7 @@ class ship : public sea_object
 	std::list<std::pair<unsigned, vector3> > smoke;
 
 	// pointer to fire particle (0 means ship is not burning)
-	class particle* myfire;
+	particle* myfire;
 	
 	virtual bool causes_spray() const { return true; }
 	

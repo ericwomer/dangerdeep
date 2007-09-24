@@ -103,6 +103,9 @@ ship::ship(game& gm_, const xml_elem& parent)
 	  max_speed_forward(10),
 	  max_speed_reverse(0),
 	  fuel_level(0),
+	  mass_flooded(0),
+	  flooding_speed(0),
+	  max_flooded_mass(0),
 	  myfire(0),		
 	  gun_manning_is_changing(false),
 	  maximum_gun_range(0.0)
@@ -197,12 +200,17 @@ ship::ship(game& gm_, const xml_elem& parent)
 		// 1 dB per m/s, maybe non-linear (higher speed = more high frequencies?)
 		noise_sign.band_data[i].speed_factor = 1.0;
 	}
+
+	if (mymodel) {
+		max_flooded_mass = mymodel->get_base_mesh().volume /* * density of water, here 1 */;
+	}
 }
 
 
 
 void ship::sink()
 {
+	flooding_speed += 1000; // 1 ton per second
 	sea_object::set_inactive();
 	if (myfire) {
 		myfire->kill();
@@ -384,6 +392,9 @@ void ship::load(const xml_elem& parent)
 	midship_damage = damage_status(dm.attru("midship"));
 	stern_damage = damage_status(dm.attru("stern"));
 	fuel_level = parent.child("fuel_level").attrf();
+	xml_elem esink = parent.child("sinking");
+	mass_flooded = esink.attrf("mass_flooded");
+	flooding_speed = esink.attrf("flooding_speed");
 
 	// fixme load that
 	//list<prev_pos> previous_positions;
@@ -455,6 +466,9 @@ void ship::save(xml_elem& parent) const
 	dm.set_attr(unsigned(midship_damage), "midship");
 	dm.set_attr(unsigned(stern_damage), "stern");
 	parent.add_child("fuel_level").set_attr(fuel_level);
+	xml_elem esink = parent.add_child("sinking");
+	esink.set_attr(mass_flooded, "mass_flooded");
+	esink.set_attr(flooding_speed, "flooding_speed");
 
 	// fixme save that
 	//list<prev_pos> previous_positions;
@@ -505,14 +519,17 @@ void ship::save(xml_elem& parent) const
 
 void ship::simulate(double delta_time)
 {
+	mass += mass_flooded;
 	sea_object::simulate(delta_time);
+	mass -= mass_flooded;
 
 	if ( myai.get() )
 		myai->act(gm, delta_time);
 
 	// calculate sinking, fixme replace by buoyancy...
 	if (is_inactive()) {
-		position.z -= delta_time * SINK_SPEED;
+		mass_flooded += delta_time * flooding_speed;
+		if (mass_flooded > max_flooded_mass) mass_flooded = max_flooded_mass;
 		if (position.z < -50)	// used for ships.
 			kill();
 		throttle = stop;
