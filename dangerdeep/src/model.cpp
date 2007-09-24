@@ -3016,21 +3016,45 @@ matrix4f model::get_base_mesh_transformation() const
 
 
 
-model::voxel& model::get_voxel_closest_to(const vector3f& pos)
+unsigned model::get_voxel_closest_to(const vector3f& pos)
 {
 	matrix4f transmat = get_base_mesh_transformation()
 		* matrix4f::diagonal(voxel_size.x, voxel_size.y, voxel_size.z);
-	voxel* closestvoxel = 0;
+	unsigned closestvoxel = 0;
 	double dist = 1e30;
 	for (unsigned i = 0; i < voxel_data.size(); ++i) {
 		vector3f p = transmat.mul4vec3xlat(voxel_data[i].relative_position);
 		double d = p.square_distance(pos);
 		if (d < dist) {
 			dist = d;
-			closestvoxel = &voxel_data[i];
+			closestvoxel = i+1;
 		}
 	}
 	if (!closestvoxel)
 		throw error("no voxel data available");
-	return *closestvoxel;
+	return closestvoxel-1;
+}
+
+
+
+// maybe add a function that returns all voxels within a sphere
+// that way damage can be computed better, as damage is not applied to
+// a point but a full subspace of 3-space.
+// with the usual 5x7x7 partition a voxel for a 20m*100m wide*long ship is ca. 
+// 4m*14m in size, so a torpedo can damage several voxels...
+// here it is:
+std::vector<unsigned> model::get_voxels_within_sphere(const vector3f& pos, double radius)
+{
+	matrix4f transmat = get_base_mesh_transformation()
+		* matrix4f::diagonal(voxel_size.x, voxel_size.y, voxel_size.z);
+	double rad2 = radius*radius;
+	std::vector<unsigned> result;
+	result.reserve(8); // should be typically enough
+	for (unsigned i = 0; i < voxel_data.size(); ++i) {
+		vector3f p = transmat.mul4vec3xlat(voxel_data[i].relative_position);
+		double d = p.square_distance(pos);
+		if (d <= rad2)
+			result.push_back(i);
+	}
+	return result;
 }

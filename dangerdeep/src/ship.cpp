@@ -202,7 +202,7 @@ ship::ship(game& gm_, const xml_elem& parent)
 	}
 
 	if (mymodel) {
-		max_flooded_mass = mymodel->get_base_mesh().volume /* * density of water, here 1 */;
+		max_flooded_mass = mymodel->get_base_mesh().volume * 1000 /* density of water */;
 	}
 }
 
@@ -210,7 +210,7 @@ ship::ship(game& gm_, const xml_elem& parent)
 
 void ship::sink()
 {
-	flooding_speed += 1000; // 1 ton per second
+	flooding_speed += 20000; // 20 tons per second
 	sea_object::set_inactive();
 	if (myfire) {
 		myfire->kill();
@@ -530,7 +530,7 @@ void ship::simulate(double delta_time)
 	if (is_inactive()) {
 		mass_flooded += delta_time * flooding_speed;
 		if (mass_flooded > max_flooded_mass) mass_flooded = max_flooded_mass;
-		if (position.z < -50)	// used for ships.
+		if (position.z < -200)	// used for ships.
 			kill();
 		throttle = stop;
 		rudder_midships();
@@ -679,6 +679,18 @@ bool ship::damage(const vector3& fromwhere, unsigned strength)
 {
 	if (invulnerable)
 		return false;
+
+	// fromwhere is real-world position of damage source.
+
+	// test code: determine which voxels are within damage diameter
+	// use a 10m radius, and torps have atm 100 hitpoints, so radius=strength/10
+	vector3 relpos = fromwhere - get_pos();
+	// rotate relative position to object space
+	vector3f objrelpos = orientation.conj().rotate(relpos);
+	//log_debug("DAMAGE! relpos="<<relpos << " objrelpos="<<objrelpos);
+	vector<unsigned> voxlist = mymodel->get_voxels_within_sphere(objrelpos, strength/10.0);
+	//for (unsigned i = 0; i < voxlist.size(); ++i)
+	//	log_debug("i="<<i<<" idx="<<voxlist[i]<<" relpos="<<mymodel->get_voxel_data()[i].relative_position);
 
 	damage_status& where = midship_damage;//fixme
 	int dmg = int(where) + strength;

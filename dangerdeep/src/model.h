@@ -451,7 +451,12 @@ public:
 	matrix4f get_base_mesh_transformation() const;
 
 	/// get voxel closest to a real world position
-	voxel& get_voxel_closest_to(const vector3f& pos);
+	///@returns voxel index of closest voxel
+	unsigned get_voxel_closest_to(const vector3f& pos);
+
+	/// get voxels within a sphere around a real world position
+	///@returns list of voxels which center is inside the sphere
+	std::vector<unsigned> get_voxels_within_sphere(const vector3f& pos, double radius);
 
 	// fixme: add function to check wether a point is inside a voxel (for hit check)
 	// fixme: add function to check wether a line is inside the model (for hit check)

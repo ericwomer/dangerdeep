@@ -114,6 +114,10 @@ class ship : public sea_object
 	shipclass myclass;	// read from spec file, e.g. warship/merchant/escort/...
 
 	// sinking simulation
+	//fixme: store a list of flooded percentage values, one per voxel.
+	//when sinking, apply even mass to all voxels (increase flooded percentage),
+	//when damaged (torpedo hit) set voxel flooded percentage to max instantly
+	//for all voxels within torpedo explosion diameter.
 	double mass_flooded;	// mass in kg of flooded water (max: volume * density) [SAVE]
 	double flooding_speed;	// speed of flooding (kg per second), depends on damage grade [SAVE]
 	double max_flooded_mass; // maximum of additional mass because of flooding, comp. from spec/mdl file
