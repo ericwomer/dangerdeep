@@ -571,7 +571,6 @@ void ship::simulate(double delta_time)
 				}
 			}
 		}
-		log_debug("flooding_voxels="<<flooding_voxels.size());
 		double flooding_volume_rcp = 1.0/flooding_volume;
 		// add mass to all voxels that are currently flooding.
 		double totally_flooded = 0;
@@ -580,7 +579,6 @@ void ship::simulate(double delta_time)
 			flooded_mass[i] += delta_time * flooding_speed * voxdat[i].relative_volume * flooding_volume_rcp;
 			totally_flooded += flooded_mass[i];
 		}
-		log_debug("totally_flooded="<<totally_flooded<<" mass="<<mass);
 		if (position.z < -200)	// used for ships.
 			kill();
 		throttle = stop;
