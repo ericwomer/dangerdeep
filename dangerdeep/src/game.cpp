@@ -666,7 +666,7 @@ void game::simulate(double delta_t)
 		// do some intermediate steps. All larger than max_dt_rate, so add a small amount.
 		unsigned steps = unsigned(ceil(delta_t / max_dt_rate + 0.001));
 		double ddt = delta_t / steps;
-		std::cout << "Large delta_t (" << delta_t << "), using " << steps << " steps in between.\n";
+		log_debug("Large delta_t (" << delta_t << "), using " << steps << " steps in between.");
 		for (unsigned s = 1; s < steps; ++s) {
 			simulate(ddt);
 			delta_t -= ddt;
