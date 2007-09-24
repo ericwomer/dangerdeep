@@ -242,10 +242,16 @@ public:
 		float relative_mass;
 		/// relative volume of the voxel of total volume (0...1)
 		float relative_volume;
+		/// indices of neighbouring voxels: top, left, forward, right, backward, bottom
+		/// -1 means no neighbour
+		int neighbour_idx[6];
 		/// construct a voxel
 		voxel(const vector3f& rp, float pv, float m, float rv)
 			: relative_position(rp), part_of_volume(pv), relative_mass(m),
-			relative_volume(rv) {}
+			relative_volume(rv)
+		{
+			for (int i = 0; i < 6; ++i) neighbour_idx[i] = -1;
+		}
 	};
 
 protected:	

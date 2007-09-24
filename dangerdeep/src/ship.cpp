@@ -533,20 +533,54 @@ void ship::simulate(double delta_time)
 
 	// calculate sinking, fixme replace by buoyancy...
 	if (is_inactive()) {
-		// add mass to all voxels (flood them).
-		// this isn't too accurate, as voxels at bottom of ship or near
-		// the hole will fill up first, but it is accurate enough for us
-		// and for a believable display
-		const std::vector<model::voxel>& voxdat = mymodel->get_voxel_data();
-		//double totally_flooded = 0;
+		// compute the set of voxels that are currently being flooded.
+		// distribute the per-time-flooding mass to them evenly.
+		// if a voxel has been filled up, all of its neighbours
+		// are set to "filling" state if they aren't already filling or filled.
+		// *important note*
+		// we don't store extra flags for every voxel if it's filling or already
+		// filled, we rather use its flooded mass as special indicator.
+		// < 0.05 means empty, not filling
+		// < max-flooded-mass-for-voxel means filling, but not yet full
+		// else: already filled.
+		// beware of float inaccuracies! so add extra margin before comparing
+		const vector<model::voxel>& voxdat = mymodel->get_voxel_data();
+		vector<unsigned> flooding_voxels;
+		flooding_voxels.reserve(voxdat.size());
+		double flooding_volume = 0;
 		for (unsigned i = 0; i < voxdat.size(); ++i) {
-			flooded_mass[i] += delta_time * flooding_speed * voxdat[i].relative_volume;
-			// get max. flooded mass for voxel
-			double mfm = voxdat[i].relative_volume * max_flooded_mass;
-			if (flooded_mass[i] > mfm) flooded_mass[i] = mfm;
-			//totally_flooded += flooded_mass[i];
+			if (flooded_mass[i] > 0.05f) {
+				// voxel is flooding or full
+				// get max. flooded mass for voxel
+				double mfm = voxdat[i].relative_volume * max_flooded_mass;
+				if (flooded_mass[i] < mfm) {
+					// voxel is flooding
+					flooding_voxels.push_back(i);
+					flooding_volume += voxdat[i].relative_volume;
+				} else {
+					// voxel has been flooded, check for its neighbours
+					// use a bit more so that "< mfm" is always false.
+					flooded_mass[i] = mfm * 1.00001f;
+					for (int k = 0; k < 6; ++k) {
+						int ng = voxdat[i].neighbour_idx[k];
+						if (ng >= 0 && flooded_mass[ng] < 0.06f) {
+							// has a neighbour that is not flooding nor full
+							flooded_mass[ng] = 0.1f;
+						}
+					}
+				}
+			}
 		}
-		//log_debug("totally_flooded="<<totally_flooded<<" mass="<<mass);
+		log_debug("flooding_voxels="<<flooding_voxels.size());
+		double flooding_volume_rcp = 1.0/flooding_volume;
+		// add mass to all voxels that are currently flooding.
+		double totally_flooded = 0;
+		for (unsigned k = 0; k < flooding_voxels.size(); ++k) {
+			unsigned i = flooding_voxels[k];
+			flooded_mass[i] += delta_time * flooding_speed * voxdat[i].relative_volume * flooding_volume_rcp;
+			totally_flooded += flooded_mass[i];
+		}
+		log_debug("totally_flooded="<<totally_flooded<<" mass="<<mass);
 		if (position.z < -200)	// used for ships.
 			kill();
 		throttle = stop;
@@ -705,11 +739,10 @@ bool ship::damage(const vector3& fromwhere, unsigned strength)
 	vector3f objrelpos = orientation.conj().rotate(relpos);
 	//log_debug("DAMAGE! relpos="<<relpos << " objrelpos="<<objrelpos);
 	vector<unsigned> voxlist = mymodel->get_voxels_within_sphere(objrelpos, strength/10.0);
-	const std::vector<model::voxel>& voxdat = mymodel->get_voxel_data();
 	for (unsigned j = 0; j < voxlist.size(); ++j) {
 		unsigned i = voxlist[j];
-		// flood all damaged voxels instantly, so ship lists to hit side
-		flooded_mass[i] = voxdat[i].relative_volume * max_flooded_mass;
+		// set all damaged voxels to flooding state (mass > 0.05f)
+		flooded_mass[i] = 0.1f;
 	}
 
 	damage_status& where = midship_damage;//fixme
