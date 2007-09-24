@@ -1021,18 +1021,17 @@ vector3 model::mesh::compute_center_of_gravity() const
 matrix3 model::mesh::compute_inertia_tensor(const matrix4f& transmat) const
 {
 	matrix3 msum;
-	matrix4f transformmat = transmat * transformation;
 	const double mass = 1.0; // is just a scalar to the matrix
-	const vector3 center_of_gravity = transformmat.mul4vec3xlat(compute_center_of_gravity());
+	const vector3 center_of_gravity = transmat.mul4vec3xlat(compute_center_of_gravity());
 	double vdiv = 0;
 	std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
 	do {
 		unsigned i0 = tit->i0();
 		unsigned i1 = tit->i1();
 		unsigned i2 = tit->i2();
-		vector3 A = transformmat * vertices[i0];
-		vector3 B = transformmat * vertices[i1];
-		vector3 C = transformmat * vertices[i2];
+		vector3 A = transmat * vertices[i0];
+		vector3 B = transmat * vertices[i1];
+		vector3 C = transmat * vertices[i2];
 		const vector3& D = center_of_gravity;
 		vector3 abcd = A + B + C + D;
 		double V_i = (1.0/6.0) * ((A - D) * (B - D).cross(C - D));
@@ -3012,5 +3011,5 @@ matrix4f model::get_base_mesh_transformation() const
 {
 	if (scene.children.empty())
 		return matrix4f::one();
-	return scene.children.front().get_transformation();
+	return scene.children.front().get_transformation() * scene.children.front().mymesh->transformation;
 }

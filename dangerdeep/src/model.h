@@ -217,6 +217,7 @@ public:
 		bool is_inside(const vector3f& p) const;
 		//fixme: add function to compute total volume
 		vector3 compute_center_of_gravity() const;
+		/// give transformation matrix for vertices here (vertex->world space)
 		matrix3 compute_inertia_tensor(const matrix4f& transmat) const;
 	};
 
