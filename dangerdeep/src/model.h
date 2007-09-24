@@ -449,6 +449,14 @@ public:
 
 	/// get transformation of root node (object tree translation + mesh transformation)
 	matrix4f get_base_mesh_transformation() const;
+
+	/// get voxel closest to a real world position
+	voxel& get_voxel_closest_to(const vector3f& pos);
+
+	// fixme: add function to check wether a point is inside a voxel (for hit check)
+	// fixme: add function to check wether a line is inside the model (for hit check)
+	// this is a bit problematic, as only the base mesh is considered for voxel computation,
+	// thus hits against turrets etc. are not checked... not good for battleship fights.
 };	
 
 #endif

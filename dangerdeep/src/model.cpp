@@ -3013,3 +3013,24 @@ matrix4f model::get_base_mesh_transformation() const
 		return matrix4f::one();
 	return scene.children.front().get_transformation() * scene.children.front().mymesh->transformation;
 }
+
+
+
+model::voxel& model::get_voxel_closest_to(const vector3f& pos)
+{
+	matrix4f transmat = get_base_mesh_transformation()
+		* matrix4f::diagonal(voxel_size.x, voxel_size.y, voxel_size.z);
+	voxel* closestvoxel = 0;
+	double dist = 1e30;
+	for (unsigned i = 0; i < voxel_data.size(); ++i) {
+		vector3f p = transmat.mul4vec3xlat(voxel_data[i].relative_position);
+		double d = p.square_distance(pos);
+		if (d < dist) {
+			dist = d;
+			closestvoxel = &voxel_data[i];
+		}
+	}
+	if (!closestvoxel)
+		throw error("no voxel data available");
+	return *closestvoxel;
+}
