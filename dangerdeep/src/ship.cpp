@@ -680,9 +680,40 @@ void ship::simulate(double delta_time)
 }
 
 
-
+//#include "global_data.h"
 void ship::steering_logic()
 {
+#if 0
+	/* New helmsman simulation.
+	   We have the formula
+	   error = a * x + b * y + c * z
+	   where x = angle difference between heading and head_to
+	         y = turn velocity (with sign)
+		 z = rudder_pos
+	   and a, b, c are some control factors (constants).
+	   c should be much smaller than a and b, normally a > b > c.
+	   the error has a sign, according to sign and magnitude of it
+	   the rudder_to is set.
+	   This system should find the correct course, it only needs
+	   tuning of a, b, c. Their values depend on maximum turn speed.
+	   ...
+	*/
+	double anglediff = (head_to - heading).value_pm180();
+	const double ang_diff_fac = 1.0;
+	const double turn_vel_fac = 10.0;
+	const double rudd_pos_fac = 0.5;
+	double error0 = ang_diff_fac * anglediff;
+	double error1 = turn_vel_fac * -turn_velocity;
+	double error2 = rudd_pos_fac * -rudder_pos;
+	double error = error0 + error1 + error2;
+	DBGOUT7(anglediff, turn_velocity, rudder_pos, error0, error1, error2, error);
+	int rd = 0;
+	if (fabs(error) > 10) rd = 2;
+	else if (fabs(error) > 5) rd = 1;
+	// range is -2...2
+	rudder_to = (error < 0 ? -1 : 1) * rd;
+	// when error below a certain limit, set head_to_fixed=false, rudder_to=ruddermidships
+#else
 	/* Helmsman simulation
 	   New idea: add turn_velocity * time_to_midships * factor to target heading,
 	   so that when turn velocity is high, target course is nearer than set,
@@ -706,6 +737,7 @@ void ship::steering_logic()
 		// we need to do something
 		rudder_to = (turn_rather_right) ? rudderfullright : rudderfullleft;
 	}
+#endif
 }
 
 
