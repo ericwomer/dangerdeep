@@ -134,17 +134,10 @@ void model::object::display(const texture *caustic_map) const
 
 void model::object::display_mirror_clip() const
 {
+	// matrix mode is GL_MODELVIEW and active texture is GL_TEXTURE1 here
 	glPushMatrix();
 	glTranslated(translation.x, translation.y, translation.z);
 	glRotated(rotat_angle, rotat_axis.x, rotat_axis.y, rotat_axis.z);
-
-	glActiveTexture(GL_TEXTURE1);
-	glMatrixMode(GL_TEXTURE);
-	glPushMatrix();
-	glTranslated(translation.x, translation.y, translation.z);
-	glRotated(rotat_angle, rotat_axis.x, rotat_axis.y, rotat_axis.z);
-	glMatrixMode(GL_MODELVIEW);
-	glActiveTexture(GL_TEXTURE0);
 
 	if (mymesh) mymesh->display_mirror_clip();
 	for (vector<object>::const_iterator it = children.begin(); it != children.end(); ++it) {
@@ -153,10 +146,6 @@ void model::object::display_mirror_clip() const
 
 	glActiveTexture(GL_TEXTURE1);
 	glMatrixMode(GL_TEXTURE);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glActiveTexture(GL_TEXTURE0);
-
 	glPopMatrix();
 }
 
@@ -1611,36 +1600,22 @@ void model::mesh::display_mirror_clip() const
 {
 	if (!use_shaders) return;
 
-	// this should display the mesh with an additional world space z=0 clip plane.
-	// the model needs no fancy effects like specular lighting or bump mapping.
-	// so plain diffuse texture mapping is enough. We just need texture
-	// coordinates and per vertex normals. This can be displayed with
-	// plain OpenGL. But we need shaders for clipping.
-	// set simple shaders here, no matter which material we have...
-
-	// local transformation matrix.
+	// matrix mode is GL_MODELVIEW and active texture is GL_TEXTURE1 here
 	glPushMatrix();
 	transformation.multiply_glf();
+	glMatrixMode(GL_MODELVIEW);
+	glActiveTexture(GL_TEXTURE0);
 
 	bool has_texture_u0 = false;
 	if (mymaterial != 0) {
 		if (mymaterial->colormap.get())
 			has_texture_u0 = true;
-		// fixme: check for mirror
 		mymaterial->set_gl_values_mirror_clip();
 	} else {
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glColor3f(0.5,0.5,0.5);
 		glsl_mirror_clip->use();
 	}
-
-	// multiply extra transformation to texture[1] matrix
-	glActiveTexture(GL_TEXTURE1);
-	glMatrixMode(GL_TEXTURE);
-	glPushMatrix();
-	transformation.multiply_glf();
-	glMatrixMode(GL_MODELVIEW);
-	glActiveTexture(GL_TEXTURE0);
 
 	vbo_positions.bind();
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
@@ -1673,15 +1648,6 @@ void model::mesh::display_mirror_clip() const
 		glsl_shader_setup::use_fixed();
 	}
 
-	glActiveTexture(GL_TEXTURE1);
-	glMatrixMode(GL_TEXTURE);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glActiveTexture(GL_TEXTURE0);
-
-	// local transformation matrix.
-	glPopMatrix();
-
 	glEnable(GL_LIGHTING);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
@@ -1691,6 +1657,10 @@ void model::mesh::display_mirror_clip() const
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glActiveTexture(GL_TEXTURE1);
+	glMatrixMode(GL_TEXTURE);
+	glPopMatrix();
 }
 
 
@@ -1739,15 +1709,11 @@ void model::display(const texture *caustic_map) const
 
 
 
-void model::display_mirror_clip(double pos_z) const
+void model::display_mirror_clip() const
 {
 	// set up a object->worldspace transformation matrix in tex unit#1 matrix.
 	glActiveTexture(GL_TEXTURE1);
 	glMatrixMode(GL_TEXTURE);
-	glLoadIdentity();
-	glTranslatef(0, 0, pos_z);
-	glMatrixMode(GL_MODELVIEW);
-	glActiveTexture(GL_TEXTURE0);
 	if (scene.children.size() == 0) {
 		// default scene: no objects, just draw all meshes.
 		for (vector<model::mesh*>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
@@ -1758,15 +1724,14 @@ void model::display_mirror_clip(double pos_z) const
 	}
 
 	// reset texture units
+	glMatrixMode(GL_TEXTURE);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glColor4f(1,1,1,1);
 	glMatrixMode(GL_MODELVIEW);

@@ -218,10 +218,15 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 
 		if (aboard && *it == player) continue;
 		glPushMatrix();
-		// fixme: z translate according to water height here, only for ships
+
 		if (mirrorclip && !istorp) {
-			vector3 pos = (*it)->get_pos() - viewpos;
-			glTranslated(pos.x, pos.y, pos.z);
+			// viewpos.z is already mirrored...
+			vector3 pos = (*it)->get_pos();
+			glTranslated(pos.x - viewpos.x, pos.y - viewpos.y, -viewpos.z);
+			// orientation affects tex#1 matrix, for the code below
+			glActiveTexture(GL_TEXTURE1);
+			glMatrixMode(GL_TEXTURE);
+			glTranslated(0, 0, pos.z);
 		} else {
 			vector3 pos = (*it)->get_pos() - viewpos;
 			//pos.z += EARTH_RADIUS * (sin(M_PI/2 - pos.xy().length()/EARTH_RADIUS) - 1.0);
@@ -235,6 +240,7 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 			shp->get_orientation().rotmat4().multiply_gl();
 		}
 		if (mirrorclip && !istorp) {
+			// finished modifying tex#1 matrix
 			glActiveTexture(GL_TEXTURE0);
 			glMatrixMode(GL_MODELVIEW);
 			(*it)->display_mirror_clip();
@@ -425,7 +431,6 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		}
 		draw_objects(gm, viewpos_mirror, objects_mirror, lightcol, false /* under_water */, true /* mirror */);
 
-		//fixme
 		glCullFace(GL_BACK);
 
 		glPopMatrix();
