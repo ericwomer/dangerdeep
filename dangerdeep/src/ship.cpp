@@ -725,7 +725,9 @@ void ship::steering_logic()
 	*/
 
 	double time_to_midships = fabs(rudder_pos) / max_rudder_turn_speed;
-	angle heading2 = heading + angle(-turn_velocity * time_to_midships * 1.5);
+	// the smaller that factor, the more oscillation, 1.5 is default
+	// with new physics code 1.75 seems better. So less turn drag -> higher value...?
+	angle heading2 = heading + angle(-turn_velocity * time_to_midships * 1.75);
 	bool turn_rather_right = (heading2.is_cw_nearer(head_to));
 	double angledist = fabs((heading2 - head_to).value_pm180());
 	//std::cout <<this<<" angledist " << angledist << " heading=" << heading.value() << " head_to=" << head_to.value() << " heading2=" << heading2.value() << " time_to_ms " << time_to_midships << "\n";
