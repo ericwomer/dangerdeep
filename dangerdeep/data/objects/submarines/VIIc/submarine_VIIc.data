@@ -26,7 +26,8 @@
   <motion maxspeed="17.7" maxrevspeed="5" acceleration="0.6" turnrate="0.2">
     <submerged maxspeed="7.6" safedepth="220" maxdepth="240"/>
   </motion>
-  <tonnage min="800" max="800"/>
+  <tonnage min="1018" />
+  <mass value="876498" />
   <smoke type="0" x="0" y="0" z="0"/>
   <sensors>
     <sensor type="lookout"/>
