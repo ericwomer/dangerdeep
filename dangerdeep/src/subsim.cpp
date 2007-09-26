@@ -1729,6 +1729,7 @@ int mymain(list<string>& args)
 //	mycfg.save("./testconf");
 
 	model::enable_shaders = cfg::instance().getb("use_shaders");
+	model::enable_hqsfx = cfg::instance().getb("use_hqsfx");
 
 	// read screen resolution from config file if no override has been set by command line parameters
 	if (res_x == 0) {
