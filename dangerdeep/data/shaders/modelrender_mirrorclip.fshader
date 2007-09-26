@@ -3,6 +3,7 @@
 uniform sampler2D tex_color;	// diffuse color map (RGB)
 
 varying vec2 texcoord;
+varying float world_z;
 
 void main()
 {
@@ -14,6 +15,8 @@ void main()
 
 	vec3 final_color = diffuse_color * vec3(gl_Color);
 
+	float alpha = world_z <= 0.0 ? 0.0 : 1.0; // does this work without if? fixme check asm output
+
 	// output color is a mix between fog and final color
-	gl_FragColor = vec4(mix(vec3(gl_Fog.color), final_color, fog_factor), 1.0);
+	gl_FragColor = vec4(mix(vec3(gl_Fog.color), final_color, fog_factor), alpha);
 }

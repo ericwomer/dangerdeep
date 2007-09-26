@@ -7,6 +7,7 @@
 */
 
 varying vec2 texcoord;
+varying float world_z;
 
 void main()
 {
@@ -22,6 +23,7 @@ void main()
 	// transform to clip space (only transform x/y/z as w is one and clip3 is 0,0,0,1)
 	vec4 vertex_worldspace = (gl_TextureMatrix[1] * gl_Vertex);
 	vertex_worldspace.z = max(vertex_worldspace.z, 0.0);
+	world_z = vertex_worldspace.z;
 	gl_Position = gl_ModelViewProjectionMatrix * vertex_worldspace;
 
 	// set fog coordinate
