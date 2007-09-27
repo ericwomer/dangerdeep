@@ -118,7 +118,7 @@ void measure_model(double angle, ostringstream& osscs)
 
 
 void measure_mass_distribution(const std::string& massmapfn, const vector3i& resolution,
-			       vector<float>& mass_part, const vector<uint8_t>& is_inside)
+			       vector<float>& mass_part, const vector<float>& is_inside)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	texture massmap(massmapfn, texture::LINEAR, texture::CLAMP_TO_EDGE);
@@ -147,7 +147,7 @@ void measure_mass_distribution(const std::string& massmapfn, const vector3i& res
 			float masspart = float(mass_sum)/((x1-x0)*(y1-y0)*255);
 			//cout << "y="<<y<<" z="<<z<<" mass_sum="<<mass_sum<<" masspart="<<masspart<<"\n";
 			for (int x = 0; x < resolution.x; ++x) {
-				float in_part = is_inside[(z * resolution.y + y) * resolution.x + x] / 255.0f;
+				float in_part = is_inside[(z * resolution.y + y) * resolution.x + x];
 				mass_part[(z * resolution.y + y) * resolution.x + x] = masspart * in_part;
 				allmass += masspart * in_part;
 			}
@@ -168,7 +168,7 @@ void measure_mass_distribution(const std::string& massmapfn, const vector3i& res
 class worker : public thread
 {
 	model& mdl;
-	vector<uint8_t>& is_inside;
+	vector<float>& is_inside;
 	vector3i resolution;
 	unsigned slice;
 	unsigned nr_slices;
@@ -176,8 +176,8 @@ class worker : public thread
 	mutex& counter_mtx;
 	unsigned samples_per_voxel;
 public:
-	worker(model& m, vector<uint8_t>& ii, const vector3i& res, unsigned s, unsigned nrs,
-	       int& ctr, mutex& cm, unsigned samplespervoxel = 4)
+	worker(model& m, vector<float>& ii, const vector3i& res, unsigned s, unsigned nrs,
+	       int& ctr, mutex& cm, unsigned samplespervoxel)
 		: thread("modelmsr"), mdl(m), is_inside(ii), resolution(res), slice(s), nr_slices(nrs),
 		  counter(ctr), counter_mtx(cm), samples_per_voxel(samplespervoxel) {}
 	void loop()
@@ -216,8 +216,8 @@ public:
 						zc2 += csz2;
 					}
 					//cout << "is_inside " << inside << " / " << samples_per_voxel*samples_per_voxel*samples_per_voxel << "\n";
-					unsigned inside_part = 255 * inside / (samples_per_voxel*samples_per_voxel*samples_per_voxel);
-					is_inside[(izz * resolution.y + iyy) * resolution.x + ixx] = inside_part;
+					is_inside[(izz * resolution.y + iyy) * resolution.x + ixx] =
+						float(inside) / (samples_per_voxel*samples_per_voxel*samples_per_voxel);
 					xc += csx;
 				}
 				yc += csy;
@@ -277,8 +277,15 @@ int mymain(list<string>& args)
 	if (st == string::npos)
 		throw error("invalid module filename");
 	string datafilename = modelfilename.substr(0, st) + ".phys";
+	bool torpedomode = modelfilename.find("torpedo") != string::npos;
 	xml_doc physdat(datafilename);
 	xml_elem physroot = physdat.add_child("dftd-physical-data");
+
+	if (torpedomode) {
+		cout << "*******************************\n";
+		cout << "* Using special torpedo mode! *\n";
+		cout << "*******************************\n";
+	}
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -309,15 +316,18 @@ int mymain(list<string>& args)
 
 	// set up primary modelview matrix
 	glLoadIdentity();
-	// do not show model centered at screen but only above waterline
-	//glScalef(double(res_x)/mw, double(res_y)/mh, 0.0);
-	glScalef(double(res_x)/mw, double(res_y)*2/mh, 0.0);
+	// do not show model centered at screen but only above waterline for ships
+	if (torpedomode) {
+		glScalef(double(res_x)/mw, double(res_y)/mh, 0.0);
+		glTranslated(-mmin.y, -mmin.z, 0);
+	} else {
+		glScalef(double(res_x)/mw, double(res_y)*2/mh, 0.0);
+		glTranslated(-mmin.y, 0, 0);
+	}
 	cout << "min=" << mmin << " max=" << mmax << " mw=" << mw << " mh=" << mh << "\n";
-	//glTranslated(-mmin.y, -mmin.z, 0);
-	glTranslated(-mmin.y, 0, 0);
 
 	// voxel resolution
-	const vector3i resolution(5, 7, 7);
+	const vector3i resolution = torpedomode ? vector3i(1, 1, 1) : vector3i(5, 7, 7);
 	vector<float> mass_part(resolution.x*resolution.y*resolution.z);
 
 	for (unsigned i = 0; i < ANGLES; ++i) {
@@ -333,14 +343,15 @@ int mymain(list<string>& args)
 	const vector3f bsize = bmax - bmin;
 	const double vol = bsize.x * bsize.y * bsize.z;
 
-	vector<uint8_t> is_inside(resolution.x*resolution.y*resolution.z);
+	vector<float> is_inside(resolution.x*resolution.y*resolution.z);
 	// start workers and let them compute data, then wait for them to finish
 	unsigned tm0 = sys().millisec();
 	{
 		mutex ctrmtx;
 		int ctr = resolution.z * resolution.y;
-		thread::auto_ptr<worker> w0(new worker(*mdl, is_inside, resolution, 0, 2, ctr, ctrmtx));
-		thread::auto_ptr<worker> w1(new worker(*mdl, is_inside, resolution, 1, 2, ctr, ctrmtx));
+		unsigned samples_per_voxel = torpedomode ? 20 : 4;
+		thread::auto_ptr<worker> w0(new worker(*mdl, is_inside, resolution, 0, 2, ctr, ctrmtx, samples_per_voxel));
+		thread::auto_ptr<worker> w1(new worker(*mdl, is_inside, resolution, 1, 2, ctr, ctrmtx, samples_per_voxel));
 		w0->start();
 		w1->start();
 		sys().prepare_2d_drawing();
@@ -365,30 +376,30 @@ int mymain(list<string>& args)
 	cout << "time needed " << tm1-tm0 << "\n";
 
 	unsigned nr_inside = 0;
-	unsigned inside_vol = 0;
+	double inside_vol = 0;
 	ostringstream insidedat;
 	ostringstream massdis;
 	for (int z = 0; z < resolution.z; ++z) {
 		cout << "Layer " << z+1 << "/" << resolution.z << "\n";
 		for (int y = 0; y < resolution.y; ++y) {
 			for (int x = 0; x < resolution.x; ++x) {
-				uint8_t in = is_inside[(z * resolution.y + y) * resolution.x + x];
-				insidedat << hex << setfill('0') << setw(2) << unsigned(in);
-				inside_vol += unsigned(in);
-				cout << (in >= 128 ? 'X' : (in >= 1 ? 'o' : ' '));
-				nr_inside += (in >= 1) ? 1 : 0;
+				float in = is_inside[(z * resolution.y + y) * resolution.x + x];
+				insidedat << in << " ";
+				inside_vol += in;
+				cout << (in >= 0.5f ? 'X' : (in > 0.0f ? 'o' : ' '));
+				nr_inside += (in > 0.0f) ? 1 : 0;
 			}
 			cout << "\n";
 		}
 	}
 	cout << "Cubes inside: " << nr_inside << " of " << is_inside.size() << "\n";
-	cout << "Sum of volume " << inside_vol << " real " << inside_vol/255.0f << "\n";
+	cout << "Sum of volume " << inside_vol << " real " << (inside_vol * vol) / is_inside.size() << "\n";
 	xml_elem ve = physroot.add_child("voxels");
 	ve.set_attr(resolution.x, "x");
 	ve.set_attr(resolution.y, "y");
 	ve.set_attr(resolution.z, "z");
 	ve.set_attr(nr_inside, "innr");
-	ve.set_attr(inside_vol/255.0f, "invol");
+	ve.set_attr(inside_vol, "invol");
 	ve.add_child_text(insidedat.str());
 
 	try {
@@ -425,7 +436,7 @@ int mymain(list<string>& args)
 		sleep(3);
 	}
 
-	double vol_inside = (inside_vol * vol) / (255.0f*is_inside.size());
+	double vol_inside = (inside_vol * vol) / is_inside.size();
 	//cout << "Inside volume " << vol_inside << " (" << vol_inside/2.8317 << " BRT) of " << vol << "\n";
 	physroot.add_child("volume").set_attr(vol_inside);
 	physroot.add_child("center-of-gravity").set_attr(mdl->get_base_mesh().compute_center_of_gravity());
