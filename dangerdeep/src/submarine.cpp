@@ -342,6 +342,15 @@ void submarine::save(xml_elem& parent) const
 void submarine::transfer_torpedo(unsigned from, unsigned to)
 {
 	// fixme: it once crashed here... check from/to for limits?
+	// not a fix, only ugly workaround!!!
+	if (from >= torpedoes.size()) {
+		log_warning("from="<<from<<" max="<<torpedoes.size());
+		throw error("BUG! transfer_torpedo, from invalid");
+	}
+	if (to >= torpedoes.size()) {
+		log_warning("to="<<from<<" max="<<torpedoes.size());
+		throw error("BUG! transfer_torpedo, to invalid");
+	}
 	if (torpedoes[from].status == stored_torpedo::st_loaded &&
 			torpedoes[to].status == stored_torpedo::st_empty) {
 		if (torpedoes[to].torp != 0)
