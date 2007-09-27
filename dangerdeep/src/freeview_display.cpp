@@ -104,7 +104,7 @@ freeview_display::freeview_display(user_interface& ui_) :
 {
 	submarine* sub = dynamic_cast<submarine*>( ui_.get_game().get_player() );
 	add_pos = sub->get_freeview_position();
-	conning_tower = modelcache().ref( sub->get_bridge_file() );
+	conning_tower = modelcache().ref(sub->get_bridge_filename());
 
 	texturecache().ref("splashring.png");
 	conning_tower->register_layout();

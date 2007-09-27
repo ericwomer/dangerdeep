@@ -233,7 +233,7 @@ submarine::submarine(game& gm_, const xml_elem& parent)
 
 	// load the bridge data
 	xml_elem br = parent.child("bridge");
-	bridge_model_name = br.attr("model");
+	bridge_model_name = data_file().get_rel_path(specfilename) + br.attr("model");
 
 	bridge_camera_pos = br.child("camera").attrv3();
 	bridge_uzo_pos = br.child("uzo").attrv3();
