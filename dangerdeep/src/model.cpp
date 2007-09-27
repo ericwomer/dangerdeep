@@ -1843,16 +1843,22 @@ void model::read_phys_file(const string& filename)
 	voxel_resolution = vector3i(ve.attri("x"), ve.attri("y"), ve.attri("z"));
 	unsigned nrvoxels = voxel_resolution.x*voxel_resolution.y*voxel_resolution.z;
 	voxel_data.reserve(ve.attru("innr"));
-	std::string vt = ve.child_text();
+	vector<float> insidevol(nrvoxels);
+	istringstream iss3(ve.child_text());
+	for (unsigned k = 0; k < nrvoxels; ++k) {
+		iss3 >> insidevol[k];
+	}
+	if (iss3.fail())
+		throw error("error reading inside volume data");
 
 	vector<float> massdistri;
 	if (ve.has_child("mass-distribution")) {
-		istringstream iss3(ve.child("mass-distribution").child_text());
+		istringstream iss4(ve.child("mass-distribution").child_text());
 		massdistri.resize(nrvoxels);
 		for (unsigned k = 0; k < nrvoxels; ++k) {
-			iss3 >> massdistri[k];
+			iss4 >> massdistri[k];
 		}
-		if (iss3.fail())
+		if (iss4.fail())
 			throw error("error reading mass distribution data");
 	}
 
@@ -1873,7 +1879,7 @@ void model::read_phys_file(const string& filename)
 		float mass_part = (voxel_resolution.z - izz)/float(voxel_resolution.z);
 		for (int iyy = 0; iyy < voxel_resolution.y; ++iyy) {
 			for (int ixx = 0; ixx < voxel_resolution.x; ++ixx) {
-				float f = hex2float(vt, 2*ptr);
+				float f = insidevol[ptr];
 				if (f >= 1.0f/255.0f) {
 					reverse_voxel_idx[ptr] = int(voxel_data.size());
 					float m = f * mass_part;
