@@ -683,7 +683,6 @@ void ship::simulate(double delta_time)
 //#include "global_data.h"
 void ship::steering_logic()
 {
-#if 0
 	/* New helmsman simulation.
 	   We have the formula
 	   error = a * x + b * y + c * z
@@ -696,50 +695,26 @@ void ship::steering_logic()
 	   the rudder_to is set.
 	   This system should find the correct course, it only needs
 	   tuning of a, b, c. Their values depend on maximum turn speed.
-	   ...
+	   The following (experimentally gained) formulas give good results.
 	*/
 	double anglediff = (head_to - heading).value_pm180();
-	const double ang_diff_fac = 1.0;
-	const double turn_vel_fac = 10.0;
-	const double rudd_pos_fac = 0.5;
-	double error0 = ang_diff_fac * anglediff;
-	double error1 = turn_vel_fac * -turn_velocity;
-	double error2 = rudd_pos_fac * -rudder_pos;
+	double error0 = anglediff;
+	double error1 = (max_rudder_angle/max_rudder_turn_speed) * turn_velocity * 1.0;
+	double error2 = 0;//-rudder_pos/max_rudder_turn_speed * turn_velocity;
 	double error = error0 + error1 + error2;
-	DBGOUT7(anglediff, turn_velocity, rudder_pos, error0, error1, error2, error);
+	//DBGOUT7(anglediff, turn_velocity, rudder_pos, error0, error1, error2, error);
 	int rd = 0;
-	if (fabs(error) > 10) rd = 2;
-	else if (fabs(error) > 5) rd = 1;
+	// in reality we can chose finer rudder positions, would give better results.
 	// range is -2...2
+	if (fabs(error) > 5) rd = 2;
+	else if (fabs(error) > 0.25) rd = 1;
 	rudder_to = (error < 0 ? -1 : 1) * rd;
 	// when error below a certain limit, set head_to_fixed=false, rudder_to=ruddermidships
-#else
-	/* Helmsman simulation
-	   New idea: add turn_velocity * time_to_midships * factor to target heading,
-	   so that when turn velocity is high, target course is nearer than set,
-	   then react when course is "missed" (factor=1) or near miss (factor=2),
-	   this will lead to early braking and hitting target course better.
-	   Low velocities -> Low drift.
-	   Could be better for torps too.
-	   We don't need states with this model.
-	*/
-
-	double time_to_midships = fabs(rudder_pos) / max_rudder_turn_speed;
-	// the smaller that factor, the more oscillation, 1.5 is default
-	// with new physics code 1.75 seems better. So less turn drag -> higher value...?
-	angle heading2 = heading + angle(-turn_velocity * time_to_midships * 1.75);
-	bool turn_rather_right = (heading2.is_cw_nearer(head_to));
-	double angledist = fabs((heading2 - head_to).value_pm180());
-	//std::cout <<this<<" angledist " << angledist << " heading=" << heading.value() << " head_to=" << head_to.value() << " heading2=" << heading2.value() << " time_to_ms " << time_to_midships << "\n";
-	if (angledist < 0.25 && fabs(rudder_pos) < 1.0) {
+	if (fabs(anglediff) <= 0.25 && fabs(rudder_pos) < 1.0) {
 		head_to_fixed = false;
 		rudder_to = ruddermidships;
-		//std::cout << "reached course, diff=" << head_to.value() - heading.value() << " tv=" << turn_velocity << "\n";
-	} else {
-		// we need to do something
-		rudder_to = (turn_rather_right) ? rudderfullright : rudderfullleft;
+		//std::cout << "reached course, diff=" << anglediff << " tv=" << turn_velocity << "\n";
 	}
-#endif
 }
 
 
@@ -1073,7 +1048,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// negate rudder_pos here, because turning is mathematical, so rudder left means
 	// rudder_pos < 0 and this means ccw turning and this means turn velocity > 0!
 	double rudder_torque = L * get_turn_accel_factor() * speed * sin(-rudder_pos * M_PI / 180.0);
-	rudder_torque *= 0.5;//fixme test
+//	rudder_torque *= 0.5;//fixme test
 //	std::cout << "turn torque=" << acceleration << " Nm, or " << acceleration*2.0/size3d.y << " N\n";
 // 	std::cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << " turn_velo " << turn_velocity << " heading " << heading.value() << " tv2 " << tv2 << "\n";
 // 	std::cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << " max_turn_accel " << max_turn_accel << "\n";
