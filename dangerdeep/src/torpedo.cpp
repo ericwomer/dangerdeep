@@ -505,35 +505,23 @@ void torpedo::simulate(double delta_time)
 
 void torpedo::steering_logic()
 {
-// new ship steering logic does not fully work for torpedoes,
-// turning large angles lead to a slight but crucial course miss (high turn velocity on end of turn)
-// and lower changes to oscillation.
-// 	ship::steering_logic();
-// 	return;
-
-	// check if we should turn left or right
-	bool turn_rather_right = (heading.is_cw_nearer(head_to));
-	double angledist = fabs((heading - head_to).value_pm180());
-
-	// torpedoes have a simple logic. set rudder to full angle to turn to
-	// target course, drag will damp the oscillation.
-	//fixme: rudder_should be set proportional to course difference:
-	//large angledist -> full rudder ... small angledist -> few rudder
-	if (angledist < 0.1 && turn_velocity < 0.01) {
+	// this is the same code as in class ship, but with direct rudder control
+	double anglediff = (head_to - heading).value_pm180();
+	double error0 = anglediff;
+	double error1 = 1.0 /*(max_rudder_angle/max_rudder_turn_speed)*/ * turn_velocity * 1.0;
+	double error2 = 0;//-rudder_pos/max_rudder_turn_speed * turn_velocity;
+	double error = error0 + error1 + error2;
+	// we set rudder angle directly here (a bit cheating).
+	// in reality the torpedo could set any angle quickly, so it would be
+	// a bit more difficult to steer, but it shouldn't make a big difference
+	// for a realistic simulation.
+	if (error < -5.0) error = -5.0;
+	if (error >  5.0) error =  5.0;
+	rudder_pos = max_rudder_angle * error / 5.0;
+	if (fabs(anglediff) < 0.1 && fabs(turn_velocity) < 0.05) {
+		head_to_fixed = false;
 		rudder_pos = 0;
-		//rudder_to = ruddermidships;
-	} else if (turn_rather_right) {
-		rudder_pos = std::min(max_rudder_angle, angledist * 2.0);
-		//rudder_to = angledist < 15.0 ? rudderright : rudderfullright;
-	} else {
-		rudder_pos = -std::min(max_rudder_angle, angledist * 2.0);
-		//rudder_to = angledist < 15.0 ? rudderleft : rudderfullleft;
 	}
-	// torpedo runs not in heading's direction, fixme, this explains a lot of bugs...
-//  	std::cout << "torp=" << this << " angledist=" << angledist << " turn_r_r=" << turn_rather_right
-//  		  << " rudder_to=" << rudder_to << " rudder_pos=" << rudder_pos
-// 		  << " turn_vel=" << turn_velocity << " heading=" << heading.value() << " headto="
-// 		  << head_to.value() << "\n";
 }
 
 
