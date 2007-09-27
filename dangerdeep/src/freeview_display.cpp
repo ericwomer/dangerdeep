@@ -233,17 +233,18 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 			glTranslated(pos.x, pos.y, pos.z);
 		}
 		const ship* shp = dynamic_cast<const ship*>(*it);
-		if (shp && !istorp) {
-			// torpedos are not affected by tide.
-			//std::cout << "rotate ship extra!\n";
-			//shp->get_orientation().rotmat4().print();
+		if (shp) {
 			shp->get_orientation().rotmat4().multiply_gl();
 		}
-		if (mirrorclip && !istorp) {
-			// finished modifying tex#1 matrix
-			glActiveTexture(GL_TEXTURE0);
-			glMatrixMode(GL_MODELVIEW);
-			(*it)->display_mirror_clip();
+		if (mirrorclip) {
+			// torpedoes are normally fully underwater and thus need not to get
+			// rendered for mirror images
+			if (!istorp) {
+				// finished modifying tex#1 matrix
+				glActiveTexture(GL_TEXTURE0);
+				glMatrixMode(GL_MODELVIEW);
+				(*it)->display_mirror_clip();
+			}
 		} else {
 			(*it)->display(under_water ? ui.get_caustics().get_map() : NULL);
 		}
