@@ -71,7 +71,8 @@ void sub_periscope_display::set_modelview_matrix(game& gm, const vector3& viewpo
 	glLoadIdentity();
 
 	// set up rotation (player's view direction) - we have no elevation for the periscope.
-	// so set standard elevation of 90Њ	glRotated(-90.0f,1,0,0);
+	// so set standard elevation of 90°
+	glRotated(-90.0f,1,0,0);
 
 	// if we're aboard the player's vessel move the world instead of the ship
 	if (aboard) {
