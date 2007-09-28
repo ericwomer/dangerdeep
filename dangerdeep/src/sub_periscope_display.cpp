@@ -71,16 +71,18 @@ void sub_periscope_display::set_modelview_matrix(game& gm, const vector3& viewpo
 	glLoadIdentity();
 
 	// set up rotation (player's view direction) - we have no elevation for the periscope.
-	// so set standard elevation of 90°
-	glRotated(-90.0f,1,0,0);
-
-	// This should be a negative angle, but nautical view dir is clockwise,
-	// OpenGL uses ccw values, so this is a double negation
-	glRotated(ui.get_absolute_bearing().value(),0,0,1);
+	// so set standard elevation of 90ÐŠ	glRotated(-90.0f,1,0,0);
 
 	// if we're aboard the player's vessel move the world instead of the ship
 	if (aboard) {
+		// This should be a negative angle, but nautical view dir is clockwise,
+		// OpenGL uses ccw values, so this is a double negation
+		glRotated(ui.get_relative_bearing().value(),0,0,1);
 		gm.get_player()->get_orientation().conj().rotmat4().multiply_gl();
+	} else {
+		// This should be a negative angle, but nautical view dir is clockwise,
+		// OpenGL uses ccw values, so this is a double negation
+		glRotated(ui.get_absolute_bearing().value(),0,0,1);
 	}
 
 	// set up modelview matrix as if player is at position (0, 0, 0), so do NOT set a translational part.
