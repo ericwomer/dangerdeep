@@ -1849,7 +1849,7 @@ void model::read_phys_file(const string& filename)
 		iss3 >> insidevol[k];
 	}
 	if (iss3.fail())
-		throw error("error reading inside volume data");
+		throw error(filename + ", error reading inside volume data");
 
 	vector<float> massdistri;
 	if (ve.has_child("mass-distribution")) {
