@@ -1186,6 +1186,7 @@ bool submarine::launch_torpedo(int tubenr, sea_object* target)
 
 void submarine::gun_manning_changed(bool is_gun_manned)
 {
+	//fixme: these events occur endlessly once active!
 	if (is_gun_manned)
 		gm.add_event(new event_gun_manned());
 	else

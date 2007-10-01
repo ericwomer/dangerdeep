@@ -73,9 +73,12 @@ void gun_shell::save(xml_elem& parent) const
 void gun_shell::simulate(double delta_time)
 {
 	oldpos = position;
+	log_debug("GS: position="<<position);
 	sea_object::simulate(delta_time);
 
 	// very crude, fixme. compute intersection of line oldpos->position with objects.
+	//fixme: with new physics this leads to bugs, because a shell may be z<0 instantly
+	//when sub is low in water!
 	if (position.z <= 0) {
 		// 2006-11-30 we need to check impact yes or no
 		/*bool impact = */gm.gs_impact(this);
