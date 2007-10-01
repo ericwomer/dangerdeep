@@ -766,6 +766,20 @@ void game::simulate(double delta_t)
 		simulate_objects_mt(delta_t, 0, 2, record, nearest_contact);
 		double nc = myworker->sync();
 		nearest_contact = std::min(nc, nearest_contact);
+		/* fixme: the following methods of class game need to be made
+		   thread-safe for this to work:
+		   --------------------
+		   dc_explosion
+		   gs_impact
+		   spawn_*
+		   add_event
+		   check_torpedo_hit
+		   ping_ASDIC
+		   --------------------
+		   making this easier: give sea_object only a const-ref to game,
+		   and a non-const-ref to an interface class, where we add
+		   only the allowed functions (the ones to be made threadsafe)
+		*/
 	} else {
 		simulate_objects_mt(delta_t, 0, 1, record, nearest_contact);
 	}
@@ -1542,7 +1556,7 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 	return false;
 }
 
-sea_object* game::contact_in_direction(const sea_object* o, const angle& direction)
+sea_object* game::contact_in_direction(const sea_object* o, const angle& direction) const
 {
 	sea_object* result = 0;
 
@@ -1556,7 +1570,7 @@ sea_object* game::contact_in_direction(const sea_object* o, const angle& directi
 	return result;
 }
 
-ship* game::ship_in_direction_from_pos(const sea_object* o, const angle& direction)
+ship* game::ship_in_direction_from_pos(const sea_object* o, const angle& direction) const
 {
 	const sensor* s = o->get_sensor( o->lookout_system );
 	const lookout_sensor* ls = 0;
@@ -1586,7 +1600,7 @@ ship* game::ship_in_direction_from_pos(const sea_object* o, const angle& directi
 	return result;
 }
 
-submarine* game::sub_in_direction_from_pos(const sea_object* o, const angle& direction)
+submarine* game::sub_in_direction_from_pos(const sea_object* o, const angle& direction) const
 {
 	const sensor* s = o->get_sensor( o->lookout_system );
 	const lookout_sensor* ls = 0;

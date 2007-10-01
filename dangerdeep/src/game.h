@@ -336,9 +336,9 @@ public:
 	bool check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure);
 
 	// dito, see check_torpedo_hit-comment
-	sea_object* contact_in_direction(const sea_object* o, const angle& direction);
-	ship* ship_in_direction_from_pos(const sea_object* o, const angle& direction);
-	submarine* sub_in_direction_from_pos(const sea_object* o, const angle& direction);
+	sea_object* contact_in_direction(const sea_object* o, const angle& direction) const;
+	ship* ship_in_direction_from_pos(const sea_object* o, const angle& direction) const;
+	submarine* sub_in_direction_from_pos(const sea_object* o, const angle& direction) const;
 
 	const torpedo* get_torpedo_for_camera_track(unsigned nr) const;
 
