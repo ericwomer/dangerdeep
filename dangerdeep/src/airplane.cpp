@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
 airplane::airplane(game& gm_, const xml_elem& parent)
-	: sea_object(gm, parent), rollfac(0), pitchfac(0)
+	: sea_object(gm_, parent), rollfac(0), pitchfac(0)
 {
 }
 
