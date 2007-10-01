@@ -59,6 +59,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "matrix4.h"
 #include "quaternion.h"
 #include "water.h"
+#include "cfg.h"
 #include "log.h"
 using std::ostringstream;
 using std::pair;
@@ -134,6 +135,12 @@ game::game()
 	freezetime_start = 0;
 
 	mywater.reset(new water(0.0));
+
+	if (cfg::instance().geti("cpucores") > 1) {
+		log_info("game: Using extra worker for multicore acceleration.");
+		myworker.reset(new simulate_worker(*this));
+		myworker->start();
+	}
 }
 
 
@@ -169,6 +176,11 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 ***********************************************************************/	
 	networktype = 0;
 	servercon = 0;
+
+	if (cfg::instance().geti("cpucores") > 1) {
+		myworker.reset(new simulate_worker(*this));
+		myworker->start();
+	}
 
 	// fixme: show some info like in Silent Service II? sun/moon pos,time,visibility?
 
@@ -302,6 +314,10 @@ game::game(const string& filename)
 //	if (v != SAVEVERSION)
 //		throw error("invalid game version");
 
+	if (cfg::instance().geti("cpucores") > 1) {
+		myworker.reset(new simulate_worker(*this));
+		myworker->start();
+	}
 
 	// load state first, because time is stored there and we need time/date for checks
 	// while loading the rest.
@@ -744,108 +760,17 @@ void game::simulate(double delta_t)
 	cleanup(water_splashes);
 
 	// step 2: simulate all objects, possibly setting state to dead/defunct.
-	// ------------------------------ ships ------------------------------
-	for (unsigned i = 0; i < ships.size(); ++i) {
-		if (ships[i] != player) {
-			double dist = ships[i]->get_pos().distance(player->get_pos());
-			if (dist < nearest_contact) nearest_contact = dist;
-		}
-		try {
-			ships[i]->simulate(delta_t);
-			if (record) ships[i]->remember_position(get_time());
-		}
-		catch (sea_object::is_dead_exception& ) {
-			// nothing to do
-		}
+	if (myworker.get()) {
+		// Multi-Threading code path (2 cores)
+		myworker->work(delta_t, 1, 2, record);
+		simulate_objects_mt(delta_t, 0, 2, record, nearest_contact);
+		double nc = myworker->sync();
+		nearest_contact = std::min(nc, nearest_contact);
+	} else {
+		simulate_objects_mt(delta_t, 0, 1, record, nearest_contact);
 	}
-
-	// ------------------------------ submarines ------------------------------
-	for (unsigned i = 0; i < submarines.size(); ++i) {
-		if (submarines[i] != player) {
-			double dist = submarines[i]->get_pos().distance(player->get_pos());
-			if (dist < nearest_contact) nearest_contact = dist;
-		}
-		try {
-			submarines[i]->simulate(delta_t);
-			if (record) submarines[i]->remember_position(get_time());
-		}
-		catch (sea_object::is_dead_exception& ) {
-			// nothing to do
-		}
-	}
-
-	// ------------------------------ airplanes ------------------------------
-	for (unsigned i = 0; i < airplanes.size(); ++i) {
-		if (airplanes[i] != player) {
-			double dist = airplanes[i]->get_pos().distance(player->get_pos());
-			if (dist < nearest_contact) nearest_contact = dist;
-		}
-		try {
-			airplanes[i]->simulate(delta_t);
-		}
-		catch (sea_object::is_dead_exception& ) {
-			// nothing to do
-		}
-	}
-
-	// ------------------------------ torpedoes ------------------------------
-	for (unsigned i = 0; i < torpedoes.size(); ++i) {
-		try {
-			torpedoes[i]->simulate(delta_t);
-			if (record) torpedoes[i]->remember_position(get_time());
-		}
-		catch (sea_object::is_dead_exception& ) {
-			// nothing to do
-		}
-	}
-
-	// ------------------------------ depth_charges ------------------------------
-	for (unsigned i = 0; i < depth_charges.size(); ++i) {
-		try {
-			depth_charges[i]->simulate(delta_t);
-		}
-		catch (sea_object::is_dead_exception& ) {
-			// nothing to do
-		}
-	}
-
-	// ------------------------------ gun_shells ------------------------------
-	for (unsigned i = 0; i < gun_shells.size(); ++i) {
-		try {
-			gun_shells[i]->simulate(delta_t);
-		}
-		catch (sea_object::is_dead_exception& ) {
-			// nothing to do
-		}
-	}
-
-	// ------------------------------ water_splashes ------------------------------
-	for (unsigned i = 0; i < water_splashes.size(); ++i) {
-		try {
-			water_splashes[i]->simulate(delta_t);
-		}
-		catch (sea_object::is_dead_exception& ) {
-			// nothing to do
-		}
-	}
-
-	// for convoys/particles it doesn't hurt to mix simulate() with compact().
-	// ------------------------------ convoys ------------------------------
-	for (unsigned i = 0; i < convoys.size(); ++i) {
-		if (!convoys[i]) continue;
-		convoys[i]->simulate(delta_t);	// fixme: handle erasing of empty convoys!
-	}
+	// must not be done multithreaded.
 	convoys.compact();
-
-	// ------------------------------ particles ------------------------------
-	for (unsigned i = 0; i < particles.size(); ++i) {
-		if (!particles[i]) continue;
-		if (particles[i]->is_defunct()) {
-			particles.reset(i);
-		} else {
-			particles[i]->simulate(*this, delta_t);
-		}
-	}
 	particles.compact();
 
 	time += delta_t;
@@ -860,6 +785,114 @@ void game::simulate(double delta_t)
 	if (nearest_contact > ENEMYCONTACTLOST) {
 		log_info("player lost contact to enemy!");//testing fixme
 		my_run_state = contact_lost;
+	}
+}
+
+
+
+void game::simulate_objects_mt(double delta_t, unsigned idxoff, unsigned idxmod, bool record,
+			       double& nearest_contact)
+{
+	// ------------------------------ ships ------------------------------
+	for (unsigned i = idxoff; i < ships.size(); i += idxmod) {
+		if (ships[i] != player) {
+			double dist = ships[i]->get_pos().distance(player->get_pos());
+			if (dist < nearest_contact) nearest_contact = dist;
+		}
+		try {
+			ships[i]->simulate(delta_t);
+			if (record) ships[i]->remember_position(get_time());
+		}
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
+		}
+	}
+
+	// ------------------------------ submarines ------------------------------
+	for (unsigned i = idxoff; i < submarines.size(); i += idxmod) {
+		if (submarines[i] != player) {
+			double dist = submarines[i]->get_pos().distance(player->get_pos());
+			if (dist < nearest_contact) nearest_contact = dist;
+		}
+		try {
+			submarines[i]->simulate(delta_t);
+			if (record) submarines[i]->remember_position(get_time());
+		}
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
+		}
+	}
+
+	// ------------------------------ airplanes ------------------------------
+	for (unsigned i = idxoff; i < airplanes.size(); i += idxmod) {
+		if (airplanes[i] != player) {
+			double dist = airplanes[i]->get_pos().distance(player->get_pos());
+			if (dist < nearest_contact) nearest_contact = dist;
+		}
+		try {
+			airplanes[i]->simulate(delta_t);
+		}
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
+		}
+	}
+
+	// ------------------------------ torpedoes ------------------------------
+	for (unsigned i = idxoff; i < torpedoes.size(); i += idxmod) {
+		try {
+			torpedoes[i]->simulate(delta_t);
+			if (record) torpedoes[i]->remember_position(get_time());
+		}
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
+		}
+	}
+
+	// ------------------------------ depth_charges ------------------------------
+	for (unsigned i = idxoff; i < depth_charges.size(); i += idxmod) {
+		try {
+			depth_charges[i]->simulate(delta_t);
+		}
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
+		}
+	}
+
+	// ------------------------------ gun_shells ------------------------------
+	for (unsigned i = idxoff; i < gun_shells.size(); i += idxmod) {
+		try {
+			gun_shells[i]->simulate(delta_t);
+		}
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
+		}
+	}
+
+	// ------------------------------ water_splashes ------------------------------
+	for (unsigned i = idxoff; i < water_splashes.size(); i += idxmod) {
+		try {
+			water_splashes[i]->simulate(delta_t);
+		}
+		catch (sea_object::is_dead_exception& ) {
+			// nothing to do
+		}
+	}
+
+	// for convoys/particles it doesn't hurt to mix simulate() with compact().
+	// ------------------------------ convoys ------------------------------
+	for (unsigned i = idxoff; i < convoys.size(); i += idxmod) {
+		if (!convoys[i]) continue;
+		convoys[i]->simulate(delta_t);	// fixme: handle erasing of empty convoys!
+	}
+
+	// ------------------------------ particles ------------------------------
+	for (unsigned i = idxoff; i < particles.size(); i += idxmod) {
+		if (!particles[i]) continue;
+		if (particles[i]->is_defunct()) {
+			particles.reset(i);
+		} else {
+			particles[i]->simulate(*this, delta_t);
+		}
 	}
 }
 
@@ -2077,4 +2110,66 @@ void game::unfreeze_time()
 //	printf("time UNfrozen at: %u (%u)\n", freezetime_end, freezetime_end - freezetime_start);
 	freezetime += freezetime_end - freezetime_start;
 	freezetime_start = 0;
+}
+
+
+
+game::simulate_worker::simulate_worker(game& gm_)
+	: thread("simuwork"), gm(gm_), delta_t(0.0), idxoff(0), idxmod(0), done(true)
+{
+}
+
+
+
+void game::simulate_worker::request_abort()
+{
+	mutex_locker ml(mtx);
+	thread::request_abort();
+	cond.signal();
+}
+
+
+
+void game::simulate_worker::loop()
+{
+	{
+		mutex_locker ml(mtx);
+		if (done)
+			cond.wait(mtx);
+		if (abort_requested())
+			return;
+	}
+	gm.simulate_objects_mt(delta_t, idxoff, idxmod, record, nearest_contact);
+	{
+		mutex_locker ml(mtx);
+		done = true;
+		condfini.signal();
+	}
+}
+
+
+
+void game::simulate_worker::work(double dt, unsigned io, unsigned im, bool r)
+{
+	mutex_locker ml(mtx);
+	if (!done)
+		throw error("work() called without sync before");
+	done = false;
+	delta_t = dt;
+	idxoff = io;
+	idxmod = im;
+	record = r;
+	nearest_contact = 1e30;
+	cond.signal();
+}
+
+
+
+double game::simulate_worker::sync()
+{
+	mutex_locker ml(mtx);
+	if (!done) {
+		condfini.wait(mtx);
+	}
+	return nearest_contact;
 }

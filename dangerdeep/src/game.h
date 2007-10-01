@@ -31,6 +31,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <list>
 #include <vector>
+#include "thread.h"
+#include "mutex.h"
+#include "condvar.h"
 
 // use forward declarations to avoid unneccessary compile dependencies
 class ship;
@@ -174,6 +177,32 @@ protected:
 
 	// water height data, and everything around it.
 	std::auto_ptr<water> mywater;
+
+	// multi-threading helper for simulation
+	void simulate_objects_mt(double delta_t, unsigned idxoff, unsigned idxmod, bool record,
+				 double& nearest_contact);
+
+	class simulate_worker : public thread
+	{
+		mutex mtx;
+		condvar cond;
+		condvar condfini;
+		game& gm;
+		double delta_t;
+		unsigned idxoff;
+		unsigned idxmod;
+		bool record;
+		double nearest_contact;
+		bool done;
+	public:
+		simulate_worker(game& gm_);
+		void loop();
+		void request_abort();
+		void work(double dt, unsigned io, unsigned im, bool record);
+		double sync();
+	};
+
+	thread::auto_ptr<simulate_worker> myworker;
 
 	game();	
 	game& operator= (const game& other);

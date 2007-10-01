@@ -131,6 +131,8 @@ class thread
 		}
 		/// use pointer like normal pointer
 		T* operator-> () const { return p; }
+		/// get pointer
+		const T* get() const { return p; }
 	};
 };
 
