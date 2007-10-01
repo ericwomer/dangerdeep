@@ -837,7 +837,7 @@ void send_msg_to_all(network_connection& sv, const vector<IPaddress>& clients, c
 // collect players, answer "ask" messages, returns true if game should start, false if cancelled
 bool server_wait_for_clients(network_connection& sv, Uint16 server_port, vector<IPaddress>& clients, unsigned nr_of_players)
 {
-	IPaddress hostip;
+	//IPaddress hostip;
 	//int error = SDLNet_ResolveHost(&hostip, 0, server_port);
 	//sys().myassert(error == 0, "can resolve host ip for this computer");
 	
