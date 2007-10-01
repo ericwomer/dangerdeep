@@ -58,9 +58,9 @@ int call_mymain(list<string>& args)
 		print_stack_trace();
 		result = -2;
 	}
-	log::instance().write(std::cerr, log::SYSINFO);
+	log::instance().write(std::cerr, log::LOG_SYSINFO);
 	std::ofstream f("log.txt");
-	log::instance().write(f, log::SYSINFO);
+	log::instance().write(f, log::LOG_SYSINFO);
 	return result;
 }
 

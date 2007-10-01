@@ -50,16 +50,16 @@ struct log_msg
 	{
 		std::ostringstream oss;
 		switch (lvl) {
-		case log::WARNING:
+		case log::LOG_WARNING:
 			oss << "\033[1;31m";
 			break;
-		case log::INFO:
+		case log::LOG_INFO:
 			oss << "\033[1;34m";
 			break;
-		case log::SYSINFO:
+		case log::LOG_SYSINFO:
 			oss << "\033[1;33m";
 			break;
-		case log::DEBUG:
+		case log::LOG_DEBUG:
 			oss << "\033[1;32m";
 			break;
 		default:
@@ -73,16 +73,16 @@ struct log_msg
 	{
 		std::ostringstream oss;
 		switch (lvl) {
-		case log::WARNING:
+		case log::LOG_WARNING:
 			oss << "$ff8080";
 			break;
-		case log::INFO:
+		case log::LOG_INFO:
 			oss << "$c0c0ff";
 			break;
-		case log::SYSINFO:
+		case log::LOG_SYSINFO:
 			oss << "$ffff00";
 			break;
-		case log::DEBUG:
+		case log::LOG_DEBUG:
 			oss << "$b0ffb0";
 			break;
 		default:

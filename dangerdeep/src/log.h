@@ -27,23 +27,24 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <sstream>
 
 #define log_template(x, y) do { std::ostringstream oss; oss << x; log::instance().append(log::y, oss.str()); } while(0)
-#define log_debug(x) log_template(x, DEBUG)
-#define log_info(x) log_template(x, INFO)
+#define log_debug(x) log_template(x, LOG_DEBUG)
+#define log_info(x) log_template(x, LOG_INFO)
 // use this only internally for special events
-#define log_sysinfo(x) log_template(x, SYSINFO)
-#define log_warning(x) log_template(x, WARNING)
+#define log_sysinfo(x) log_template(x, LOG_SYSINFO)
+#define log_warning(x) log_template(x, LOG_WARNING)
 
 /// manager class for a global threadsafe log
 class log
 {
  public:
-	/// level of log message, in descending importance
+	/// level of log message, in descending importance.
+	/// we use LOG_ prefix to avoid collisions with DEBUG compile flag.
 	enum level {
-		WARNING,
-		INFO,
-		SYSINFO,
-		DEBUG,
-		NR_LEVELS
+		LOG_WARNING,
+		LOG_INFO,
+		LOG_SYSINFO,
+		LOG_DEBUG,
+		LOG_NR_LEVELS
 	};
 
 	/// get the one and only log instance
@@ -53,7 +54,7 @@ class log
 	static bool copy_output_to_console;
 
 	/// write the log to a stream, with optional filtering of importance, threadsafe
-	void write(std::ostream& out, log::level limit_level = log::NR_LEVELS) const;
+	void write(std::ostream& out, log::level limit_level = log::LOG_NR_LEVELS) const;
 
 	/// append a message to the log, threadsafe
 	void append(log::level l, const std::string& msg);

@@ -369,10 +369,10 @@ list<SDL_Event> system::poll_event_queue()
 					// we need to write the log here, since mymain
 					// can't write it, because we do exit here
 					log_info("---------- immediate exit ----------");
-					log::instance().write(std::cerr, log::SYSINFO);
+					log::instance().write(std::cerr, log::LOG_SYSINFO);
 					{
 						std::ofstream f("log.txt");
-						log::instance().write(f, log::SYSINFO);
+						log::instance().write(f, log::LOG_SYSINFO);
 					}
 					exit(0);	// fixme
 #endif
