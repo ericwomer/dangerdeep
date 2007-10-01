@@ -136,11 +136,13 @@ game::game()
 
 	mywater.reset(new water(0.0));
 
+#if 0
 	if (cfg::instance().geti("cpucores") > 1) {
 		log_info("game: Using extra worker for multicore acceleration.");
 		myworker.reset(new simulate_worker(*this));
 		myworker->start();
 	}
+#endif
 }
 
 
@@ -177,10 +179,12 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	networktype = 0;
 	servercon = 0;
 
+#if 0
 	if (cfg::instance().geti("cpucores") > 1) {
 		myworker.reset(new simulate_worker(*this));
 		myworker->start();
 	}
+#endif
 
 	// fixme: show some info like in Silent Service II? sun/moon pos,time,visibility?
 
@@ -314,10 +318,12 @@ game::game(const string& filename)
 //	if (v != SAVEVERSION)
 //		throw error("invalid game version");
 
+#if 0
 	if (cfg::instance().geti("cpucores") > 1) {
 		myworker.reset(new simulate_worker(*this));
 		myworker->start();
 	}
+#endif
 
 	// load state first, because time is stored there and we need time/date for checks
 	// while loading the rest.
@@ -778,7 +784,8 @@ void game::simulate(double delta_t)
 		   --------------------
 		   making this easier: give sea_object only a const-ref to game,
 		   and a non-const-ref to an interface class, where we add
-		   only the allowed functions (the ones to be made threadsafe)
+		   only the allowed functions (the ones to be made threadsafe).
+		   then game heirs from that interface and all is solved.
 		*/
 	} else {
 		simulate_objects_mt(delta_t, 0, 1, record, nearest_contact);
