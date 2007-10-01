@@ -607,6 +607,7 @@ void view_model(const string& modelfilename, const string& datafilename)
 			"\nTranslation " << pos.x << ", " << pos.y << ", " << pos.z <<
 			"\nmin " << minp.x << ", " << minp.y << ", " << minp.z <<
 			"\nmax " << maxp.x << ", " << maxp.y << ", " << maxp.z <<
+			"\nbounding sphere radius=" << mdl->get_bounding_sphere_radius() <<
 			"\n";
 		
                 if (smoke) {	

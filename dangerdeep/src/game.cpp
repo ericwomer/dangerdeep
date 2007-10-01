@@ -1883,6 +1883,66 @@ void game::send(command* cmd)
 */
 
 
+
+void game::check_collision(const ship& actor)
+{
+	const unsigned idxoff = 0, idxmod = 1;
+	double actrad = actor.get_bounding_sphere_radius();
+
+	//fixme: put this in a central function that loops over all ships
+	//and checks against each other ship, but with N^2/2 tests.
+	//add a method that gives all ships for easier iteration.
+
+	// if bounding spheres intersect, what next?
+	// a direct voxel to voxel intersection test is very costly,
+	// with ca. 80 voxels per object it could give up to 6400 tests.
+	// We use spheres with ca. voxel's size for that intersection test,
+	// true box<->box tests are too costly, especially when boxes
+	// can be arbitrarily oriented.
+	// So next test could be a bounding box to bounding box intersection test.
+	// It would handle the orientation of each object and exact maxima/minima.
+	// how can we compute that? either with clipping or with solving a
+	// gaussian system. Each box defines a subspace of R3, given by base
+	// vector and the 3 spanning vectors, each with a scalar.
+	// So we have 6 scalars to solve, if all 6 scalars are within 0...1
+	// range we have an intersection.
+
+	// ------------------------------ ships ------------------------------
+	for (unsigned i = idxoff; i < ships.size(); i += idxmod) {
+		if (ships[i] != &actor) {
+			double rsum = actrad + ships[i]->get_bounding_sphere_radius();
+			double d2 = actor.get_pos().square_distance(ships[i]->get_pos());
+			if (d2 <= rsum*rsum) {
+				//log_info("Collision between objects "<<&actor<<" and "<<ships[i]);
+			}
+		}
+	}
+
+	// ------------------------------ submarines ------------------------------
+	for (unsigned i = idxoff; i < submarines.size(); i += idxmod) {
+		if (submarines[i] != &actor) {
+			double rsum = actrad + submarines[i]->get_bounding_sphere_radius();
+			double d2 = actor.get_pos().square_distance(submarines[i]->get_pos());
+			if (d2 <= rsum*rsum) {
+				//log_info("Collision between objects "<<&actor<<" and "<<submarines[i]);
+			}
+		}
+	}
+
+	// ------------------------------ torpedoes ------------------------------
+	for (unsigned i = idxoff; i < torpedoes.size(); i += idxmod) {
+		if (torpedoes[i] != &actor) {
+			double rsum = actrad + torpedoes[i]->get_bounding_sphere_radius();
+			double d2 = actor.get_pos().square_distance(torpedoes[i]->get_pos());
+			if (d2 <= rsum*rsum) {
+				//log_info("Collision between objects "<<&actor<<" and "<<torpedoes[i]);
+			}
+		}
+	}
+}
+
+
+
 double game::compute_light_brightness(const vector3& viewpos, vector3& sundir) const
 {
 	// fixme: if sun is blocked by clouds, light must be darker...

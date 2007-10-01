@@ -475,6 +475,12 @@ public:
 	// fixme: add function to check wether a line is inside the model (for hit check)
 	// this is a bit problematic, as only the base mesh is considered for voxel computation,
 	// thus hits against turrets etc. are not checked... not good for battleship fights.
+
+	/// get square of bounding sphere radius
+	double get_bounding_sphere_radius2() const;
+
+	/// get radius of bounding sphere
+	double get_bounding_sphere_radius() const;
 };	
 
 #endif

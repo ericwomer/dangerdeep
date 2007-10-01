@@ -383,6 +383,8 @@ public:
 	// and compress the vector afterwars.
 	static void compress(std::vector<sea_object*>& vec);
 	static void compress(std::list<sea_object*>& lst);
+
+	double get_bounding_sphere_radius() const;
 };
 
 #endif

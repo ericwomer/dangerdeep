@@ -345,8 +345,9 @@ public:
 	bool is_collision(const sea_object* s1, const sea_object* s2) const;
 	bool is_collision(const sea_object* s, const vector2& pos) const;
 
-	double water_depth(const vector2& pos) const;
-	
+	/// check if actor collides with other objects
+	void check_collision(const ship& actor);
+
 	// is editor?
 	virtual bool is_editor() const { return false; }
 

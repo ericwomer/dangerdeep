@@ -798,3 +798,10 @@ void sea_object::compress(std::list<sea_object*>& lst)
 		}
 	}
 }
+
+
+
+double sea_object::get_bounding_sphere_radius() const
+{
+	return mymodel ? mymodel->get_bounding_sphere_radius() : 0.0;
+}
