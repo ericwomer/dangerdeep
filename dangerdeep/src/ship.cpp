@@ -528,15 +528,6 @@ void ship::simulate(double delta_time)
 {
 	sea_object::simulate(delta_time);
 
-	// check for collision with other ships, subs, torps and so on.
-	// maybe later return the collision parter and make method const.
-	// if we have a collision partner (game should check voxels for
-	// collision if objects are closer than their bounding spheres),
-	// we apply forces to both partners.
-	// fixme: it would be better to let class game do it, so we can
-	// avoid to do N^2 tests, but rather do N^2/2 only.
-	gm.check_collision(*this);
-
 	if ( myai.get() )
 		myai->act(gm, delta_time);
 

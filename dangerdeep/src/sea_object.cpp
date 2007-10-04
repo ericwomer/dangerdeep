@@ -596,6 +596,11 @@ void sea_object::simulate(double delta_time)
 		// multiply orientation with q: combined rotation.
 // 		std::cout << "q=" << q << " orientation old=" << orientation << " new=" << q * orientation << "\n";
 		orientation = q * orientation;
+		// we should renormalize orientation regularly, to avoid that
+		// orientation isn't a valid rotation after many changes.
+		if (fabs(orientation.square_length() - 1.0) > 1e-8) {
+			orientation.normalize();
+		}
 	}
 
 	// compute new angular momentum by integrating torque (both in world space)

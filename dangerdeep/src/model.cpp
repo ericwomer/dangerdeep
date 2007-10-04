@@ -312,6 +312,8 @@ void model::compute_bounds()
 		for (vector<model::mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it)
 			(*it)->compute_bounds(min, max, matrix4f::one());
 	}
+
+	boundsphere_radius = max.max(-min).length();
 }
 
 
@@ -3067,21 +3069,4 @@ std::vector<unsigned> model::get_voxels_within_sphere(const vector3f& pos, doubl
 			result.push_back(i);
 	}
 	return result;
-}
-
-
-
-double model::get_bounding_sphere_radius2() const
-{
-	// compute total extrema of coordinates
-	vector3f ext = max.max(-min);
-	// radius is length of vector of ext
-	return ext.square_length();
-}
-
-
-
-double model::get_bounding_sphere_radius() const
-{
-	return sqrt(get_bounding_sphere_radius2());
 }

@@ -204,6 +204,9 @@ protected:
 
 	thread::auto_ptr<simulate_worker> myworker;
 
+	/// check objects collide with any other object
+	void check_collisions();
+
 	game();	
 	game& operator= (const game& other);
 	game(const game& other);
@@ -345,9 +348,6 @@ public:
 	bool is_collision(const sea_object* s1, const sea_object* s2) const;
 	bool is_collision(const sea_object* s, const vector2& pos) const;
 
-	/// check if actor collides with other objects
-	void check_collision(const ship& actor);
-
 	// is editor?
 	virtual bool is_editor() const { return false; }
 
@@ -379,6 +379,9 @@ public:
 
 	water& get_water() { return *mywater.get(); }
 	const water& get_water() const { return *mywater.get(); }
+
+	/// get pointers to all ships for collision tests.
+	std::vector<const ship*> get_all_ships() const;
 };
 
 #endif

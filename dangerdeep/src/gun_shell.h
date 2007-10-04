@@ -39,6 +39,8 @@ class gun_shell : public sea_object
 	vector3 oldpos;		// position at last iteration (for collision detection)
 	double damage_amount;
 
+	void check_collision();
+
  public:
 	gun_shell(game& gm_);	// for loading
 	gun_shell(game& gm_, const vector3& pos, angle direction, angle elevation,

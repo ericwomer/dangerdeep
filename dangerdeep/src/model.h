@@ -295,6 +295,7 @@ protected:
 	std::string basepath;	// base path name of the scene/model, computed from filename
 
 	vector3f min, max;
+	double boundsphere_radius;
 
 	std::string current_layout;
 
@@ -476,11 +477,8 @@ public:
 	// this is a bit problematic, as only the base mesh is considered for voxel computation,
 	// thus hits against turrets etc. are not checked... not good for battleship fights.
 
-	/// get square of bounding sphere radius
-	double get_bounding_sphere_radius2() const;
-
 	/// get radius of bounding sphere
-	double get_bounding_sphere_radius() const;
+	double get_bounding_sphere_radius() const { return boundsphere_radius; }
 };	
 
 #endif

@@ -178,6 +178,7 @@ void game_editor::simulate(double delta_t)
 	cleanup(gun_shells);
 	cleanup(water_splashes);
 
+	//fixme: unite with game::simulate!!!
 	// step 2: simulate all objects, possibly setting state to dead/defunct.
 	// ------------------------------ ships ------------------------------
 	for (unsigned i = 0; i < ships.size(); ++i) {
@@ -285,6 +286,8 @@ void game_editor::simulate(double delta_t)
 
 	// clear pings if there are some
 	pings.clear();
+
+	check_collisions();
 
 	time += delta_t;
 }
