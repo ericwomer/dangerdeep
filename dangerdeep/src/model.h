@@ -104,7 +104,7 @@ public:
 		
 		material(const std::string& nm = "Unnamed material");
 		virtual ~material() {}
-		virtual void set_gl_values(const texture *caustic_map) const;
+		virtual void set_gl_values(const texture *caustic_map = 0) const;
 		virtual void set_gl_values_mirror_clip() const;
 		virtual void register_layout(const std::string& name, const std::string& basepath);
 		virtual void unregister_layout(const std::string& name);
