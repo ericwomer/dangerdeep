@@ -342,7 +342,7 @@ class canyon
 	{
 		canyon& cyn;
 		canyon_material(canyon& c) : cyn(c) {}
-		void set_gl_values() const;
+		void set_gl_values(const texture* /* unused */) const;
 	};
 public:
 	canyon(unsigned w = 256, unsigned h = 256);
@@ -423,7 +423,7 @@ canyon::canyon(unsigned w, unsigned h)
 
 
 
-void canyon::canyon_material::set_gl_values() const
+void canyon::canyon_material::set_gl_values(const texture* /* unused */) const
 {
 	cyn.myshader.use();
 	cyn.myshader.set_gl_texture(*cyn.sandrocktex.get(), "texsandrock", 0);
