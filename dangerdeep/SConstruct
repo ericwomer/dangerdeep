@@ -127,12 +127,12 @@ else:
 	ccflags = '-Wall `sdl-config --cflags` `pkg-config --cflags x11`'
 	env.Append(LINKFLAGS = '`pkg-config --libs-only-L x11`')
 	if (debug >= 3):
-		ccflags += ' -g -pg -O3'	# profiling
+		ccflags += ' -g -pg -O3 -march=i686'	# profiling
 	elif (debug == 2):
-		ccflags += ' -g -O0'
+		ccflags += ' -g -O0 -march=i686'
 		env.Append(CPPDEFINES = ['DEBUG'])
 	elif (debug == 1):
-		ccflags += ' -g -O1'
+		ccflags += ' -g -O1 -march=i686'
 		env.Append(CPPDEFINES = ['DEBUG'])
 	elif (debug == -1):
 		ccflags += ' -g -O3 -march=athlon-xp -mfpmath=sse -mmmx -msse -m3dnow'
@@ -141,7 +141,7 @@ else:
 	elif (debug == -3):	# special g++4.0+ auto vectorization
 		ccflags += ' -g -O3 -march=athlon64 -mfpmath=sse -mmmx -msse -msse2 -m3dnow -ftree-vectorize -ftree-vectorizer-verbose=2'
 	else:
-		ccflags += ' -g -O2' # debug symbols will be stripped by the linker for a debian package
+		ccflags += ' -g -O2 -march=i686' # debug symbols will be stripped by the linker for a debian package
 	# choose specific architecture if requested
 	if archflag != '':
 		ccflags += ' -march=' + archflag
