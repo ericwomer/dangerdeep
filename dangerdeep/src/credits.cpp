@@ -931,8 +931,8 @@ void show_credits()
 
 	auto_ptr<texture> bkg;
 	auto_ptr<glsl_shader_setup> glss;
-	bool use_shaders = glsl_program::supported();
 #if 0
+	bool use_shaders = glsl_program::supported();
 	if (use_shaders) {
 		const unsigned sz = 16;
 		vector<Uint8> data(sz*sz);
