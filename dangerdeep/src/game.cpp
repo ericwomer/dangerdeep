@@ -776,7 +776,6 @@ void game::simulate(double delta_t)
 		   thread-safe for this to work:
 		   --------------------
 		   dc_explosion
-		   gs_impact
 		   spawn_*
 		   add_event
 		   check_torpedo_hit
@@ -1398,54 +1397,6 @@ void game::dc_explosion(const depth_charge& dc)
 	}
 }
 
-bool game::gs_impact(const gun_shell *gs)	// fixme: vector2 would be enough
-{
-	vector3 pos = gs->get_pos();
-	
-//	return false;//fixme testing
-	for (unsigned k = 0; k < ships.size(); ++k) {
-		// fixme: we need a special collision detection, because
-		// the shell is so fast that it can be collisionfree with *it
-		// delta_time ago and now, but hit *it in between
-		if (is_collision(ships[k], pos.xy())) {
-			// 2006-11-30 doc1972 ships[]->damage() needs an unsigned int
-			if (ships[k]->damage(ships[k]->get_pos() /*fixme*/, (unsigned int)gs->damage()))
-			{
-				ship_sunk(ships[k]);
-			} else {
-				ships[k]->ignite();
-			}		
-
-			events.push_back(new event_shell_explosion(gs));
-			
-			return true;	// only one hit possible
-		}
-	}
-	for (unsigned k = 0; k < submarines.size(); ++k) {
-//printf("sub %f %f %f\n",(*it)->get_pos().x,(*it)->get_pos().y,(*it)->get_pos().z);
-//printf("gun %f %f %f\n",pos.x,pos.y,pos.z);
-		if (is_collision(submarines[k], pos.xy())) {
-//printf("sub damaged!!!\n");		
-			// 2006-11-30 doc1972 submarines[]->damage() needs an unsigned int
-			submarines[k]->damage(submarines[k]->get_pos() /*fixme*/, (unsigned int)gs->damage());
-			
-			events.push_back(new event_shell_explosion(gs));
-			
-			return true; // only one hit possible
-		}
-	}
-
-	// no ship hit, so must have hit water surface
-	if (pos.z <= 0) {
-		// Create water splash.
-		spawn_water_splash(new gun_shell_water_splash(*this, pos.xy().xy0()));
-		events.push_back(new event_shell_splash(gs));
-	}
-	
-	// No impact.
-	return false;
-}
-
 void game::torp_explode(const torpedo *t)
 {
 	// each torpedo seems to explode twice, if it's only drawn twice or adds twice the damage is unknown.
@@ -1904,9 +1855,10 @@ void game::send(command* cmd)
 
 
 //fixme: it would be better to keep such a vector around and not recompute it for every object that needs it
-vector<const ship*> game::get_all_ships() const
+//it must be recomputed only when spawn is called or compress removes objects
+vector<ship*> game::get_all_ships() const
 {
-	vector<const ship*> allships(torpedoes.size() + submarines.size() + ships.size());
+	vector<ship*> allships(torpedoes.size() + submarines.size() + ships.size());
 	unsigned k = 0;
 	for (unsigned i = 0; i < torpedoes.size(); ++i, ++k)
 		allships[k] = torpedoes[i];
@@ -1922,7 +1874,7 @@ vector<const ship*> game::get_all_ships() const
 void game::check_collisions()
 {
 	// torpedoes are special... check collision only for impact fuse?
-	vector<const ship*> allships = get_all_ships();
+	vector<ship*> allships = get_all_ships();
 	unsigned m = torpedoes.size();
 
 	// now check for collisions for all ships idx i with partner index > max(m,i)
@@ -1930,10 +1882,10 @@ void game::check_collisions()
 	// we don't check for torpedo<->torpedo collisions.
 	for (unsigned i = 0; i < allships.size(); ++i) {
 		const ship* actor = allships[i];
-		const double actrad = actor->get_bounding_sphere_radius();
+		const double actrad = actor->get_model().get_bounding_sphere_radius();
 		for (unsigned j = std::max(i+1, m); j < allships.size(); ++j) {
 			const ship* partner = allships[j];
-			double rsum = actrad + partner->get_bounding_sphere_radius();
+			double rsum = actrad + partner->get_model().get_bounding_sphere_radius();
 			double d2 = actor->get_pos().square_distance(partner->get_pos());
 			if (d2 <= rsum*rsum) {
 				log_debug("possible collision between objects "<<actor<<" and "<<partner);

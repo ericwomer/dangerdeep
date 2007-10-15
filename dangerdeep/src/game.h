@@ -319,7 +319,6 @@ public:
 
 	// simulation events
 	void dc_explosion(const depth_charge& dc);	// depth charge exploding
-	bool gs_impact(const gun_shell *gs);	// gun shell impact
 	void torp_explode(const torpedo *t);	// torpedo explosion/impact
 	void ship_sunk( const ship* s );	// a ship sinks
 
@@ -381,7 +380,7 @@ public:
 	const water& get_water() const { return *mywater.get(); }
 
 	/// get pointers to all ships for collision tests.
-	std::vector<const ship*> get_all_ships() const;
+	std::vector<ship*> get_all_ships() const;
 };
 
 #endif

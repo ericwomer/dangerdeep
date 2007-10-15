@@ -384,7 +384,8 @@ public:
 	static void compress(std::vector<sea_object*>& vec);
 	static void compress(std::list<sea_object*>& lst);
 
-	double get_bounding_sphere_radius() const;
+	/// get reference to model of this object, throws error if no model
+	class model& get_model() const;
 };
 
 #endif

@@ -26,6 +26,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "system.h"
 #include "game.h"
 #include "ship.h"
+#include "water_splash.h"
+#include "event.h"
 #include "log.h"
 
 gun_shell::gun_shell(game& gm_)
@@ -115,16 +117,16 @@ void gun_shell::check_collision()
 	   It may happen then that a shell explodes below the water and not exactly at
 	   the surface, but this doesn't matter and is in fact realistic.
 	*/
-	vector3 dv = position - oldpos;
+	vector3 dv2 = position - oldpos;
 	// avoid NaN on first round
-	double dvl = dv.square_length();
+	double dvl = dv2.square_length();
 	if (dvl < 1e-8)
 		return;
 	dvl = sqrt(dvl);
-	dv = dv * (1.0/dvl);
-	std::vector<const ship*> allships = gm.get_all_ships();
+	vector3 dv = dv2 * (1.0/dvl);
+	std::vector<ship*> allships = gm.get_all_ships();
 	for (unsigned i = 0; i < allships.size(); ++i) {
-		const ship* s = allships[i];
+		ship* s = allships[i];
 		vector3 k = s->get_pos() - oldpos;
 		double kd = k * dv;
 		double r = s->get_bounding_radius();
@@ -134,10 +136,82 @@ void gun_shell::check_collision()
 		tmp = sqrt(tmp);
 		double t0 = -kd + tmp, t1 = -kd - tmp;
 		if (t0*t1 < 0.0 || t0 >= 0.0 && t0 <= dvl || t1 >= 0.0 && t1 <= dvl) {
-			log_debug("gun_shell "<<this<<" intersects bsphere of "<<s);
+			//log_debug("gun_shell "<<this<<" intersects bsphere of "<<s);
+			check_collision_precise(*s, -k, dv2 - k, dvl);
 		}
 	}
 
+	// now check for water impact if not dead yet (when impact to object was found)
+	// we check agains maximum water z, or a rather crude, but satisfying replacement (10m)
+	if (alive_stat != dead && position.z < 10.0) {
+		// we only check if position.z is below water surface, accurate enough for us
+		double wh = gm.compute_water_height(position.xy());
+		if (position.z < wh) {
+			vector3 p = position;
+			position.z = wh;
+			gm.spawn_water_splash(new gun_shell_water_splash(gm, p));
+			gm.add_event(new event_shell_splash(this));
+			kill();
+		}
+	}
+}
+
+
+
+void gun_shell::check_collision_precise(ship& s, const vector3& oldrelpos,
+					const vector3& newrelpos, double dvl)
+{
+	// transform positions to s' local bbox space
+	//doesnt work, because model's min/max is not in mesh local values
+	///matrix4f world2bbox = s->get_model().get_base_mesh_transformation().inverse();
+	quaternion qco = s.get_orientation().conj();
+	vector3f oldrelbbox = vector3f(qco.rotate(oldrelpos));
+	vector3f newrelbbox = vector3f(qco.rotate(newrelpos));
+	// now the model::get_min/get_max values can be used to compute the axis aligned bbox
+	float tmin = 0.0f, tmax = 1.0f;
+	// clip the line oldrelbbox->newrelbbox with the bbox
+	vector3f d = newrelbbox - oldrelbbox;
+	const vector3f& b = oldrelbbox;
+	vector3f bmin = s.get_model().get_min();
+	vector3f bmax = s.get_model().get_max();
+
+	if (fabs(d.x) > 1e-5) {
+		float t0 = (bmin.x - b.x) / d.x;
+		float t1 = (bmax.x - b.x) / d.x;
+		float ta = std::min(t0, t1);
+		float tb = std::max(t0, t1);
+		tmax = std::min(tmax, tb);
+		tmin = std::max(tmin, ta);
+	}
+	if (fabs(d.y) > 1e-5) {
+		float t0 = (bmin.y - b.y) / d.y;
+		float t1 = (bmax.y - b.y) / d.y;
+		float ta = std::min(t0, t1);
+		float tb = std::max(t0, t1);
+		tmax = std::min(tmax, tb);
+		tmin = std::max(tmin, ta);
+	}
+	if (fabs(d.z) > 1e-5) {
+		float t0 = (bmin.z - b.z) / d.z;
+		float t1 = (bmax.z - b.z) / d.z;
+		float ta = std::min(t0, t1);
+		float tb = std::max(t0, t1);
+		tmax = std::min(tmax, tb);
+		tmin = std::max(tmin, ta);
+	}
+
+	if (tmin <= tmax) {
+		//log_debug("shell hit object?!");
+		// fixme: add finer ray->voxel collision test here!
+		// we only check for ray->bbox test now...
+		if (s.damage(s.get_pos(), int(damage_amount))) { // fixme, crude
+			gm.ship_sunk(&s);
+		} else {
+			s.ignite();
+		}
+		gm.add_event(new event_shell_explosion(this));
+		kill(); // grenade is used and dead
+	}
 }
 
 
@@ -146,19 +220,8 @@ void gun_shell::simulate(double delta_time)
 {
 	check_collision();
 	oldpos = position;
-	log_debug("GS: position="<<position);
+	//log_debug("GS: position="<<position);
 	sea_object::simulate(delta_time);
-
-#if 0
-	// very crude, fixme. compute intersection of line oldpos->position with objects.
-	//fixme: with new physics this leads to bugs, because a shell may be z<0 instantly
-	//when sub is low in water!
-	if (position.z <= -10) {
-		// 2006-11-30 we need to check impact yes or no
-		/*bool impact = */gm.gs_impact(this);
-		kill();
-	}
-#endif
 }
 
 

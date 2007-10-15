@@ -806,7 +806,9 @@ void sea_object::compress(std::list<sea_object*>& lst)
 
 
 
-double sea_object::get_bounding_sphere_radius() const
+model& sea_object::get_model() const
 {
-	return mymodel ? mymodel->get_bounding_sphere_radius() : 0.0;
+	if (mymodel)
+		return *mymodel;
+	throw error("sea_object::get_model(), no model set");
 }

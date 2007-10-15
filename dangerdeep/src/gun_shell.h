@@ -40,6 +40,8 @@ class gun_shell : public sea_object
 	double damage_amount;
 
 	void check_collision();
+	void check_collision_precise(ship& s, const vector3& oldrelpos,
+				     const vector3& newrelpos, double dvl);
 
  public:
 	gun_shell(game& gm_);	// for loading
