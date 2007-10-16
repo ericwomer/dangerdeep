@@ -137,7 +137,7 @@ void gun_shell::check_collision()
 		double t0 = -kd + tmp, t1 = -kd - tmp;
 		if (t0*t1 < 0.0 || t0 >= 0.0 && t0 <= dvl || t1 >= 0.0 && t1 <= dvl) {
 			//log_debug("gun_shell "<<this<<" intersects bsphere of "<<s);
-			check_collision_precise(*s, -k, dv2 - k, dvl);
+			check_collision_precise(*s, -k, dv2 - k);
 		}
 	}
 
@@ -159,11 +159,9 @@ void gun_shell::check_collision()
 
 
 void gun_shell::check_collision_precise(ship& s, const vector3& oldrelpos,
-					const vector3& newrelpos, double dvl)
+					const vector3& newrelpos)
 {
 	// transform positions to s' local bbox space
-	//doesnt work, because model's min/max is not in mesh local values
-	///matrix4f world2bbox = s->get_model().get_base_mesh_transformation().inverse();
 	quaternion qco = s.get_orientation().conj();
 	vector3f oldrelbbox = vector3f(qco.rotate(oldrelpos));
 	vector3f newrelbbox = vector3f(qco.rotate(newrelpos));
@@ -202,8 +200,25 @@ void gun_shell::check_collision_precise(ship& s, const vector3& oldrelpos,
 
 	if (tmin <= tmax) {
 		//log_debug("shell hit object?!");
-		// fixme: add finer ray->voxel collision test here!
-		// we only check for ray->bbox test now...
+		vector3f d = newrelbbox - oldrelbbox;
+		check_collision_voxel(s, oldrelbbox + d * tmin, oldrelbbox + d * tmax);
+	}
+}
+
+
+
+void gun_shell::check_collision_voxel(ship& s, const vector3f& oldrelpos, const vector3f& newrelpos)
+{
+	// positions are relative to bbox of s.
+	matrix4f obj2voxel = s.get_model().get_base_mesh_transformation().inverse();
+	vector3f oldvoxpos = obj2voxel * oldrelpos, newvoxpos = obj2voxel * newrelpos;
+	// now iterate in 8 steps between oldvoxpos to newvoxpos,
+	// transform both to voxel coordinates (0...N)
+	// and determine voxel number by pos.
+	// if coordinate is invalid, no hit, otherwise check voxel state (volume > 0.25 or similar)
+	// if the voxel is filled.
+
+	// hit:
 		if (s.damage(s.get_pos(), int(damage_amount))) { // fixme, crude
 			gm.ship_sunk(&s);
 		} else {
@@ -211,7 +226,6 @@ void gun_shell::check_collision_precise(ship& s, const vector3& oldrelpos,
 		}
 		gm.add_event(new event_shell_explosion(this));
 		kill(); // grenade is used and dead
-	}
 }
 
 
