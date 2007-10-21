@@ -25,15 +25,25 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // 		Test under OSX
 //
 
-#include <X11/Xlib.h>
-#include <GL/glx.h>
-#include <dlfcn.h>
-
 #include <iostream>
 #include <set>
 
+#include <GL/gl.h>
+
 #include "tests.h"
+
+#ifndef WIN32
+
+#include <dlfcn.h>
 #include "glue.h"
+
+#else
+
+#include <windows.h>
+#include <GL/glext.h>
+#define glGetString( a ) (const char *)glGetString( (a) )
+
+#endif
 
 
 using namespace std;
@@ -46,9 +56,9 @@ int tests::main()
 		return 1;
 	}
 
-	if ( loadX() )
+	if ( load_ctx() )
 	{
-		cerr << BAD << "Failed to init GLX" << endl;
+		cerr << BAD << "Failed to init GL connection" << endl;
 		return 1;
 	}
 
@@ -59,7 +69,7 @@ int tests::main()
 		cout << endl << GOOD << "No problems were found. You should have no problems running Dangerdeep." << endl;
 	}
 
-	closeX();
+	unload_ctx();
 
 	unloadlibs();
 
@@ -150,13 +160,17 @@ int tests::do_gl_tests()
 		cout << "OpenGL Version: " << major << "." << minor << ".x " << endl;
 
 	} else {
-		cout << "No version" << BAD << endl;
+		cout << BAD << "No version" << endl;
 		retval = 0;
 	}
 
 
 	int texture_units = 0;
+
+//#ifndef WIN32
+	// wtf broken under windows or wine ?
 	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &texture_units );
+//#endif
 
 	if ( texture_units > 3 )
 	{
@@ -234,68 +248,14 @@ bool tests::extension_supported(const string& s)
 	return (it != supported_extensions.end());
 }
 
-int tests::closeX()
-{
-	glXDestroyContext( disp, ctx );
-	XDestroyWindow( disp, win );
-	XCloseDisplay( disp );
-	return 1;
-}
+#ifndef WIN32
 
-int tests::loadX()
-{
-	int items[] = { GLX_RGBA, GLX_RED_SIZE, 1, GLX_GREEN_SIZE, 1, GLX_BLUE_SIZE, 1, None };
-
-	disp = XOpenDisplay(NULL);
-
-	if ( !disp )
-		return 1;
-
-	root = RootWindow( disp, 0);
-	if ( !root)
-		return 1;
-
-	xinfo = glXChooseVisual( disp, DefaultScreen(disp), items );
-
-	if ( !xinfo )
-		return 1;
-
-	XSetWindowAttributes attr;
-
-	attr.background_pixel = 0;
-	attr.border_pixel = 0;
-	attr.colormap = XCreateColormap(disp, root, xinfo->visual, AllocNone);
-	attr.event_mask = StructureNotifyMask | ExposureMask;
-
-	unsigned long mask = CWBackPixel | CWBorderPixel | CWColormap | CWEventMask;
-
-	win = XCreateWindow( disp, root, 0, 0, 100, 100, 0, xinfo->depth, InputOutput, xinfo->visual, mask, &attr);
-
-	if ( !win )
-		return 1;
-
-	GLXContext ctx = glXCreateContext( disp, xinfo,  NULL, GL_TRUE );
-
-	if ( !ctx )
-		return 1;
-
-	glXMakeCurrent( disp, win, ctx);
-
-	return 0;
-}
 int tests::loadlibs()
 {
 	char *error;
 	opengl = dlopen( "libGL.so", RTLD_LAZY );
-	xlib = dlopen( "libX11.so", RTLD_LAZY );
 
 	if ( NULL == opengl )
-	{
-		cerr << "Failed to load: libGL.so" << endl;
-		return 1;
-	}
-
-	if ( NULL == xlib )
 	{
 		cerr << "Failed to load: libGL.so" << endl;
 		return 1;
@@ -304,10 +264,6 @@ int tests::loadlibs()
 	dlerror();
 
 	*(void **) (&DFTD_glGetString) = dlsym( opengl, "glGetString" );
-	*(void **) (&DFTD_glXChooseVisual) = dlsym( opengl, "glXChooseVisual" );
-	*(void **) (&DFTD_glXCreateContext) = dlsym( opengl, "glXCreateContext" );
-	*(void **) (&DFTD_glXMakeCurrent) = dlsym( opengl, "glXMakeCurrent" );
-	*(void **) (&DFTD_glXDestroyContext) = dlsym( opengl, "glXDestroyContext" );
 	*(void **) (&DFTD_glGetIntegerv) = dlsym( opengl, "glGetIntegerv" );
 
 	if ( ( error = dlerror() ) != NULL )
@@ -315,25 +271,18 @@ int tests::loadlibs()
 		cerr << "Failed to load OpenGL symbols" << endl;
 		return 1;
 	}
-
-	*(void **) (&DFTD_XOpenDisplay) = dlsym( xlib, "XOpenDisplay" );
-	*(void **) (&DFTD_XCloseDisplay) = dlsym( xlib, "XCloseDisplay" );
-	*(void **) (&DFTD_XCreateWindow) = dlsym( xlib, "XCreateWindow" );
-	*(void **) (&DFTD_XCreateColormap) = dlsym( xlib, "XCreateColormap" );
-	*(void **) (&DFTD_XDestroyWindow) = dlsym( xlib, "XDestroyWindow" );
-
-	if ( ( error = dlerror() ) != NULL )
-	{
-		cerr << "Failed to load X11 symbols" << endl;
-		return 1;
-	}
-
 	return 0;
 }
 
 int tests::unloadlibs()
 {
 	dlclose( opengl );
-	dlclose( xlib );
 	return 1;
 }
+
+#else
+
+int tests::loadlibs() { return 0; }
+int tests::unloadlibs() { return 0; }
+
+#endif

@@ -28,24 +28,20 @@ class tests
 {
 	public:
 		int main();
-	private:
-		int loadlibs();
-		int unloadlibs();
-		int loadX();
-		int closeX();
+
+	protected:
 		int do_gl_tests();
-
-		Display *disp;
-		Window root;
-		XVisualInfo *xinfo;
-		Window win;
-		GLXContext ctx;
-
 		void *opengl;
 		void *xlib;
 
 		std::set<std::string> supported_extensions;     // memory supported OpenGL extensions
 		bool extension_supported(const std::string& s);
+
+		virtual int loadlibs();
+		virtual int unloadlibs();
+
+		virtual int load_ctx() { return 0; }
+		virtual int unload_ctx() { return 0; }
 };
 
 
