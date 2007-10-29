@@ -84,6 +84,7 @@ ship_probability civilships[] = {
 	{ 0.1, "fortship1941" },
 	{ 0.1, "fortship1943" },
 	{ 0.1, "fortshipciv" },
+	{ 0.1, "empirefaithcam" },
 	{ 0.0, 0 }
 };
 
