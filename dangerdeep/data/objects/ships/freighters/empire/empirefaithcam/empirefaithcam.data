@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<dftd-ship>
+  <classification identifier="empirefaithcam" modelname="empirefaithcam.ddxml" type="merchant" country="GB" />
+  <description>
+    <far lang="en">Steam ship</far>
+    <far lang="de">Dampfer</far>
+    <far lang="it">Nave a vapore</far>
+    <medium lang="en">Merchant ship</medium>
+    <medium lang="de">Handelsschiff</medium>
+    <medium lang="it">Mercantile</medium>
+    <near lang="en">Empire Faith class CAM ship</near>
+    <near lang="de">CAM Handelsschiff (Empire Faith Klasse)</near>
+    <near lang="it">CAM Empire Faith (Mercantile di classe Empire Faith)</near>
+  </description>
+  <motion maxspeed="1" maxrevspeed="0" acceleration="0.1" turnrate="0.1"/>
+  <tonnage value="7061" />
+  <mass value="10000000" />
+  <smoke type="1" x="0" y="-3.13" z="16.58"/>
+  <sensors>
+    <sensor type="lookout"/>
+  </sensors>
+  <ai type="dumb"/>
+  <fuel capacity="1200" consumption_a="1" consumption_t="1"/>
+</dftd-ship>
