@@ -133,6 +133,8 @@ the height is synthesized or taken from (compressed) stored data.
 We have either one VBO for vertices of all levels or one VBO per
 level. The vertices on the border between two levels aren't shared
 except for the zero area triangles used to make the mesh watertight.
+But we can render the zero area triangles only with vertex data from
+the inner level.
 Having multiple VBOs could be better for updating, we don't need to map
 the whole VBO, which interferes with rendering. Inner levels could be
 updated while the card renders outer levels or similar
@@ -154,7 +156,7 @@ represented well by VBO commands. We would need one glBufferSubData call
 per row, which is costly. The only alternative would be to map the
 buffer, but this could interfere with drawing. And we can't map parts of
 the data only. Mapping seems best alternative though. Some sites state
-that mapping is so costly that it should be used for updated of more
+that mapping is so costly that it should be used for updates of more
 than 32kb of data only.
 
 The indices must be recomputed every frame. An obvious optimization is
@@ -163,7 +165,8 @@ if that area didn't change. We could either draw the triangles directly
 with data from host memory or copy the data to an index VBO and render
 from there. The latter means extra overhead because of mapping and
 copying, but decouples CPU and GPU and may be faster (test showed that
-this can be indeed the case).
+this can be indeed the case). It would be good also to reuse the data
+between frames when it hasn't changed.
 
 For each vertex we need to know the height of it in the next coarser
 level. This can be trivially computed by requesting the height function
@@ -190,6 +193,120 @@ Linear interpolation is much faster.
 
 */
 
+
+#if 0
+
+/// geoclipmap rendering
+class geoclipmap
+{
+	const unsigned resolution;	// "N", must be power of two
+	const unsigned nr_levels;
+
+	vertexbufferobject vertices;
+	//vertexbufferobject indices;
+
+	// a copy of the vertices VBO content
+	std::vector<float> vertex_data;
+
+	struct area
+	{
+		vector2i bl, tr;	// bottom left and top right coordinates
+
+		area(const vector2i& a, const vector2i& b) : bl(a), tr(b) {}
+		area clip(const area& other) const {
+			return area(bl.max(other.bl), tr.min(other.tr));
+		}
+	};
+
+	/// per-level data
+	class level
+	{
+		vertexbufferobject indices; // store here for reuse ? we have 4 areas for indices...
+
+		// which coordinate area is stored in the VBO
+		area vboarea;
+	};
+
+	ptrvector<level> levels;
+
+	vector3f viewpos;
+
+public:
+	/// create geoclipmap data
+	///@param levels - number of levels
+	///@param resolution_exp - power of two of resolution factor "N"
+	geoclipmap(unsigned levels, unsigned resolution_exp);
+
+	/// d'tor
+	~geoclipmap();
+
+	/// overload and redefine this to get your specific height data
+	float get_height(const vector2f& realcoord, unsigned detail) const = 0;
+
+	/// set/change viewer position
+	void set_viewerpos(const vector3f& viewpos);
+
+	/// render the view (will only fetch the vertex/index data, no texture setup)
+	void display() const;
+};
+
+
+
+geoclipmap::geoclipmap(unsigned levels_, unsigned resolution_exp)
+	: resolution(1 << resolution_exp),
+	  nr_levels(levels_),
+	  vertex_data(resolution*resolution*nr_levels*7), // 7 float values per vertex: position, z_c, normal.
+	  levels(nr_levels)
+{
+	// initialize vertex VBO and all level VBOs
+	for (unsigned level = 0; level < nr_levels; ++level) {
+		levels.reset(level, new level());
+	}
+}
+
+
+
+static inline double round_(double x)
+{
+	/*if (x < 0) return -floor(-x + 0.5);
+	else*/ return floor(x + 0.5);
+}
+
+void geoclipmap::set_viewerpos(const vector3f& new_viewpos)
+{
+	const double L = 1.0;
+	// for each level compute clip area for that new viewerpos
+	// for each level compute area that needs to get updated and do that
+	for (unsigned level = 0/*1*/; level < nr_levels; ++level) {
+		// scalar depending on level
+		double level_fac = double(1 << level);
+		// length between samples in meters, depends on level.
+		double L_l = L * level_fac;
+		// x_base/y_base tells offset in sample data according to level and
+		// viewer position (new_viewpos)
+		// this multiply with 0.5 then round then *2 lets the patches map to
+		//"even" vertices and must be used to determine which patch number to render.
+		//fixme: why is round doing what it does? make sure that clip area is at max N vertices...
+		//round should round equally in both directions, i.e. to positive infinity?
+		//so -3.5...3.5 is rounded to -3...4 ? atm it is rounded to -4...4
+		area outer(vector2i(int(round_(0.5*new_viewpos.x/L_l - 0.25*resolution)*2),
+				    int(round_(0.5*new_viewpos.y/L_l - 0.25*resolution)*2)),
+			   vector2i(int(round_(0.5*new_viewpos.x/L_l + 0.25*resolution)*2),
+				    int(round_(0.5*new_viewpos.y/L_l + 0.25*resolution)*2)));
+		area inner(vector2i(int(round_(    new_viewpos.x/L_l - 0.25*resolution)  ),
+				    int(round_(    new_viewpos.y/L_l - 0.25*resolution)  )),
+			   vector2i(int(round_(    new_viewpos.x/L_l + 0.25*resolution)  ),
+				    int(round_(    new_viewpos.y/L_l + 0.25*resolution)  )));
+		// for vertex updates we only need to know the outer area...
+		// compute part of "outer" that is NOT covered by old outer area,
+		// this gives a rectangular or L-shaped form, but this can not be expressed
+		// as area, only with at least 2 areas...
+	}
+
+}
+
+
+#endif
 
 
 
