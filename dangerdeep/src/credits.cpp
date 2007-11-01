@@ -123,12 +123,9 @@ const char* credits[] = {
 geoclipmap rendering
 
 we only need a function that tells us the height for any coordinate in
-the (x,y) plane (with some parameter for the detail) and the render
-resolution of each patch (called N by the authors, where N+1 is a power
-of two, here our N is that of N+1 of the paper).
-
-With that information we could render any kind of terrain, no matter if
-the height is synthesized or taken from (compressed) stored data.
+the (x,y) plane (with some parameter for the detail). With that
+information we could render any kind of terrain, no matter if the height
+is synthesized or taken from (compressed) stored data.
 
 We have either one VBO for vertices of all levels or one VBO per
 level. The vertices on the border between two levels aren't shared
@@ -138,10 +135,17 @@ the inner level.
 Having multiple VBOs could be better for updating, we don't need to map
 the whole VBO, which interferes with rendering. Inner levels could be
 updated while the card renders outer levels or similar
-situations. However we would need some extra space to render the
-connecting triangles, which could be done by reserving 4*N/2 space at
-end of each VBO and storing there the heights of the next inner level
-vertices on the edge, but this is clumsy as well.
+situations.
+
+However we would need some extra space to render the connecting
+triangles, which could be done by reserving 4*N/2 space at end of each
+VBO and storing there the heights of the next inner level vertices on
+the edge, but this is clumsy as well. But this is not true! We don't
+need that data, as the zero area triangles that connect the levels can
+be rendered with data from inner level only when the transition vertex
+shader is used. For the vertices on that border z=z_c because of
+transition, so the height of every vertex on the border is the same as
+in the next coarser level.
 
 It is easier to compute all vertex data for a level (thus N*N vertices)
 and to not leave the center gap out. The gap in the center is N*N/4
@@ -149,6 +153,18 @@ vertices in size and is filled with the next finer level. The overhead
 is small and we can reuse the computed height data (see below), plus we
 can easily move the gap region around without reloading more vertex data
 to the GPU.
+
+The VBO holds vertex data with coordinate wrap around. Define distance
+between two values at innermost level to be d, resolution of a level is
+NxN always, the area is thus 2^l * d * (N-1) in square. l is the level
+number starting at 0 for the innermost level. Thus with real coordinate
+r=(rx,ry) we have r/(2^l * d) = s, so s is level-relative coordinate,
+and s%N is coordinate in the VBO. We define that there is height info at
+(0,0) exactly.
+
+What is N? We could define N to be a power of two and for every level we
+render N*N triangle pairs, so we have (N+1)*(N+1) vertices per
+level. This fits best to all computations.
 
 Updating L-shaped regions of vertex data when the viewer moves is
 problematic, that is for updating columns of vertices. This can't be
