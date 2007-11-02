@@ -164,7 +164,10 @@ and s%N is coordinate in the VBO. We define that there is height info at
 
 What is N? We could define N to be a power of two and for every level we
 render N*N triangle pairs, so we have (N+1)*(N+1) vertices per
-level. This fits best to all computations.
+level. This fits best to all computations. Its more a must have!
+Because the number of quads on the outside must be even, since the next
+level has half resolution. Thus we have N*N quads per leven and thus
+(N+1)*(N+1) vertices, which makes the mod operation a bit more expensive.
 
 Updating L-shaped regions of vertex data when the viewer moves is
 problematic, that is for updating columns of vertices. This can't be
@@ -212,13 +215,31 @@ Linear interpolation is much faster.
 
 #if 0
 
+/// interface class to compute heights
+class height_generator
+{
+public:
+/// destructor
+virtual ~height_generator() {}
+/// compute a rectangle of height information (z and z_c)
+///@note coordinates are relative to detail! so detail=0 coord=2,2 matches detail=1 coord=1,1 etc.
+///@param detail - accuracy of height (level of detail)
+///@param bl - bottom left position of area to compute
+///@param tr - top right position of area to compute
+///@param dest - pointer to first z value to write to
+///@param dest_entry_stride - length of one entry in floats
+///@param dest_line_stride - length of one line in floats
+void compute_heights(unsigned detail, const vector2i& bl, const vector2i& tr,
+float* dest, unsigned dest_entry_stride, unsigned dest_line_stride) = 0;
+};
+
 /// geoclipmap rendering
 class geoclipmap
 {
 	const unsigned resolution;	// "N", must be power of two
 	const unsigned nr_levels;
 
-	vertexbufferobject vertices;
+	//vertexbufferobject vertices;
 	//vertexbufferobject indices;
 
 	// a copy of the vertices VBO content
@@ -226,26 +247,42 @@ class geoclipmap
 
 	struct area
 	{
-		vector2i bl, tr;	// bottom left and top right coordinates
+		// bottom left and top right vertex coordinates
+		// so empty area is when tr < bl
+		vector2i bl, tr;
 
+		area() : bl(0, 0), tr(-1, -1) {}
 		area(const vector2i& a, const vector2i& b) : bl(a), tr(b) {}
 		area clip(const area& other) const {
 			return area(bl.max(other.bl), tr.min(other.tr));
 		}
+		bool empty() const { return (tr.x - bl.x + 1) * (tr.y - bl.y + 1) <= 0; }
 	};
 
 	/// per-level data
 	class level
 	{
-		vertexbufferobject indices; // store here for reuse ? we have 4 areas for indices...
-
+		geoclipmap& gcm;
+		// vertex data
+		vertexbufferobject vertices;
+		// store here for reuse ? we have 4 areas for indices...
+		vertexbufferobject indices;
 		// which coordinate area is stored in the VBO
 		area vboarea;
+		// offset in VBO of bottom left data sample (dataoffset.x/y in [0...N] range)
+		vector2i dataoffset;
+	public:
+		level(geoclipmap& gcm_);
+		area set_viewerpos(unsigned levelnr, const vector3f& new_viewpos,
+				   const geoclipmap::area& inner);
+		void compute_indices(const vector3f& viewpos /*, viewer_dir*/);
 	};
 
 	ptrvector<level> levels;
 
-	vector3f viewpos;
+	height_generator& height_gen;
+
+	vector3f viewpos;//do we need that?!
 
 public:
 	/// create geoclipmap data
@@ -282,43 +319,162 @@ geoclipmap::geoclipmap(unsigned levels_, unsigned resolution_exp)
 
 
 
-static inline double round_(double x)
-{
-	/*if (x < 0) return -floor(-x + 0.5);
-	else*/ return floor(x + 0.5);
-}
-
 void geoclipmap::set_viewerpos(const vector3f& new_viewpos)
 {
-	const double L = 1.0;
 	// for each level compute clip area for that new viewerpos
 	// for each level compute area that needs to get updated and do that
-	for (unsigned level = 0/*1*/; level < nr_levels; ++level) {
-		// scalar depending on level
-		double level_fac = double(1 << level);
-		// length between samples in meters, depends on level.
-		double L_l = L * level_fac;
-		// x_base/y_base tells offset in sample data according to level and
-		// viewer position (new_viewpos)
-		// this multiply with 0.5 then round then *2 lets the patches map to
-		//"even" vertices and must be used to determine which patch number to render.
-		//fixme: why is round doing what it does? make sure that clip area is at max N vertices...
-		//round should round equally in both directions, i.e. to positive infinity?
-		//so -3.5...3.5 is rounded to -3...4 ? atm it is rounded to -4...4
-		area outer(vector2i(int(round_(0.5*new_viewpos.x/L_l - 0.25*resolution)*2),
-				    int(round_(0.5*new_viewpos.y/L_l - 0.25*resolution)*2)),
-			   vector2i(int(round_(0.5*new_viewpos.x/L_l + 0.25*resolution)*2),
-				    int(round_(0.5*new_viewpos.y/L_l + 0.25*resolution)*2)));
-		area inner(vector2i(int(round_(    new_viewpos.x/L_l - 0.25*resolution)  ),
-				    int(round_(    new_viewpos.y/L_l - 0.25*resolution)  )),
-			   vector2i(int(round_(    new_viewpos.x/L_l + 0.25*resolution)  ),
-				    int(round_(    new_viewpos.y/L_l + 0.25*resolution)  )));
-		// for vertex updates we only need to know the outer area...
-		// compute part of "outer" that is NOT covered by old outer area,
-		// this gives a rectangular or L-shaped form, but this can not be expressed
-		// as area, only with at least 2 areas...
+	area levelborder; // empty area for innermost level
+	for (unsigned lvl = 0; lvl < nr_levels; ++lvl) {
+		levelborder = levels[lvl]->set_viewerpos(lvl, new_viewpos, levelborder);
+		// next level has coordinates with half resolution
+		// let outer area of current level be inner area of next level
+		levelborder.bl.x /= 2;
+		levelborder.bl.y /= 2;
+		levelborder.tr.x /= 2;
+		levelborder.tr.y /= 2;
 	}
 
+}
+
+
+
+geoclipmap::level::level(geoclipmap& gcm_)
+	: gcm(gcm_),
+	  vertices(false),
+	  indices(true)
+{
+}
+
+
+
+void geoclipmap::level::set_viewerpos(unsigned levelnr, const vector3f& new_viewpos,
+				      const geoclipmap::area& inner)
+{
+	const double L = 1.0; // distance between vertex samples in real world on finest level... (d)
+	// scalar depending on level
+	double level_fac = double(1 << levelnr);
+	// length between samples in meters, depends on level.
+	double L_l = L * level_fac;
+	// x_base/y_base tells offset in sample data according to level and
+	// viewer position (new_viewpos)
+	// this multiply with 0.5 then round then *2 lets the patches map to
+	// "even" vertices and must be used to determine which patch number to render.
+	// we need to make sure that clip area is at max N vertices!
+	// We use a round function that always rounds in same direction, i.e.
+	// when 3.5 is rounded up to 4.0, then -3.5 is rounded up to -3.0.
+	// this is done by using round(x) := floor(x + 0.5)
+	// so when this gives -3.5....3.5 we take floor(-3.0)....floor(4.0) -> -3...4
+	area outer(vector2i(int(floor(0.5*new_viewpos.x/L_l - 0.25*gcm.resolution + 0.5)*2),
+			    int(floor(0.5*new_viewpos.y/L_l - 0.25*gcm.resolution + 0.5)*2)),
+		   vector2i(int(floor(0.5*new_viewpos.x/L_l + 0.25*gcm.resolution + 0.5)*2),
+			    int(floor(0.5*new_viewpos.y/L_l + 0.25*gcm.resolution + 0.5)*2)));
+	// for vertex updates we only need to know the outer area...
+	// compute part of "outer" that is NOT covered by old outer area,
+	// this gives a rectangular or L-shaped form, but this can not be expressed
+	// as area, only with at least 2 areas...
+	// The width/height of the L areas will always be at least 2, as the outer border snaps always
+	// on every second vertex. This makes updates with glBufferSubData a bit more efficient.
+	std::vector<area> updates;
+	area outercmp = outer;
+	if (outercmp.bl.y < vboarea.bl.y) {
+		updates.push_back(area(outercmp.bl, vector2i(outercmp.tr.x, vboarea.bl.y - 1)));
+		outercmp.bl.y = vboarea.bl.y;
+	}
+	if (vboarea.tr.y < outercmp.tr.y) {
+		updates.push_back(area(vector2i(outercmp.bl.x, vboarea.tr.y + 1), outercmp.tr));
+		outercmp.tr.y = vboarea.tr.y;
+	}
+	if (outercmp.bl.x < vboarea.bl.x) {
+		updates.push_back(area(outercmp.bl, vector2i(vboarea.bl.x - 1, outercmp.tr.y)));
+		outercmp.bl.x = vboarea.bl.x;
+	}
+	if (vboarea.tr.x < outercmp.tr.x) {
+		updates.push_back(area(vector2i(vboarea.tr.x + 1, outercmp.bl.y), outercmp.tr));
+		outercmp.tr.x = vboarea.tr.x;
+	}
+	if (updates.size() > 2)
+		throw error("got more than 2 update regions?! BUG!");
+	// now update the regions given by updates[0] and updates[1] if existing
+	for (unsigned i = 0; i < updates.size(); ++i) {
+		const area& upar = updates[i];
+		if (upar.empty()) continue; // can happen on initial update
+		unsigned w = upar.tr.x - upar.bl.x + 1;
+		unsigned h = upar.tr.y - upar.bl.y + 1;
+		// height data coordinates upar.bl ... upar.tr need to be updated, but what VBO offset?
+		// since data is stored toroidically in VBO, a rectangle can be split into up to
+		// 4 rectangles...
+		// we need to call get_height function with levelnr as detail and the area as
+		// parameter...
+		// prepare a N*N height lookup/scratch buffer, fill in w*h samples, then feed
+		// the correct samples to the GPU
+		// maybe better prepare a VBO scratch buffer, maybe even one per level (doesn't cost
+		// too much ram), and store the fixed VBO data there
+		// that is x,y,height and height_c. the get_height function must write the correct
+		// values then (with stride) or enters x,y,h_c as well.
+		// yes, if get_height could give h and h_c at once, it would be better, and this
+		// can easily be done.
+		// get_height: takes upar and a target buffer and enters realx,realy,realz,realz_c
+		// z_c means z of coarser level, we must give some helper values to
+		// generate realx/realy or write it ourselfs (maybe better).
+		// data per vertex? 4 floats x,y,z,zc plus normal? or normal as texmap?
+		// normal computation is not trivial!
+
+		// update VBO toroidically
+		//vertices.init_sub_data(offset, subsize, data);
+		//fixme: if we update in one direction only then there is no wrap, i.e. the update
+		//area is always consecutive in the VBO, but we update in two directions.
+		//we need to store the offset in the vbo where consecutive data starts
+		//this is 0,0 at the begin...
+
+		// anfangs 0,0, bewegung 2,2 ergibt für N=32 zb
+		// vbo-area 0,0->32,32
+		// outer wären dann 2,2->34,34
+		// update-areas dann 2,33->34,34 und 33,2->34,32
+		// die kommen dann in VBO ab 0,0 oder so
+		// das erste ab 2,0 mit wrap, also letze 2x2 werte ab 0,0
+		// das zweite ab 0,2
+		// es macht evtl. sinn das L als _drei_ rechtecke zu modellieren, dann sind die
+		// areale immer zusammenhängend oder nicht?
+		// noch ne verschiebung 2,2
+		// vbo-area 2,2->34,34
+		// outer dann 4,4->36,36
+		// update areas dann 4,35->36,36 und 35,4->36,34
+		// diese rechtecke sind aber nicht zusammenhängend! mist, also gehts doch net so einfach!
+
+		// es sei denn man schreibt die height-daten gleich an ne adresse mit xy-mod,
+		// aber das update des VBOs ist trotzdem sehr gestückelt!
+		// adresse im VBO mit mod geht einfach wenn anzahl der vertices zweier-potenz ist
+		// daher N*N vertices im VBO, wobei N = 2^n
+		// also 2^n - 1 quads per seitenkante. geht das überhaupt bei berührung des nächsten
+		// levels? es müssen immer 2 quads auf eins des nächsten levels kommen!
+		// d.h. ungerade quad-anzahl außen geht gar nicht, darf nicht!
+		// oder man rendert halt eins weniger aber das ist doch auch murks!
+
+		// erst mal generell update info: man müßte nicht nur die absoluten update areas haben
+		// sondern auch das area im vbo das zu updaten ist. man kann aber das eine aus dem
+		// anderen berechnen oder das oben schon schreiben...
+		// also den startpunkt im vbo, wie dataoffset von dem recheck
+		vector2i vboupdateoffset =
+			vector2i((upar.bl.x - vboarea.bl.x + dataoffset.x + gcm.resolution+1) % (gcm.resolution+1),
+				 (upar.bl.y - vboarea.bl.y + dataoffset.y + gcm.resolution+1) % (gcm.resolution+1));
+		for (unsigned y = 0; y < h; ++y) {
+			unsigned vbopos_y = (vboupdateoffset.y + y) % (gcm.resolution+1);
+			unsigned vbopos_y2 = vbopos_y * (gcm.resolution+1);
+			for (unsigned x = 0; x < w; ++x) {
+				// fixme: here compute max. area rectangles for efficient update
+				unsigned vbopos_x = (vboupdateoffset.x + x) % (gcm.resolution+1);
+				float* dest = &vbodata[(vbopos_x + vbopos_y2)*entry_size+zoff];
+				gcm.height_gen.compute_heights(levelnr, upar.bl, upar.tr,
+							       dest, dest_entry_stride, dest_line_stride);
+				// update VBO data here...
+			}
+		}
+
+		// die index-daten zu berechnen wird nochmal schwieriger, das ganze mal mit zettel+stift
+		// planen, das ist viel leichter.
+	}
+
+	return outer;
 }
 
 
