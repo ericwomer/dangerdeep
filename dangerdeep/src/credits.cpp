@@ -211,6 +211,20 @@ const char* credits[] = {
   values are transformed by the terrace function later anyway.
   Linear interpolation is much faster.
 
+  fixme todo:
+  - normal computation (or do it via texture)
+    compute 2 vertices more in xy direction when computing an update
+    then do simple normal generation.
+    normals in textures would be much easier, but the height generator
+    needs to compute them then.
+  - vertex shader for height interpolation
+  - render T-junction triangles
+  - render triangles from outmost patch to horizon
+  - clipping of patches against viewing frustum
+  - efficient update of VBO data
+  - write good height generator
+  - do not render too small detail (start at min_level, but test that this works)
+
 */
 
 
@@ -257,6 +271,44 @@ public:
 				int yc = (y + bl.y) * int(1 << detail);
 				dest2[0] = dest2[1] = sin(2*3.14159*xc*0.01) * sin(2*3.14159*yc*0.01) * 10.0;
 #endif
+				dest2 += dest_entry_stride;
+			}
+			dest += dest_line_stride;
+		}
+	}
+};
+
+
+
+
+class height_generator_test2 : public height_generator
+{
+	perlinnoise pn;
+	const unsigned s2;
+	const unsigned height_segments;
+	const float total_height;
+	const float terrace_height;
+public:
+	height_generator_test2()
+		: pn(64, 4, 6, true), s2(256*16), height_segments(10),
+		  total_height(256.0), terrace_height(total_height/height_segments)
+	{
+		/*
+		lookup_function<float, 256U> asin_lookup;
+		for (unsigned i = 0; i <= 256; ++i)
+			asin_lookup.set_value(i, asin(float(i)/256) / M_PI + 0.5);
+		*/
+	}
+	void compute_heights(unsigned detail, const vector2i& bl, const vector2i& tr,
+			     float* dest, unsigned dest_entry_stride, unsigned dest_line_stride) {
+		for (int y = 0; y < tr.y - bl.y + 1; ++y) {
+			float* dest2 = dest;
+			int yc = (y + bl.y) * int(1 << detail);
+			yc = yc & (s2 - 1);
+			for (int x = 0; x < tr.x - bl.x + 1; ++x) {
+				int xc = (x + bl.x) * int(1 << detail);
+				xc = xc & (s2 - 1);
+				dest2[0] = dest2[1] = pn.valuef(xc, yc, 0xffffff);//6-detail);
 				dest2 += dest_entry_stride;
 			}
 			dest += dest_line_stride;
@@ -486,7 +538,7 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 	// now update the regions given by updates[0] and updates[1] if existing
 	for (unsigned i = 0; i < updates.size(); ++i) {
 		const area& upar = updates[i];
-		log_debug("lvl="<<index<<" i="<<i<<" upar="<<upar.bl<<","<<upar.tr);
+		//log_debug("lvl="<<index<<" i="<<i<<" upar="<<upar.bl<<","<<upar.tr);
 		if (upar.empty()) throw error("update area empty?! BUG!");//continue; // can happen on initial update
 		vector2i sz = upar.size();
 		// height data coordinates upar.bl ... upar.tr need to be updated, but what VBO offset?
@@ -564,26 +616,7 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 				vertices.init_sub_data((vbopos_x + vbopos_y2)*4*4, 4*4, fptr);
 			}
 		}
-
-		// die index-daten zu berechnen wird nochmal schwieriger, das ganze mal mit zettel+stift
-		// planen, das ist viel leichter.
-
-		// fixme fixme fixme: genau überlegen was vboarea und dataoffset besagt!
 	}
-
-#if 0 // test
-	//fixme: give alternating pattern as 4th float or as 4u color?
-	float* vm = (float*)vertices.map(GL_WRITE_ONLY);
-	for (int y = 0; y < gcm.resolution1; ++y) {
-		for (int x = 0; x < gcm.resolution1; ++x) {
-			vm[(y*gcm.resolution1+x)*4+0] = (vboarea.bl.x+x)*L_l;
-			vm[(y*gcm.resolution1+x)*4+1] = (vboarea.bl.y+y)*L_l;
-			vm[(y*gcm.resolution1+x)*4+2] = index*3.0;
-			vm[(y*gcm.resolution1+x)*4+3] = 0;
-		}
-	}
-	vertices.unmap();
-#endif
 
 	// we updated the vertices, so adapt area/offset
 	dataoffset = gcm.clamp(outer.bl - vboarea.bl + dataoffset);
@@ -599,7 +632,7 @@ unsigned geoclipmap::level::generate_indices(uint32_t* buffer, unsigned idxbase,
 					     const vector2i& vbooff,
 					     bool firstpatch, bool lastpatch) const
 {
-	log_debug("genindi="<<index<<" size="<<size);
+	//log_debug("genindi="<<index<<" size="<<size);
 	if (size.x <= 1 || size.y <= 1) return 0;
 	// always put the first index of a row twice and also the last fixme
 	unsigned ptr = idxbase;
@@ -1376,6 +1409,23 @@ void show_credits()
 		}
 #endif
 		save_pgm("pntest.pgm", s2, s2, &heights[0]);
+
+#if 0
+		heights = pn.values(0, 0, s2/2, s2/2, 5);
+		for (unsigned y = 0; y < s2/2; ++y) {
+			for (unsigned x = 0; x < s2/2; ++x) {
+				float f = heights[y*s2/2+x];
+				unsigned t = unsigned(floor(f / terrace_height));
+				float f_frac = f / terrace_height - t;
+				float f2 = f_frac * 2.0 - 1.0; // be in -1...1 range
+				// skip this for softer hills (x^3 = more steep walls)
+				f2 = f2 * f2 * f2;
+				f2 = asin_lookup.value(f2);
+				heights[y*s2/2+x] = Uint8((t + f2) * terrace_height);
+			}
+		}
+		save_pgm("pntest2.pgm", s2/2, s2/2, &heights[0]);
+#endif
 	}
 #endif
 
@@ -1505,7 +1555,7 @@ void show_credits()
 		vector3f campos = cam_path.value(path_fac);
 		vector3f camlookat = cam_path.value(myfrac(path_fac + 0.01));
 #ifdef GEOCLIPMAPTEST
-		camlookat.z -= 50;
+		camlookat.z -= 20;
 #endif
 		//camera cm(viewpos2, viewpos2 + angle(zang).direction().xyz(-0.25));
 		camera cm(campos, camlookat);
