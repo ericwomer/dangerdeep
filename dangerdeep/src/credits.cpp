@@ -30,89 +30,90 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "angle.h"
 #include "bspline.h"
 #include "log.h"
+#include "ptrvector.h"
 
 using namespace std;
 
 
 const char* credits[] = {
-"$80ffc0Project idea and initial code",
-"$ffffffThorsten Jordan",
-"", "", "", "", "",
-"$80ffc0Program",
-"$ffffffThorsten Jordan",
-"Markus Petermann",
-"Viktor Radnai",
-"Andrew Rice",
-"Alexandre Paes",
-"Matt Lawrence",
-"Michael Kieser",
-"Renato Golin",
-"Hiten Parmar",
-"", "", "", "", "",
-"$80ffc0Graphics",
-"$ffffffLuis Barrancos",
-"Markus Petermann",
-"Christian Kolaß",
-"Thorsten Jordan",
-"", "", "", "", "",
-"$80ffc0Models",
-"$ffffffLuis Barrancos",
-"Christian Kolaß",
-"Thorsten Jordan",
-"", "", "", "", "",
-"$80ffc0Music and sound effects",
-"$ffffffMartin Alberstadt",
-"Marco Sarolo",
-"", "", "", "", "",
-"$80ffc0Hardcore Beta Testing",
-"$ffffffAlexander W. Janssen",
-"", "", "", "", "",
-"$80ffc0Operating system adaption",
-"$ffffffNico Sakschewski (Win32)",
-"Andrew Rice (MacOSX)",
-"Jose Alonso Cardenas Marquez (acm) (FreeBSD)",
-"", "", "", "", "",
-"$80ffc0Web site administrator",
-"$ffffffMatt Lawrence",
-"$ffffffAlexandre Paes",
-"$ffffffViktor Radnai",
-"", "", "", "", "",
-"$80ffc0Packaging",
-"$ffffffMarkus Petermann (SuSE rpm)",
-"Viktor Radnai (Debian)",
-"Giuseppe Borzi (Mandrake rpm)",
-"Michael Kieser (WIN32-Installer)",
-"", "", "", "", "",
-"$80ffc0Bug reporting and thanks",
-"$ffffffRick McDaniel",
-"Markus Petermann",
-"Viktor Radnai",
-"Christian Kolaß",
-"Nico Sakschewski",
-"Martin Butterweck",
-"Bernhard Kaindl",
-"Robert Obryk",
-"Giuseppe Lipari",
-"John Hopkin",
-"Michael Wilkinson",
-"Lee Close",
-"Christopher Dean (Naval Warfare Simulations, Sponsoring)",
-"Arthur Anker",
-"Stefan Vilijoen",
-"Luis Barrancos",
-"Tony Becker",
-"Frank Kaune",
-"Paul Marks",
-"Aaron Kulkis",
-"Giuseppe Borzi",
-"Andrew Rice",
-"Alexandre Paes",
-"Alexander W. Janssen",
-"vonhalenbach",
-"...",
-"...and all i may have forgotten here (write me!)",
-"(no bockwursts were harmed in the making of this game).",
-0
+	"$80ffc0Project idea and initial code",
+	"$ffffffThorsten Jordan",
+	"", "", "", "", "",
+	"$80ffc0Program",
+	"$ffffffThorsten Jordan",
+	"Markus Petermann",
+	"Viktor Radnai",
+	"Andrew Rice",
+	"Alexandre Paes",
+	"Matt Lawrence",
+	"Michael Kieser",
+	"Renato Golin",
+	"Hiten Parmar",
+	"", "", "", "", "",
+	"$80ffc0Graphics",
+	"$ffffffLuis Barrancos",
+	"Markus Petermann",
+	"Christian Kolaß",
+	"Thorsten Jordan",
+	"", "", "", "", "",
+	"$80ffc0Models",
+	"$ffffffLuis Barrancos",
+	"Christian Kolaß",
+	"Thorsten Jordan",
+	"", "", "", "", "",
+	"$80ffc0Music and sound effects",
+	"$ffffffMartin Alberstadt",
+	"Marco Sarolo",
+	"", "", "", "", "",
+	"$80ffc0Hardcore Beta Testing",
+	"$ffffffAlexander W. Janssen",
+	"", "", "", "", "",
+	"$80ffc0Operating system adaption",
+	"$ffffffNico Sakschewski (Win32)",
+	"Andrew Rice (MacOSX)",
+	"Jose Alonso Cardenas Marquez (acm) (FreeBSD)",
+	"", "", "", "", "",
+	"$80ffc0Web site administrator",
+	"$ffffffMatt Lawrence",
+	"$ffffffAlexandre Paes",
+	"$ffffffViktor Radnai",
+	"", "", "", "", "",
+	"$80ffc0Packaging",
+	"$ffffffMarkus Petermann (SuSE rpm)",
+	"Viktor Radnai (Debian)",
+	"Giuseppe Borzi (Mandrake rpm)",
+	"Michael Kieser (WIN32-Installer)",
+	"", "", "", "", "",
+	"$80ffc0Bug reporting and thanks",
+	"$ffffffRick McDaniel",
+	"Markus Petermann",
+	"Viktor Radnai",
+	"Christian Kolaß",
+	"Nico Sakschewski",
+	"Martin Butterweck",
+	"Bernhard Kaindl",
+	"Robert Obryk",
+	"Giuseppe Lipari",
+	"John Hopkin",
+	"Michael Wilkinson",
+	"Lee Close",
+	"Christopher Dean (Naval Warfare Simulations, Sponsoring)",
+	"Arthur Anker",
+	"Stefan Vilijoen",
+	"Luis Barrancos",
+	"Tony Becker",
+	"Frank Kaune",
+	"Paul Marks",
+	"Aaron Kulkis",
+	"Giuseppe Borzi",
+	"Andrew Rice",
+	"Alexandre Paes",
+	"Alexander W. Janssen",
+	"vonhalenbach",
+	"...",
+	"...and all i may have forgotten here (write me!)",
+	"(no bockwursts were harmed in the making of this game).",
+	0
 };
 
 
@@ -120,130 +121,162 @@ const char* credits[] = {
 // ------------------------------------------- code ---------------------------------------
 
 /*
-geoclipmap rendering
+  geoclipmap rendering
 
-we only need a function that tells us the height for any coordinate in
-the (x,y) plane (with some parameter for the detail). With that
-information we could render any kind of terrain, no matter if the height
-is synthesized or taken from (compressed) stored data.
+  we only need a function that tells us the height for any coordinate in
+  the (x,y) plane (with some parameter for the detail). With that
+  information we could render any kind of terrain, no matter if the height
+  is synthesized or taken from (compressed) stored data.
 
-We have either one VBO for vertices of all levels or one VBO per
-level. The vertices on the border between two levels aren't shared
-except for the zero area triangles used to make the mesh watertight.
-But we can render the zero area triangles only with vertex data from
-the inner level.
-Having multiple VBOs could be better for updating, we don't need to map
-the whole VBO, which interferes with rendering. Inner levels could be
-updated while the card renders outer levels or similar
-situations.
+  We have either one VBO for vertices of all levels or one VBO per
+  level. The vertices on the border between two levels aren't shared
+  except for the zero area triangles used to make the mesh watertight.
+  But we can render the zero area triangles only with vertex data from
+  the inner level.
+  Having multiple VBOs could be better for updating, we don't need to map
+  the whole VBO, which interferes with rendering. Inner levels could be
+  updated while the card renders outer levels or similar
+  situations.
 
-However we would need some extra space to render the connecting
-triangles, which could be done by reserving 4*N/2 space at end of each
-VBO and storing there the heights of the next inner level vertices on
-the edge, but this is clumsy as well. But this is not true! We don't
-need that data, as the zero area triangles that connect the levels can
-be rendered with data from inner level only when the transition vertex
-shader is used. For the vertices on that border z=z_c because of
-transition, so the height of every vertex on the border is the same as
-in the next coarser level.
+  However we would need some extra space to render the connecting
+  triangles, which could be done by reserving 4*N/2 space at end of each
+  VBO and storing there the heights of the next inner level vertices on
+  the edge, but this is clumsy as well. But this is not true! We don't
+  need that data, as the zero area triangles that connect the levels can
+  be rendered with data from inner level only when the transition vertex
+  shader is used. For the vertices on that border z=z_c because of
+  transition, so the height of every vertex on the border is the same as
+  in the next coarser level.
 
-It is easier to compute all vertex data for a level (thus N*N vertices)
-and to not leave the center gap out. The gap in the center is N*N/4
-vertices in size and is filled with the next finer level. The overhead
-is small and we can reuse the computed height data (see below), plus we
-can easily move the gap region around without reloading more vertex data
-to the GPU.
+  It is easier to compute all vertex data for a level (thus N*N vertices)
+  and to not leave the center gap out. The gap in the center is N*N/4
+  vertices in size and is filled with the next finer level. The overhead
+  is small and we can reuse the computed height data (see below), plus we
+  can easily move the gap region around without reloading more vertex data
+  to the GPU.
 
-The VBO holds vertex data with coordinate wrap around. Define distance
-between two values at innermost level to be d, resolution of a level is
-NxN always, the area is thus 2^l * d * (N-1) in square. l is the level
-number starting at 0 for the innermost level. Thus with real coordinate
-r=(rx,ry) we have r/(2^l * d) = s, so s is level-relative coordinate,
-and s%N is coordinate in the VBO. We define that there is height info at
-(0,0) exactly.
+  The VBO holds vertex data with coordinate wrap around. Define distance
+  between two values at innermost level to be d, resolution of a level is
+  NxN always, the area is thus 2^l * d * (N-1) in square. l is the level
+  number starting at 0 for the innermost level. Thus with real coordinate
+  r=(rx,ry) we have r/(2^l * d) = s, so s is level-relative coordinate,
+  and s%N is coordinate in the VBO. We define that there is height info at
+  (0,0) exactly.
 
-What is N? We could define N to be a power of two and for every level we
-render N*N triangle pairs, so we have (N+1)*(N+1) vertices per
-level. This fits best to all computations. Its more a must have!
-Because the number of quads on the outside must be even, since the next
-level has half resolution. Thus we have N*N quads per leven and thus
-(N+1)*(N+1) vertices, which makes the mod operation a bit more expensive.
+  What is N? We could define N to be a power of two and for every level we
+  render N*N triangle pairs, so we have (N+1)*(N+1) vertices per
+  level. This fits best to all computations. Its more a must have!
+  Because the number of quads on the outside must be even, since the next
+  level has half resolution. Thus we have N*N quads per leven and thus
+  (N+1)*(N+1) vertices, which makes the mod operation a bit more expensive.
 
-Updating L-shaped regions of vertex data when the viewer moves is
-problematic, that is for updating columns of vertices. This can't be
-represented well by VBO commands. We would need one glBufferSubData call
-per row, which is costly. The only alternative would be to map the
-buffer, but this could interfere with drawing. And we can't map parts of
-the data only. Mapping seems best alternative though. Some sites state
-that mapping is so costly that it should be used for updates of more
-than 32kb of data only.
+  Updating L-shaped regions of vertex data when the viewer moves is
+  problematic, that is for updating columns of vertices. This can't be
+  represented well by VBO commands. We would need one glBufferSubData call
+  per row, which is costly. The only alternative would be to map the
+  buffer, but this could interfere with drawing. And we can't map parts of
+  the data only. Mapping seems best alternative though. Some sites state
+  that mapping is so costly that it should be used for updates of more
+  than 32kb of data only.
 
-The indices must be recomputed every frame. An obvious optimization is
-to remember the clip area of the last frame, and to not recompute them
-if that area didn't change. We could either draw the triangles directly
-with data from host memory or copy the data to an index VBO and render
-from there. The latter means extra overhead because of mapping and
-copying, but decouples CPU and GPU and may be faster (test showed that
-this can be indeed the case). It would be good also to reuse the data
-between frames when it hasn't changed.
+  The indices must be recomputed every frame. An obvious optimization is
+  to remember the clip area of the last frame, and to not recompute them
+  if that area didn't change. We could either draw the triangles directly
+  with data from host memory or copy the data to an index VBO and render
+  from there. The latter means extra overhead because of mapping and
+  copying, but decouples CPU and GPU and may be faster (test showed that
+  this can be indeed the case). It would be good also to reuse the data
+  between frames when it hasn't changed.
 
-For each vertex we need to know the height of it in the next coarser
-level. This can be trivially computed by requesting the height function
-with a parameter for the detail one less than that of the current level.
-The only problem is that every second vertex in x and y direction (thus
-3/4 of all vertices) fall between vertices of coarser level. Its height
-can be computed by linear combination of the neighbouring 2 or 4
-vertices. Compute missing heights in rows with odd numbers first by
-mixing vertex height of previous and next line 50%/50%, then compute
-missing heights in all lines by mixing heights of previous/next vertex
-50%/50%. The data can be looked up in the height data of the next
-coarser level, if that is not only stored in the GPU but also the CPU
-(system memory). Storing the data also in system memory just for that
-lookup is wasteful on the other hand. We need the height data only for
-updating vertex heights, which is done at a low rate per frame (most
-vertex data is constant). So calling the terrain height function twice
-per newly created vertex should be acceptable, and this eats less memory
-and doesn't trash the cache.
+  For each vertex we need to know the height of it in the next coarser
+  level. This can be trivially computed by requesting the height function
+  with a parameter for the detail one less than that of the current level.
+  The only problem is that every second vertex in x and y direction (thus
+  3/4 of all vertices) fall between vertices of coarser level. Its height
+  can be computed by linear combination of the neighbouring 2 or 4
+  vertices. Compute missing heights in rows with odd numbers first by
+  mixing vertex height of previous and next line 50%/50%, then compute
+  missing heights in all lines by mixing heights of previous/next vertex
+  50%/50%. The data can be looked up in the height data of the next
+  coarser level, if that is not only stored in the GPU but also the CPU
+  (system memory). Storing the data also in system memory just for that
+  lookup is wasteful on the other hand. We need the height data only for
+  updating vertex heights, which is done at a low rate per frame (most
+  vertex data is constant). So calling the terrain height function twice
+  per newly created vertex should be acceptable, and this eats less memory
+  and doesn't trash the cache.
 
-We have to test if linear interpolation instead of cosine interpolation
-for perlin noise generation would look good enough, because the height
-values are transformed by the terrace function later anyway.
-Linear interpolation is much faster.
+  We have to test if linear interpolation instead of cosine interpolation
+  for perlin noise generation would look good enough, because the height
+  values are transformed by the terrace function later anyway.
+  Linear interpolation is much faster.
 
 */
 
 
-#if 0
+#undef  GEOCLIPMAPTEST
+
+#ifdef GEOCLIPMAPTEST
 
 /// interface class to compute heights
 class height_generator
 {
 public:
-/// destructor
-virtual ~height_generator() {}
-/// compute a rectangle of height information (z and z_c)
-///@note coordinates are relative to detail! so detail=0 coord=2,2 matches detail=1 coord=1,1 etc.
-///@param detail - accuracy of height (level of detail)
-///@param bl - bottom left position of area to compute
-///@param tr - top right position of area to compute
-///@param dest - pointer to first z value to write to
-///@param dest_entry_stride - length of one entry in floats
-///@param dest_line_stride - length of one line in floats
-void compute_heights(unsigned detail, const vector2i& bl, const vector2i& tr,
-float* dest, unsigned dest_entry_stride, unsigned dest_line_stride) = 0;
+	/// destructor
+	virtual ~height_generator() {}
+	/// compute a rectangle of height information (z and z_c)
+	///@note coordinates are relative to detail! so detail=0 coord=2,2 matches detail=1 coord=1,1 etc.
+	///@param detail - accuracy of height (level of detail)
+	///@param bl - bottom left position of area to compute
+	///@param tr - top right position of area to compute
+	///@param dest - pointer to first z value to write to
+	///@param dest_entry_stride - length of one entry in floats
+	///@param dest_line_stride - length of one line in floats
+	virtual void compute_heights(unsigned detail, const vector2i& bl, const vector2i& tr,
+				     float* dest, unsigned dest_entry_stride, unsigned dest_line_stride) = 0;
 };
+
+
+
+class height_generator_test : public height_generator
+{
+public:
+	void compute_heights(unsigned detail, const vector2i& bl, const vector2i& tr,
+			     float* dest, unsigned dest_entry_stride, unsigned dest_line_stride) {
+		for (int y = 0; y < tr.y - bl.y + 1; ++y) {
+			float* dest2 = dest;
+			for (int x = 0; x < tr.x - bl.x + 1; ++x) {
+#if 0
+				dest2[0] = (1 << detail) * 2.0 - 4.0;
+				dest2[1] = (1 << (detail+1)) * 2.0 - 4.0;
+#elif 0
+				dest2[0] = 0;
+				dest2[1] = 0;
+#else
+				int xc = (x + bl.x) * int(1 << detail);
+				int yc = (y + bl.y) * int(1 << detail);
+				dest2[0] = dest2[1] = sin(2*3.14159*xc*0.01) * sin(2*3.14159*yc*0.01) * 10.0;
+#endif
+				dest2 += dest_entry_stride;
+			}
+			dest += dest_line_stride;
+		}
+	}
+};
+
+
 
 /// geoclipmap rendering
 class geoclipmap
 {
-	const unsigned resolution;	// "N", must be power of two
-	const unsigned nr_levels;
+	// "N", must be power of two
+	const unsigned resolution;
+	const unsigned resolution1; // res+1
+	// distance between each vertex on finest level in real world space
+	const double L;
 
-	//vertexbufferobject vertices;
-	//vertexbufferobject indices;
-
-	// a copy of the vertices VBO content
-	std::vector<float> vertex_data;
+	// scratch buffer for VBO data, for transmission
+	std::vector<float> vboscratchbuf;
 
 	struct area
 	{
@@ -253,48 +286,62 @@ class geoclipmap
 
 		area() : bl(0, 0), tr(-1, -1) {}
 		area(const vector2i& a, const vector2i& b) : bl(a), tr(b) {}
-		area clip(const area& other) const {
-			return area(bl.max(other.bl), tr.min(other.tr));
-		}
-		bool empty() const { return (tr.x - bl.x + 1) * (tr.y - bl.y + 1) <= 0; }
+		/*
+		  area clip(const area& other) const {
+		  return area(bl.max(other.bl), tr.min(other.tr));
+		  }
+		*/
+		vector2i size() const { return vector2i(tr.x - bl.x + 1, tr.y - bl.y + 1); }
+		bool empty() const { vector2i sz = size(); return sz.x*sz.y <= 0; }
 	};
 
 	/// per-level data
 	class level
 	{
 		geoclipmap& gcm;
-		// vertex data
+		/// level index
+		const unsigned index;
+		/// vertex data
 		vertexbufferobject vertices;
-		// store here for reuse ? we have 4 areas for indices...
-		vertexbufferobject indices;
-		// which coordinate area is stored in the VBO
+		/// store here for reuse ? we have 4 areas for indices...
+		mutable vertexbufferobject indices;
+		/// which coordinate area is stored in the VBO, in per-level coordinates
 		area vboarea;
-		// offset in VBO of bottom left data sample (dataoffset.x/y in [0...N] range)
+		/// offset in VBO of bottom left (vboarea.bl) data sample (dataoffset.x/y in [0...N] range)
 		vector2i dataoffset;
+
+		mutable area tmp_inner, tmp_outer;
+
+		unsigned generate_indices(uint32_t* buffer, unsigned idxbase,
+					  const vector2i& size,
+					  const vector2i& vbooff,
+					  bool firstpatch = true, bool lastpatch = true) const;
+
 	public:
-		level(geoclipmap& gcm_);
-		area set_viewerpos(unsigned levelnr, const vector3f& new_viewpos,
-				   const geoclipmap::area& inner);
+		level(geoclipmap& gcm_, unsigned idx);
+		area set_viewerpos(const vector3f& new_viewpos, const geoclipmap::area& inner);
 		void compute_indices(const vector3f& viewpos /*, viewer_dir*/);
+		void display() const;
 	};
 
 	ptrvector<level> levels;
-
 	height_generator& height_gen;
 
-	vector3f viewpos;//do we need that?!
+	vector2i clamp(const vector2i& v) const {
+		return vector2i((v.x + resolution1) % resolution1,
+				(v.y + resolution1) % resolution1);
+	}
 
 public:
 	/// create geoclipmap data
-	///@param levels - number of levels
+	///@param nr_levels - number of levels
 	///@param resolution_exp - power of two of resolution factor "N"
-	geoclipmap(unsigned levels, unsigned resolution_exp);
+	///@param L - distance between samples in real world space on finest level
+	///@param hg - instance of height generator object
+	geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L, height_generator& hg);
 
 	/// d'tor
 	~geoclipmap();
-
-	/// overload and redefine this to get your specific height data
-	float get_height(const vector2f& realcoord, unsigned detail) const = 0;
 
 	/// set/change viewer position
 	void set_viewerpos(const vector3f& viewpos);
@@ -305,16 +352,24 @@ public:
 
 
 
-geoclipmap::geoclipmap(unsigned levels_, unsigned resolution_exp)
+geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, height_generator& hg)
 	: resolution(1 << resolution_exp),
-	  nr_levels(levels_),
-	  vertex_data(resolution*resolution*nr_levels*7), // 7 float values per vertex: position, z_c, normal.
-	  levels(nr_levels)
+	  resolution1(resolution + 1),
+	  L(L_),
+	  vboscratchbuf(resolution1*resolution1*4), // 4 floats per VBO sample (x,y,z,zc)
+	  levels(nr_levels),
+	  height_gen(hg)
 {
 	// initialize vertex VBO and all level VBOs
-	for (unsigned level = 0; level < nr_levels; ++level) {
-		levels.reset(level, new level());
+	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
+		levels.reset(lvl, new level(*this, lvl));
 	}
+}
+
+
+
+geoclipmap::~geoclipmap()
+{
 }
 
 
@@ -323,9 +378,21 @@ void geoclipmap::set_viewerpos(const vector3f& new_viewpos)
 {
 	// for each level compute clip area for that new viewerpos
 	// for each level compute area that needs to get updated and do that
-	area levelborder; // empty area for innermost level
-	for (unsigned lvl = 0; lvl < nr_levels; ++lvl) {
-		levelborder = levels[lvl]->set_viewerpos(lvl, new_viewpos, levelborder);
+
+	// empty area for innermost level
+	area levelborder;
+
+	// compute lowest level number by height
+	// draw level if new_viewpos.z <= 0.4 * resolution * L_l
+	// L_l = L * 2^level
+	// that is if log2(new_viewpos.z / (0.4*resolution*L)) <= level
+	// so compute floor(log2(new_viewpos.z/(0.4*resolution*L))) as minimum level
+	unsigned min_level = unsigned(std::max(floor(log2(new_viewpos.z/(0.4*resolution*L))), 0.0));
+	// fixme: later test to begin drawing at min_level
+	log_debug("min_level=" << min_level);
+
+	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
+		levelborder = levels[lvl]->set_viewerpos(new_viewpos, levelborder);
 		// next level has coordinates with half resolution
 		// let outer area of current level be inner area of next level
 		levelborder.bl.x /= 2;
@@ -338,23 +405,37 @@ void geoclipmap::set_viewerpos(const vector3f& new_viewpos)
 
 
 
-geoclipmap::level::level(geoclipmap& gcm_)
-	: gcm(gcm_),
-	  vertices(false),
-	  indices(true)
+void geoclipmap::display() const
 {
+	// display levels from inside to outside
+	//unsigned min_level = unsigned(std::max(floor(log2(new_viewpos.z/(0.4*resolution*L))), 0.0));
+	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
+		levels[lvl]->display();
+	}
 }
 
 
 
-void geoclipmap::level::set_viewerpos(unsigned levelnr, const vector3f& new_viewpos,
-				      const geoclipmap::area& inner)
+geoclipmap::level::level(geoclipmap& gcm_, unsigned idx)
+	: gcm(gcm_),
+	  index(idx),
+	  vertices(false),
+	  indices(true)
 {
-	const double L = 1.0; // distance between vertex samples in real world on finest level... (d)
+	// mostly static...
+	vertices.init_data(gcm.resolution1*gcm.resolution1*4*4, 0, GL_STATIC_DRAW);
+	// fixme: init space for indices, give correct access mode or experiment
+	indices.init_data(gcm.resolution1*gcm.resolution1*2*4, 0, GL_STATIC_DRAW);
+}
+
+
+
+geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, const geoclipmap::area& inner)
+{
 	// scalar depending on level
-	double level_fac = double(1 << levelnr);
+	double level_fac = double(1 << index);
 	// length between samples in meters, depends on level.
-	double L_l = L * level_fac;
+	double L_l = gcm.L * level_fac;
 	// x_base/y_base tells offset in sample data according to level and
 	// viewer position (new_viewpos)
 	// this multiply with 0.5 then round then *2 lets the patches map to
@@ -368,6 +449,8 @@ void geoclipmap::level::set_viewerpos(unsigned levelnr, const vector3f& new_view
 			    int(floor(0.5*new_viewpos.y/L_l - 0.25*gcm.resolution + 0.5)*2)),
 		   vector2i(int(floor(0.5*new_viewpos.x/L_l + 0.25*gcm.resolution + 0.5)*2),
 			    int(floor(0.5*new_viewpos.y/L_l + 0.25*gcm.resolution + 0.5)*2)));
+	tmp_inner = inner;
+	tmp_outer = outer;
 	// for vertex updates we only need to know the outer area...
 	// compute part of "outer" that is NOT covered by old outer area,
 	// this gives a rectangular or L-shaped form, but this can not be expressed
@@ -375,35 +458,41 @@ void geoclipmap::level::set_viewerpos(unsigned levelnr, const vector3f& new_view
 	// The width/height of the L areas will always be at least 2, as the outer border snaps always
 	// on every second vertex. This makes updates with glBufferSubData a bit more efficient.
 	std::vector<area> updates;
-	area outercmp = outer;
-	if (outercmp.bl.y < vboarea.bl.y) {
-		updates.push_back(area(outercmp.bl, vector2i(outercmp.tr.x, vboarea.bl.y - 1)));
-		outercmp.bl.y = vboarea.bl.y;
+	if (vboarea.empty()) {
+		updates.push_back(outer);
+		vboarea = outer;	// set this to make the update work correctly
+		dataoffset = vector2i(0, 0);
+	} else {
+		area outercmp = outer;
+		if (outercmp.bl.y < vboarea.bl.y) {
+			updates.push_back(area(outercmp.bl, vector2i(outercmp.tr.x, vboarea.bl.y - 1)));
+			outercmp.bl.y = vboarea.bl.y;
+		}
+		if (vboarea.tr.y < outercmp.tr.y) {
+			updates.push_back(area(vector2i(outercmp.bl.x, vboarea.tr.y + 1), outercmp.tr));
+			outercmp.tr.y = vboarea.tr.y;
+		}
+		if (outercmp.bl.x < vboarea.bl.x) {
+			updates.push_back(area(outercmp.bl, vector2i(vboarea.bl.x - 1, outercmp.tr.y)));
+			outercmp.bl.x = vboarea.bl.x;
+		}
+		if (vboarea.tr.x < outercmp.tr.x) {
+			updates.push_back(area(vector2i(vboarea.tr.x + 1, outercmp.bl.y), outercmp.tr));
+			outercmp.tr.x = vboarea.tr.x;
+		}
+		if (updates.size() > 2)
+			throw error("got more than 2 update regions?! BUG!");
 	}
-	if (vboarea.tr.y < outercmp.tr.y) {
-		updates.push_back(area(vector2i(outercmp.bl.x, vboarea.tr.y + 1), outercmp.tr));
-		outercmp.tr.y = vboarea.tr.y;
-	}
-	if (outercmp.bl.x < vboarea.bl.x) {
-		updates.push_back(area(outercmp.bl, vector2i(vboarea.bl.x - 1, outercmp.tr.y)));
-		outercmp.bl.x = vboarea.bl.x;
-	}
-	if (vboarea.tr.x < outercmp.tr.x) {
-		updates.push_back(area(vector2i(vboarea.tr.x + 1, outercmp.bl.y), outercmp.tr));
-		outercmp.tr.x = vboarea.tr.x;
-	}
-	if (updates.size() > 2)
-		throw error("got more than 2 update regions?! BUG!");
 	// now update the regions given by updates[0] and updates[1] if existing
 	for (unsigned i = 0; i < updates.size(); ++i) {
 		const area& upar = updates[i];
-		if (upar.empty()) continue; // can happen on initial update
-		unsigned w = upar.tr.x - upar.bl.x + 1;
-		unsigned h = upar.tr.y - upar.bl.y + 1;
+		log_debug("lvl="<<index<<" i="<<i<<" upar="<<upar.bl<<","<<upar.tr);
+		if (upar.empty()) throw error("update area empty?! BUG!");//continue; // can happen on initial update
+		vector2i sz = upar.size();
 		// height data coordinates upar.bl ... upar.tr need to be updated, but what VBO offset?
 		// since data is stored toroidically in VBO, a rectangle can be split into up to
 		// 4 rectangles...
-		// we need to call get_height function with levelnr as detail and the area as
+		// we need to call get_height function with index as detail and the area as
 		// parameter...
 		// prepare a N*N height lookup/scratch buffer, fill in w*h samples, then feed
 		// the correct samples to the GPU
@@ -454,27 +543,144 @@ void geoclipmap::level::set_viewerpos(unsigned levelnr, const vector3f& new_view
 		// sondern auch das area im vbo das zu updaten ist. man kann aber das eine aus dem
 		// anderen berechnen oder das oben schon schreiben...
 		// also den startpunkt im vbo, wie dataoffset von dem recheck
-		vector2i vboupdateoffset =
-			vector2i((upar.bl.x - vboarea.bl.x + dataoffset.x + gcm.resolution+1) % (gcm.resolution+1),
-				 (upar.bl.y - vboarea.bl.y + dataoffset.y + gcm.resolution+1) % (gcm.resolution+1));
-		for (unsigned y = 0; y < h; ++y) {
-			unsigned vbopos_y = (vboupdateoffset.y + y) % (gcm.resolution+1);
-			unsigned vbopos_y2 = vbopos_y * (gcm.resolution+1);
-			for (unsigned x = 0; x < w; ++x) {
+		vector2i vboupdateoffset = gcm.clamp(upar.bl - vboarea.bl + dataoffset);
+		for (int y = 0; y < sz.y; ++y) {
+			int vbopos_y = (vboupdateoffset.y + y) % gcm.resolution1;
+			int vbopos_y2 = vbopos_y * gcm.resolution1;
+			for (int x = 0; x < sz.x; ++x) {
+				int vbopos_x = (vboupdateoffset.x + x) % gcm.resolution1;
+				int ptr = (x + y*sz.x) * 4;
+				float* fptr = &gcm.vboscratchbuf[ptr];
+				fptr[0] = (upar.bl.x + x) * L_l;
+				fptr[1] = (upar.bl.y + y) * L_l;
 				// fixme: here compute max. area rectangles for efficient update
-				unsigned vbopos_x = (vboupdateoffset.x + x) % (gcm.resolution+1);
-				float* dest = &vbodata[(vbopos_x + vbopos_y2)*entry_size+zoff];
-				gcm.height_gen.compute_heights(levelnr, upar.bl, upar.tr,
-							       dest, dest_entry_stride, dest_line_stride);
+				vector2i u = upar.bl + vector2i(x, y);
+				gcm.height_gen.compute_heights(index, u, u,
+							       &fptr[2], 4, 4*sz.x);
+				//log_debug("lvl="<<index<<" p="<<u<<" crd="<<(upar.bl.x + x) * L_l<<","<<(upar.bl.y + y) * L_l<<" h="<<fptr[2]<<","<<fptr[3]);
 				// update VBO data here...
+				//fixme: this does a bind/unbind every time, performance waste!
+				//log_debug("pufferpos="<<vbopos_x<<","<<vbopos_y);
+				vertices.init_sub_data((vbopos_x + vbopos_y2)*4*4, 4*4, fptr);
 			}
 		}
 
 		// die index-daten zu berechnen wird nochmal schwieriger, das ganze mal mit zettel+stift
 		// planen, das ist viel leichter.
+
+		// fixme fixme fixme: genau überlegen was vboarea und dataoffset besagt!
 	}
 
+#if 0 // test
+	//fixme: give alternating pattern as 4th float or as 4u color?
+	float* vm = (float*)vertices.map(GL_WRITE_ONLY);
+	for (int y = 0; y < gcm.resolution1; ++y) {
+		for (int x = 0; x < gcm.resolution1; ++x) {
+			vm[(y*gcm.resolution1+x)*4+0] = (vboarea.bl.x+x)*L_l;
+			vm[(y*gcm.resolution1+x)*4+1] = (vboarea.bl.y+y)*L_l;
+			vm[(y*gcm.resolution1+x)*4+2] = index*3.0;
+			vm[(y*gcm.resolution1+x)*4+3] = 0;
+		}
+	}
+	vertices.unmap();
+#endif
+
+	// we updated the vertices, so adapt area/offset
+	dataoffset = gcm.clamp(outer.bl - vboarea.bl + dataoffset);
+	vboarea = outer;
+
 	return outer;
+}
+
+
+
+unsigned geoclipmap::level::generate_indices(uint32_t* buffer, unsigned idxbase,
+					     const vector2i& size,
+					     const vector2i& vbooff,
+					     bool firstpatch, bool lastpatch) const
+{
+	log_debug("genindi="<<index<<" size="<<size);
+	if (size.x <= 1 || size.y <= 1) return 0;
+	// always put the first index of a row twice and also the last fixme
+	unsigned ptr = idxbase;
+	int vbooffy0 = vbooff.y;
+	int vbooffy1 = (vbooffy0 + 1) % gcm.resolution1;
+	for (int y = 0; y + 1 < size.y; ++y) {
+		int vbooffy0_l = vbooffy0 * gcm.resolution1;
+		int vbooffy1_l = vbooffy1 * gcm.resolution1;
+		int vbooffx0 = vbooff.x;
+		// store first index twice since second line of first patch
+		if (!firstpatch || y > 0) buffer[ptr++] = vbooffy1_l + vbooffx0;
+		uint32_t lastidx = 0;
+		for (int x = 0; x < size.x; ++x) {
+			buffer[ptr++] = vbooffy1_l + vbooffx0;
+			buffer[ptr++] = lastidx = vbooffy0_l + vbooffx0;
+			vbooffx0 = (vbooffx0 + 1) % gcm.resolution1;
+		}
+		// store last index twice until second last line of last patch
+		if (!lastpatch || y + 2 < size.y) buffer[ptr++] = lastidx;
+		vbooffy0 = vbooffy1;
+		vbooffy1 = (vbooffy1 + 1) % gcm.resolution1;
+	}
+	return ptr - idxbase;
+}
+
+
+
+void geoclipmap::level::display() const
+{
+	glColor4f(1,index/8.0,0,1);//fixme test
+
+	// compute indices and store them in the VBO.
+	// mapping of VBO should be sensible.
+	uint32_t* indexvbo = (uint32_t*)indices.map(GL_WRITE_ONLY);
+
+	// we need to compute up to four rectangular areas made up of tri-strips.
+	// they need to get clipped to the viewing frustum later.
+	// the four areas form the ring or torus, after clipping they are still
+	// rectangles. We should build a rectangle of several columns of rectangles,
+	// each with a width of 16 or 32 quads, to make best use of the post-transform
+	// vertex cache.
+	// So we need a function to generate indices for a rectangular patch, input
+	// is area size and offset in vertex VBO for wrapping.
+	unsigned nridx = 0;
+	if (tmp_inner.empty()) {
+		nridx = generate_indices(indexvbo, 0, tmp_outer.size(), dataoffset);
+	} else {
+		vector2i patchsz(tmp_inner.bl.x - tmp_outer.bl.x + 1, tmp_outer.tr.y - tmp_outer.bl.y + 1);
+		nridx = generate_indices(indexvbo, nridx, patchsz, dataoffset, true, false);
+		patchsz.x = tmp_inner.tr.x - tmp_inner.bl.x + 1;
+		patchsz.y = tmp_inner.bl.y - tmp_outer.bl.y + 1;
+		vector2i patchoff(tmp_inner.bl.x - tmp_outer.bl.x, 0);
+		nridx += generate_indices(indexvbo, nridx, patchsz, gcm.clamp(dataoffset + patchoff), false, false);
+		patchsz.y = tmp_outer.tr.y - tmp_inner.tr.y + 1;
+		patchoff.y = tmp_inner.tr.y - tmp_outer.bl.y;
+		nridx += generate_indices(indexvbo, nridx, patchsz, gcm.clamp(dataoffset + patchoff), false, false);
+		patchsz.x = tmp_outer.tr.x - tmp_inner.tr.x + 1;
+		patchsz.y = tmp_outer.tr.y - tmp_outer.bl.y + 1;
+		patchoff.x = tmp_inner.tr.x - tmp_outer.bl.x;
+		patchoff.y = 0;
+		nridx += generate_indices(indexvbo, nridx, patchsz, gcm.clamp(dataoffset + patchoff), false, true);
+	}
+	indices.unmap();
+
+	// render the data
+	if (nridx == 0) return;
+	vertices.bind();
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 4*4, (float*)0 + 0);
+	//glVertexAttribPointer(vattr_aof_index, 1, GL_FLOAT, GL_FALSE, nr_vert_attr*4, (float*)0 + 6);
+	//glEnableVertexAttribArray(vattr_aof_index);
+	vertices.unbind();
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
+	indices.bind();
+	glDrawRangeElements(GL_TRIANGLE_STRIP,
+			    0/*min_vertex_index*/,
+			    gcm.resolution1*gcm.resolution1-1/*max_vertex_index*/,
+			    nridx, GL_UNSIGNED_INT, 0);
+	indices.unbind();
 }
 
 
@@ -1132,6 +1338,14 @@ void show_credits()
 	//glClearColor(0.1,0.25,0.4,0);
 	glClearColor(0.175,0.25,0.125,0.0);
 
+	/* geoclipmap test*/
+#ifdef GEOCLIPMAPTEST
+	height_generator_test hgt;
+	geoclipmap gcm(6, 5, 3.0, hgt);
+	//gcm.set_viewerpos(vector3(0, 0, 30.0));
+#endif
+
+
 #if 0
 	{
 		// 2^5 * 256 detail is enough = 8192
@@ -1290,6 +1504,9 @@ void show_credits()
 		float path_fac = myfrac((1.0/120) * (sys().millisec() - tm0)/1000);
 		vector3f campos = cam_path.value(path_fac);
 		vector3f camlookat = cam_path.value(myfrac(path_fac + 0.01));
+#ifdef GEOCLIPMAPTEST
+		camlookat.z -= 50;
+#endif
 		//camera cm(viewpos2, viewpos2 + angle(zang).direction().xyz(-0.25));
 		camera cm(campos, camlookat);
 		zang = cm.look_direction().value();
@@ -1303,11 +1520,20 @@ void show_credits()
 		glFogfv(GL_FOG_COLOR, fog_color);
 		glFogf(GL_FOG_DENSITY, 0.0008);
 
+#ifdef GEOCLIPMAPTEST
+		gcm.set_viewerpos(campos);
+		glColor4f(1,0,0,1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		gcm.display();
+#else
 		// render canyon
 		cyn.display();
 		//trees->display();
 		ps.display(campos, zang);//viewpos2 here, but it flickers
-
+#endif
 		glPopMatrix();
 
 		sys().prepare_2d_drawing();
@@ -1317,10 +1543,12 @@ void show_credits()
 			generate_fadein_pixels(fadein_pixels, fadein_ctr, 8);
 			fadein_tex.reset(new texture(fadein_pixels, 8, 8, GL_LUMINANCE_ALPHA,
 						     texture::NEAREST, texture::REPEAT));
+#ifndef GEOCLIPMAPTEST
 			glPushMatrix();
 			glScalef(4.0, 4.0, 4.0);
 			fadein_tex->draw_tiles(0, 0, sys().get_res_x_2d()/4, sys().get_res_y_2d()/4);
 			glPopMatrix();
+#endif
 			if (fadein_ctr >= 64)
 				fadein_tex.reset();
 		}
