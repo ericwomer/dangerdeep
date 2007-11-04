@@ -212,14 +212,18 @@ const char* credits[] = {
   Linear interpolation is much faster.
 
   fixme todo:
+  - vertex shader for height interpolation
+  - compute z_c and n_c correctly
+    linear interpol. of z of coarser level!
+  - render triangles from outmost patch to horizon
   - clipping of patches against viewing frustum
+    -- patches could become empty
   - efficient update of VBO data
+    --> more performance
   - if resolution would be 2^n-2 then we could do efficient modulo ops,
     the vertex VBO would be just one row/col larger
     check how/if that works!
-  - vertex shader for height interpolation
-  - compute z_c and n_c correctly
-  - render triangles from outmost patch to horizon
+    --> more performance, no "div" instructions but "and"
   - write good height generator
   - do not render too small detail (start at min_level, but test that this works)
 
@@ -230,6 +234,29 @@ const char* credits[] = {
     then do simple normal generation.
     normals in textures would be much easier, but the height generator
     needs to compute them then.
+
+
+  formula from paper
+  axy = min(max( (abs(xy-vxy) - ((xymax-xymin)/2 - w-1)) / w, 0), 1)
+
+  xy, vxy in coordinates of the grid,
+  so realxy/L_l = xy ?
+  formula with per-vertex-constants:
+
+  axy = min(max( (abs(xy-c0) - c1) * c2, 0), 1)
+
+  c0 = vxy
+  c1 = (xymax-xymin)/2 - w - 1
+  c2 = 1/w
+
+  xy = vpos.xy * c3
+  c3 = round(1/L_l) ?
+
+  or even give L_l as factor for xy! then vpos.xy = xy
+  then vxy = round(viewpos.xy/L_l)
+
+  w = n/10 (N/10?)
+
 
 */
 
@@ -288,7 +315,16 @@ public:
 	void compute_height(unsigned detail, const vector2i& coord, float* dest) {
 		int xc = coord.x * int(1 << detail);
 		int yc = coord.y * int(1 << detail);
-		dest[0] = dest[1] = -100.0 + pn.value(xc, yc, 6-detail);
+		if (detail <= 6)
+			dest[0] = -100.0 + pn.value(xc, yc, 6-detail);
+		else
+			dest[0] = 0;
+		//fixme: bilinear interpol. of height of coarser level needed for
+		//all coordinates with odd numbers!
+		if (detail <= 5)
+			dest[1] = -100.0 + pn.value(xc, yc, 5-detail);
+		else
+			dest[1] = 0;
 	}
 };
 
@@ -361,6 +397,9 @@ class geoclipmap
 				(v.y + resolution1) % resolution1);
 	}
 
+	mutable glsl_shader_setup myshader;
+	unsigned myshader_vattr_z_c_index;
+
 public:
 	/// create geoclipmap data
 	///@param nr_levels - number of levels
@@ -388,12 +427,19 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, h
 	  vboscratchbuf((resolution1+2)*(resolution1+2)*fperv), // 4 floats per VBO sample (x,y,z,zc)
 	  // ^ extra space for normals
 	  levels(nr_levels),
-	  height_gen(hg)
+	  height_gen(hg),
+	  myshader(get_shader_dir() + "geoclipmap.vshader",
+		   get_shader_dir() + "geoclipmap.fshader"),
+	  myshader_vattr_z_c_index(0)
 {
 	// initialize vertex VBO and all level VBOs
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
 		levels.reset(lvl, new level(*this, lvl));
 	}
+
+	myshader.use();
+	myshader_vattr_z_c_index = myshader.get_vertex_attrib_index("z_c");
+	myshader.use_fixed();
 }
 
 
@@ -431,6 +477,9 @@ void geoclipmap::set_viewerpos(const vector3f& new_viewpos)
 		levelborder.tr.y /= 2;
 	}
 
+	myshader.use();
+	myshader.set_uniform("viewpos", new_viewpos);
+	myshader.use_fixed();
 }
 
 
@@ -439,9 +488,11 @@ void geoclipmap::display() const
 {
 	// display levels from inside to outside
 	//unsigned min_level = unsigned(std::max(floor(log2(new_viewpos.z/(0.4*resolution*L))), 0.0));
+	myshader.use();
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
 		levels[lvl]->display();
 	}
+	myshader.use_fixed();
 }
 
 
@@ -587,6 +638,7 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 				fptr[0] = upcrd2.x * L_l; // fixme: maybe subtract viewerpos here later.
 				fptr[1] = upcrd2.y * L_l;
 				gcm.height_gen.compute_height(index, upcrd2, &fptr[2]);
+				//gcm.height_gen.compute_height(index+1, upcrd2, &fptr[3]);
 				ptr += gcm.fperv;
 				++upcrd2.x;
 			}
@@ -602,9 +654,9 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 				float hl = gcm.vboscratchbuf[ptr-gcm.fperv+2];
 				float hd = gcm.vboscratchbuf[ptr-gcm.fperv*(sz.x+2)+2];
 				vector3f nm = vector3f(hl-hr, hd-hu, L_l).normal();
-				gcm.vboscratchbuf[ptr+3] = nm.x;
-				gcm.vboscratchbuf[ptr+4] = nm.y;
-				gcm.vboscratchbuf[ptr+5] = nm.z;
+				gcm.vboscratchbuf[ptr+4] = nm.x;
+				gcm.vboscratchbuf[ptr+5] = nm.y;
+				gcm.vboscratchbuf[ptr+6] = nm.z;
 				// fixme: later write n_c too... somehow...
 				ptr += gcm.fperv;
 			}
@@ -621,7 +673,7 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 				int vbopos_x = (vboupdateoffset.x + x) % gcm.resolution1;
 				float* fptr = &gcm.vboscratchbuf[ptr];
 				// fixme: here compute max. area rectangles for efficient update
-				vertices.init_sub_data((vbopos_x + vbopos_y2)*gcm.fperv*4, 7*4, fptr);
+				vertices.init_sub_data((vbopos_x + vbopos_y2)*gcm.fperv*4, gcm.fperv*4, fptr);
 				ptr += gcm.fperv;
 			}
 			ptr += 2*gcm.fperv;
@@ -715,6 +767,13 @@ void geoclipmap::level::display() const
 {
 	glColor4f(1,index/8.0,0,1);//fixme test
 
+	double level_fac = double(1 << index);
+	double L_l = gcm.L * level_fac;
+	vector2i outszi = tmp_outer.size();
+	vector2f outsz = vector2f(outszi.x, outszi.y) * L_l * 0.5f;
+	gcm.myshader.set_uniform("xysize2", outsz);
+	gcm.myshader.set_uniform("w", gcm.resolution/10.0f * L_l);
+
 	// compute indices and store them in the VBO.
 	// mapping of VBO should be sensible.
 	uint32_t* indexvbo = (uint32_t*)indices.map(GL_WRITE_ONLY);
@@ -755,9 +814,8 @@ void geoclipmap::level::display() const
 	vertices.bind();
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, gcm.fperv*4, (float*)0 + 0);
-	//we could store z_c as vertex-w, so we don't need attributes...
-	//glVertexAttribPointer(vattr_aof_index, 1, GL_FLOAT, GL_FALSE, nr_vert_attr*4, (float*)0 + 6);
-	//glEnableVertexAttribArray(vattr_aof_index);
+	glVertexAttribPointer(gcm.myshader_vattr_z_c_index, 1, GL_FLOAT, GL_FALSE, gcm.fperv*4, (float*)0 + 3);
+	glEnableVertexAttribArray(gcm.myshader_vattr_z_c_index);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glNormalPointer(GL_FLOAT, gcm.fperv*4, (float*)0 + 4);
 	vertices.unbind();
@@ -769,6 +827,7 @@ void geoclipmap::level::display() const
 			    gcm.resolution1*gcm.resolution1-1/*max_vertex_index*/,
 			    nridx, GL_UNSIGNED_INT, 0);
 	indices.unbind();
+	glDisableVertexAttribArray(gcm.myshader_vattr_z_c_index);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
