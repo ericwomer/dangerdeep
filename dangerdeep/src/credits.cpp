@@ -212,18 +212,24 @@ const char* credits[] = {
   Linear interpolation is much faster.
 
   fixme todo:
+  - clipping of patches against viewing frustum
+  - efficient update of VBO data
+  - if resolution would be 2^n-2 then we could do efficient modulo ops,
+    the vertex VBO would be just one row/col larger
+    check how/if that works!
+  - vertex shader for height interpolation
+  - compute z_c and n_c correctly
+  - render triangles from outmost patch to horizon
+  - write good height generator
+  - do not render too small detail (start at min_level, but test that this works)
+
+  done:
+  - render T-junction triangles
   - normal computation (or do it via texture)
     compute 2 vertices more in xy direction when computing an update
     then do simple normal generation.
     normals in textures would be much easier, but the height generator
     needs to compute them then.
-  - vertex shader for height interpolation
-  - render T-junction triangles
-  - render triangles from outmost patch to horizon
-  - clipping of patches against viewing frustum
-  - efficient update of VBO data
-  - write good height generator
-  - do not render too small detail (start at min_level, but test that this works)
 
 */
 
@@ -241,13 +247,9 @@ public:
 	/// compute a rectangle of height information (z and z_c)
 	///@note coordinates are relative to detail! so detail=0 coord=2,2 matches detail=1 coord=1,1 etc.
 	///@param detail - accuracy of height (level of detail)
-	///@param bl - bottom left position of area to compute
-	///@param tr - top right position of area to compute
+	///@param coord - coordinate to compute z/z_c for
 	///@param dest - pointer to first z value to write to
-	///@param dest_entry_stride - length of one entry in floats
-	///@param dest_line_stride - length of one line in floats
-	virtual void compute_heights(unsigned detail, const vector2i& bl, const vector2i& tr,
-				     float* dest, unsigned dest_entry_stride, unsigned dest_line_stride) = 0;
+	virtual void compute_height(unsigned detail, const vector2i& coord, float* dest) = 0;
 };
 
 
@@ -255,26 +257,10 @@ public:
 class height_generator_test : public height_generator
 {
 public:
-	void compute_heights(unsigned detail, const vector2i& bl, const vector2i& tr,
-			     float* dest, unsigned dest_entry_stride, unsigned dest_line_stride) {
-		for (int y = 0; y < tr.y - bl.y + 1; ++y) {
-			float* dest2 = dest;
-			for (int x = 0; x < tr.x - bl.x + 1; ++x) {
-#if 0
-				dest2[0] = (1 << detail) * 2.0 - 4.0;
-				dest2[1] = (1 << (detail+1)) * 2.0 - 4.0;
-#elif 0
-				dest2[0] = 0;
-				dest2[1] = 0;
-#else
-				int xc = (x + bl.x) * int(1 << detail);
-				int yc = (y + bl.y) * int(1 << detail);
-				dest2[0] = dest2[1] = sin(2*3.14159*xc*0.01) * sin(2*3.14159*yc*0.01) * 10.0;
-#endif
-				dest2 += dest_entry_stride;
-			}
-			dest += dest_line_stride;
-		}
+	void compute_height(unsigned detail, const vector2i& coord, float* dest) {
+		int xc = coord.x * int(1 << detail);
+		int yc = coord.y * int(1 << detail);
+		dest[0] = dest[1] = sin(2*3.14159*xc*0.01) * sin(2*3.14159*yc*0.01) * 40.0;
 	}
 };
 
@@ -299,20 +285,10 @@ public:
 			asin_lookup.set_value(i, asin(float(i)/256) / M_PI + 0.5);
 		*/
 	}
-	void compute_heights(unsigned detail, const vector2i& bl, const vector2i& tr,
-			     float* dest, unsigned dest_entry_stride, unsigned dest_line_stride) {
-		for (int y = 0; y < tr.y - bl.y + 1; ++y) {
-			float* dest2 = dest;
-			int yc = (y + bl.y) * int(1 << detail);
-			yc = yc & (s2 - 1);
-			for (int x = 0; x < tr.x - bl.x + 1; ++x) {
-				int xc = (x + bl.x) * int(1 << detail);
-				xc = xc & (s2 - 1);
-				dest2[0] = dest2[1] = pn.valuef(xc, yc, 0xffffff);//6-detail);
-				dest2 += dest_entry_stride;
-			}
-			dest += dest_line_stride;
-		}
+	void compute_height(unsigned detail, const vector2i& coord, float* dest) {
+		int xc = coord.x * int(1 << detail);
+		int yc = coord.y * int(1 << detail);
+		dest[0] = dest[1] = -100.0 + pn.value(xc, yc, 6-detail);
 	}
 };
 
@@ -321,6 +297,7 @@ public:
 /// geoclipmap rendering
 class geoclipmap
 {
+	static const unsigned fperv = 10; // floats per vertex in VBO
 	// "N", must be power of two
 	const unsigned resolution;
 	const unsigned resolution1; // res+1
@@ -368,11 +345,11 @@ class geoclipmap
 					  const vector2i& size,
 					  const vector2i& vbooff,
 					  bool firstpatch = true, bool lastpatch = true) const;
+		unsigned generate_indices_T(uint32_t* buffer, unsigned idxbase) const;
 
 	public:
 		level(geoclipmap& gcm_, unsigned idx);
 		area set_viewerpos(const vector3f& new_viewpos, const geoclipmap::area& inner);
-		void compute_indices(const vector3f& viewpos /*, viewer_dir*/);
 		void display() const;
 	};
 
@@ -408,7 +385,8 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, h
 	: resolution(1 << resolution_exp),
 	  resolution1(resolution + 1),
 	  L(L_),
-	  vboscratchbuf(resolution1*resolution1*4), // 4 floats per VBO sample (x,y,z,zc)
+	  vboscratchbuf((resolution1+2)*(resolution1+2)*fperv), // 4 floats per VBO sample (x,y,z,zc)
+	  // ^ extra space for normals
 	  levels(nr_levels),
 	  height_gen(hg)
 {
@@ -475,9 +453,12 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx)
 	  indices(true)
 {
 	// mostly static...
-	vertices.init_data(gcm.resolution1*gcm.resolution1*4*4, 0, GL_STATIC_DRAW);
+	vertices.init_data(gcm.resolution1*gcm.resolution1*gcm.fperv*4, 0, GL_STATIC_DRAW);
 	// fixme: init space for indices, give correct access mode or experiment
-	indices.init_data(gcm.resolution1*gcm.resolution1*2*4, 0, GL_STATIC_DRAW);
+	// fixme: set correct max. size
+	// size of T-junction triangles: 4 indices per triangle (3 + 2 degen. - 1), 4*N/2 triangles
+	indices.init_data(gcm.resolution1*gcm.resolution1*2*4 + (4*gcm.resolution/2*4)*4,
+			  0, GL_STATIC_DRAW);
 }
 
 
@@ -595,26 +576,55 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 		// sondern auch das area im vbo das zu updaten ist. man kann aber das eine aus dem
 		// anderen berechnen oder das oben schon schreiben...
 		// also den startpunkt im vbo, wie dataoffset von dem recheck
+
+		// compute the heights first (+1 in every direction to compute normals too)
+		unsigned ptr = 0;
+		vector2i upcrd = upar.bl + vector2i(-1, -1);
+		for (int y = 0; y < sz.y + 2; ++y) {
+			vector2i upcrd2 = upcrd;
+			for (int x = 0; x < sz.x + 2; ++x) {
+				float* fptr = &gcm.vboscratchbuf[ptr];
+				fptr[0] = upcrd2.x * L_l; // fixme: maybe subtract viewerpos here later.
+				fptr[1] = upcrd2.y * L_l;
+				gcm.height_gen.compute_height(index, upcrd2, &fptr[2]);
+				ptr += gcm.fperv;
+				++upcrd2.x;
+			}
+			++upcrd.y;
+		}
+
+		// compute normals
+		ptr = ((sz.x+2)+1)*gcm.fperv;
+		for (int y = 0; y < sz.y; ++y) {
+			for (int x = 0; x < sz.x; ++x) {
+				float hr = gcm.vboscratchbuf[ptr+gcm.fperv+2];
+				float hu = gcm.vboscratchbuf[ptr+gcm.fperv*(sz.x+2)+2];
+				float hl = gcm.vboscratchbuf[ptr-gcm.fperv+2];
+				float hd = gcm.vboscratchbuf[ptr-gcm.fperv*(sz.x+2)+2];
+				vector3f nm = vector3f(hl-hr, hd-hu, L_l).normal();
+				gcm.vboscratchbuf[ptr+3] = nm.x;
+				gcm.vboscratchbuf[ptr+4] = nm.y;
+				gcm.vboscratchbuf[ptr+5] = nm.z;
+				// fixme: later write n_c too... somehow...
+				ptr += gcm.fperv;
+			}
+			ptr += 2*gcm.fperv;
+		}
+
+		// copy data to real VBO.
+		ptr = ((sz.x+2)+1)*gcm.fperv;
 		vector2i vboupdateoffset = gcm.clamp(upar.bl - vboarea.bl + dataoffset);
 		for (int y = 0; y < sz.y; ++y) {
 			int vbopos_y = (vboupdateoffset.y + y) % gcm.resolution1;
 			int vbopos_y2 = vbopos_y * gcm.resolution1;
 			for (int x = 0; x < sz.x; ++x) {
 				int vbopos_x = (vboupdateoffset.x + x) % gcm.resolution1;
-				int ptr = (x + y*sz.x) * 4;
 				float* fptr = &gcm.vboscratchbuf[ptr];
-				fptr[0] = (upar.bl.x + x) * L_l;
-				fptr[1] = (upar.bl.y + y) * L_l;
 				// fixme: here compute max. area rectangles for efficient update
-				vector2i u = upar.bl + vector2i(x, y);
-				gcm.height_gen.compute_heights(index, u, u,
-							       &fptr[2], 4, 4*sz.x);
-				//log_debug("lvl="<<index<<" p="<<u<<" crd="<<(upar.bl.x + x) * L_l<<","<<(upar.bl.y + y) * L_l<<" h="<<fptr[2]<<","<<fptr[3]);
-				// update VBO data here...
-				//fixme: this does a bind/unbind every time, performance waste!
-				//log_debug("pufferpos="<<vbopos_x<<","<<vbopos_y);
-				vertices.init_sub_data((vbopos_x + vbopos_y2)*4*4, 4*4, fptr);
+				vertices.init_sub_data((vbopos_x + vbopos_y2)*gcm.fperv*4, 7*4, fptr);
+				ptr += gcm.fperv;
 			}
+			ptr += 2*gcm.fperv;
 		}
 	}
 
@@ -660,6 +670,47 @@ unsigned geoclipmap::level::generate_indices(uint32_t* buffer, unsigned idxbase,
 
 
 
+unsigned geoclipmap::level::generate_indices_T(uint32_t* buffer, unsigned idxbase) const
+{
+	unsigned ptr = idxbase;
+	vector2i v = dataoffset;
+	for (unsigned i = 0; i < gcm.resolution/2; ++i) {
+		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution1;
+		v.y = (v.y + 1) % gcm.resolution1;
+		buffer[ptr+2] = v.x + v.y * gcm.resolution1;
+		v.y = (v.y + 1) % gcm.resolution1;
+		buffer[ptr+3] = v.x + v.y * gcm.resolution1;
+		ptr += 4;
+	}
+	for (unsigned i = 0; i < gcm.resolution/2; ++i) {
+		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution1;
+		v.x = (v.x + 1) % gcm.resolution1;
+		buffer[ptr+2] = v.x + v.y * gcm.resolution1;
+		v.x = (v.x + 1) % gcm.resolution1;
+		buffer[ptr+3] = v.x + v.y * gcm.resolution1;
+		ptr += 4;
+	}
+	for (unsigned i = 0; i < gcm.resolution/2; ++i) {
+		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution1;
+		v.y = (v.y + gcm.resolution) % gcm.resolution1;
+		buffer[ptr+2] = v.x + v.y * gcm.resolution1;
+		v.y = (v.y + gcm.resolution) % gcm.resolution1;
+		buffer[ptr+3] = v.x + v.y * gcm.resolution1;
+		ptr += 4;
+	}
+	for (unsigned i = 0; i < gcm.resolution/2; ++i) {
+		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution1;
+		v.x = (v.x + gcm.resolution) % gcm.resolution1;
+		buffer[ptr+2] = v.x + v.y * gcm.resolution1;
+		v.x = (v.x + gcm.resolution) % gcm.resolution1;
+		buffer[ptr+3] = v.x + v.y * gcm.resolution1;
+		ptr += 4;
+	}
+	return ptr - idxbase;
+}
+
+
+
 void geoclipmap::level::display() const
 {
 	glColor4f(1,index/8.0,0,1);//fixme test
@@ -678,7 +729,7 @@ void geoclipmap::level::display() const
 	// is area size and offset in vertex VBO for wrapping.
 	unsigned nridx = 0;
 	if (tmp_inner.empty()) {
-		nridx = generate_indices(indexvbo, 0, tmp_outer.size(), dataoffset);
+		nridx = generate_indices(indexvbo, 0, tmp_outer.size(), dataoffset, true, false/*true*/);
 	} else {
 		vector2i patchsz(tmp_inner.bl.x - tmp_outer.bl.x + 1, tmp_outer.tr.y - tmp_outer.bl.y + 1);
 		nridx = generate_indices(indexvbo, nridx, patchsz, dataoffset, true, false);
@@ -693,19 +744,23 @@ void geoclipmap::level::display() const
 		patchsz.y = tmp_outer.tr.y - tmp_outer.bl.y + 1;
 		patchoff.x = tmp_inner.tr.x - tmp_outer.bl.x;
 		patchoff.y = 0;
-		nridx += generate_indices(indexvbo, nridx, patchsz, gcm.clamp(dataoffset + patchoff), false, true);
+		nridx += generate_indices(indexvbo, nridx, patchsz, gcm.clamp(dataoffset + patchoff), false, false/*true*/);
 	}
+	// add t-junction triangles
+	nridx += generate_indices_T(indexvbo, nridx);
 	indices.unmap();
 
 	// render the data
 	if (nridx == 0) return;
 	vertices.bind();
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 4*4, (float*)0 + 0);
+	glVertexPointer(3, GL_FLOAT, gcm.fperv*4, (float*)0 + 0);
+	//we could store z_c as vertex-w, so we don't need attributes...
 	//glVertexAttribPointer(vattr_aof_index, 1, GL_FLOAT, GL_FALSE, nr_vert_attr*4, (float*)0 + 6);
 	//glEnableVertexAttribArray(vattr_aof_index);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glNormalPointer(GL_FLOAT, gcm.fperv*4, (float*)0 + 4);
 	vertices.unbind();
-	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	indices.bind();
@@ -714,6 +769,8 @@ void geoclipmap::level::display() const
 			    gcm.resolution1*gcm.resolution1-1/*max_vertex_index*/,
 			    nridx, GL_UNSIGNED_INT, 0);
 	indices.unbind();
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 
@@ -1373,8 +1430,9 @@ void show_credits()
 
 	/* geoclipmap test*/
 #ifdef GEOCLIPMAPTEST
-	height_generator_test hgt;
-	geoclipmap gcm(6, 5, 3.0, hgt);
+	//height_generator_test hgt;
+	height_generator_test2 hgt;
+	geoclipmap gcm(8, 5, 3.0, hgt);
 	//gcm.set_viewerpos(vector3(0, 0, 30.0));
 #endif
 
@@ -1555,7 +1613,7 @@ void show_credits()
 		vector3f campos = cam_path.value(path_fac);
 		vector3f camlookat = cam_path.value(myfrac(path_fac + 0.01));
 #ifdef GEOCLIPMAPTEST
-		camlookat.z -= 20;
+		camlookat.z -= 15;
 #endif
 		//camera cm(viewpos2, viewpos2 + angle(zang).direction().xyz(-0.25));
 		camera cm(campos, camlookat);
@@ -1627,12 +1685,14 @@ void show_credits()
 		}
 #endif
 
+#ifndef GEOCLIPMAPTEST
 		for (int i = textpos; i <= textpos+lines_per_page; ++i) {
 			if (i >= 0 && i < textlines) {
 				int y = (i-textpos)*lineheight+int(-lineoffset*lineheight);
 				font_arial->print_hc(512+int(64*sin(y*2*M_PI/640)), y, credits[i], color::white(), true);
 			}
 		}
+#endif
 		sys().unprepare_2d_drawing();
 
 		unsigned tm2 = sys().millisec();
