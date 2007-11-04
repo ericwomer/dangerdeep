@@ -354,8 +354,8 @@ class height_generator_test3 : public height_generator
 	const unsigned baseres;
 	const float heightmult, heightadd;
 public:
-	height_generator_test3(const std::vector<Uint8>& hg, unsigned baseres_log2)
-		: heightdata(baseres_log2+1), baseres(1<<baseres_log2), heightmult(0.75), heightadd(-80.0f)
+	height_generator_test3(const std::vector<Uint8>& hg, unsigned baseres_log2, float hm = 0.75)
+		: heightdata(baseres_log2+1), baseres(1<<baseres_log2), heightmult(hm), heightadd(-80.0f)
 	{
 		heightdata[0] = hg;
 		for (unsigned i = 1; i + 1 < heightdata.size(); ++i)
@@ -842,7 +842,7 @@ void geoclipmap::level::display() const
 	vector2i outszi = tmp_outer.size();
 	vector2f outsz = vector2f(outszi.x, outszi.y) * L_l * 0.5f;
 	gcm.myshader.set_uniform("xysize2", outsz);
-	gcm.myshader.set_uniform("w", gcm.resolution/10.0f);
+	gcm.myshader.set_uniform("w", gcm.resolution/6.0f /*10.0f*/);
 	gcm.myshader.set_uniform("L_l", L_l);
 
 	// compute indices and store them in the VBO.
@@ -1564,6 +1564,8 @@ void show_credits()
 	//height_generator_test2 hgt;
 #if 1
 	std::vector<Uint8> heights;
+#if 0
+	float hm = 0.75;
 	{
 		perlinnoise pn(64, 4, 6, true); // max. 8192
 		const unsigned s2 = 256*16;
@@ -1589,7 +1591,26 @@ void show_credits()
 		}
 #endif		
 	}
-	height_generator_test3 hgt(heights, 12);
+#else
+	float hm = 0.2;
+	{
+		// set heights from a file
+		unsigned s2 = 4096;
+		sdl_image si("./heights.png");
+		if (si->w != s2 || si->h != s2)
+			throw error("invalid pic size");
+		si.lock();
+		Uint8* px = (Uint8*) si->pixels;
+		heights.resize(s2*s2);
+		for (unsigned y = 0; y < s2; ++y) {
+			for (unsigned x = 0; x < s2; ++x) {
+				heights[y*s2+x] = px[y*si->pitch+x];
+			}
+		}
+		si.unlock();
+	}
+#endif
+	height_generator_test3 hgt(heights, 12, hm);
 	heights.clear();
 #endif
 //	height_generator_test4 hgt;
