@@ -212,9 +212,10 @@ const char* credits[] = {
   Linear interpolation is much faster.
 
   fixme todo:
-  - vertex shader for height interpolation
+  - vertex shader for height interpolation (done, except accurate factor a computation)
   - compute z_c and n_c correctly
     linear interpol. of z of coarser level!
+  - there are still gaps between the patches, more than 1 pixel wide, e.g. when using test4
   - render triangles from outmost patch to horizon
   - clipping of patches against viewing frustum
     -- patches could become empty
@@ -226,6 +227,7 @@ const char* credits[] = {
     --> more performance, no "div" instructions but "and"
   - write good height generator
   - do not render too small detail (start at min_level, but test that this works)
+  - compute how many tris per second are rendered as performance measure
 
   done:
   - render T-junction triangles
@@ -330,6 +332,68 @@ public:
 
 
 
+std::vector<Uint8> scaledown(const std::vector<Uint8>& v, unsigned newres)
+{
+	std::vector<Uint8> result(newres * newres);
+	for (unsigned y = 0; y < newres; ++y) {
+		for (unsigned x = 0; x < newres; ++x) {
+			result[y*newres+x] = Uint8((Uint32(v[2*y*newres*2+2*x]) +
+						    Uint32(v[2*y*newres*2+2*x+1]) +
+						    Uint32(v[(2*y+1)*newres*2+2*x]) +
+						    Uint32(v[(2*y+1)*newres*2+2*x+1])) / 4);
+		}
+	}
+	return result;
+}
+
+
+
+class height_generator_test3 : public height_generator
+{
+	std::vector<std::vector<Uint8> > heightdata;
+	const unsigned baseres;
+	const float heightmult, heightadd;
+public:
+	height_generator_test3(const std::vector<Uint8>& hg, unsigned baseres_log2)
+		: heightdata(baseres_log2+1), baseres(1<<baseres_log2), heightmult(0.75), heightadd(-80.0f)
+	{
+		heightdata[0] = hg;
+		for (unsigned i = 1; i + 1 < heightdata.size(); ++i)
+			heightdata[i] = scaledown(heightdata[i-1], baseres >> i);
+		heightdata.back().resize(1, 0.0f);
+	}
+	void compute_height(unsigned detail, const vector2i& coord, float* dest) {
+		const unsigned shift = (baseres >> detail);
+		const unsigned mask = shift - 1;
+		unsigned xc = unsigned(coord.x + shift/2) & mask;
+		unsigned yc = unsigned(coord.y + shift/2) & mask;
+		dest[0] = dest[1] = heightdata[detail][yc * shift + xc] * heightmult + heightadd;
+	}
+};
+
+
+
+class height_generator_test4 : public height_generator
+{
+public:
+	void compute_height(unsigned detail, const vector2i& coord, float* dest) {
+		dest[0] = detail * 10.0f;
+		dest[1] = (detail+1) * 10.0f;
+	}
+};
+
+
+
+static Uint8 terrcol[32*3] = {
+239, 237, 237, 202, 196, 195, 180, 171, 170, 178, 159, 158, 162, 148,
+147, 163, 147, 144, 191, 183, 180, 185, 176, 172, 173, 163, 158, 166,
+154, 146, 163, 146, 135, 170, 139, 122, 205, 138, 106, 217, 139, 101,
+228, 131, 88, 245, 156, 96, 255, 194, 106, 255, 215, 108, 233, 231, 92,
+207, 232, 70, 197, 234, 57, 199, 244, 35, 192, 249, 20, 152, 255, 0,
+109, 255, 0, 53, 236, 21, 50, 230, 24, 43, 235, 30, 16, 251, 75, 12,
+221, 180, 17, 200, 203, 28, 159, 227,
+};
+
 /// geoclipmap rendering
 class geoclipmap
 {
@@ -399,6 +463,7 @@ class geoclipmap
 
 	mutable glsl_shader_setup myshader;
 	unsigned myshader_vattr_z_c_index;
+	texture::ptr terrain_tex;
 
 public:
 	/// create geoclipmap data
@@ -440,6 +505,8 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, h
 	myshader.use();
 	myshader_vattr_z_c_index = myshader.get_vertex_attrib_index("z_c");
 	myshader.use_fixed();
+	std::vector<Uint8> terrcol2(&terrcol[0], &terrcol[3*32]);
+	terrain_tex.reset(new texture(terrcol2, 1, 32, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 }
 
 
@@ -488,6 +555,8 @@ void geoclipmap::display() const
 {
 	// display levels from inside to outside
 	//unsigned min_level = unsigned(std::max(floor(log2(new_viewpos.z/(0.4*resolution*L))), 0.0));
+	glActiveTexture(GL_TEXTURE0);
+	terrain_tex->set_gl_texture();
 	myshader.use();
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
 		levels[lvl]->display();
@@ -653,7 +722,7 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 				float hu = gcm.vboscratchbuf[ptr+gcm.fperv*(sz.x+2)+2];
 				float hl = gcm.vboscratchbuf[ptr-gcm.fperv+2];
 				float hd = gcm.vboscratchbuf[ptr-gcm.fperv*(sz.x+2)+2];
-				vector3f nm = vector3f(hl-hr, hd-hu, L_l).normal();
+				vector3f nm = vector3f(hl-hr, hd-hu, L_l * 2).normal();
 				gcm.vboscratchbuf[ptr+4] = nm.x;
 				gcm.vboscratchbuf[ptr+5] = nm.y;
 				gcm.vboscratchbuf[ptr+6] = nm.z;
@@ -765,14 +834,16 @@ unsigned geoclipmap::level::generate_indices_T(uint32_t* buffer, unsigned idxbas
 
 void geoclipmap::level::display() const
 {
-	glColor4f(1,index/8.0,0,1);//fixme test
+	//glColor4f(1,index/8.0,0,1);//fixme test
+	glColor4f(0,1,0,1);//fixme test
 
 	double level_fac = double(1 << index);
 	double L_l = gcm.L * level_fac;
 	vector2i outszi = tmp_outer.size();
 	vector2f outsz = vector2f(outszi.x, outszi.y) * L_l * 0.5f;
 	gcm.myshader.set_uniform("xysize2", outsz);
-	gcm.myshader.set_uniform("w", gcm.resolution/10.0f * L_l);
+	gcm.myshader.set_uniform("w", gcm.resolution/10.0f);
+	gcm.myshader.set_uniform("L_l", L_l);
 
 	// compute indices and store them in the VBO.
 	// mapping of VBO should be sensible.
@@ -1490,8 +1561,39 @@ void show_credits()
 	/* geoclipmap test*/
 #ifdef GEOCLIPMAPTEST
 	//height_generator_test hgt;
-	height_generator_test2 hgt;
-	geoclipmap gcm(8, 5, 3.0, hgt);
+	//height_generator_test2 hgt;
+#if 1
+	std::vector<Uint8> heights;
+	{
+		perlinnoise pn(64, 4, 6, true); // max. 8192
+		const unsigned s2 = 256*16;
+		heights = pn.values(0, 0, s2, s2, 6);
+#if 0		
+		const unsigned height_segments = 10;
+		const float total_height = 256.0;
+		const float terrace_height = total_height / height_segments;
+		lookup_function<float, 256U> asin_lookup;
+		for (unsigned i = 0; i <= 256; ++i)
+			asin_lookup.set_value(i, asin(float(i)/256) / M_PI + 0.5);
+		for (unsigned y = 0; y < s2; ++y) {
+			for (unsigned x = 0; x < s2; ++x) {
+				float f = heights[y*s2+x];
+				unsigned t = unsigned(floor(f / terrace_height));
+				float f_frac = f / terrace_height - t;
+				float f2 = f_frac * 2.0 - 1.0; // be in -1...1 range
+				// skip this for softer hills (x^3 = more steep walls)
+				f2 = f2 * f2 * f2;
+				f2 = asin_lookup.value(f2);
+				heights[y*s2+x] = Uint8((t + f2) * terrace_height);
+			}
+		}
+#endif		
+	}
+	height_generator_test3 hgt(heights, 12);
+	heights.clear();
+#endif
+//	height_generator_test4 hgt;
+	geoclipmap gcm(8, 8 /* 2^x=N */, 1.0, hgt);
 	//gcm.set_viewerpos(vector3(0, 0, 30.0));
 #endif
 
@@ -1672,7 +1774,7 @@ void show_credits()
 		vector3f campos = cam_path.value(path_fac);
 		vector3f camlookat = cam_path.value(myfrac(path_fac + 0.01));
 #ifdef GEOCLIPMAPTEST
-		camlookat.z -= 15;
+		camlookat.z -= 10;
 #endif
 		//camera cm(viewpos2, viewpos2 + angle(zang).direction().xyz(-0.25));
 		camera cm(campos, camlookat);
