@@ -215,6 +215,8 @@ const char* credits[] = {
   - vertex shader for height interpolation (done, except accurate factor a computation)
   - compute z_c and n_c correctly
     linear interpol. of z of coarser level!
+    can be done by requesting patch of 1/2 size of coarser level, then upscaling
+    coordinates by hand in the scratchbuffer
   - there are still gaps between the patches, more than 1 pixel wide, e.g. when using test4
   - render triangles from outmost patch to horizon
   - clipping of patches against viewing frustum
@@ -354,8 +356,8 @@ class height_generator_test3 : public height_generator
 	const unsigned baseres;
 	const float heightmult, heightadd;
 public:
-	height_generator_test3(const std::vector<Uint8>& hg, unsigned baseres_log2, float hm = 0.75)
-		: heightdata(baseres_log2+1), baseres(1<<baseres_log2), heightmult(hm), heightadd(-80.0f)
+	height_generator_test3(const std::vector<Uint8>& hg, unsigned baseres_log2, float hm = 0.75, float ha = -80.0f)
+		: heightdata(baseres_log2+1), baseres(1<<baseres_log2), heightmult(hm), heightadd(ha)
 	{
 		heightdata[0] = hg;
 		for (unsigned i = 1; i + 1 < heightdata.size(); ++i)
@@ -700,6 +702,12 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 		// compute the heights first (+1 in every direction to compute normals too)
 		unsigned ptr = 0;
 		vector2i upcrd = upar.bl + vector2i(-1, -1);
+		// idea: fill in height here only from current level
+		// fill in every 2nd x/y value by height of coarser level (we need m/2+1 values)
+		// interpolate missing heights manually here
+		// for that scratchbuffer needs to get enlarged possibly
+		// it depends on wether upcrd.xy is odd or even where to add lines for z_c computation
+		// later we need to compute n_c as well, so we need even more lines.
 		for (int y = 0; y < sz.y + 2; ++y) {
 			vector2i upcrd2 = upcrd;
 			for (int x = 0; x < sz.x + 2; ++x) {
@@ -1564,8 +1572,8 @@ void show_credits()
 	//height_generator_test2 hgt;
 #if 1
 	std::vector<Uint8> heights;
-#if 0
-	float hm = 0.75;
+#if 1
+	float hm = 0.75, ha = -80.0f;
 	{
 		perlinnoise pn(64, 4, 6, true); // max. 8192
 		const unsigned s2 = 256*16;
@@ -1592,7 +1600,7 @@ void show_credits()
 #endif		
 	}
 #else
-	float hm = 0.2;
+	float hm = 0.2, ha = -40.0f;
 	{
 		// set heights from a file
 		unsigned s2 = 4096;
@@ -1610,7 +1618,7 @@ void show_credits()
 		si.unlock();
 	}
 #endif
-	height_generator_test3 hgt(heights, 12, hm);
+	height_generator_test3 hgt(heights, 12, hm, ha);
 	heights.clear();
 #endif
 //	height_generator_test4 hgt;
