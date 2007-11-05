@@ -225,19 +225,22 @@ const char* credits[] = {
     can be done by requesting patch of 1/2 size of coarser level, then upscaling
     coordinates by hand in the scratchbuffer
     same for normals! costly...
-  - a idiv takes 40 cycles! even worse, -33 % 34 = 33 and not 1 as we need
-    it to be... so "% (N+1)" doesnt work as expected.
-    it would be VERY important to make N+1 a power of two!
-    just render N-2 triangles then, should work too...
+    normals should be placed in textures, then n_c is computed correctly by the
+    GPU already (linear interpolation of the values)
+    what do we need? one texture RGB per level, with res N*N (again essential that
+    N is a power of 2) that would be 256x256x3x7=1300k, no problem, small memory
+    if n is just stored to a texture when it is computed, we get n_c without extra
+    cost, we only need to store and update one texture per level and need to enhance
+    the shader, and need to store n in the texture.
+    we can easily give the mix factor alpha from the vshader to the fshader
+    so it is all a matter of texture updates.
   - render triangles from outmost patch to horizon
   - clipping of patches against viewing frustum
     -- patches could become empty
   - efficient update of VBO data
     --> more performance
-  - if resolution would be 2^n-2 then we could do efficient modulo ops,
-    the vertex VBO would be just one row/col larger
-    check how/if that works!
-    --> more performance, no "div" instructions but "and"
+  - generate tri-strips with better post-transform-cache-use
+    (columns of 16-32 triangles)
   - write good height generator
   - do not render too small detail (start at min_level, but test that this works)
   - compute how many tris per second are rendered as performance measure
@@ -250,30 +253,25 @@ const char* credits[] = {
     then do simple normal generation.
     normals in textures would be much easier, but the height generator
     needs to compute them then.
+  - a idiv takes 40 cycles! even worse, -33 % 34 = 33 and not 1 as we need
+    it to be... so "% (N+1)" doesnt work as expected.
+    it would be VERY important to make N+1 a power of two!
+    just render N-2 triangles then, should work too...
 
 
-  formula from paper
-  axy = min(max( (abs(xy-vxy) - ((xymax-xymin)/2 - w-1)) / w, 0), 1)
+    triangle count: N*N*2*3/4 per level plus N*N*2*1/4 for inner level
+    N*N/2 * (3*level+1)
 
-  xy, vxy in coordinates of the grid,
-  so realxy/L_l = xy ?
-  formula with per-vertex-constants:
+    height interpolation with subdivision interpolator!
 
-  axy = min(max( (abs(xy-c0) - c1) * c2, 0), 1)
-
-  c0 = vxy
-  c1 = (xymax-xymin)/2 - w - 1
-  c2 = 1/w
-
-  xy = vpos.xy * c3
-  c3 = round(1/L_l) ?
-
-  or even give L_l as factor for xy! then vpos.xy = xy
-  then vxy = round(viewpos.xy/L_l)
-
-  w = n/10 (N/10?)
-
-
+    finer levels with height generation by noise!
+    generate height from outer levels...
+    that is to generate heights of level x, we could generate heights of level x-1 at half res +1
+    scale them up (maybe with subdivision interpolator) and add the level x detail.
+    we would need to store current heights of all levels then (scratchbuf per level),
+    but it could be easier and save computations.
+    7 levels with 2^8 res each give 458752 samples, with 10*4 bytes each: 18.3mb ca, that is ok
+    some extra for overlap (N+1 or N+3) but ca. 20mb.
 */
 
 
@@ -413,8 +411,9 @@ class geoclipmap
 {
 	static const unsigned fperv = 10; // floats per vertex in VBO
 	// "N", must be power of two
-	const unsigned resolution;
-	const unsigned resolution1; // res+1
+	const unsigned resolution;  // resolution of triangles in VBO buffer
+	const unsigned resolution_vbo; // resolution of VBO buffer
+	const unsigned resolution_vbo_mod; // resolution of VBO buffer - 1
 	// distance between each vertex on finest level in real world space
 	const double L;
 
@@ -471,15 +470,11 @@ class geoclipmap
 	height_generator& height_gen;
 
 	int mod(int n) const {
-		if (n < 0)
-			return resolution1 - (-n % resolution1);
-		else
-			return n % resolution1;
+		return n & resolution_vbo_mod;
 	}
 
 	vector2i clamp(const vector2i& v) const {
-		return vector2i(mod(v.x + resolution1),
-				mod(v.y + resolution1));
+		return vector2i(mod(v.x), mod(v.y));
 	}
 
 	mutable glsl_shader_setup myshader;
@@ -507,10 +502,11 @@ public:
 
 
 geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, height_generator& hg)
-	: resolution(1 << resolution_exp),
-	  resolution1(resolution + 1),
+	: resolution((1 << resolution_exp) - 2),
+	  resolution_vbo(1 << resolution_exp),
+	  resolution_vbo_mod(resolution_vbo-1),
 	  L(L_),
-	  vboscratchbuf((resolution1+2)*(resolution1+2)*fperv), // 4 floats per VBO sample (x,y,z,zc)
+	  vboscratchbuf((resolution_vbo+2)*(resolution_vbo+2)*fperv), // 4 floats per VBO sample (x,y,z,zc)
 	  // ^ extra space for normals
 	  levels(nr_levels),
 	  height_gen(hg),
@@ -526,8 +522,8 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, h
 	myshader.use();
 	myshader_vattr_z_c_index = myshader.get_vertex_attrib_index("z_c");
 	const float w_fac = 0.2f;//0.1f;
-	myshader.set_uniform("w_p1", resolution1 * w_fac + 1.0f);
-	myshader.set_uniform("w_rcp", 1.0f/(resolution1 * w_fac));
+	myshader.set_uniform("w_p1", resolution_vbo * w_fac + 1.0f);
+	myshader.set_uniform("w_rcp", 1.0f/(resolution_vbo * w_fac));
 	myshader.use_fixed();
 	std::vector<Uint8> terrcol2(&terrcol[0], &terrcol[3*32]);
 	terrain_tex.reset(new texture(terrcol2, 1, 32, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
@@ -556,7 +552,7 @@ void geoclipmap::set_viewerpos(const vector3f& new_viewpos)
 	// so compute floor(log2(new_viewpos.z/(0.4*resolution*L))) as minimum level
 	unsigned min_level = unsigned(std::max(floor(log2(new_viewpos.z/(0.4*resolution*L))), 0.0));
 	// fixme: later test to begin drawing at min_level
-	log_debug("min_level=" << min_level);
+	//log_debug("min_level=" << min_level);
 
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
 		levelborder = levels[lvl]->set_viewerpos(new_viewpos, levelborder);
@@ -597,11 +593,11 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx)
 	  indices(true)
 {
 	// mostly static...
-	vertices.init_data(gcm.resolution1*gcm.resolution1*gcm.fperv*4, 0, GL_STATIC_DRAW);
+	vertices.init_data(gcm.resolution_vbo*gcm.resolution_vbo*gcm.fperv*4, 0, GL_STATIC_DRAW);
 	// fixme: init space for indices, give correct access mode or experiment
 	// fixme: set correct max. size
 	// size of T-junction triangles: 4 indices per triangle (3 + 2 degen. - 1), 4*N/2 triangles
-	indices.init_data(gcm.resolution1*gcm.resolution1*2*4 + (4*gcm.resolution/2*4)*4,
+	indices.init_data(gcm.resolution_vbo*gcm.resolution_vbo*2*4 + (4*gcm.resolution/2*4)*4,
 			  0, GL_STATIC_DRAW);
 }
 
@@ -771,7 +767,7 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 		vector2i vboupdateoffset = gcm.clamp(upar.bl - vboarea.bl + dataoffset);
 		for (int y = 0; y < sz.y; ++y) {
 			int vbopos_y = gcm.mod(vboupdateoffset.y + y);
-			int vbopos_y2 = vbopos_y * gcm.resolution1;
+			int vbopos_y2 = vbopos_y * gcm.resolution_vbo;
 			for (int x = 0; x < sz.x; ++x) {
 				int vbopos_x = gcm.mod(vboupdateoffset.x + x);
 				float* fptr = &gcm.vboscratchbuf[ptr];
@@ -804,8 +800,8 @@ unsigned geoclipmap::level::generate_indices(uint32_t* buffer, unsigned idxbase,
 	int vbooffy0 = vbooff.y;
 	int vbooffy1 = gcm.mod(vbooffy0 + 1);
 	for (int y = 0; y + 1 < size.y; ++y) {
-		int vbooffy0_l = vbooffy0 * gcm.resolution1;
-		int vbooffy1_l = vbooffy1 * gcm.resolution1;
+		int vbooffy0_l = vbooffy0 * gcm.resolution_vbo;
+		int vbooffy1_l = vbooffy1 * gcm.resolution_vbo;
 		int vbooffx0 = vbooff.x;
 		// store first index twice since second line of first patch
 		if (!firstpatch || y > 0) buffer[ptr++] = vbooffy1_l + vbooffx0;
@@ -829,36 +825,37 @@ unsigned geoclipmap::level::generate_indices_T(uint32_t* buffer, unsigned idxbas
 {
 	unsigned ptr = idxbase;
 	vector2i v = dataoffset;
+	//fixme: this leads to visual errors when resolution_vbo=2^n and resolution=-2
 	for (unsigned i = 0; i < gcm.resolution/2; ++i) {
-		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution1;
+		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution_vbo;
 		v.y = gcm.mod(v.y + 1);
-		buffer[ptr+2] = v.x + v.y * gcm.resolution1;
+		buffer[ptr+2] = v.x + v.y * gcm.resolution_vbo;
 		v.y = gcm.mod(v.y + 1);
-		buffer[ptr+3] = v.x + v.y * gcm.resolution1;
+		buffer[ptr+3] = v.x + v.y * gcm.resolution_vbo;
 		ptr += 4;
 	}
 	for (unsigned i = 0; i < gcm.resolution/2; ++i) {
-		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution1;
+		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution_vbo;
 		v.x = gcm.mod(v.x + 1);
-		buffer[ptr+2] = v.x + v.y * gcm.resolution1;
+		buffer[ptr+2] = v.x + v.y * gcm.resolution_vbo;
 		v.x = gcm.mod(v.x + 1);
-		buffer[ptr+3] = v.x + v.y * gcm.resolution1;
+		buffer[ptr+3] = v.x + v.y * gcm.resolution_vbo;
 		ptr += 4;
 	}
 	for (unsigned i = 0; i < gcm.resolution/2; ++i) {
-		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution1;
-		v.y = gcm.mod(v.y + gcm.resolution);
-		buffer[ptr+2] = v.x + v.y * gcm.resolution1;
-		v.y = gcm.mod(v.y + gcm.resolution);
-		buffer[ptr+3] = v.x + v.y * gcm.resolution1;
+		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution_vbo;
+		v.y = gcm.mod(v.y - 1);
+		buffer[ptr+2] = v.x + v.y * gcm.resolution_vbo;
+		v.y = gcm.mod(v.y - 1);
+		buffer[ptr+3] = v.x + v.y * gcm.resolution_vbo;
 		ptr += 4;
 	}
 	for (unsigned i = 0; i < gcm.resolution/2; ++i) {
-		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution1;
-		v.x = gcm.mod(v.x + gcm.resolution);
-		buffer[ptr+2] = v.x + v.y * gcm.resolution1;
-		v.x = gcm.mod(v.x + gcm.resolution);
-		buffer[ptr+3] = v.x + v.y * gcm.resolution1;
+		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution_vbo;
+		v.x = gcm.mod(v.x - 1);
+		buffer[ptr+2] = v.x + v.y * gcm.resolution_vbo;
+		v.x = gcm.mod(v.x - 1);
+		buffer[ptr+3] = v.x + v.y * gcm.resolution_vbo;
 		ptr += 4;
 	}
 	return ptr - idxbase;
@@ -928,7 +925,7 @@ void geoclipmap::level::display() const
 	indices.bind();
 	glDrawRangeElements(GL_TRIANGLE_STRIP,
 			    0/*min_vertex_index*/,
-			    gcm.resolution1*gcm.resolution1-1/*max_vertex_index*/,
+			    gcm.resolution_vbo*gcm.resolution_vbo-1/*max_vertex_index*/,
 			    nridx, GL_UNSIGNED_INT, 0);
 	indices.unbind();
 	glDisableVertexAttribArray(gcm.myshader_vattr_z_c_index);
@@ -1593,8 +1590,8 @@ void show_credits()
 
 	/* geoclipmap test*/
 #ifdef GEOCLIPMAPTEST
-	//height_generator_test hgt;
-	height_generator_test2 hgt;
+	height_generator_test hgt;
+	//height_generator_test2 hgt;
 #if 0
 	std::vector<Uint8> heights;
 #if 1
