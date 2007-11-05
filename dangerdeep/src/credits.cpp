@@ -211,13 +211,24 @@ const char* credits[] = {
   values are transformed by the terrace function later anyway.
   Linear interpolation is much faster.
 
+  The resolution ("N") needs to be high enough or level transitions are
+  visible. Since height interpolation can be done only for vertices
+  they need to be close enough to each other to make the interpolation
+  look ok. N = 2^8 looks good, but eats much performance.
+  With N=2^7 it looks good in the near, but you can see popping in the
+  distance. This may be fixed by correct height interpolation of z_c
+  (bilinear)
+
   fixme todo:
-  - vertex shader for height interpolation (done, except accurate factor a computation)
   - compute z_c and n_c correctly
     linear interpol. of z of coarser level!
     can be done by requesting patch of 1/2 size of coarser level, then upscaling
     coordinates by hand in the scratchbuffer
-  - there are still gaps between the patches, more than 1 pixel wide, e.g. when using test4
+    same for normals! costly...
+  - a idiv takes 40 cycles! even worse, -33 % 34 = 33 and not 1 as we need
+    it to be... so "% (N+1)" doesnt work as expected.
+    it would be VERY important to make N+1 a power of two!
+    just render N-2 triangles then, should work too...
   - render triangles from outmost patch to horizon
   - clipping of patches against viewing frustum
     -- patches could become empty
@@ -233,6 +244,7 @@ const char* credits[] = {
 
   done:
   - render T-junction triangles
+  - vertex shader for height interpolation
   - normal computation (or do it via texture)
     compute 2 vertices more in xy direction when computing an update
     then do simple normal generation.
@@ -362,7 +374,7 @@ public:
 		heightdata[0] = hg;
 		for (unsigned i = 1; i + 1 < heightdata.size(); ++i)
 			heightdata[i] = scaledown(heightdata[i-1], baseres >> i);
-		heightdata.back().resize(1, 0.0f);
+		heightdata.back().resize(1, 0);
 	}
 	void compute_height(unsigned detail, const vector2i& coord, float* dest) {
 		const unsigned shift = (baseres >> detail);
@@ -379,8 +391,8 @@ class height_generator_test4 : public height_generator
 {
 public:
 	void compute_height(unsigned detail, const vector2i& coord, float* dest) {
-		dest[0] = detail * 10.0f;
-		dest[1] = (detail+1) * 10.0f;
+		dest[0] = detail * 20.0f;
+		dest[1] = (detail+1) * 20.0f;
 	}
 };
 
@@ -458,9 +470,16 @@ class geoclipmap
 	ptrvector<level> levels;
 	height_generator& height_gen;
 
+	int mod(int n) const {
+		if (n < 0)
+			return resolution1 - (-n % resolution1);
+		else
+			return n % resolution1;
+	}
+
 	vector2i clamp(const vector2i& v) const {
-		return vector2i((v.x + resolution1) % resolution1,
-				(v.y + resolution1) % resolution1);
+		return vector2i(mod(v.x + resolution1),
+				mod(v.y + resolution1));
 	}
 
 	mutable glsl_shader_setup myshader;
@@ -506,6 +525,9 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, h
 
 	myshader.use();
 	myshader_vattr_z_c_index = myshader.get_vertex_attrib_index("z_c");
+	const float w_fac = 0.2f;//0.1f;
+	myshader.set_uniform("w_p1", resolution1 * w_fac + 1.0f);
+	myshader.set_uniform("w_rcp", 1.0f/(resolution1 * w_fac));
 	myshader.use_fixed();
 	std::vector<Uint8> terrcol2(&terrcol[0], &terrcol[3*32]);
 	terrain_tex.reset(new texture(terrcol2, 1, 32, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
@@ -600,10 +622,11 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 	// when 3.5 is rounded up to 4.0, then -3.5 is rounded up to -3.0.
 	// this is done by using round(x) := floor(x + 0.5)
 	// so when this gives -3.5....3.5 we take floor(-3.0)....floor(4.0) -> -3...4
-	area outer(vector2i(int(floor(0.5*new_viewpos.x/L_l - 0.25*gcm.resolution + 0.5)*2),
-			    int(floor(0.5*new_viewpos.y/L_l - 0.25*gcm.resolution + 0.5)*2)),
-		   vector2i(int(floor(0.5*new_viewpos.x/L_l + 0.25*gcm.resolution + 0.5)*2),
-			    int(floor(0.5*new_viewpos.y/L_l + 0.25*gcm.resolution + 0.5)*2)));
+	//fime: transform to int first, then *2 ? doesnt help
+	area outer(vector2i(int(floor(0.5*new_viewpos.x/L_l - 0.25*gcm.resolution + 0.5))*2,
+			    int(floor(0.5*new_viewpos.y/L_l - 0.25*gcm.resolution + 0.5))*2),
+		   vector2i(int(floor(0.5*new_viewpos.x/L_l + 0.25*gcm.resolution + 0.5))*2,
+			    int(floor(0.5*new_viewpos.y/L_l + 0.25*gcm.resolution + 0.5))*2));
 	tmp_inner = inner;
 	tmp_outer = outer;
 	// for vertex updates we only need to know the outer area...
@@ -712,6 +735,9 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 			vector2i upcrd2 = upcrd;
 			for (int x = 0; x < sz.x + 2; ++x) {
 				float* fptr = &gcm.vboscratchbuf[ptr];
+				//fixme: heights (z,z_c) seem ok, interpolation factor too,
+				//but still gaps. is x/y borked?
+				//seems not, but what is wrong then? height is not interpolated?
 				fptr[0] = upcrd2.x * L_l; // fixme: maybe subtract viewerpos here later.
 				fptr[1] = upcrd2.y * L_l;
 				gcm.height_gen.compute_height(index, upcrd2, &fptr[2]);
@@ -744,10 +770,10 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 		ptr = ((sz.x+2)+1)*gcm.fperv;
 		vector2i vboupdateoffset = gcm.clamp(upar.bl - vboarea.bl + dataoffset);
 		for (int y = 0; y < sz.y; ++y) {
-			int vbopos_y = (vboupdateoffset.y + y) % gcm.resolution1;
+			int vbopos_y = gcm.mod(vboupdateoffset.y + y);
 			int vbopos_y2 = vbopos_y * gcm.resolution1;
 			for (int x = 0; x < sz.x; ++x) {
-				int vbopos_x = (vboupdateoffset.x + x) % gcm.resolution1;
+				int vbopos_x = gcm.mod(vboupdateoffset.x + x);
 				float* fptr = &gcm.vboscratchbuf[ptr];
 				// fixme: here compute max. area rectangles for efficient update
 				vertices.init_sub_data((vbopos_x + vbopos_y2)*gcm.fperv*4, gcm.fperv*4, fptr);
@@ -776,7 +802,7 @@ unsigned geoclipmap::level::generate_indices(uint32_t* buffer, unsigned idxbase,
 	// always put the first index of a row twice and also the last fixme
 	unsigned ptr = idxbase;
 	int vbooffy0 = vbooff.y;
-	int vbooffy1 = (vbooffy0 + 1) % gcm.resolution1;
+	int vbooffy1 = gcm.mod(vbooffy0 + 1);
 	for (int y = 0; y + 1 < size.y; ++y) {
 		int vbooffy0_l = vbooffy0 * gcm.resolution1;
 		int vbooffy1_l = vbooffy1 * gcm.resolution1;
@@ -787,12 +813,12 @@ unsigned geoclipmap::level::generate_indices(uint32_t* buffer, unsigned idxbase,
 		for (int x = 0; x < size.x; ++x) {
 			buffer[ptr++] = vbooffy1_l + vbooffx0;
 			buffer[ptr++] = lastidx = vbooffy0_l + vbooffx0;
-			vbooffx0 = (vbooffx0 + 1) % gcm.resolution1;
+			vbooffx0 = gcm.mod(vbooffx0 + 1);
 		}
 		// store last index twice until second last line of last patch
 		if (!lastpatch || y + 2 < size.y) buffer[ptr++] = lastidx;
 		vbooffy0 = vbooffy1;
-		vbooffy1 = (vbooffy1 + 1) % gcm.resolution1;
+		vbooffy1 = gcm.mod(vbooffy1 + 1);
 	}
 	return ptr - idxbase;
 }
@@ -805,33 +831,33 @@ unsigned geoclipmap::level::generate_indices_T(uint32_t* buffer, unsigned idxbas
 	vector2i v = dataoffset;
 	for (unsigned i = 0; i < gcm.resolution/2; ++i) {
 		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution1;
-		v.y = (v.y + 1) % gcm.resolution1;
+		v.y = gcm.mod(v.y + 1);
 		buffer[ptr+2] = v.x + v.y * gcm.resolution1;
-		v.y = (v.y + 1) % gcm.resolution1;
+		v.y = gcm.mod(v.y + 1);
 		buffer[ptr+3] = v.x + v.y * gcm.resolution1;
 		ptr += 4;
 	}
 	for (unsigned i = 0; i < gcm.resolution/2; ++i) {
 		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution1;
-		v.x = (v.x + 1) % gcm.resolution1;
+		v.x = gcm.mod(v.x + 1);
 		buffer[ptr+2] = v.x + v.y * gcm.resolution1;
-		v.x = (v.x + 1) % gcm.resolution1;
+		v.x = gcm.mod(v.x + 1);
 		buffer[ptr+3] = v.x + v.y * gcm.resolution1;
 		ptr += 4;
 	}
 	for (unsigned i = 0; i < gcm.resolution/2; ++i) {
 		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution1;
-		v.y = (v.y + gcm.resolution) % gcm.resolution1;
+		v.y = gcm.mod(v.y + gcm.resolution);
 		buffer[ptr+2] = v.x + v.y * gcm.resolution1;
-		v.y = (v.y + gcm.resolution) % gcm.resolution1;
+		v.y = gcm.mod(v.y + gcm.resolution);
 		buffer[ptr+3] = v.x + v.y * gcm.resolution1;
 		ptr += 4;
 	}
 	for (unsigned i = 0; i < gcm.resolution/2; ++i) {
 		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution1;
-		v.x = (v.x + gcm.resolution) % gcm.resolution1;
+		v.x = gcm.mod(v.x + gcm.resolution);
 		buffer[ptr+2] = v.x + v.y * gcm.resolution1;
-		v.x = (v.x + gcm.resolution) % gcm.resolution1;
+		v.x = gcm.mod(v.x + gcm.resolution);
 		buffer[ptr+3] = v.x + v.y * gcm.resolution1;
 		ptr += 4;
 	}
@@ -848,10 +874,9 @@ void geoclipmap::level::display() const
 	double level_fac = double(1 << index);
 	double L_l = gcm.L * level_fac;
 	vector2i outszi = tmp_outer.size();
-	vector2f outsz = vector2f(outszi.x, outszi.y) * L_l * 0.5f;
+	vector2f outsz = vector2f(outszi.x - 1, outszi.y - 1) * 0.5f;
 	gcm.myshader.set_uniform("xysize2", outsz);
-	gcm.myshader.set_uniform("w", gcm.resolution/6.0f /*10.0f*/);
-	gcm.myshader.set_uniform("L_l", L_l);
+	gcm.myshader.set_uniform("L_l_rcp", 1.0f/L_l);
 
 	// compute indices and store them in the VBO.
 	// mapping of VBO should be sensible.
@@ -1569,8 +1594,8 @@ void show_credits()
 	/* geoclipmap test*/
 #ifdef GEOCLIPMAPTEST
 	//height_generator_test hgt;
-	//height_generator_test2 hgt;
-#if 1
+	height_generator_test2 hgt;
+#if 0
 	std::vector<Uint8> heights;
 #if 1
 	float hm = 0.75, ha = -80.0f;
@@ -1621,8 +1646,10 @@ void show_credits()
 	height_generator_test3 hgt(heights, 12, hm, ha);
 	heights.clear();
 #endif
-//	height_generator_test4 hgt;
-	geoclipmap gcm(8, 8 /* 2^x=N */, 1.0, hgt);
+	//height_generator_test4 hgt;
+	// total area covered = 2^(levels-1) * L * N
+	// 8, 7, 1.0 gives 2^14m = 16384m
+	geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, 1.0, hgt);
 	//gcm.set_viewerpos(vector3(0, 0, 30.0));
 #endif
 
