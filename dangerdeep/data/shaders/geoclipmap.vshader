@@ -12,8 +12,9 @@ varying vec2 texcoord;
 
 uniform vec3 viewpos;
 uniform vec2 xysize2;
-uniform float w;
-uniform float L_l;
+uniform float w_p1;
+uniform float w_rcp;
+uniform float L_l_rcp;
 
 attribute float z_c;
 
@@ -21,13 +22,9 @@ void main()
 {
 	vec4 vpos = gl_Vertex;
 
-	float wl = w * L_l;
-	vec2 d = vpos.xy - viewpos.xy;
-	d.x = abs(d.x);
-	d.y = abs(d.y);
-	d = (d - xysize2 + vec2(wl + L_l, wl + L_l));
-	d.x = min(max(d.x/wl, 0.0), 1.0);
-	d.y = min(max(d.y/wl, 0.0), 1.0);
+	vec2 d = abs(vpos.xy - viewpos.xy) * L_l_rcp;
+	d = (d - xysize2 + vec2(w_p1, w_p1));
+	d = clamp(d * w_rcp, 0.0, 1.0);
 	d.x = max(d.x, d.y);
 	vpos.z = mix(vpos.z, z_c, d.x);
 
@@ -41,7 +38,9 @@ void main()
 	//normal = vec3(0.0, 0.0, 1.0);
 
 	col = gl_Color.xyz;
-	col.z = d.x;
+	//col.z = d.x;
+	//col.y = d.y;
+	//col.y = 1.0 - (vpos.z + 0.0)/100.0;
 
 	// finally compute position
 	gl_Position = gl_ModelViewProjectionMatrix * vpos;
