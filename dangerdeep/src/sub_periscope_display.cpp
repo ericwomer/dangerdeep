@@ -115,10 +115,10 @@ void sub_periscope_display::post_display(game& gm) const
 		blurtex->set_gl_texture();
 		// bind shader...
 		glsl_blurview->use();
-		glsl_blurview->set_gl_texture(*viewtex, "tex_view", 0);
-		glsl_blurview->set_gl_texture(*blurtex, "tex_blur", 1);
+		glsl_blurview->set_gl_texture(*viewtex, loc_tex_view, 0);
+		glsl_blurview->set_gl_texture(*blurtex, loc_tex_blur, 1);
 		double blur_y_off = myfrac(gm.get_time() / 10.0);
-		glsl_blurview->set_uniform("blur_texc_offset", vector3(blur_y_off, 0, 0));
+		glsl_blurview->set_uniform(loc_blur_texc_offset, vector3(blur_y_off, 0, 0));
 		glBegin(GL_QUADS);
 		glTexCoord2f(0.0f, 1.0f);
 		glVertex3f(-1.0f, 1.0f, 0.0f);
@@ -195,6 +195,11 @@ sub_periscope_display::sub_periscope_display(user_interface& ui_)
 		viewtex.reset(new texture(512, 512, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 		glsl_blurview.reset(new glsl_shader_setup(get_shader_dir() + "blurview.vshader",
 							  get_shader_dir() + "blurview.fshader"));
+		glsl_blurview->use();
+		loc_blur_texc_offset = glsl_blurview->get_uniform_location("blur_texc_offset");
+		loc_tex_view = glsl_blurview->get_uniform_location("tex_view");
+		loc_tex_blur = glsl_blurview->get_uniform_location("tex_blur");
+		glsl_blurview->use_fixed();
 		/* Note 2007/05/08:
 		   we can have a better Blur texture if we generate it at runtime.
 		   What makes up the blur texture?

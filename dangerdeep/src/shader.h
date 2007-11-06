@@ -93,23 +93,26 @@ class glsl_program
 	/// check if GLSL is supported
 	static bool supported();
 
+	/// get location (number) of uniform value
+	unsigned get_uniform_location(const std::string& name) const;
+
 	/// set up texture for a particular shader name
-	void set_gl_texture(class texture& tex, const std::string& texname, unsigned texunit) const;
+	void set_gl_texture(class texture& tex, unsigned loc, unsigned texunit) const;
 
 	/// set uniform variable
-	void set_uniform(const std::string& name, const vector3f& value) const;
+	void set_uniform(unsigned loc, const vector3f& value) const;
 
 	/// set uniform variable (vec2)
-	void set_uniform(const std::string& name, const vector2f& value) const;
+	void set_uniform(unsigned loc, const vector2f& value) const;
 
 	/// set uniform variable (float)
-	void set_uniform(const std::string& name, float value) const;
+	void set_uniform(unsigned loc, float value) const;
 
 	/// set uniform variable (doubles)
-	void set_uniform(const std::string& name, const vector3& value) const;
+	void set_uniform(unsigned loc, const vector3& value) const;
 
 	/// set uniform variable (matrix4)
-	void set_uniform(const std::string& name, const matrix4& value) const;
+	void set_uniform(unsigned loc, const matrix4& value) const;
 
 	/// get vertex attribute index
 	unsigned get_vertex_attrib_index(const std::string& name) const;
@@ -143,34 +146,39 @@ class glsl_shader_setup
 	/// use fixed function pipeline instead of particular setup
 	static void use_fixed();
 
+	/// get location (number) of uniform value
+	unsigned get_uniform_location(const std::string& name) const {
+		return prog.get_uniform_location(name);
+	}
+
 	/// set up texture for a particular shader name
-	void set_gl_texture(class texture& tex, const std::string& texname, unsigned texunitnr) const {
-		prog.set_gl_texture(tex, texname, texunitnr);
+	void set_gl_texture(class texture& tex, unsigned loc, unsigned texunitnr) const {
+		prog.set_gl_texture(tex, loc, texunitnr);
 	}
 
 	/// set uniform variable
-	void set_uniform(const std::string& name, const vector3f& value) const {
-		prog.set_uniform(name, value);
+	void set_uniform(unsigned loc, const vector3f& value) const {
+		prog.set_uniform(loc, value);
 	}
 
 	/// set uniform variable
-	void set_uniform(const std::string& name, const vector2f& value) const {
-		prog.set_uniform(name, value);
+	void set_uniform(unsigned loc, const vector2f& value) const {
+		prog.set_uniform(loc, value);
 	}
 
 	/// set uniform variable
-	void set_uniform(const std::string& name, float value) const {
-		prog.set_uniform(name, value);
+	void set_uniform(unsigned loc, float value) const {
+		prog.set_uniform(loc, value);
 	}
 
 	/// set uniform variable (doubles)
-	void set_uniform(const std::string& name, const vector3& value) const {
-		prog.set_uniform(name, value);
+	void set_uniform(unsigned loc, const vector3& value) const {
+		prog.set_uniform(loc, value);
 	}
 
 	/// set uniform variable (matrix4)
-	void set_uniform(const std::string& name, const matrix4& value) const {
-		prog.set_uniform(name, value);
+	void set_uniform(unsigned loc, const matrix4& value) const {
+		prog.set_uniform(loc, value);
 	}
 
 	/// get vertex attribute index

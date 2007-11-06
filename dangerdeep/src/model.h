@@ -81,8 +81,8 @@ public:
 			// set up opengl texture matrix with map transformation values
 			void setup_glmatrix() const;
 			void set_gl_texture() const;
- 			void set_gl_texture(glsl_program& prog, const std::string& texname, unsigned texunitnr) const;
- 			void set_gl_texture(glsl_shader_setup& gss, const std::string& texname, unsigned texunitnr) const;
+ 			void set_gl_texture(glsl_program& prog, unsigned loc, unsigned texunitnr) const;
+ 			void set_gl_texture(glsl_shader_setup& gss, unsigned loc, unsigned texunitnr) const;
 			void set_texture(texture* t);
 			void register_layout(const std::string& name, const std::string& basepath,
 					     texture::mapping_mode mapping,
@@ -311,6 +311,19 @@ protected:
 	static std::auto_ptr<glsl_shader_setup> glsl_color_normal_specular;
 	static std::auto_ptr<glsl_shader_setup> glsl_color_normal_specular_caustic;
 	static std::auto_ptr<glsl_shader_setup> glsl_mirror_clip;
+	static unsigned loc_cn_tex_normal;
+	static unsigned loc_cn_tex_color;
+	static unsigned loc_cnc_tex_normal;
+	static unsigned loc_cnc_tex_color;
+	static unsigned loc_cnc_tex_caustic;
+	static unsigned loc_cns_tex_normal;
+	static unsigned loc_cns_tex_color;
+	static unsigned loc_cns_tex_specular;
+	static unsigned loc_cnsc_tex_normal;
+	static unsigned loc_cnsc_tex_color;
+	static unsigned loc_cnsc_tex_specular;
+	static unsigned loc_cnsc_tex_caustic;
+	static unsigned loc_mc_tex_color;
 
 	// init / deinit
 	static void render_init();

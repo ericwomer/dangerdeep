@@ -126,6 +126,25 @@ protected:
 	// Shader program
 	std::auto_ptr<glsl_shader_setup> glsl_water;
 	std::auto_ptr<glsl_shader_setup> glsl_under_water;
+	// locations of uniforms for shaders
+	unsigned loc_w_noise_xform_0;
+	unsigned loc_uw_noise_xform_0;
+	unsigned loc_w_noise_xform_1;
+	unsigned loc_uw_noise_xform_1;
+	unsigned loc_w_reflection_mvp;
+	unsigned loc_w_viewpos;
+	unsigned loc_uw_viewpos;
+	unsigned loc_w_upwelltop;
+	unsigned loc_uw_upwelltop;
+	unsigned loc_w_upwellbot;
+	unsigned loc_uw_upwellbot;
+	unsigned loc_w_upwelltopbot;
+	unsigned loc_uw_upwelltopbot;
+	unsigned loc_w_tex_normal;
+	unsigned loc_uw_tex_normal;
+	unsigned loc_w_tex_reflection;
+	unsigned loc_w_tex_foam;
+	unsigned loc_w_tex_foamamount;
 
 	// indices for vertex attributes
 	unsigned vattr_aof_index;

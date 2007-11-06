@@ -47,6 +47,9 @@ class sub_periscope_display : public freeview_display
 	texture::ptr viewtex;
 	texture::ptr blurtex;
 	std::auto_ptr<glsl_shader_setup> glsl_blurview;
+	unsigned loc_blur_texc_offset;
+	unsigned loc_tex_view;
+	unsigned loc_tex_blur;
 
 	vector3 get_viewpos(class game& gm) const;
 

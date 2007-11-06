@@ -258,6 +258,25 @@ water::water(double tm) :
 							     get_shader_dir() + "under_water.fshader"));
 		glsl_water->use();
 		vattr_aof_index = glsl_water->get_vertex_attrib_index("amount_of_foam");
+		loc_w_noise_xform_0 = glsl_water->get_uniform_location("noise_xform_0");
+		loc_w_noise_xform_1 = glsl_water->get_uniform_location("noise_xform_1");
+		loc_w_reflection_mvp = glsl_water->get_uniform_location("reflection_mvp");
+		loc_w_viewpos = glsl_water->get_uniform_location("viewpos");
+		loc_w_upwelltop = glsl_water->get_uniform_location("upwelltop");
+		loc_w_upwellbot = glsl_water->get_uniform_location("upwellbot");
+		loc_w_upwelltopbot = glsl_water->get_uniform_location("upwelltopbot");
+		loc_w_tex_normal = glsl_water->get_uniform_location("tex_normal");
+		loc_w_tex_reflection = glsl_water->get_uniform_location("tex_reflection");
+		loc_w_tex_foam = glsl_water->get_uniform_location("tex_foam");
+		loc_w_tex_foamamount = glsl_water->get_uniform_location("tex_foamamount");
+		glsl_under_water->use();
+		loc_uw_noise_xform_0 = glsl_under_water->get_uniform_location("noise_xform_0");
+		loc_uw_noise_xform_1 = glsl_under_water->get_uniform_location("noise_xform_1");
+		loc_uw_viewpos = glsl_under_water->get_uniform_location("viewpos");
+		loc_uw_upwelltop = glsl_under_water->get_uniform_location("upwelltop");
+		loc_uw_upwellbot = glsl_under_water->get_uniform_location("upwellbot");
+		loc_uw_upwelltopbot = glsl_under_water->get_uniform_location("upwelltopbot");
+		loc_uw_tex_normal = glsl_under_water->get_uniform_location("tex_normal");
 		glsl_water->use_fixed();
 	}
 
@@ -375,8 +394,8 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 			glsl_under_water->use();
 		} else {
 			glsl_water->use();
-			glsl_water->set_gl_texture(*foamtex, "tex_foam", 2);
-			glsl_water->set_gl_texture(*foamamounttex, "tex_foamamount", 3);
+			glsl_water->set_gl_texture(*foamtex, loc_w_tex_foam, 2);
+			glsl_water->set_gl_texture(*foamamounttex, loc_w_tex_foamamount, 3);
 		}
 
 		// texture units / coordinates:
@@ -426,13 +445,13 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 		//fixme: do we have to treat the viewer offset here, like with tex matrix
 		//       setup below?!
 		if (under_water) {
-			glsl_under_water->set_uniform("noise_xform_0", noise_0_pos.xyz(wavetile_length_rcp * 8.0f));
-			glsl_under_water->set_uniform("noise_xform_1", noise_1_pos.xyz(wavetile_length_rcp * 32.0f));
-			glsl_under_water->set_gl_texture(*water_bumpmap, "tex_normal", 0);
+			glsl_under_water->set_uniform(loc_uw_noise_xform_0, noise_0_pos.xyz(wavetile_length_rcp * 8.0f));
+			glsl_under_water->set_uniform(loc_uw_noise_xform_1, noise_1_pos.xyz(wavetile_length_rcp * 32.0f));
+			glsl_under_water->set_gl_texture(*water_bumpmap, loc_uw_tex_normal, 0);
 		} else {
-			glsl_water->set_uniform("noise_xform_0", noise_0_pos.xyz(wavetile_length_rcp * 8.0f));
-			glsl_water->set_uniform("noise_xform_1", noise_1_pos.xyz(wavetile_length_rcp * 32.0f));
-			glsl_water->set_gl_texture(*water_bumpmap, "tex_normal", 0);
+			glsl_water->set_uniform(loc_w_noise_xform_0, noise_0_pos.xyz(wavetile_length_rcp * 8.0f));
+			glsl_water->set_uniform(loc_w_noise_xform_1, noise_1_pos.xyz(wavetile_length_rcp * 32.0f));
+			glsl_water->set_gl_texture(*water_bumpmap, loc_w_tex_normal, 0);
 		}
 
 		// set up texture matrix, so that texture coordinates can be computed from position.
@@ -483,7 +502,7 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 	glEnable(GL_TEXTURE_2D);
 	if (use_shaders) {
 		if (!under_water) {
-			glsl_water->set_gl_texture(*reflectiontex, "tex_reflection", 1);
+			glsl_water->set_gl_texture(*reflectiontex, loc_w_tex_reflection, 1);
 		}
 	} else {
 		reflectiontex->set_gl_texture();
@@ -496,7 +515,7 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 	reflection_projmvmat.multiply_gl();
 	if (use_hqsfx && !under_water) {
 		// here get result and give it to the fragment shader
-		glsl_water->set_uniform("reflection_mvp",
+		glsl_water->set_uniform(loc_w_reflection_mvp,
 					matrix4::trans(0.5, 0.5, 0.0) * matrix4::diagonal(0.5, 0.5, 1.0)
 					* reflection_projmvmat);
 	}
@@ -763,10 +782,10 @@ void water::display(const vector3& viewpos, double max_view_dist, bool under_wat
 	if (use_shaders) {
 		if (under_water) {
 			glsl_under_water->use();
-			glsl_under_water->set_uniform("viewpos", viewpos);
+			glsl_under_water->set_uniform(loc_uw_viewpos, viewpos);
 		} else {
 			glsl_water->use();
-			glsl_water->set_uniform("viewpos", viewpos);
+			glsl_water->set_uniform(loc_w_viewpos, viewpos);
 		}
 	}
 	setup_textures(reflection_projmvmat, transl, under_water);
@@ -1504,13 +1523,13 @@ void water::set_refraction_color(const colorf& light_color)
 		vector3f upwellbot(wb[0], wb[1], wb[2]);
 		vector3f upwelltopbot = upwelltop - upwellbot;
 		glsl_water->use();
-		glsl_water->set_uniform("upwelltop", upwelltop);
-		glsl_water->set_uniform("upwellbot", upwellbot);
-		glsl_water->set_uniform("upwelltopbot", upwelltopbot);
+		glsl_water->set_uniform(loc_w_upwelltop, upwelltop);
+		glsl_water->set_uniform(loc_w_upwellbot, upwellbot);
+		glsl_water->set_uniform(loc_w_upwelltopbot, upwelltopbot);
 		glsl_under_water->use();
-		glsl_under_water->set_uniform("upwelltop", upwelltop);
-		glsl_under_water->set_uniform("upwellbot", upwellbot);
-		glsl_under_water->set_uniform("upwelltopbot", upwelltopbot);
+		glsl_under_water->set_uniform(loc_uw_upwelltop, upwelltop);
+		glsl_under_water->set_uniform(loc_uw_upwellbot, upwellbot);
+		glsl_under_water->set_uniform(loc_uw_upwelltopbot, upwelltopbot);
 		glsl_water->use_fixed();
 	}
 

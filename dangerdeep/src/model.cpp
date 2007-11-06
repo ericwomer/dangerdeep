@@ -67,6 +67,20 @@ auto_ptr<glsl_shader_setup> model::glsl_color_normal_specular;
 auto_ptr<glsl_shader_setup> model::glsl_color_normal_caustic;
 auto_ptr<glsl_shader_setup> model::glsl_color_normal_specular_caustic;
 auto_ptr<glsl_shader_setup> model::glsl_mirror_clip;
+unsigned model::loc_cn_tex_normal;
+unsigned model::loc_cn_tex_color;
+unsigned model::loc_cnc_tex_normal;
+unsigned model::loc_cnc_tex_color;
+unsigned model::loc_cnc_tex_caustic;
+unsigned model::loc_cns_tex_normal;
+unsigned model::loc_cns_tex_color;
+unsigned model::loc_cns_tex_specular;
+unsigned model::loc_cnsc_tex_normal;
+unsigned model::loc_cnsc_tex_color;
+unsigned model::loc_cnsc_tex_specular;
+unsigned model::loc_cnsc_tex_caustic;
+unsigned model::loc_mc_tex_color;
+
 
 const std::string model::default_layout = "*default*";
 
@@ -199,6 +213,27 @@ void model::render_init()
 			dl.push_back("DO_REAL_CLIPPING");
  		glsl_mirror_clip.reset(new glsl_shader_setup(get_shader_dir() + "modelrender_mirrorclip.vshader",
 							     get_shader_dir() + "modelrender_mirrorclip.fshader", dl));
+		// request uniform locations
+		glsl_color_normal->use();
+		loc_cn_tex_normal = glsl_color_normal->get_uniform_location("tex_normal");
+		loc_cn_tex_color = glsl_color_normal->get_uniform_location("tex_color");
+		glsl_color_normal_caustic->use();
+		loc_cnc_tex_normal = glsl_color_normal_caustic->get_uniform_location("tex_normal");
+		loc_cnc_tex_color = glsl_color_normal_caustic->get_uniform_location("tex_color");
+		loc_cnc_tex_caustic = glsl_color_normal_caustic->get_uniform_location("tex_caustic");
+		glsl_color_normal_specular->use();
+		loc_cns_tex_normal = glsl_color_normal_specular->get_uniform_location("tex_normal");
+		loc_cns_tex_color = glsl_color_normal_specular->get_uniform_location("tex_color");
+		loc_cns_tex_specular = glsl_color_normal_specular->get_uniform_location("tex_specular");
+		glsl_color_normal_specular_caustic->use();
+		loc_cnsc_tex_normal = glsl_color_normal_specular_caustic->get_uniform_location("tex_normal");
+		loc_cnsc_tex_color = glsl_color_normal_specular_caustic->get_uniform_location("tex_color");
+		loc_cnsc_tex_specular = glsl_color_normal_specular_caustic->get_uniform_location("tex_specular");
+		loc_cnsc_tex_caustic = glsl_color_normal_specular_caustic->get_uniform_location("tex_caustic");
+		glsl_mirror_clip->use();
+		loc_mc_tex_color = glsl_mirror_clip->get_uniform_location("tex_color");
+		glsl_mirror_clip->use_fixed();
+
 	}
 }
 
@@ -1180,20 +1215,20 @@ void model::material::map::set_gl_texture() const
 
 
 
-void model::material::map::set_gl_texture(glsl_program& prog, const std::string& texname, unsigned texunitnr) const
+void model::material::map::set_gl_texture(glsl_program& prog, unsigned loc, unsigned texunitnr) const
 {
 	if (!tex)
 		throw error("set_gl_texture(shader) with empty texture");
-	prog.set_gl_texture(*tex, texname, texunitnr);
+	prog.set_gl_texture(*tex, loc, texunitnr);
 }
 
 
 
-void model::material::map::set_gl_texture(glsl_shader_setup& gss, const std::string& texname, unsigned texunitnr) const
+void model::material::map::set_gl_texture(glsl_shader_setup& gss, unsigned loc, unsigned texunitnr) const
 {
 	if (!tex)
 		throw error("set_gl_texture(shader) with empty texture");
-	gss.set_gl_texture(*tex, texname, texunitnr);
+	gss.set_gl_texture(*tex, loc, texunitnr);
 }
 
 
@@ -1235,29 +1270,24 @@ void model::material::set_gl_values(const texture *caustic_map) const
 
 				if (specularmap.get() && !caustic_map) {
 					glsl_color_normal_specular->use();
-					specularmap->set_gl_texture(*glsl_color_normal_specular, "tex_specular", 2);
-					normalmap->set_gl_texture(*glsl_color_normal_specular, "tex_normal", 1);
-					colormap->set_gl_texture(*glsl_color_normal_specular, "tex_color", 0);
-				} else
-				if (specularmap.get() && caustic_map) {
+					specularmap->set_gl_texture(*glsl_color_normal_specular, loc_cns_tex_specular, 2);
+					normalmap->set_gl_texture(*glsl_color_normal_specular, loc_cns_tex_normal, 1);
+					colormap->set_gl_texture(*glsl_color_normal_specular, loc_cns_tex_color, 0);
+				} else if (specularmap.get() && caustic_map) {
 					glsl_color_normal_specular_caustic->use();
-					glsl_color_normal_specular_caustic->set_gl_texture(*const_cast<texture *>(caustic_map), "tex_caustic", 3);
-					specularmap->set_gl_texture(*glsl_color_normal_specular_caustic, "tex_specular", 2);
-					normalmap->set_gl_texture(*glsl_color_normal_specular_caustic, "tex_normal", 1);
-					colormap->set_gl_texture(*glsl_color_normal_specular_caustic, "tex_color", 0);
-				} else
-				if (!specularmap.get() && !caustic_map)
-				{
+					glsl_color_normal_specular_caustic->set_gl_texture(*const_cast<texture *>(caustic_map), loc_cnsc_tex_caustic, 3);
+					specularmap->set_gl_texture(*glsl_color_normal_specular_caustic, loc_cnsc_tex_specular, 2);
+					normalmap->set_gl_texture(*glsl_color_normal_specular_caustic, loc_cnsc_tex_normal, 1);
+					colormap->set_gl_texture(*glsl_color_normal_specular_caustic, loc_cnsc_tex_color, 0);
+				} else if (!specularmap.get() && !caustic_map) {
 					glsl_color_normal->use();
-					normalmap->set_gl_texture(*glsl_color_normal, "tex_normal", 1);
-					colormap->set_gl_texture(*glsl_color_normal, "tex_color", 0);
-				} else
-				if (!specularmap.get() && caustic_map)
-				{
+					normalmap->set_gl_texture(*glsl_color_normal, loc_cn_tex_normal, 1);
+					colormap->set_gl_texture(*glsl_color_normal, loc_cn_tex_color, 0);
+				} else if (!specularmap.get() && caustic_map) {
 					glsl_color_normal_caustic->use();
-					glsl_color_normal_caustic->set_gl_texture(*const_cast<texture *>(caustic_map), "tex_caustic", 2);
-					normalmap->set_gl_texture(*glsl_color_normal_caustic, "tex_normal", 1);
-					colormap->set_gl_texture(*glsl_color_normal_caustic, "tex_color", 0);
+					glsl_color_normal_caustic->set_gl_texture(*const_cast<texture *>(caustic_map), loc_cnc_tex_caustic, 2);
+					normalmap->set_gl_texture(*glsl_color_normal_caustic, loc_cnc_tex_normal, 1);
+					colormap->set_gl_texture(*glsl_color_normal_caustic, loc_cnc_tex_color, 0);
 				}
 
 			} else {
@@ -1343,7 +1373,7 @@ void model::material::set_gl_values_mirror_clip() const
 		glMatrixMode(GL_TEXTURE);
 		// plain texture mapping with diffuse lighting only, but with shaders
 		glColor4f(1, 1, 1, 1);
-		colormap->set_gl_texture(*glsl_mirror_clip, "tex_color", 0);
+		colormap->set_gl_texture(*glsl_mirror_clip, loc_mc_tex_color, 0);
 		colormap->setup_glmatrix();
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		glActiveTexture(GL_TEXTURE1);

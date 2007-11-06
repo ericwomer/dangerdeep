@@ -220,6 +220,13 @@ const char* credits[] = {
   (bilinear)
 
   fixme todo:
+  - shader::set_gl_texture replace this, do not call once per frame
+    but once per shader init!!!
+    replace similar calls everywhere!
+    DONE but check if performance is better (also at water!) and everything still works!
+    -> model rendering, water, normal credits (canyon), underwater caustics.
+  - make fperv fix 4 and store normals in texture
+    DONE, but test
   - compute z_c and n_c correctly
     linear interpol. of z of coarser level!
     can be done by requesting patch of 1/2 size of coarser level, then upscaling
@@ -234,6 +241,10 @@ const char* credits[] = {
     the shader, and need to store n in the texture.
     we can easily give the mix factor alpha from the vshader to the fshader
     so it is all a matter of texture updates.
+    to find the up to 4 update areas:
+    update area mod N, if tr.xy < bl.xy then horiz/vert there are 2 areas (< not <= )
+    the width is then tr.xy + 1 for the second area, N - bl.xy for the first (N=2^n)
+    so max coordinates for bl/tr are N-1.
   - render triangles from outmost patch to horizon
   - clipping of patches against viewing frustum
     -- patches could become empty
@@ -409,7 +420,7 @@ static Uint8 terrcol[32*3] = {
 /// geoclipmap rendering
 class geoclipmap
 {
-	static const unsigned fperv = 10; // floats per vertex in VBO
+#define geoclipmap_fperv 4
 	// "N", must be power of two
 	const unsigned resolution;  // resolution of triangles in VBO buffer
 	const unsigned resolution_vbo; // resolution of VBO buffer
@@ -419,6 +430,9 @@ class geoclipmap
 
 	// scratch buffer for VBO data, for transmission
 	std::vector<float> vboscratchbuf;
+
+	// scratch buffer for texture data, for transmission
+	std::vector<Uint8> texscratchbuf;
 
 	struct area
 	{
@@ -460,10 +474,12 @@ class geoclipmap
 					  bool firstpatch = true, bool lastpatch = true) const;
 		unsigned generate_indices_T(uint32_t* buffer, unsigned idxbase) const;
 
+		texture::ptr normals;
 	public:
 		level(geoclipmap& gcm_, unsigned idx);
 		area set_viewerpos(const vector3f& new_viewpos, const geoclipmap::area& inner);
 		void display() const;
+		texture& normals_tex() const { return *normals; }
 	};
 
 	ptrvector<level> levels;
@@ -479,7 +495,16 @@ class geoclipmap
 
 	mutable glsl_shader_setup myshader;
 	unsigned myshader_vattr_z_c_index;
+	unsigned loc_texterrain;
+	unsigned loc_texnormal;
+	unsigned loc_texnormal_c;
+	unsigned loc_w_p1;
+	unsigned loc_w_rcp;
+	unsigned loc_viewpos;
+	unsigned loc_xysize2;
+	unsigned loc_L_l_rcp;
 	texture::ptr terrain_tex;
+	texture::ptr horizon_normal;
 
 public:
 	/// create geoclipmap data
@@ -506,8 +531,9 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, h
 	  resolution_vbo(1 << resolution_exp),
 	  resolution_vbo_mod(resolution_vbo-1),
 	  L(L_),
-	  vboscratchbuf((resolution_vbo+2)*(resolution_vbo+2)*fperv), // 4 floats per VBO sample (x,y,z,zc)
+	  vboscratchbuf((resolution_vbo+2)*(resolution_vbo+2)*geoclipmap_fperv), // 4 floats per VBO sample (x,y,z,zc)
 	  // ^ extra space for normals
+	  texscratchbuf(resolution_vbo*resolution_vbo*3),
 	  levels(nr_levels),
 	  height_gen(hg),
 	  myshader(get_shader_dir() + "geoclipmap.vshader",
@@ -521,12 +547,25 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, h
 
 	myshader.use();
 	myshader_vattr_z_c_index = myshader.get_vertex_attrib_index("z_c");
+	loc_texterrain = myshader.get_uniform_location("texterrain");
+	loc_texnormal = myshader.get_uniform_location("texnormal");
+	loc_texnormal_c = myshader.get_uniform_location("texnormal_c");
+	loc_w_p1 = myshader.get_uniform_location("w_p1");
+	loc_w_rcp = myshader.get_uniform_location("w_rcp");
+	loc_viewpos = myshader.get_uniform_location("viewpos");
+	loc_xysize2 = myshader.get_uniform_location("xysize2");
+	loc_L_l_rcp = myshader.get_uniform_location("L_l_rcp");
 	const float w_fac = 0.2f;//0.1f;
-	myshader.set_uniform("w_p1", resolution_vbo * w_fac + 1.0f);
-	myshader.set_uniform("w_rcp", 1.0f/(resolution_vbo * w_fac));
+	myshader.set_uniform(loc_w_p1, resolution_vbo * w_fac + 1.0f);
+	myshader.set_uniform(loc_w_rcp, 1.0f/(resolution_vbo * w_fac));
 	myshader.use_fixed();
 	std::vector<Uint8> terrcol2(&terrcol[0], &terrcol[3*32]);
 	terrain_tex.reset(new texture(terrcol2, 1, 32, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
+	// set a texture for normals outside coarsest level, just 0,0,1
+	std::vector<Uint8> pxl(3, 128);
+	pxl[2] = 255;
+	horizon_normal.reset(new texture(pxl, 1, 1, GL_RGB, texture::LINEAR, texture::REPEAT));
+	myshader.use_fixed();
 }
 
 
@@ -565,7 +604,7 @@ void geoclipmap::set_viewerpos(const vector3f& new_viewpos)
 	}
 
 	myshader.use();
-	myshader.set_uniform("viewpos", new_viewpos);
+	myshader.set_uniform(loc_viewpos, new_viewpos);
 	myshader.use_fixed();
 }
 
@@ -575,12 +614,26 @@ void geoclipmap::display() const
 {
 	// display levels from inside to outside
 	//unsigned min_level = unsigned(std::max(floor(log2(new_viewpos.z/(0.4*resolution*L))), 0.0));
-	glActiveTexture(GL_TEXTURE0);
-	terrain_tex->set_gl_texture();
+	glActiveTexture(GL_TEXTURE2);
+	glEnable(GL_TEXTURE_2D);
 	myshader.use();
+	myshader.set_gl_texture(*terrain_tex, loc_texterrain, 0);
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
+		//fixme: these initialisations kick down fps!
+		//do them only once, later only set texture to unit!
+		//same for water etc!
+		//fixme: this code seems to make rendering painfully slow.
+		//binding tex units could/should be done once per shader?YES
+		myshader.set_gl_texture(levels[lvl]->normals_tex(), loc_texnormal, 1);
+		if (lvl + 1 < levels.size())
+			myshader.set_gl_texture(levels[lvl+1]->normals_tex(), loc_texnormal_c, 2);
+		else
+			myshader.set_gl_texture(*horizon_normal, loc_texnormal_c, 2);
 		levels[lvl]->display();
 	}
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE0);
 	myshader.use_fixed();
 }
 
@@ -593,12 +646,16 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx)
 	  indices(true)
 {
 	// mostly static...
-	vertices.init_data(gcm.resolution_vbo*gcm.resolution_vbo*gcm.fperv*4, 0, GL_STATIC_DRAW);
+	vertices.init_data(gcm.resolution_vbo*gcm.resolution_vbo*geoclipmap_fperv, 0, GL_STATIC_DRAW);
 	// fixme: init space for indices, give correct access mode or experiment
 	// fixme: set correct max. size
 	// size of T-junction triangles: 4 indices per triangle (3 + 2 degen. - 1), 4*N/2 triangles
 	indices.init_data(gcm.resolution_vbo*gcm.resolution_vbo*2*4 + (4*gcm.resolution/2*4)*4,
 			  0, GL_STATIC_DRAW);
+	// fixme: later set real normal data
+	std::vector<Uint8> pxl(3, 128);
+	pxl[1] = (index&3) * 64 + 128; //index * 32; // 0-8, fixme test
+	normals.reset(new texture(pxl, 1, 1, GL_RGB, texture::LINEAR, texture::REPEAT));
 }
 
 
@@ -719,7 +776,6 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 		// also den startpunkt im vbo, wie dataoffset von dem recheck
 
 		// compute the heights first (+1 in every direction to compute normals too)
-		unsigned ptr = 0;
 		vector2i upcrd = upar.bl + vector2i(-1, -1);
 		// idea: fill in height here only from current level
 		// fill in every 2nd x/y value by height of coarser level (we need m/2+1 values)
@@ -727,6 +783,7 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 		// for that scratchbuffer needs to get enlarged possibly
 		// it depends on wether upcrd.xy is odd or even where to add lines for z_c computation
 		// later we need to compute n_c as well, so we need even more lines.
+		unsigned ptr = 0;
 		for (int y = 0; y < sz.y + 2; ++y) {
 			vector2i upcrd2 = upcrd;
 			for (int x = 0; x < sz.x + 2; ++x) {
@@ -738,33 +795,52 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 				fptr[1] = upcrd2.y * L_l;
 				gcm.height_gen.compute_height(index, upcrd2, &fptr[2]);
 				//gcm.height_gen.compute_height(index+1, upcrd2, &fptr[3]);
-				ptr += gcm.fperv;
+				ptr += geoclipmap_fperv;
 				++upcrd2.x;
 			}
 			++upcrd.y;
 		}
 
 		// compute normals
-		ptr = ((sz.x+2)+1)*gcm.fperv;
+		ptr = (sz.x+2 + 1)*geoclipmap_fperv;
+		unsigned tptr = 0;
 		for (int y = 0; y < sz.y; ++y) {
 			for (int x = 0; x < sz.x; ++x) {
-				float hr = gcm.vboscratchbuf[ptr+gcm.fperv+2];
-				float hu = gcm.vboscratchbuf[ptr+gcm.fperv*(sz.x+2)+2];
-				float hl = gcm.vboscratchbuf[ptr-gcm.fperv+2];
-				float hd = gcm.vboscratchbuf[ptr-gcm.fperv*(sz.x+2)+2];
+				float hr = gcm.vboscratchbuf[ptr+geoclipmap_fperv+2];
+				float hu = gcm.vboscratchbuf[ptr+geoclipmap_fperv*(sz.x+2)+2];
+				float hl = gcm.vboscratchbuf[ptr-geoclipmap_fperv+2];
+				float hd = gcm.vboscratchbuf[ptr-geoclipmap_fperv*(sz.x+2)+2];
 				vector3f nm = vector3f(hl-hr, hd-hu, L_l * 2).normal();
-				gcm.vboscratchbuf[ptr+4] = nm.x;
-				gcm.vboscratchbuf[ptr+5] = nm.y;
-				gcm.vboscratchbuf[ptr+6] = nm.z;
-				// fixme: later write n_c too... somehow...
-				ptr += gcm.fperv;
+				nm = nm * 127;
+				gcm.texscratchbuf[tptr+0] = Uint8(nm.x + 128);
+				gcm.texscratchbuf[tptr+1] = Uint8(nm.y + 128);
+				gcm.texscratchbuf[tptr+2] = Uint8(nm.z + 128);
+				tptr += 3;
+				ptr += geoclipmap_fperv;
 			}
-			ptr += 2*gcm.fperv;
+			ptr += 2*geoclipmap_fperv;
+		}
+		// copy texture data to texture
+		ptr = 0;
+		vector2i vboupdateoffset = gcm.clamp(upar.bl - vboarea.bl + dataoffset);
+		// fixme: later texture coordinates maybe must get shifted a bit,
+		// so that texel 0,0 matches vertex at 0,0. texel 0,0 spans area of vertices 0,0->0,1
+		// and 0,0->1,0 to 1,1...?
+		normals->set_gl_texture();
+		for (int y = 0; y < sz.y; ++y) {
+			int vbopos_y = gcm.mod(vboupdateoffset.y + y);
+			//int vbopos_y2 = vbopos_y * gcm.resolution_vbo;
+			for (int x = 0; x < sz.x; ++x) {
+				int vbopos_x = gcm.mod(vboupdateoffset.x + x);
+				glTexSubImage2D(GL_TEXTURE_2D, 0 /* mipmap level */,
+						vbopos_x, vbopos_y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE,
+						&gcm.texscratchbuf[ptr]);
+				ptr += 3;
+			}
 		}
 
 		// copy data to real VBO.
-		ptr = ((sz.x+2)+1)*gcm.fperv;
-		vector2i vboupdateoffset = gcm.clamp(upar.bl - vboarea.bl + dataoffset);
+		ptr = (sz.x+2 + 1)*geoclipmap_fperv;
 		for (int y = 0; y < sz.y; ++y) {
 			int vbopos_y = gcm.mod(vboupdateoffset.y + y);
 			int vbopos_y2 = vbopos_y * gcm.resolution_vbo;
@@ -772,10 +848,10 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 				int vbopos_x = gcm.mod(vboupdateoffset.x + x);
 				float* fptr = &gcm.vboscratchbuf[ptr];
 				// fixme: here compute max. area rectangles for efficient update
-				vertices.init_sub_data((vbopos_x + vbopos_y2)*gcm.fperv*4, gcm.fperv*4, fptr);
-				ptr += gcm.fperv;
+				vertices.init_sub_data((vbopos_x + vbopos_y2)*geoclipmap_fperv*4, geoclipmap_fperv*4, fptr);
+				ptr += geoclipmap_fperv;
 			}
-			ptr += 2*gcm.fperv;
+			ptr += 2*geoclipmap_fperv;
 		}
 	}
 
@@ -872,8 +948,8 @@ void geoclipmap::level::display() const
 	double L_l = gcm.L * level_fac;
 	vector2i outszi = tmp_outer.size();
 	vector2f outsz = vector2f(outszi.x - 1, outszi.y - 1) * 0.5f;
-	gcm.myshader.set_uniform("xysize2", outsz);
-	gcm.myshader.set_uniform("L_l_rcp", 1.0f/L_l);
+	gcm.myshader.set_uniform(gcm.loc_xysize2, outsz);
+	gcm.myshader.set_uniform(gcm.loc_L_l_rcp, 1.0f/L_l);
 
 	// compute indices and store them in the VBO.
 	// mapping of VBO should be sensible.
@@ -914,12 +990,11 @@ void geoclipmap::level::display() const
 	if (nridx == 0) return;
 	vertices.bind();
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, gcm.fperv*4, (float*)0 + 0);
-	glVertexAttribPointer(gcm.myshader_vattr_z_c_index, 1, GL_FLOAT, GL_FALSE, gcm.fperv*4, (float*)0 + 3);
+	glVertexPointer(3, GL_FLOAT, geoclipmap_fperv*4, (float*)0 + 0);
+	glVertexAttribPointer(gcm.myshader_vattr_z_c_index, 1, GL_FLOAT, GL_FALSE, geoclipmap_fperv*4, (float*)0 + 3);
 	glEnableVertexAttribArray(gcm.myshader_vattr_z_c_index);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glNormalPointer(GL_FLOAT, gcm.fperv*4, (float*)0 + 4);
 	vertices.unbind();
+	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	indices.bind();
@@ -1079,6 +1154,9 @@ class canyon
 	std::auto_ptr<model::mesh> mymesh;
 	std::vector<float> heightdata;
 	glsl_shader_setup myshader;
+	unsigned loc_texsandrock;
+	unsigned loc_texnoise;
+	unsigned loc_texgrass;
 	std::auto_ptr<texture> sandrocktex;
 	std::auto_ptr<texture> noisetex;
 	std::auto_ptr<texture> grasstex;
@@ -1164,6 +1242,12 @@ canyon::canyon(unsigned w, unsigned h)
 	}
 #endif
 	mymesh->compile();
+
+	myshader.use();
+	loc_texsandrock = myshader.get_uniform_location("texsandrock");
+	loc_texnoise = myshader.get_uniform_location("texnoise");
+	loc_texgrass = myshader.get_uniform_location("texgrass");
+	myshader.use_fixed();
 }
 
 
@@ -1171,9 +1255,9 @@ canyon::canyon(unsigned w, unsigned h)
 void canyon::canyon_material::set_gl_values(const texture* /* unused */) const
 {
 	cyn.myshader.use();
-	cyn.myshader.set_gl_texture(*cyn.sandrocktex.get(), "texsandrock", 0);
-	cyn.myshader.set_gl_texture(*cyn.noisetex.get(), "texnoise", 1);
-	cyn.myshader.set_gl_texture(*cyn.grasstex.get(), "texgrass", 2);
+	cyn.myshader.set_gl_texture(*cyn.sandrocktex.get(), cyn.loc_texsandrock, 0);
+	cyn.myshader.set_gl_texture(*cyn.noisetex.get(), cyn.loc_texnoise, 1);
+	cyn.myshader.set_gl_texture(*cyn.grasstex.get(), cyn.loc_texgrass, 2);
 }
 
 
@@ -1230,6 +1314,9 @@ class plant_set
  	mutable vertexbufferobject plantindexdata;
 	std::auto_ptr<texture> planttex;
 	glsl_shader_setup myshader;
+	unsigned loc_textrees;
+	unsigned loc_viewpos;
+	unsigned loc_windmovement;
 	unsigned vattr_treesize_idx;
 	mutable std::vector<plant_alpha_sortidx> sortindices;
 public:
@@ -1283,7 +1370,11 @@ plant_set::plant_set(vector<float>& heightdata, unsigned nr, unsigned w, unsigne
 
 	myshader.use();
 	vattr_treesize_idx = myshader.get_vertex_attrib_index("treesize");
-	myshader.set_gl_texture(*planttex, "textrees", 0);
+	loc_textrees = myshader.get_uniform_location("textrees");
+	loc_viewpos = myshader.get_uniform_location("viewpos");
+	loc_windmovement = myshader.get_uniform_location("windmovement");
+	// this is done only once... hmm are uniforms stored per shader and never changed?! fixme
+	myshader.set_gl_texture(*planttex, loc_textrees, 0);
 	// vertex data per plant are 4 * (3+2+1) floats (3x pos, 2x texc, 1x attr)
 	plantvertexdata.init_data(4 * (3 + 2 + 1) * 4 * plants.size(), 0, GL_STATIC_DRAW);
 	float* vertexdata = (float*) plantvertexdata.map(GL_WRITE_ONLY);
@@ -1376,8 +1467,8 @@ void plant_set::display(const vector3& viewpos, float zang) const
 
 	glDepthMask(GL_FALSE);
 	myshader.use();
-	myshader.set_uniform("viewpos", vp.xy());
-	myshader.set_uniform("windmovement", myfrac(sys().millisec()/4000.0));
+	myshader.set_uniform(loc_viewpos, vp.xy());
+	myshader.set_uniform(loc_windmovement, myfrac(sys().millisec()/4000.0));
 
 	plantvertexdata.bind();
 	glEnableClientState(GL_VERTEX_ARRAY);
