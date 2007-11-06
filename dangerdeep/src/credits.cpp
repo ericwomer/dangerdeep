@@ -220,13 +220,9 @@ const char* credits[] = {
   (bilinear)
 
   fixme todo:
-  - shader::set_gl_texture replace this, do not call once per frame
-    but once per shader init!!!
-    replace similar calls everywhere!
-    DONE but check if performance is better (also at water!) and everything still works!
-    -> model rendering, water, normal credits (canyon), underwater caustics.
-  - make fperv fix 4 and store normals in texture
-    DONE, but test
+  - since efficient update code there are gaps in geometry/texture!
+    only in one direction...
+  - texcoord computation is not fully correct in shader
   - compute z_c and n_c correctly
     linear interpol. of z of coarser level!
     can be done by requesting patch of 1/2 size of coarser level, then upscaling
@@ -246,10 +242,10 @@ const char* credits[] = {
     the width is then tr.xy + 1 for the second area, N - bl.xy for the first (N=2^n)
     so max coordinates for bl/tr are N-1.
   - render triangles from outmost patch to horizon
+  - later check if texture coordinates needs to get translated by 0.25 of one texel or so,
+    because a value in the normal tex must match a vertex, but a texel spans an area normally...
   - clipping of patches against viewing frustum
     -- patches could become empty
-  - efficient update of VBO data
-    --> more performance
   - generate tri-strips with better post-transform-cache-use
     (columns of 16-32 triangles)
   - write good height generator
@@ -268,6 +264,8 @@ const char* credits[] = {
     it to be... so "% (N+1)" doesnt work as expected.
     it would be VERY important to make N+1 a power of two!
     just render N-2 triangles then, should work too...
+  - efficient update of VBO data
+    --> more performance
 
 
     triangle count: N*N*2*3/4 per level plus N*N*2*1/4 for inner level
@@ -455,6 +453,8 @@ class geoclipmap
 	class level
 	{
 		geoclipmap& gcm;
+		/// distance between samples of that level
+		double L_l;
 		/// level index
 		const unsigned index;
 		/// vertex data
@@ -473,6 +473,11 @@ class geoclipmap
 					  const vector2i& vbooff,
 					  bool firstpatch = true, bool lastpatch = true) const;
 		unsigned generate_indices_T(uint32_t* buffer, unsigned idxbase) const;
+		void update_region(const geoclipmap::area& upar);
+		void update_VBO_and_tex(const vector2i& scratchoff,
+					int scratchmod,
+					const vector2i& sz,
+					const vector2i& vbooff);
 
 		texture::ptr normals;
 	public:
@@ -503,6 +508,7 @@ class geoclipmap
 	unsigned loc_viewpos;
 	unsigned loc_xysize2;
 	unsigned loc_L_l_rcp;
+	unsigned loc_N_rcp;
 	texture::ptr terrain_tex;
 	texture::ptr horizon_normal;
 
@@ -555,9 +561,11 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, h
 	loc_viewpos = myshader.get_uniform_location("viewpos");
 	loc_xysize2 = myshader.get_uniform_location("xysize2");
 	loc_L_l_rcp = myshader.get_uniform_location("L_l_rcp");
+	loc_N_rcp = myshader.get_uniform_location("N_rcp");
 	const float w_fac = 0.2f;//0.1f;
 	myshader.set_uniform(loc_w_p1, resolution_vbo * w_fac + 1.0f);
 	myshader.set_uniform(loc_w_rcp, 1.0f/(resolution_vbo * w_fac));
+	myshader.set_uniform(loc_N_rcp, 1.0f/resolution_vbo);
 	myshader.use_fixed();
 	std::vector<Uint8> terrcol2(&terrcol[0], &terrcol[3*32]);
 	terrain_tex.reset(new texture(terrcol2, 1, 32, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
@@ -633,6 +641,8 @@ void geoclipmap::display() const
 	}
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glActiveTexture(GL_TEXTURE0);
 	myshader.use_fixed();
 }
@@ -641,6 +651,7 @@ void geoclipmap::display() const
 
 geoclipmap::level::level(geoclipmap& gcm_, unsigned idx)
 	: gcm(gcm_),
+	  L_l(gcm.L * double(1 << idx)),
 	  index(idx),
 	  vertices(false),
 	  indices(true)
@@ -654,17 +665,14 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx)
 			  0, GL_STATIC_DRAW);
 	// create space for normal texture
 	std::vector<Uint8> pxl(3*gcm.resolution_vbo*gcm.resolution_vbo);
-	normals.reset(new texture(pxl, gcm.resolution_vbo, gcm.resolution_vbo, GL_RGB, texture::LINEAR, texture::REPEAT));
+	normals.reset(new texture(pxl, gcm.resolution_vbo,
+				  gcm.resolution_vbo, GL_RGB, texture::LINEAR, texture::REPEAT));
 }
 
 
 
 geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, const geoclipmap::area& inner)
 {
-	// scalar depending on level
-	double level_fac = double(1 << index);
-	// length between samples in meters, depends on level.
-	double L_l = gcm.L * level_fac;
 	// x_base/y_base tells offset in sample data according to level and
 	// viewer position (new_viewpos)
 	// this multiply with 0.5 then round then *2 lets the patches map to
@@ -681,184 +689,236 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 			    int(floor(0.5*new_viewpos.y/L_l + 0.25*gcm.resolution + 0.5))*2));
 	tmp_inner = inner;
 	tmp_outer = outer;
+	// set active texture for update
+	normals->set_gl_texture();
 	// for vertex updates we only need to know the outer area...
 	// compute part of "outer" that is NOT covered by old outer area,
 	// this gives a rectangular or L-shaped form, but this can not be expressed
 	// as area, only with at least 2 areas...
-	// The width/height of the L areas will always be at least 2, as the outer border snaps always
-	// on every second vertex. This makes updates with glBufferSubData a bit more efficient.
-	std::vector<area> updates;
 	if (vboarea.empty()) {
-		updates.push_back(outer);
 		vboarea = outer;	// set this to make the update work correctly
 		dataoffset = vector2i(0, 0);
+		update_region(outer);
 	} else {
 		area outercmp = outer;
+		unsigned nr_updates = 0;
 		if (outercmp.bl.y < vboarea.bl.y) {
-			updates.push_back(area(outercmp.bl, vector2i(outercmp.tr.x, vboarea.bl.y - 1)));
+			update_region(area(outercmp.bl, vector2i(outercmp.tr.x, vboarea.bl.y - 1)));
 			outercmp.bl.y = vboarea.bl.y;
+			++nr_updates;
 		}
 		if (vboarea.tr.y < outercmp.tr.y) {
-			updates.push_back(area(vector2i(outercmp.bl.x, vboarea.tr.y + 1), outercmp.tr));
+			update_region(area(vector2i(outercmp.bl.x, vboarea.tr.y + 1), outercmp.tr));
 			outercmp.tr.y = vboarea.tr.y;
+			++nr_updates;
 		}
 		if (outercmp.bl.x < vboarea.bl.x) {
-			updates.push_back(area(outercmp.bl, vector2i(vboarea.bl.x - 1, outercmp.tr.y)));
+			update_region(area(outercmp.bl, vector2i(vboarea.bl.x - 1, outercmp.tr.y)));
 			outercmp.bl.x = vboarea.bl.x;
+			++nr_updates;
 		}
 		if (vboarea.tr.x < outercmp.tr.x) {
-			updates.push_back(area(vector2i(vboarea.tr.x + 1, outercmp.bl.y), outercmp.tr));
+			update_region(area(vector2i(vboarea.tr.x + 1, outercmp.bl.y), outercmp.tr));
 			outercmp.tr.x = vboarea.tr.x;
+			++nr_updates;
 		}
-		if (updates.size() > 2)
+		if (nr_updates > 2)
 			throw error("got more than 2 update regions?! BUG!");
 	}
-	// now update the regions given by updates[0] and updates[1] if existing
-	for (unsigned i = 0; i < updates.size(); ++i) {
-		const area& upar = updates[i];
-		//log_debug("lvl="<<index<<" i="<<i<<" upar="<<upar.bl<<","<<upar.tr);
-		if (upar.empty()) throw error("update area empty?! BUG!");//continue; // can happen on initial update
-		vector2i sz = upar.size();
-		// height data coordinates upar.bl ... upar.tr need to be updated, but what VBO offset?
-		// since data is stored toroidically in VBO, a rectangle can be split into up to
-		// 4 rectangles...
-		// we need to call get_height function with index as detail and the area as
-		// parameter...
-		// prepare a N*N height lookup/scratch buffer, fill in w*h samples, then feed
-		// the correct samples to the GPU
-		// maybe better prepare a VBO scratch buffer, maybe even one per level (doesn't cost
-		// too much ram), and store the fixed VBO data there
-		// that is x,y,height and height_c. the get_height function must write the correct
-		// values then (with stride) or enters x,y,h_c as well.
-		// yes, if get_height could give h and h_c at once, it would be better, and this
-		// can easily be done.
-		// get_height: takes upar and a target buffer and enters realx,realy,realz,realz_c
-		// z_c means z of coarser level, we must give some helper values to
-		// generate realx/realy or write it ourselfs (maybe better).
-		// data per vertex? 4 floats x,y,z,zc plus normal? or normal as texmap?
-		// normal computation is not trivial!
-
-		// update VBO toroidically
-		//vertices.init_sub_data(offset, subsize, data);
-		//fixme: if we update in one direction only then there is no wrap, i.e. the update
-		//area is always consecutive in the VBO, but we update in two directions.
-		//we need to store the offset in the vbo where consecutive data starts
-		//this is 0,0 at the begin...
-
-		// anfangs 0,0, bewegung 2,2 ergibt für N=32 zb
-		// vbo-area 0,0->32,32
-		// outer wären dann 2,2->34,34
-		// update-areas dann 2,33->34,34 und 33,2->34,32
-		// die kommen dann in VBO ab 0,0 oder so
-		// das erste ab 2,0 mit wrap, also letze 2x2 werte ab 0,0
-		// das zweite ab 0,2
-		// es macht evtl. sinn das L als _drei_ rechtecke zu modellieren, dann sind die
-		// areale immer zusammenhängend oder nicht?
-		// noch ne verschiebung 2,2
-		// vbo-area 2,2->34,34
-		// outer dann 4,4->36,36
-		// update areas dann 4,35->36,36 und 35,4->36,34
-		// diese rechtecke sind aber nicht zusammenhängend! mist, also gehts doch net so einfach!
-
-		// es sei denn man schreibt die height-daten gleich an ne adresse mit xy-mod,
-		// aber das update des VBOs ist trotzdem sehr gestückelt!
-		// adresse im VBO mit mod geht einfach wenn anzahl der vertices zweier-potenz ist
-		// daher N*N vertices im VBO, wobei N = 2^n
-		// also 2^n - 1 quads per seitenkante. geht das überhaupt bei berührung des nächsten
-		// levels? es müssen immer 2 quads auf eins des nächsten levels kommen!
-		// d.h. ungerade quad-anzahl außen geht gar nicht, darf nicht!
-		// oder man rendert halt eins weniger aber das ist doch auch murks!
-
-		// erst mal generell update info: man müßte nicht nur die absoluten update areas haben
-		// sondern auch das area im vbo das zu updaten ist. man kann aber das eine aus dem
-		// anderen berechnen oder das oben schon schreiben...
-		// also den startpunkt im vbo, wie dataoffset von dem recheck
-
-		// compute the heights first (+1 in every direction to compute normals too)
-		vector2i upcrd = upar.bl + vector2i(-1, -1);
-		// idea: fill in height here only from current level
-		// fill in every 2nd x/y value by height of coarser level (we need m/2+1 values)
-		// interpolate missing heights manually here
-		// for that scratchbuffer needs to get enlarged possibly
-		// it depends on wether upcrd.xy is odd or even where to add lines for z_c computation
-		// later we need to compute n_c as well, so we need even more lines.
-		unsigned ptr = 0;
-		for (int y = 0; y < sz.y + 2; ++y) {
-			vector2i upcrd2 = upcrd;
-			for (int x = 0; x < sz.x + 2; ++x) {
-				float* fptr = &gcm.vboscratchbuf[ptr];
-				//fixme: heights (z,z_c) seem ok, interpolation factor too,
-				//but still gaps. is x/y borked?
-				//seems not, but what is wrong then? height is not interpolated?
-				fptr[0] = upcrd2.x * L_l; // fixme: maybe subtract viewerpos here later.
-				fptr[1] = upcrd2.y * L_l;
-				gcm.height_gen.compute_height(index, upcrd2, &fptr[2]);
-				//gcm.height_gen.compute_height(index+1, upcrd2, &fptr[3]);
-				ptr += geoclipmap_fperv;
-				++upcrd2.x;
-			}
-			++upcrd.y;
-		}
-
-		// compute normals
-		ptr = (sz.x+2 + 1)*geoclipmap_fperv;
-		unsigned tptr = 0;
-		for (int y = 0; y < sz.y; ++y) {
-			for (int x = 0; x < sz.x; ++x) {
-				float hr = gcm.vboscratchbuf[ptr+geoclipmap_fperv+2];
-				float hu = gcm.vboscratchbuf[ptr+geoclipmap_fperv*(sz.x+2)+2];
-				float hl = gcm.vboscratchbuf[ptr-geoclipmap_fperv+2];
-				float hd = gcm.vboscratchbuf[ptr-geoclipmap_fperv*(sz.x+2)+2];
-				vector3f nm = vector3f(hl-hr, hd-hu, L_l * 2).normal();
-				nm = nm * 127;
-				gcm.texscratchbuf[tptr+0] = Uint8(nm.x + 128);
-				gcm.texscratchbuf[tptr+1] = Uint8(nm.y + 128);
-				gcm.texscratchbuf[tptr+2] = Uint8(nm.z + 128);
-				tptr += 3;
-				ptr += geoclipmap_fperv;
-			}
-			ptr += 2*geoclipmap_fperv;
-		}
-		// copy texture data to texture
-		ptr = 0;
-		vector2i vboupdateoffset = gcm.clamp(upar.bl - vboarea.bl + dataoffset);
-		// fixme: later texture coordinates maybe must get shifted a bit,
-		// so that texel 0,0 matches vertex at 0,0. texel 0,0 spans area of vertices 0,0->0,1
-		// and 0,0->1,0 to 1,1...?
-		normals->set_gl_texture();
-		for (int y = 0; y < sz.y; ++y) {
-			int vbopos_y = gcm.mod(vboupdateoffset.y + y);
-			//int vbopos_y2 = vbopos_y * gcm.resolution_vbo;
-			for (int x = 0; x < sz.x; ++x) {
-				int vbopos_x = gcm.mod(vboupdateoffset.x + x);
-				glTexSubImage2D(GL_TEXTURE_2D, 0 /* mipmap level */,
-						vbopos_x, vbopos_y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE,
-						&gcm.texscratchbuf[ptr]);
-				ptr += 3;
-			}
-		}
-
-		// copy data to real VBO.
-		ptr = (sz.x+2 + 1)*geoclipmap_fperv;
-		for (int y = 0; y < sz.y; ++y) {
-			int vbopos_y = gcm.mod(vboupdateoffset.y + y);
-			int vbopos_y2 = vbopos_y * gcm.resolution_vbo;
-			for (int x = 0; x < sz.x; ++x) {
-				int vbopos_x = gcm.mod(vboupdateoffset.x + x);
-				float* fptr = &gcm.vboscratchbuf[ptr];
-				// fixme: here compute max. area rectangles for efficient update
-				vertices.init_sub_data((vbopos_x + vbopos_y2)*geoclipmap_fperv*4, geoclipmap_fperv*4, fptr);
-				ptr += geoclipmap_fperv;
-			}
-			ptr += 2*geoclipmap_fperv;
-		}
-	}
-
-	// we updated the vertices, so adapt area/offset
+	// we updated the vertices, so update area/offset
 	dataoffset = gcm.clamp(outer.bl - vboarea.bl + dataoffset);
 	vboarea = outer;
-
 	return outer;
+}
+
+
+
+void geoclipmap::level::update_region(const geoclipmap::area& upar)
+{
+	//log_debug("lvl="<<index<<" i="<<i<<" upar="<<upar.bl<<","<<upar.tr);
+	if (upar.empty()) throw error("update area empty?! BUG!");//continue; // can happen on initial update
+	vector2i sz = upar.size();
+	// height data coordinates upar.bl ... upar.tr need to be updated, but what VBO offset?
+	// since data is stored toroidically in VBO, a rectangle can be split into up to
+	// 4 rectangles...
+	// we need to call get_height function with index as detail and the area as
+	// parameter...
+	// prepare a N*N height lookup/scratch buffer, fill in w*h samples, then feed
+	// the correct samples to the GPU
+	// maybe better prepare a VBO scratch buffer, maybe even one per level (doesn't cost
+	// too much ram), and store the fixed VBO data there
+	// that is x,y,height and height_c. the get_height function must write the correct
+	// values then (with stride) or enters x,y,h_c as well.
+	// yes, if get_height could give h and h_c at once, it would be better, and this
+	// can easily be done.
+	// get_height: takes upar and a target buffer and enters realx,realy,realz,realz_c
+	// z_c means z of coarser level, we must give some helper values to
+	// generate realx/realy or write it ourselfs (maybe better).
+	// data per vertex? 4 floats x,y,z,zc plus normal? or normal as texmap?
+	// normal computation is not trivial!
+
+	// update VBO toroidically
+	//vertices.init_sub_data(offset, subsize, data);
+	//fixme: if we update in one direction only then there is no wrap, i.e. the update
+	//area is always consecutive in the VBO, but we update in two directions.
+	//we need to store the offset in the vbo where consecutive data starts
+	//this is 0,0 at the begin...
+
+	// anfangs 0,0, bewegung 2,2 ergibt für N=32 zb
+	// vbo-area 0,0->32,32
+	// outer wären dann 2,2->34,34
+	// update-areas dann 2,33->34,34 und 33,2->34,32
+	// die kommen dann in VBO ab 0,0 oder so
+	// das erste ab 2,0 mit wrap, also letze 2x2 werte ab 0,0
+	// das zweite ab 0,2
+	// es macht evtl. sinn das L als _drei_ rechtecke zu modellieren, dann sind die
+	// areale immer zusammenhängend oder nicht?
+	// noch ne verschiebung 2,2
+	// vbo-area 2,2->34,34
+	// outer dann 4,4->36,36
+	// update areas dann 4,35->36,36 und 35,4->36,34
+	// diese rechtecke sind aber nicht zusammenhängend! mist, also gehts doch net so einfach!
+
+	// es sei denn man schreibt die height-daten gleich an ne adresse mit xy-mod,
+	// aber das update des VBOs ist trotzdem sehr gestückelt!
+	// adresse im VBO mit mod geht einfach wenn anzahl der vertices zweier-potenz ist
+	// daher N*N vertices im VBO, wobei N = 2^n
+	// also 2^n - 1 quads per seitenkante. geht das überhaupt bei berührung des nächsten
+	// levels? es müssen immer 2 quads auf eins des nächsten levels kommen!
+	// d.h. ungerade quad-anzahl außen geht gar nicht, darf nicht!
+	// oder man rendert halt eins weniger aber das ist doch auch murks!
+
+	// erst mal generell update info: man müßte nicht nur die absoluten update areas haben
+	// sondern auch das area im vbo das zu updaten ist. man kann aber das eine aus dem
+	// anderen berechnen oder das oben schon schreiben...
+	// also den startpunkt im vbo, wie dataoffset von dem recheck
+
+	// compute the heights first (+1 in every direction to compute normals too)
+	vector2i upcrd = upar.bl + vector2i(-1, -1);
+	// idea: fill in height here only from current level
+	// fill in every 2nd x/y value by height of coarser level (we need m/2+1 values)
+	// interpolate missing heights manually here
+	// for that scratchbuffer needs to get enlarged possibly
+	// it depends on wether upcrd.xy is odd or even where to add lines for z_c computation
+	// later we need to compute n_c as well, so we need even more lines.
+	unsigned ptr = 0;
+	for (int y = 0; y < sz.y + 2; ++y) {
+		vector2i upcrd2 = upcrd;
+		for (int x = 0; x < sz.x + 2; ++x) {
+			float* fptr = &gcm.vboscratchbuf[ptr];
+			//fixme: heights (z,z_c) seem ok, interpolation factor too,
+			//but still gaps. is x/y borked?
+			//seems not, but what is wrong then? height is not interpolated?
+			fptr[0] = upcrd2.x * L_l; // fixme: maybe subtract viewerpos here later.
+			fptr[1] = upcrd2.y * L_l;
+			gcm.height_gen.compute_height(index, upcrd2, &fptr[2]);
+			//gcm.height_gen.compute_height(index+1, upcrd2, &fptr[3]);
+			ptr += geoclipmap_fperv;
+			++upcrd2.x;
+		}
+		++upcrd.y;
+	}
+
+	// compute normals
+	ptr = (sz.x+2 + 1)*geoclipmap_fperv;
+	unsigned tptr = 0;
+	for (int y = 0; y < sz.y; ++y) {
+		for (int x = 0; x < sz.x; ++x) {
+			float hr = gcm.vboscratchbuf[ptr+geoclipmap_fperv+2];
+			float hu = gcm.vboscratchbuf[ptr+geoclipmap_fperv*(sz.x+2)+2];
+			float hl = gcm.vboscratchbuf[ptr-geoclipmap_fperv+2];
+			float hd = gcm.vboscratchbuf[ptr-geoclipmap_fperv*(sz.x+2)+2];
+			vector3f nm = vector3f(hl-hr, hd-hu, L_l * 2).normal();
+			nm = nm * 127;
+			gcm.texscratchbuf[tptr+0] = Uint8(nm.x + 128);
+			gcm.texscratchbuf[tptr+1] = Uint8(nm.y + 128);
+			gcm.texscratchbuf[tptr+2] = Uint8(nm.z + 128);
+			tptr += 3;
+			ptr += geoclipmap_fperv;
+		}
+		ptr += 2*geoclipmap_fperv;
+	}
+
+	ptr = 0;
+	geoclipmap::area vboupdate(gcm.clamp(upar.bl - vboarea.bl + dataoffset),
+				   gcm.clamp(upar.tr - vboarea.bl + dataoffset));
+	// check for continuous update areas
+	// fixme: was tun? wenn grenze berührt, zwei einzelne areas aus dem einen
+	// bauen? und dann aus 2 mach 4?
+	// man müßte dann pro eintrag jeweils nen offset im scratchbuf haben
+	// und nen offset im VBO/tex.
+	// der scratchbuf-offset ist aber nicht gleich der der textur, sondern da +1,+1
+	// trotzdem nur je einmal speichern. also 2 vec2i pro eintrag...
+	// wäre auch nen area oder nen pair aus offsets...
+	// fixme: de größe der bereiche braucht man doch auch?! sz = upar.size,
+	// das stimmt dann net mehr, also pair<area, area>? oder eher area, offset
+	// weil breite des einen ist identisch mit dem anderen.
+	// gar nicht speichern, sondern 1-4 funktionsaufrufe draus machen!
+	// das ist viel leichter. also den teil ab hier in ne unterfunktion
+	//log_debug("vboupdate area="<<vboupdate.bl<<" | "<<vboupdate.tr);
+	//fixme: since texture/VBO updates are line by line anyway, we don't need to
+	//handle the y-wrap here...
+	if (vboupdate.tr.x < vboupdate.bl.x) {
+		// area crosses VBO border horizontally
+		// area 1 width gcm.resolution_vbo - bl.xy
+		// area 2 width tr.xy + 1
+		if (vboupdate.tr.y < vboupdate.bl.y) {
+			// area crosses VBO border horizontally and vertically
+			int szx = gcm.resolution_vbo - vboupdate.bl.x;
+			int szy = gcm.resolution_vbo - vboupdate.bl.y;
+			update_VBO_and_tex(vector2i(0, 0), sz.x, vector2i(szx, szy), vboupdate.bl);
+			update_VBO_and_tex(vector2i(szx, 0), sz.x, vector2i(vboupdate.tr.x + 1, szy),
+					   vector2i(gcm.mod(vboupdate.bl.x + szx), vboupdate.bl.y));
+			update_VBO_and_tex(vector2i(0, szy), sz.x, vector2i(szx, vboupdate.tr.y + 1),
+					   vector2i(vboupdate.bl.x, gcm.mod(vboupdate.bl.y + szy)));
+			update_VBO_and_tex(vector2i(szx, szy), sz.x, vector2i(vboupdate.tr.x + 1, vboupdate.tr.y + 1),
+					   vector2i(gcm.mod(vboupdate.bl.x + szx), gcm.mod(vboupdate.bl.y + szy)));
+		} else {
+			// area crosses VBO border horizontally
+			int szx = gcm.resolution_vbo - vboupdate.bl.x;
+			update_VBO_and_tex(vector2i(0, 0), sz.x, vector2i(szx, sz.y), vboupdate.bl);
+			update_VBO_and_tex(vector2i(szx, 0), sz.x, vector2i(vboupdate.tr.x + 1, sz.y),
+					   vector2i(gcm.mod(vboupdate.bl.x + szx), vboupdate.bl.y));
+		}
+	} else if (vboupdate.tr.y < vboupdate.bl.y) {
+		// area crosses VBO border vertically
+		int szy = gcm.resolution_vbo - vboupdate.bl.y;
+		update_VBO_and_tex(vector2i(0, 0), sz.x, vector2i(sz.x, szy), vboupdate.bl);
+		update_VBO_and_tex(vector2i(0, szy), sz.x, vector2i(sz.x, vboupdate.tr.y + 1),
+				   vector2i(vboupdate.bl.x, gcm.mod(vboupdate.bl.y + szy)));
+	} else {
+		// no border crossed
+		update_VBO_and_tex(vector2i(0, 0), sz.x, sz, vboupdate.bl);
+	}
+}
+
+
+
+void geoclipmap::level::update_VBO_and_tex(const vector2i& scratchoff,
+					   int scratchmod,
+					   const vector2i& sz,
+					   const vector2i& vbooff)
+{		
+	//log_debug("update2 off="<<scratchoff<<" sz="<<sz<<" vbooff="<<vbooff);
+	// fixme: later texture coordinates maybe must get shifted a bit,
+	// so that texel 0,0 matches vertex at 0,0. texel 0,0 spans area of vertices 0,0->0,1
+	// and 0,0->1,0 to 1,1...?
+	// copy data to normals texture
+	// we need to do it line by line anyway, as the source is not packed.
+	// maybe we can get higher frame rates if it would be packed...
+	for (int y = 0; y < sz.y; ++y) {
+		glTexSubImage2D(GL_TEXTURE_2D, 0 /* mipmap level */,
+				vbooff.x, gcm.mod(vbooff.y+y), sz.x, 1, GL_RGB, GL_UNSIGNED_BYTE,
+				&gcm.texscratchbuf[((scratchoff.y+y)*scratchmod+scratchoff.x)*3]);
+	}
+
+	// copy data to real VBO.
+	// we need to do it line by line anyway.
+	for (int y = 0; y < sz.y; ++y) {
+		vertices.init_sub_data((vbooff.x + gcm.mod(vbooff.y+y)*gcm.resolution_vbo)*geoclipmap_fperv*4,
+				       sz.x*geoclipmap_fperv*4,
+				       &gcm.vboscratchbuf[((scratchoff.y+y)*(scratchmod+2)+1+scratchoff.x)*geoclipmap_fperv]);
+	}
 }
 
 
@@ -943,8 +1003,6 @@ void geoclipmap::level::display() const
 	//glColor4f(1,index/8.0,0,1);//fixme test
 	glColor4f(0,1,0,1);//fixme test
 
-	double level_fac = double(1 << index);
-	double L_l = gcm.L * level_fac;
 	vector2i outszi = tmp_outer.size();
 	vector2f outsz = vector2f(outszi.x - 1, outszi.y - 1) * 0.5f;
 	gcm.myshader.set_uniform(gcm.loc_xysize2, outsz);
