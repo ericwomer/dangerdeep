@@ -646,16 +646,15 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx)
 	  indices(true)
 {
 	// mostly static...
-	vertices.init_data(gcm.resolution_vbo*gcm.resolution_vbo*geoclipmap_fperv, 0, GL_STATIC_DRAW);
+	vertices.init_data(gcm.resolution_vbo*gcm.resolution_vbo*geoclipmap_fperv*4, 0, GL_STATIC_DRAW);
 	// fixme: init space for indices, give correct access mode or experiment
 	// fixme: set correct max. size
 	// size of T-junction triangles: 4 indices per triangle (3 + 2 degen. - 1), 4*N/2 triangles
 	indices.init_data(gcm.resolution_vbo*gcm.resolution_vbo*2*4 + (4*gcm.resolution/2*4)*4,
 			  0, GL_STATIC_DRAW);
-	// fixme: later set real normal data
-	std::vector<Uint8> pxl(3, 128);
-	pxl[1] = (index&3) * 64 + 128; //index * 32; // 0-8, fixme test
-	normals.reset(new texture(pxl, 1, 1, GL_RGB, texture::LINEAR, texture::REPEAT));
+	// create space for normal texture
+	std::vector<Uint8> pxl(3*gcm.resolution_vbo*gcm.resolution_vbo);
+	normals.reset(new texture(pxl, gcm.resolution_vbo, gcm.resolution_vbo, GL_RGB, texture::LINEAR, texture::REPEAT));
 }
 
 
