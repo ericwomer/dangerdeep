@@ -7,14 +7,18 @@
 
 varying vec3 col;
 varying vec3 lightdir;
-varying vec3 normal;
+//varying vec3 normal;
 varying vec2 texcoord;
+varying vec2 texcoordnormal;
+varying vec2 texcoordnormal_c;
+varying float alpha;
 
 uniform vec3 viewpos;
 uniform vec2 xysize2;
 uniform float w_p1;
 uniform float w_rcp;
 uniform float L_l_rcp;
+uniform float N_rcp;
 
 attribute float z_c;
 
@@ -25,16 +29,20 @@ void main()
 	vec2 d = abs(vpos.xy - viewpos.xy) * L_l_rcp;
 	d = (d - xysize2 + vec2(w_p1, w_p1));
 	d = clamp(d * w_rcp, 0.0, 1.0);
-	d.x = max(d.x, d.y);
-	vpos.z = mix(vpos.z, z_c, d.x);
+	alpha = max(d.x, d.y);
+	vpos.z = mix(vpos.z, z_c, alpha);
 
 	texcoord = vec2(0.0, 1.0 - (vpos.z + 50.0) / 150.0);
+
+	//fixme: N or N-1 here? should be N...
+	texcoordnormal = vpos.xy * L_l_rcp * N_rcp;
+	texcoordnormal_c = vpos.xy * L_l_rcp * 0.5 * N_rcp;
 
 	// compute direction to light
 	vec3 lightpos_obj = vec3(gl_ModelViewMatrixInverse * gl_LightSource[0].position);
 	vec3 lightdir_obj = normalize(lightpos_obj - vpos.xyz * gl_LightSource[0].position.w);
 	lightdir = lightdir_obj;
-	normal = normalize(gl_Normal);
+	//normal = normalize(gl_Normal);
 	//normal = vec3(0.0, 0.0, 1.0);
 
 	col = gl_Color.xyz;
