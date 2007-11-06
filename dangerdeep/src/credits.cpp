@@ -220,8 +220,6 @@ const char* credits[] = {
   (bilinear)
 
   fixme todo:
-  - since efficient update code there are gaps in geometry/texture!
-    only in one direction...
   - texcoord computation is not fully correct in shader
   - compute z_c and n_c correctly
     linear interpol. of z of coarser level!
@@ -246,6 +244,8 @@ const char* credits[] = {
     because a value in the normal tex must match a vertex, but a texel spans an area normally...
   - clipping of patches against viewing frustum
     -- patches could become empty
+  - viewpos change is too small compared to last rendered viewpos, do nothing, else
+    render and update last rendered viewpos
   - generate tri-strips with better post-transform-cache-use
     (columns of 16-32 triangles)
   - write good height generator
@@ -689,6 +689,7 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 			    int(floor(0.5*new_viewpos.y/L_l + 0.25*gcm.resolution + 0.5))*2));
 	tmp_inner = inner;
 	tmp_outer = outer;
+	//log_debug("index="<<index<<" area inner="<<inner.bl<<"|"<<inner.tr<<" outer="<<outer.bl<<"|"<<outer.tr);
 	// set active texture for update
 	normals->set_gl_texture();
 	// for vertex updates we only need to know the outer area...
@@ -758,40 +759,6 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	// normal computation is not trivial!
 
 	// update VBO toroidically
-	//vertices.init_sub_data(offset, subsize, data);
-	//fixme: if we update in one direction only then there is no wrap, i.e. the update
-	//area is always consecutive in the VBO, but we update in two directions.
-	//we need to store the offset in the vbo where consecutive data starts
-	//this is 0,0 at the begin...
-
-	// anfangs 0,0, bewegung 2,2 ergibt für N=32 zb
-	// vbo-area 0,0->32,32
-	// outer wären dann 2,2->34,34
-	// update-areas dann 2,33->34,34 und 33,2->34,32
-	// die kommen dann in VBO ab 0,0 oder so
-	// das erste ab 2,0 mit wrap, also letze 2x2 werte ab 0,0
-	// das zweite ab 0,2
-	// es macht evtl. sinn das L als _drei_ rechtecke zu modellieren, dann sind die
-	// areale immer zusammenhängend oder nicht?
-	// noch ne verschiebung 2,2
-	// vbo-area 2,2->34,34
-	// outer dann 4,4->36,36
-	// update areas dann 4,35->36,36 und 35,4->36,34
-	// diese rechtecke sind aber nicht zusammenhängend! mist, also gehts doch net so einfach!
-
-	// es sei denn man schreibt die height-daten gleich an ne adresse mit xy-mod,
-	// aber das update des VBOs ist trotzdem sehr gestückelt!
-	// adresse im VBO mit mod geht einfach wenn anzahl der vertices zweier-potenz ist
-	// daher N*N vertices im VBO, wobei N = 2^n
-	// also 2^n - 1 quads per seitenkante. geht das überhaupt bei berührung des nächsten
-	// levels? es müssen immer 2 quads auf eins des nächsten levels kommen!
-	// d.h. ungerade quad-anzahl außen geht gar nicht, darf nicht!
-	// oder man rendert halt eins weniger aber das ist doch auch murks!
-
-	// erst mal generell update info: man müßte nicht nur die absoluten update areas haben
-	// sondern auch das area im vbo das zu updaten ist. man kann aber das eine aus dem
-	// anderen berechnen oder das oben schon schreiben...
-	// also den startpunkt im vbo, wie dataoffset von dem recheck
 
 	// compute the heights first (+1 in every direction to compute normals too)
 	vector2i upcrd = upar.bl + vector2i(-1, -1);
@@ -801,6 +768,7 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	// for that scratchbuffer needs to get enlarged possibly
 	// it depends on wether upcrd.xy is odd or even where to add lines for z_c computation
 	// later we need to compute n_c as well, so we need even more lines.
+	// note! do not call "x / 2" for int x, its more efficient to use "x >> 1"!
 	unsigned ptr = 0;
 	for (int y = 0; y < sz.y + 2; ++y) {
 		vector2i upcrd2 = upcrd;
@@ -843,18 +811,6 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	geoclipmap::area vboupdate(gcm.clamp(upar.bl - vboarea.bl + dataoffset),
 				   gcm.clamp(upar.tr - vboarea.bl + dataoffset));
 	// check for continuous update areas
-	// fixme: was tun? wenn grenze berührt, zwei einzelne areas aus dem einen
-	// bauen? und dann aus 2 mach 4?
-	// man müßte dann pro eintrag jeweils nen offset im scratchbuf haben
-	// und nen offset im VBO/tex.
-	// der scratchbuf-offset ist aber nicht gleich der der textur, sondern da +1,+1
-	// trotzdem nur je einmal speichern. also 2 vec2i pro eintrag...
-	// wäre auch nen area oder nen pair aus offsets...
-	// fixme: de größe der bereiche braucht man doch auch?! sz = upar.size,
-	// das stimmt dann net mehr, also pair<area, area>? oder eher area, offset
-	// weil breite des einen ist identisch mit dem anderen.
-	// gar nicht speichern, sondern 1-4 funktionsaufrufe draus machen!
-	// das ist viel leichter. also den teil ab hier in ne unterfunktion
 	//log_debug("vboupdate area="<<vboupdate.bl<<" | "<<vboupdate.tr);
 	//fixme: since texture/VBO updates are line by line anyway, we don't need to
 	//handle the y-wrap here...
@@ -862,6 +818,7 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 		// area crosses VBO border horizontally
 		// area 1 width gcm.resolution_vbo - bl.xy
 		// area 2 width tr.xy + 1
+#if 0
 		if (vboupdate.tr.y < vboupdate.bl.y) {
 			// area crosses VBO border horizontally and vertically
 			int szx = gcm.resolution_vbo - vboupdate.bl.x;
@@ -874,11 +831,13 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 			update_VBO_and_tex(vector2i(szx, szy), sz.x, vector2i(vboupdate.tr.x + 1, vboupdate.tr.y + 1),
 					   vector2i(gcm.mod(vboupdate.bl.x + szx), gcm.mod(vboupdate.bl.y + szy)));
 		} else {
+#endif
 			// area crosses VBO border horizontally
 			int szx = gcm.resolution_vbo - vboupdate.bl.x;
 			update_VBO_and_tex(vector2i(0, 0), sz.x, vector2i(szx, sz.y), vboupdate.bl);
 			update_VBO_and_tex(vector2i(szx, 0), sz.x, vector2i(vboupdate.tr.x + 1, sz.y),
 					   vector2i(gcm.mod(vboupdate.bl.x + szx), vboupdate.bl.y));
+#if 0
 		}
 	} else if (vboupdate.tr.y < vboupdate.bl.y) {
 		// area crosses VBO border vertically
@@ -886,6 +845,7 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 		update_VBO_and_tex(vector2i(0, 0), sz.x, vector2i(sz.x, szy), vboupdate.bl);
 		update_VBO_and_tex(vector2i(0, szy), sz.x, vector2i(sz.x, vboupdate.tr.y + 1),
 				   vector2i(vboupdate.bl.x, gcm.mod(vboupdate.bl.y + szy)));
+#endif
 	} else {
 		// no border crossed
 		update_VBO_and_tex(vector2i(0, 0), sz.x, sz, vboupdate.bl);
@@ -917,7 +877,7 @@ void geoclipmap::level::update_VBO_and_tex(const vector2i& scratchoff,
 	for (int y = 0; y < sz.y; ++y) {
 		vertices.init_sub_data((vbooff.x + gcm.mod(vbooff.y+y)*gcm.resolution_vbo)*geoclipmap_fperv*4,
 				       sz.x*geoclipmap_fperv*4,
-				       &gcm.vboscratchbuf[((scratchoff.y+y)*(scratchmod+2)+1+scratchoff.x)*geoclipmap_fperv]);
+				       &gcm.vboscratchbuf[((scratchoff.y+y+1)*(scratchmod+2)+1+scratchoff.x)*geoclipmap_fperv]);
 	}
 }
 
@@ -932,12 +892,12 @@ unsigned geoclipmap::level::generate_indices(uint32_t* buffer, unsigned idxbase,
 	if (size.x <= 1 || size.y <= 1) return 0;
 	// always put the first index of a row twice and also the last fixme
 	unsigned ptr = idxbase;
-	int vbooffy0 = vbooff.y;
+	int vbooffy0 = gcm.mod(vbooff.y);
 	int vbooffy1 = gcm.mod(vbooffy0 + 1);
 	for (int y = 0; y + 1 < size.y; ++y) {
 		int vbooffy0_l = vbooffy0 * gcm.resolution_vbo;
 		int vbooffy1_l = vbooffy1 * gcm.resolution_vbo;
-		int vbooffx0 = vbooff.x;
+		int vbooffx0 = gcm.mod(vbooff.x);
 		// store first index twice since second line of first patch
 		if (!firstpatch || y > 0) buffer[ptr++] = vbooffy1_l + vbooffx0;
 		uint32_t lastidx = 0;
@@ -960,7 +920,6 @@ unsigned geoclipmap::level::generate_indices_T(uint32_t* buffer, unsigned idxbas
 {
 	unsigned ptr = idxbase;
 	vector2i v = dataoffset;
-	//fixme: this leads to visual errors when resolution_vbo=2^n and resolution=-2
 	for (unsigned i = 0; i < gcm.resolution/2; ++i) {
 		buffer[ptr] = buffer[ptr+1] = v.x + v.y * gcm.resolution_vbo;
 		v.y = gcm.mod(v.y + 1);
@@ -1024,15 +983,23 @@ void geoclipmap::level::display() const
 	if (tmp_inner.empty()) {
 		nridx = generate_indices(indexvbo, 0, tmp_outer.size(), dataoffset, true, false/*true*/);
 	} else {
+		// 4 columns: L,U,D,R (left, up, down, right)
+		// LUR
+		// L R
+		// LDR
+		// left colum (L)
 		vector2i patchsz(tmp_inner.bl.x - tmp_outer.bl.x + 1, tmp_outer.tr.y - tmp_outer.bl.y + 1);
 		nridx = generate_indices(indexvbo, nridx, patchsz, dataoffset, true, false);
+		// lower/down column (D)
 		patchsz.x = tmp_inner.tr.x - tmp_inner.bl.x + 1;
 		patchsz.y = tmp_inner.bl.y - tmp_outer.bl.y + 1;
 		vector2i patchoff(tmp_inner.bl.x - tmp_outer.bl.x, 0);
 		nridx += generate_indices(indexvbo, nridx, patchsz, gcm.clamp(dataoffset + patchoff), false, false);
+		// upper column (U)
 		patchsz.y = tmp_outer.tr.y - tmp_inner.tr.y + 1;
 		patchoff.y = tmp_inner.tr.y - tmp_outer.bl.y;
 		nridx += generate_indices(indexvbo, nridx, patchsz, gcm.clamp(dataoffset + patchoff), false, false);
+		// right column (R)
 		patchsz.x = tmp_outer.tr.x - tmp_inner.tr.x + 1;
 		patchsz.y = tmp_outer.tr.y - tmp_outer.bl.y + 1;
 		patchoff.x = tmp_inner.tr.x - tmp_outer.bl.x;
