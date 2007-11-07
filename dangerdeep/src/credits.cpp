@@ -257,6 +257,10 @@ const char* credits[] = {
     DONE - works, gives nearly double frame rate. but the clipping is too restrictive,
     triangles in the near are clipped, we should at max height in all directions
     of the clip area to compensate this, or similar tricks.
+    problem: giving extra 100m kills fps (-15), and still isnt enough.
+    It depends on viewer height also, and the extra-clip-space depends on level!
+    viewerpos-xy should be an additional min/max in the clipping, but then
+    clipping is less effective?
   - viewpos change is too small compared to last rendered viewpos, do nothing, else
     render and update last rendered viewpos
   - generate tri-strips with better post-transform-cache-use
@@ -480,6 +484,7 @@ class geoclipmap
 		vector2i dataoffset;
 
 		mutable area tmp_inner, tmp_outer;
+		mutable vector3 tmp_viewpos;
 
 		unsigned generate_indices(const frustum& f,
 					  uint32_t* buffer, unsigned idxbase,
@@ -698,6 +703,7 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 			    int(floor(0.5*new_viewpos.y/L_l + 0.25*gcm.resolution + 0.5))*2));
 	tmp_inner = inner;
 	tmp_outer = outer;
+	tmp_viewpos = new_viewpos;
 	//log_debug("index="<<index<<" area inner="<<inner.bl<<"|"<<inner.tr<<" outer="<<outer.bl<<"|"<<outer.tr);
 	// set active texture for update
 	normals->set_gl_texture();
@@ -921,6 +927,9 @@ unsigned geoclipmap::level::generate_indices(const frustum& f,
 		minv = minv.min(v);
 		maxv = maxv.max(v);
 	}
+	// fixme, test: check viewpos
+	minv = minv.min(tmp_viewpos.xy());
+	maxv = maxv.max(tmp_viewpos.xy());
 	// convert coordinates back to integer values with rounding down/up
 	vector2i minvi(int(floor(minv.x / L_l)), int(floor(minv.y / L_l)));
 	vector2i maxvi(int(ceil(maxv.x / L_l)), int(ceil(maxv.y / L_l)));
