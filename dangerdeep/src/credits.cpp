@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "bspline.h"
 #include "log.h"
 #include "ptrvector.h"
+#include "frustum.h"
 
 using namespace std;
 
@@ -240,10 +241,22 @@ const char* credits[] = {
     the width is then tr.xy + 1 for the second area, N - bl.xy for the first (N=2^n)
     so max coordinates for bl/tr are N-1.
   - render triangles from outmost patch to horizon
+    problem later when rendering coast, to the sea horizon z-value must be < 0,
+    to the land > 0. maybe stretch xy coordinates of last level beyond viewing range,
+    that would solve both problems, but the height values must get computed accordingly then
   - later check if texture coordinates needs to get translated by 0.25 of one texel or so,
     because a value in the normal tex must match a vertex, but a texel spans an area normally...
-  - clipping of patches against viewing frustum
+  - clipping of patches (index-patch) against viewing frustum
     -- patches could become empty
+    generate polygon in z=0 plane for the four rectangles of each level to be updated
+    clip polygon(s) by camera viewing frustum.
+    compute min/max x/y values of resulting polygons (polygons could be empty)
+    snap x/y values to next grid positions (min->floor, max->ceil), so that resulting
+    area embraces the polygon, but is minimal.
+    generate indices for the resulting area.
+    DONE - works, gives nearly double frame rate. but the clipping is too restrictive,
+    triangles in the near are clipped, we should at max height in all directions
+    of the clip area to compensate this, or similar tricks.
   - viewpos change is too small compared to last rendered viewpos, do nothing, else
     render and update last rendered viewpos
   - generate tri-strips with better post-transform-cache-use
@@ -468,10 +481,11 @@ class geoclipmap
 
 		mutable area tmp_inner, tmp_outer;
 
-		unsigned generate_indices(uint32_t* buffer, unsigned idxbase,
+		unsigned generate_indices(const frustum& f,
+					  uint32_t* buffer, unsigned idxbase,
+					  const vector2i& offset,
 					  const vector2i& size,
-					  const vector2i& vbooff,
-					  bool firstpatch = true, bool lastpatch = true) const;
+					  const vector2i& vbooff) const;
 		unsigned generate_indices_T(uint32_t* buffer, unsigned idxbase) const;
 		void update_region(const geoclipmap::area& upar);
 		void update_VBO_and_tex(const vector2i& scratchoff,
@@ -483,7 +497,7 @@ class geoclipmap
 	public:
 		level(geoclipmap& gcm_, unsigned idx);
 		area set_viewerpos(const vector3f& new_viewpos, const geoclipmap::area& inner);
-		void display() const;
+		void display(const frustum& f) const;
 		texture& normals_tex() const { return *normals; }
 	};
 
@@ -527,7 +541,7 @@ public:
 	void set_viewerpos(const vector3f& viewpos);
 
 	/// render the view (will only fetch the vertex/index data, no texture setup)
-	void display() const;
+	void display(const frustum& f) const;
 };
 
 
@@ -618,7 +632,7 @@ void geoclipmap::set_viewerpos(const vector3f& new_viewpos)
 
 
 
-void geoclipmap::display() const
+void geoclipmap::display(const frustum& f) const
 {
 	// display levels from inside to outside
 	//unsigned min_level = unsigned(std::max(floor(log2(new_viewpos.z/(0.4*resolution*L))), 0.0));
@@ -627,17 +641,12 @@ void geoclipmap::display() const
 	myshader.use();
 	myshader.set_gl_texture(*terrain_tex, loc_texterrain, 0);
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
-		//fixme: these initialisations kick down fps!
-		//do them only once, later only set texture to unit!
-		//same for water etc!
-		//fixme: this code seems to make rendering painfully slow.
-		//binding tex units could/should be done once per shader?YES
 		myshader.set_gl_texture(levels[lvl]->normals_tex(), loc_texnormal, 1);
 		if (lvl + 1 < levels.size())
 			myshader.set_gl_texture(levels[lvl+1]->normals_tex(), loc_texnormal_c, 2);
 		else
 			myshader.set_gl_texture(*horizon_normal, loc_texnormal_c, 2);
-		levels[lvl]->display();
+		levels[lvl]->display(f);
 	}
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -798,6 +807,7 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 			float hd = gcm.vboscratchbuf[ptr-geoclipmap_fperv*(sz.x+2)+2];
 			vector3f nm = vector3f(hl-hr, hd-hu, L_l * 2).normal();
 			nm = nm * 127;
+			//fixme: maybe store texture upsidedown?
 			gcm.texscratchbuf[tptr+0] = Uint8(nm.x + 128);
 			gcm.texscratchbuf[tptr+1] = Uint8(nm.y + 128);
 			gcm.texscratchbuf[tptr+2] = Uint8(nm.z + 128);
@@ -883,31 +893,79 @@ void geoclipmap::level::update_VBO_and_tex(const vector2i& scratchoff,
 
 
 
-unsigned geoclipmap::level::generate_indices(uint32_t* buffer, unsigned idxbase,
-					     const vector2i& size,
-					     const vector2i& vbooff,
-					     bool firstpatch, bool lastpatch) const
+// give real world offset (per-level coordinates) here as well as frustum&
+unsigned geoclipmap::level::generate_indices(const frustum& f,
+					     uint32_t* buffer, unsigned idxbase,
+					     const vector2i& offset, // in per-level coordinates, global
+					     const vector2i& size, // size of patch
+					     const vector2i& vbooff) const // offset in VBO
 {
 	//log_debug("genindi="<<index<<" size="<<size);
 	if (size.x <= 1 || size.y <= 1) return 0;
-	// always put the first index of a row twice and also the last fixme
+
+#if 1
+	// maybe enlarge the polygon in all 4 directions by max. height
+	const double ecs = 0.0; // needs to be 100 or more to work, depends on level too, fixme
+	//maybe there are also bugs in the clip code?
+	polygon poly(vector3(offset.x * L_l, offset.y * L_l, 0) + vector3(-ecs, -ecs, 0),
+		     vector3((offset.x + size.x) * L_l, offset.y * L_l, 0) + vector3(+ecs, -ecs, 0),
+		     vector3((offset.x + size.x) * L_l, (offset.y + size.y) * L_l, 0) + vector3(+ecs, +ecs, 0),
+		     vector3(offset.x * L_l, (offset.y + size.y) * L_l, 0) + vector3(-ecs, +ecs, 0));
+	poly = f.clip(poly);
+	if (poly.empty()) return 0;
+	// compute bounding rectangle
+	vector2 minv = poly.points.front().xy();
+	vector2 maxv = minv;
+	for (unsigned i = 1; i < poly.points.size(); ++i) {
+		vector2 v = poly.points[i].xy();
+		minv = minv.min(v);
+		maxv = maxv.max(v);
+	}
+	// convert coordinates back to integer values with rounding down/up
+	vector2i minvi(int(floor(minv.x / L_l)), int(floor(minv.y / L_l)));
+	vector2i maxvi(int(ceil(maxv.x / L_l)), int(ceil(maxv.y / L_l)));
+	vector2i newoffset = minvi, newsize = maxvi - minvi + vector2i(1, 1);
+	// avoid size/offset to move out of what was given...
+	// size seems to be at most 1 more than old size, offset at most 1 less.
+	// this can be explained with float rounding errors.
+//	if (newoffset.x<offset.x||newoffset.y<offset.y)
+//		log_debug("offset diff, old="<<offset<<" new="<<newoffset);
+	newoffset = newoffset.max(offset);
+// 	if (newsize.x>offset.x + size.x - newoffset.x||newsize.y>offset.y + size.y - newoffset.y)
+// 		log_debug("size diff, old="<<offset+size-newoffset<<" new="<<newsize);
+	newsize = newsize.min(offset + size - newoffset);
+// 	log_debug("clip area, vbooff="<<vbooff<<" now "<<vbooff + newoffset - offset
+// 		  <<" size="<<size<<" now "<<newsize);
+// 	log_debug("offset shift: "<<newoffset-offset<<" sizechange: "<<size-newsize);
+	
+	// modify vbooff accordingly (no clamping needed, is done later anyway)
+	vector2i vbooff2 = vbooff + newoffset - offset;
+	vector2i size2 = newsize;
+	// check again if patch is still valid
+	if (size2.x <= 1 || size2.y <= 1) return 0;
+#else
+	vector2i vbooff2 = vbooff;
+	vector2i size2 = size;
+#endif
+
+	// always put the first index of a row twice and also the last
 	unsigned ptr = idxbase;
-	int vbooffy0 = gcm.mod(vbooff.y);
+	int vbooffy0 = gcm.mod(vbooff2.y);
 	int vbooffy1 = gcm.mod(vbooffy0 + 1);
-	for (int y = 0; y + 1 < size.y; ++y) {
+	for (int y = 0; y + 1 < size2.y; ++y) {
 		int vbooffy0_l = vbooffy0 * gcm.resolution_vbo;
 		int vbooffy1_l = vbooffy1 * gcm.resolution_vbo;
-		int vbooffx0 = gcm.mod(vbooff.x);
-		// store first index twice since second line of first patch
-		if (!firstpatch || y > 0) buffer[ptr++] = vbooffy1_l + vbooffx0;
+		int vbooffx0 = gcm.mod(vbooff2.x);
+		// store first index twice (line or patch transition)
+		buffer[ptr++] = vbooffy1_l + vbooffx0;
 		uint32_t lastidx = 0;
-		for (int x = 0; x < size.x; ++x) {
+		for (int x = 0; x < size2.x; ++x) {
 			buffer[ptr++] = vbooffy1_l + vbooffx0;
 			buffer[ptr++] = lastidx = vbooffy0_l + vbooffx0;
 			vbooffx0 = gcm.mod(vbooffx0 + 1);
 		}
-		// store last index twice until second last line of last patch
-		if (!lastpatch || y + 2 < size.y) buffer[ptr++] = lastidx;
+		// store last index twice (line or patch transition)
+		buffer[ptr++] = lastidx;
 		vbooffy0 = vbooffy1;
 		vbooffy1 = gcm.mod(vbooffy1 + 1);
 	}
@@ -957,7 +1015,7 @@ unsigned geoclipmap::level::generate_indices_T(uint32_t* buffer, unsigned idxbas
 
 
 
-void geoclipmap::level::display() const
+void geoclipmap::level::display(const frustum& f) const
 {
 	//glColor4f(1,index/8.0,0,1);//fixme test
 	glColor4f(0,1,0,1);//fixme test
@@ -981,7 +1039,7 @@ void geoclipmap::level::display() const
 	// is area size and offset in vertex VBO for wrapping.
 	unsigned nridx = 0;
 	if (tmp_inner.empty()) {
-		nridx = generate_indices(indexvbo, 0, tmp_outer.size(), dataoffset, true, false/*true*/);
+		nridx = generate_indices(f, indexvbo, 0, tmp_outer.bl, tmp_outer.size(), dataoffset);
 	} else {
 		// 4 columns: L,U,D,R (left, up, down, right)
 		// LUR
@@ -989,29 +1047,36 @@ void geoclipmap::level::display() const
 		// LDR
 		// left colum (L)
 		vector2i patchsz(tmp_inner.bl.x - tmp_outer.bl.x + 1, tmp_outer.tr.y - tmp_outer.bl.y + 1);
-		nridx = generate_indices(indexvbo, nridx, patchsz, dataoffset, true, false);
+		vector2i off = tmp_outer.bl;
+		nridx = generate_indices(f, indexvbo, nridx, off, patchsz, dataoffset);
 		// lower/down column (D)
 		patchsz.x = tmp_inner.tr.x - tmp_inner.bl.x + 1;
 		patchsz.y = tmp_inner.bl.y - tmp_outer.bl.y + 1;
 		vector2i patchoff(tmp_inner.bl.x - tmp_outer.bl.x, 0);
-		nridx += generate_indices(indexvbo, nridx, patchsz, gcm.clamp(dataoffset + patchoff), false, false);
+		off.x += patchoff.x;
+		nridx += generate_indices(f, indexvbo, nridx, off, patchsz, gcm.clamp(dataoffset + patchoff));
 		// upper column (U)
 		patchsz.y = tmp_outer.tr.y - tmp_inner.tr.y + 1;
 		patchoff.y = tmp_inner.tr.y - tmp_outer.bl.y;
-		nridx += generate_indices(indexvbo, nridx, patchsz, gcm.clamp(dataoffset + patchoff), false, false);
+		off.y += patchoff.y;
+		nridx += generate_indices(f, indexvbo, nridx, off, patchsz, gcm.clamp(dataoffset + patchoff));
 		// right column (R)
 		patchsz.x = tmp_outer.tr.x - tmp_inner.tr.x + 1;
 		patchsz.y = tmp_outer.tr.y - tmp_outer.bl.y + 1;
+		off.x -= patchoff.x;
+		off.y -= patchoff.y;
 		patchoff.x = tmp_inner.tr.x - tmp_outer.bl.x;
 		patchoff.y = 0;
-		nridx += generate_indices(indexvbo, nridx, patchsz, gcm.clamp(dataoffset + patchoff), false, false/*true*/);
+		off.x += patchoff.x;
+		off.y += patchoff.y;
+		nridx += generate_indices(f, indexvbo, nridx, off, patchsz, gcm.clamp(dataoffset + patchoff));
 	}
-	// add t-junction triangles
+	// add t-junction triangles - they are never clipped against viewing frustum, but there are only few
 	nridx += generate_indices_T(indexvbo, nridx);
 	indices.unmap();
 
 	// render the data
-	if (nridx == 0) return;
+	if (nridx < 4) return; // first index is remove always, and we need at least 3 for one triangle
 	vertices.bind();
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, geoclipmap_fperv*4, (float*)0 + 0);
@@ -1022,10 +1087,12 @@ void geoclipmap::level::display() const
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	indices.bind();
+	// we always skip the first index here, because it is identical to the second,
+	// that is because of the line/patch transition code (it is easier)
 	glDrawRangeElements(GL_TRIANGLE_STRIP,
 			    0/*min_vertex_index*/,
 			    gcm.resolution_vbo*gcm.resolution_vbo-1/*max_vertex_index*/,
-			    nridx, GL_UNSIGNED_INT, 0);
+			    nridx-1, GL_UNSIGNED_INT, (unsigned*)0 + 1); // skip first index
 	indices.unbind();
 	glDisableVertexAttribArray(gcm.myshader_vattr_z_c_index);
 	glDisableClientState(GL_NORMAL_ARRAY);
@@ -1140,6 +1207,7 @@ public:
 	camera(const vector3& p = vector3(), const vector3& la = vector3(0, 1, 0))
 		: position(p), look_at(la) {}
 	const vector3& get_pos() const { return position; }
+	vector3 view_dir() const { return (look_at - position).normal(); }
 	angle look_direction() const { return angle((look_at - position).xy()); }
 	void set(const vector3& pos, const vector3& lookat) { position = pos; look_at = lookat; }
 	matrix4 get_transformation() const;
@@ -1964,7 +2032,26 @@ void show_credits()
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		gcm.display();
+
+		matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
+		matrix4 prj = matrix4::get_gl(GL_PROJECTION_MATRIX);
+		matrix4 mvp = prj * mv;
+		matrix4 invmvp = mvp.inverse();
+		vector3 wbln = invmvp * vector3(-1,-1,-1);
+		vector3 wbrn = invmvp * vector3(+1,-1,-1);
+		vector3 wtln = invmvp * vector3(-1,+1,-1);
+		vector3 wtrn = invmvp * vector3(+1,+1,-1);
+		polygon viewwindow(wbln, wbrn, wtrn, wtln);
+		// hmm wouldn't be znear the distance of point (0,0,0) to the viewindow?
+		// that is the distance of the plane through that window to 0?
+		// if we do a scalar product of any point with the normal, we get the direction
+		// (fabs it, or negate?)
+		vector3 wn = (wbrn - wbln).cross(wtln - wbln).normal();
+		double neardist = fabs((wbln - campos) * wn);
+		//log_debug("neardist="<<neardist);//gives 1.0, seems correct?
+		frustum viewfrustum(viewwindow, campos, cm.view_dir(), 0.1 /* fixme: read from matrix! */);
+
+		gcm.display(viewfrustum);
 #else
 		// render canyon
 		cyn.display();
