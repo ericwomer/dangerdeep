@@ -221,6 +221,7 @@ const char* credits[] = {
   (bilinear)
 
   fixme todo:
+  - move geoclipmap part to standalone test program like portal!
   - texcoord computation is not fully correct in shader
   - compute z_c and n_c correctly
     linear interpol. of z of coarser level!
@@ -246,21 +247,6 @@ const char* credits[] = {
     that would solve both problems, but the height values must get computed accordingly then
   - later check if texture coordinates needs to get translated by 0.25 of one texel or so,
     because a value in the normal tex must match a vertex, but a texel spans an area normally...
-  - clipping of patches (index-patch) against viewing frustum
-    -- patches could become empty
-    generate polygon in z=0 plane for the four rectangles of each level to be updated
-    clip polygon(s) by camera viewing frustum.
-    compute min/max x/y values of resulting polygons (polygons could be empty)
-    snap x/y values to next grid positions (min->floor, max->ceil), so that resulting
-    area embraces the polygon, but is minimal.
-    generate indices for the resulting area.
-    DONE - works, gives nearly double frame rate. but the clipping is too restrictive,
-    triangles in the near are clipped, we should at max height in all directions
-    of the clip area to compensate this, or similar tricks.
-    problem: giving extra 100m kills fps (-15), and still isnt enough.
-    It depends on viewer height also, and the extra-clip-space depends on level!
-    viewerpos-xy should be an additional min/max in the clipping, but then
-    clipping is less effective?
   - viewpos change is too small compared to last rendered viewpos, do nothing, else
     render and update last rendered viewpos
   - generate tri-strips with better post-transform-cache-use
@@ -283,6 +269,21 @@ const char* credits[] = {
     just render N-2 triangles then, should work too...
   - efficient update of VBO data
     --> more performance
+  - clipping of patches (index-patch) against viewing frustum
+    -- patches could become empty
+    generate polygon in z=0 plane for the four rectangles of each level to be updated
+    clip polygon(s) by camera viewing frustum.
+    compute min/max x/y values of resulting polygons (polygons could be empty)
+    snap x/y values to next grid positions (min->floor, max->ceil), so that resulting
+    area embraces the polygon, but is minimal.
+    generate indices for the resulting area.
+    DONE - works, gives nearly double frame rate. but the clipping is too restrictive,
+    triangles in the near are clipped, we should at max height in all directions
+    of the clip area to compensate this, or similar tricks.
+    problem: giving extra 100m kills fps (-15), and still isnt enough.
+    It depends on viewer height also, and the extra-clip-space depends on level!
+    viewerpos-xy should be an additional min/max in the clipping, but then
+    clipping is less effective?
 
 
     triangle count: N*N*2*3/4 per level plus N*N*2*1/4 for inner level
@@ -317,6 +318,7 @@ public:
 	///@param coord - coordinate to compute z/z_c for
 	///@param dest - pointer to first z value to write to
 	virtual void compute_height(unsigned detail, const vector2i& coord, float* dest) = 0;
+	virtual void get_min_max_height(double& minh, double& maxh) const = 0;
 };
 
 
@@ -329,6 +331,7 @@ public:
 		int yc = coord.y * int(1 << detail);
 		dest[0] = dest[1] = sin(2*3.14159*xc*0.01) * sin(2*3.14159*yc*0.01) * 40.0;
 	}
+	void get_min_max_height(double& minh, double& maxh) const { minh = -40.0; maxh = 40.0; }
 };
 
 
@@ -366,6 +369,7 @@ public:
 		else
 			dest[1] = 0;
 	}
+	void get_min_max_height(double& minh, double& maxh) const { minh = -100.0; maxh = 156.0; }
 };
 
 
@@ -407,6 +411,7 @@ public:
 		unsigned yc = unsigned(coord.y + shift/2) & mask;
 		dest[0] = dest[1] = heightdata[detail][yc * shift + xc] * heightmult + heightadd;
 	}
+	void get_min_max_height(double& minh, double& maxh) const { minh = heightadd; maxh = heightadd + 255*heightmult; }
 };
 
 
@@ -418,6 +423,7 @@ public:
 		dest[0] = detail * 20.0f;
 		dest[1] = (detail+1) * 20.0f;
 	}
+	void get_min_max_height(double& minh, double& maxh) const { minh = 0.0; maxh = 8*20.0; }
 };
 
 
@@ -899,7 +905,16 @@ void geoclipmap::level::update_VBO_and_tex(const vector2i& scratchoff,
 
 
 
-// give real world offset (per-level coordinates) here as well as frustum&
+static const int geoidx[2*4*6] = {
+	0,0, 1,0, 1,1, 0,1,
+	1,0, 2,0, 2,1, 1,1,
+	2,0, 3,0, 3,1, 2,1,
+	3,0, 0,0, 0,1, 3,1,
+	0,1, 1,1, 2,1, 3,1,
+	0,0, 3,0, 2,0, 1,0,
+};
+
+// give real world offset (per-level coordinates) here as well as frustum-ref
 unsigned geoclipmap::level::generate_indices(const frustum& f,
 					     uint32_t* buffer, unsigned idxbase,
 					     const vector2i& offset, // in per-level coordinates, global
@@ -909,27 +924,39 @@ unsigned geoclipmap::level::generate_indices(const frustum& f,
 	//log_debug("genindi="<<index<<" size="<<size);
 	if (size.x <= 1 || size.y <= 1) return 0;
 
-#if 1
-	// maybe enlarge the polygon in all 4 directions by max. height
-	const double ecs = 0.0; // needs to be 100 or more to work, depends on level too, fixme
-	//maybe there are also bugs in the clip code?
-	polygon poly(vector3(offset.x * L_l, offset.y * L_l, 0) + vector3(-ecs, -ecs, 0),
-		     vector3((offset.x + size.x) * L_l, offset.y * L_l, 0) + vector3(+ecs, -ecs, 0),
-		     vector3((offset.x + size.x) * L_l, (offset.y + size.y) * L_l, 0) + vector3(+ecs, +ecs, 0),
-		     vector3(offset.x * L_l, (offset.y + size.y) * L_l, 0) + vector3(-ecs, +ecs, 0));
-	poly = f.clip(poly);
-	if (poly.empty()) return 0;
-	// compute bounding rectangle
-	vector2 minv = poly.points.front().xy();
-	vector2 maxv = minv;
-	for (unsigned i = 1; i < poly.points.size(); ++i) {
-		vector2 v = poly.points[i].xy();
-		minv = minv.min(v);
-		maxv = maxv.max(v);
+	/* how clipping works:
+	   each patch forms a rectangle in xy-plane. Together with min. and max. height
+	   of the terrain this forms an axis aligned box (bounding box of patch).
+	   We create 6 polygons to represent that box and clip them by the viewing
+	   frustum. The resulting points are projected to the xy plane and their
+	   min. and max. xy coordinates are computed.
+	   That area is used to clip the patch area.
+	*/
+	// box base points in ccw order
+	vector2 cv[4] = { vector2(offset.x * L_l, offset.y * L_l),
+			  vector2((offset.x + size.x) * L_l, offset.y * L_l),
+			  vector2((offset.x + size.x) * L_l, (offset.y + size.y) * L_l),
+			  vector2(offset.x * L_l, (offset.y + size.y) * L_l) };
+	double minmaxz[2];
+	gcm.height_gen.get_min_max_height(minmaxz[0], minmaxz[1]);
+	vector2 minv(1e30, 1e30), maxv(-1e30, -1e30);
+	bool allempty = true;
+	for (unsigned i = 0; i < 6; ++i) {
+		polygon p = f.clip(polygon(cv[geoidx[i*8+0]].xyz(minmaxz[geoidx[i*8+1]]),
+					   cv[geoidx[i*8+2]].xyz(minmaxz[geoidx[i*8+3]]),
+					   cv[geoidx[i*8+4]].xyz(minmaxz[geoidx[i*8+5]]),
+					   cv[geoidx[i*8+6]].xyz(minmaxz[geoidx[i*8+7]])));
+		if (!p.empty()) {
+			allempty = false;
+			for (unsigned j = 0; j < p.points.size(); ++j) {
+				minv = minv.min(p.points[j].xy());
+				maxv = maxv.max(p.points[j].xy());
+			}
+		}
 	}
-	// fixme, test: check viewpos
-	minv = minv.min(tmp_viewpos.xy());
-	maxv = maxv.max(tmp_viewpos.xy());
+
+	if (allempty) return 0;
+				
 	// convert coordinates back to integer values with rounding down/up
 	vector2i minvi(int(floor(minv.x / L_l)), int(floor(minv.y / L_l)));
 	vector2i maxvi(int(ceil(maxv.x / L_l)), int(ceil(maxv.y / L_l)));
@@ -952,10 +979,6 @@ unsigned geoclipmap::level::generate_indices(const frustum& f,
 	vector2i size2 = newsize;
 	// check again if patch is still valid
 	if (size2.x <= 1 || size2.y <= 1) return 0;
-#else
-	vector2i vbooff2 = vbooff;
-	vector2i size2 = size;
-#endif
 
 	// always put the first index of a row twice and also the last
 	unsigned ptr = idxbase;
