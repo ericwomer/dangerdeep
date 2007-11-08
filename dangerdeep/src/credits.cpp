@@ -222,6 +222,9 @@ const char* credits[] = {
 
   fixme todo:
   - move geoclipmap part to standalone test program like portal!
+  - sometimes clipping clips too much in the near with test2, but why?!
+    maybe because test2 gives wrong minh/maxh
+    but it seems correct... strange
   - texcoord computation is not fully correct in shader
   - compute z_c and n_c correctly
     linear interpol. of z of coarser level!
@@ -428,6 +431,23 @@ public:
 
 
 
+class height_generator_test5 : public height_generator
+{
+public:
+	void compute_height(unsigned detail, const vector2i& coord, float* dest) {
+		if (coord.x == 0 || coord.y == 0 || coord.x==coord.y) {
+		dest[0] = 40.0;
+		dest[1] = 40.0;
+		} else {
+		dest[0] = 0.0;
+		dest[1] = 0.0;
+		}
+	}
+	void get_min_max_height(double& minh, double& maxh) const { minh = 0.0; maxh = 40.0; }
+};
+
+
+
 static Uint8 terrcol[32*3] = {
 239, 237, 237, 202, 196, 195, 180, 171, 170, 178, 159, 158, 162, 148,
 147, 163, 147, 144, 191, 183, 180, 185, 176, 172, 173, 163, 158, 166,
@@ -553,6 +573,8 @@ public:
 
 	/// render the view (will only fetch the vertex/index data, no texture setup)
 	void display(const frustum& f) const;
+
+	texture& magic(int i) { return levels[i]->normals_tex(); }
 };
 
 
@@ -650,13 +672,13 @@ void geoclipmap::display(const frustum& f) const
 	glActiveTexture(GL_TEXTURE2);
 	glEnable(GL_TEXTURE_2D);
 	myshader.use();
-	myshader.set_gl_texture(*terrain_tex, loc_texterrain, 0);
+	myshader.set_gl_texture(*terrain_tex, loc_texterrain, 2);
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
-		myshader.set_gl_texture(levels[lvl]->normals_tex(), loc_texnormal, 1);
+		myshader.set_gl_texture(levels[lvl]->normals_tex(), loc_texnormal, 0);
 		if (lvl + 1 < levels.size())
-			myshader.set_gl_texture(levels[lvl+1]->normals_tex(), loc_texnormal_c, 2);
+			myshader.set_gl_texture(levels[lvl+1]->normals_tex(), loc_texnormal_c, 1);
 		else
-			myshader.set_gl_texture(*horizon_normal, loc_texnormal_c, 2);
+			myshader.set_gl_texture(*horizon_normal, loc_texnormal_c, 1);
 		levels[lvl]->display(f);
 	}
 	glActiveTexture(GL_TEXTURE2);
@@ -712,6 +734,7 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 	tmp_viewpos = new_viewpos;
 	//log_debug("index="<<index<<" area inner="<<inner.bl<<"|"<<inner.tr<<" outer="<<outer.bl<<"|"<<outer.tr);
 	// set active texture for update
+	glActiveTexture(GL_TEXTURE0);
 	normals->set_gl_texture();
 	// for vertex updates we only need to know the outer area...
 	// compute part of "outer" that is NOT covered by old outer area,
@@ -719,7 +742,7 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 	// as area, only with at least 2 areas...
 	if (vboarea.empty()) {
 		vboarea = outer;	// set this to make the update work correctly
-		dataoffset = vector2i(0, 0);
+		dataoffset = gcm.clamp(outer.bl);
 		update_region(outer);
 	} else {
 		area outercmp = outer;
@@ -810,9 +833,11 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 
 	// compute normals
 	ptr = (sz.x+2 + 1)*geoclipmap_fperv;
-	unsigned tptr = 0;
+	unsigned tptr = 0;//(sz.y-1)*3*sz.x;
+	//log_debug("tex scratch sz="<<sz);
 	for (int y = 0; y < sz.y; ++y) {
 		for (int x = 0; x < sz.x; ++x) {
+#if 1
 			float hr = gcm.vboscratchbuf[ptr+geoclipmap_fperv+2];
 			float hu = gcm.vboscratchbuf[ptr+geoclipmap_fperv*(sz.x+2)+2];
 			float hl = gcm.vboscratchbuf[ptr-geoclipmap_fperv+2];
@@ -823,11 +848,19 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 			gcm.texscratchbuf[tptr+0] = Uint8(nm.x + 128);
 			gcm.texscratchbuf[tptr+1] = Uint8(nm.y + 128);
 			gcm.texscratchbuf[tptr+2] = Uint8(nm.z + 128);
+#else
+			float h = gcm.vboscratchbuf[ptr+2];
+			gcm.texscratchbuf[tptr+0] = x*255/sz.x;
+			gcm.texscratchbuf[tptr+1] = h*6.3;
+			gcm.texscratchbuf[tptr+2] = y*255/sz.y;
+#endif
 			tptr += 3;
 			ptr += geoclipmap_fperv;
 		}
 		ptr += 2*geoclipmap_fperv;
+		//tptr-=2*3*sz.x;
 	}
+	//log_debug("tptr final="<<tptr);
 
 	ptr = 0;
 	geoclipmap::area vboupdate(gcm.clamp(upar.bl - vboarea.bl + dataoffset),
@@ -889,6 +922,7 @@ void geoclipmap::level::update_VBO_and_tex(const vector2i& scratchoff,
 	// we need to do it line by line anyway, as the source is not packed.
 	// maybe we can get higher frame rates if it would be packed...
 	for (int y = 0; y < sz.y; ++y) {
+		//log_debug("update texture xy off ="<<vbooff.x<<"|"<<gcm.mod(vbooff.y+y)<<" idx="<<((scratchoff.y+y)*scratchmod+scratchoff.x)*3);
 		glTexSubImage2D(GL_TEXTURE_2D, 0 /* mipmap level */,
 				vbooff.x, gcm.mod(vbooff.y+y), sz.x, 1, GL_RGB, GL_UNSIGNED_BYTE,
 				&gcm.texscratchbuf[((scratchoff.y+y)*scratchmod+scratchoff.x)*3]);
@@ -1805,8 +1839,8 @@ void show_credits()
 
 	/* geoclipmap test*/
 #ifdef GEOCLIPMAPTEST
-	height_generator_test hgt;
-	//height_generator_test2 hgt;
+	//height_generator_test hgt;
+	height_generator_test2 hgt;
 #if 0
 	std::vector<Uint8> heights;
 #if 1
@@ -1859,6 +1893,7 @@ void show_credits()
 	heights.clear();
 #endif
 	//height_generator_test4 hgt;
+	//height_generator_test5 hgt;
 	// total area covered = 2^(levels-1) * L * N
 	// 8, 7, 1.0 gives 2^14m = 16384m
 	geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, 1.0, hgt);
@@ -2093,6 +2128,12 @@ void show_credits()
 		glPopMatrix();
 
 		sys().prepare_2d_drawing();
+#if 0 //def GEOCLIPMAPTEST
+		glColor4f(1,1,1,1);
+		gcm.magic(0).draw(0, 0);
+		gcm.magic(1).draw(256, 0);
+		gcm.magic(0).draw_tiles(0,0,512,512);
+#endif
 		if (fadein_tex.get()) {
 			fadein_ctr = (sys().millisec() - tm0) * 64 / 3200;
 			// generate fadein tex
