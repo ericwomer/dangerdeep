@@ -14,15 +14,17 @@ uniform sampler2D texnormal_c;
 void main()
 {
 	vec3 L = normalize(lightdir);
-	
+
 	vec3 N = normalize(mix(texture2D(texnormal, texcoordnormal).xyz * 2.0 - 1.0,
 			       texture2D(texnormal_c, texcoordnormal_c).xyz * 2.0 - 1.0,
 			       alpha));
-	
+
 //	vec3 N = normalize(texture2D(texnormal, texcoordnormal).xyz * 2.0 - 1.0);
 //	vec3 N = normalize(normal);
 	vec3 col2 = texture2D(texterrain, texcoord).xyz;
 	vec3 final_color = col2 * max(dot(L, N), 0.0);
+//	vec3 final_color = texture2D(texnormal, texcoordnormal).xyz;
+//	vec3 final_color = N;
 /*
 	final_color.z = mix(texture2D(texnormal, texcoordnormal).xyz * 2.0 - 1.0,
 			    texture2D(texnormal_c, texcoordnormal_c).xyz * 2.0 - 1.0,

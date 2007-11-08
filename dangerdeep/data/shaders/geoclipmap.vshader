@@ -34,9 +34,16 @@ void main()
 
 	texcoord = vec2(0.0, 1.0 - (vpos.z + 50.0) / 150.0);
 
-	//fixme: N or N-1 here? should be N...
-	texcoordnormal = vpos.xy * L_l_rcp * N_rcp;
-	texcoordnormal_c = vpos.xy * L_l_rcp * 0.5 * N_rcp;
+	//fixme: so the texture seems to fit, but wtf why?!
+	//0.005*256=1.28 so we shift by ca 1.28 texel
+	//but why x=0.5 and y=0.75 shift???
+	texcoordnormal = vpos.xy * L_l_rcp * N_rcp /* + vec2(+0.005, +0.005)*/;
+	texcoordnormal_c = vpos.xy * L_l_rcp * 0.5 * N_rcp /*+ vec2(+0.005, +0.005)*/;
+//	texcoordnormal = vpos.xy * L_l_rcp * N_rcp + vec2(0.5-0.005, 0.75-0.005);
+//	texcoordnormal_c = vpos.xy * L_l_rcp * 0.5 * N_rcp + vec2(0.5-0.005, 0.75-0.005);
+	// maybe the texture is y-flipped?
+	//texcoordnormal.y = -texcoordnormal.y;
+	//texcoordnormal_c.y = -texcoordnormal_c.y;
 
 	// compute direction to light
 	vec3 lightpos_obj = vec3(gl_ModelViewMatrixInverse * gl_LightSource[0].position);
