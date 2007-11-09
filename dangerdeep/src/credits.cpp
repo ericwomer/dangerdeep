@@ -974,6 +974,12 @@ unsigned geoclipmap::level::generate_indices(const frustum& f,
 	double minmaxz[2];
 	gcm.height_gen.get_min_max_height(minmaxz[0], minmaxz[1]);
 	vector2 minv(1e30, 1e30), maxv(-1e30, -1e30);
+	// if viewer is inside the bounding box, use its position as additional
+	// bound point.
+	const double eps = 0.5;
+	if (f.viewpos.z > minmaxz[0] - eps && f.viewpos.z < minmaxz[1] + eps) {
+		minv = maxv = f.viewpos.xy();
+	} 
 	bool allempty = true;
 	for (unsigned i = 0; i < 6; ++i) {
 		polygon p = f.clip(polygon(cv[geoidx[i*8+0]].xyz(minmaxz[geoidx[i*8+1]]),
