@@ -362,17 +362,17 @@ public:
 		int xc = coord.x * int(1 << detail);
 		int yc = coord.y * int(1 << detail);
 		if (detail <= 6)
-			dest[0] = -100.0 + pn.value(xc, yc, 6-detail);
+			dest[0] = -100.0 + pn.value(xc, yc, 6-detail) * 0.75;
 		else
 			dest[0] = 0;
 		//fixme: bilinear interpol. of height of coarser level needed for
 		//all coordinates with odd numbers!
 		if (detail <= 5)
-			dest[1] = -100.0 + pn.value(xc, yc, 5-detail);
+			dest[1] = -100.0 + pn.value(xc, yc, 5-detail) * 0.75;
 		else
 			dest[1] = 0;
 	}
-	void get_min_max_height(double& minh, double& maxh) const { minh = -100.0; maxh = 156.0; }
+	void get_min_max_height(double& minh, double& maxh) const { minh = -100.0; maxh = -100+256*0.75; }
 };
 
 
@@ -510,7 +510,6 @@ class geoclipmap
 		vector2i dataoffset;
 
 		mutable area tmp_inner, tmp_outer;
-		mutable vector3 tmp_viewpos;
 
 		unsigned generate_indices(const frustum& f,
 					  uint32_t* buffer, unsigned idxbase,
@@ -731,7 +730,6 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 			    int(floor(0.5*new_viewpos.y/L_l + 0.25*gcm.resolution + 0.5))*2));
 	tmp_inner = inner;
 	tmp_outer = outer;
-	tmp_viewpos = new_viewpos;
 	//log_debug("index="<<index<<" area inner="<<inner.bl<<"|"<<inner.tr<<" outer="<<outer.bl<<"|"<<outer.tr);
 	// set active texture for update
 	glActiveTexture(GL_TEXTURE0);
