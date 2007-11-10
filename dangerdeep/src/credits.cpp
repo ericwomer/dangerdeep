@@ -222,23 +222,22 @@ const char* credits[] = {
 
   fixme todo:
   - move geoclipmap part to standalone test program like portal!
-  - texcoord computation is not fully correct in shader
-    NOW works much better, but check for exact vertex<->pixel mapping!
   - render triangles from outmost patch to horizon
     problem later when rendering coast, to the sea horizon z-value must be < 0,
     to the land > 0. maybe stretch xy coordinates of last level beyond viewing range,
     that would solve both problems, but the height values must get computed accordingly then
-  - later check if texture coordinates needs to get translated by 0.25 of one texel or so,
-    because a value in the normal tex must match a vertex, but a texel spans an area normally...
   - maybe store normals with double resolution (request higher level from height gen.)
-    for extra detail, or maybe even ask height generator for normals directly
+    for extra detail, or maybe even ask height generator for normals directly.
+    Give then doubled N to v-shader...
   - viewpos change is too small compared to last rendered viewpos, do nothing, else
     render and update last rendered viewpos
   - generate tri-strips with better post-transform-cache-use
-    (columns of 16-32 triangles)
+    (columns of 16-32 triangles) PERFORMANCE
+  - check for combining updates to texture/VBO (at least texture possible) PERFORMANCE
   - write good height generator
   - do not render too small detail (start at min_level, but test that this works)
   - compute how many tris per second are rendered as performance measure
+  - current implementation is CPU limited! profile it
 
   done:
   - render T-junction triangles
@@ -287,6 +286,8 @@ const char* credits[] = {
     update area mod N, if tr.xy < bl.xy then horiz/vert there are 2 areas (< not <= )
     the width is then tr.xy + 1 for the second area, N - bl.xy for the first (N=2^n)
     so max coordinates for bl/tr are N-1.
+  - texcoord computation is not fully correct in shader
+    NOW works much better, but check for exact vertex<->pixel mapping!
 
 
     triangle count: N*N*2*3/4 per level plus N*N*2*1/4 for inner level
@@ -873,7 +874,6 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	*/
 	for (int y = 0; y < sz.y; ++y) {
 		for (int x = 0; x < sz.x; ++x) {
-#if 1
 			float hr = gcm.vboscratchbuf[ptr+geoclipmap_fperv+2];
 			float hu = gcm.vboscratchbuf[ptr+geoclipmap_fperv*(sz.x+2)+2];
 			float hl = gcm.vboscratchbuf[ptr-geoclipmap_fperv+2];
@@ -883,12 +883,6 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 			gcm.texscratchbuf[tptr+0] = Uint8(nm.x + 128);
 			gcm.texscratchbuf[tptr+1] = Uint8(nm.y + 128);
 			gcm.texscratchbuf[tptr+2] = Uint8(nm.z + 128);
-#else
-			float h = gcm.vboscratchbuf[ptr+2];
-			gcm.texscratchbuf[tptr+0] = x*255/sz.x;
-			gcm.texscratchbuf[tptr+1] = h*6.3;
-			gcm.texscratchbuf[tptr+2] = y*255/sz.y;
-#endif
 			tptr += 3;
 			ptr += geoclipmap_fperv;
 		}
