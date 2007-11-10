@@ -222,34 +222,16 @@ const char* credits[] = {
 
   fixme todo:
   - move geoclipmap part to standalone test program like portal!
-  - sometimes clipping clips too much in the near with test2, but why?!
-    maybe because test2 gives wrong minh/maxh
-    but it seems correct... strange
   - texcoord computation is not fully correct in shader
-  - compute z_c and n_c correctly
-    linear interpol. of z of coarser level!
-    can be done by requesting patch of 1/2 size of coarser level, then upscaling
-    coordinates by hand in the scratchbuffer
-    same for normals! costly...
-    normals should be placed in textures, then n_c is computed correctly by the
-    GPU already (linear interpolation of the values)
-    what do we need? one texture RGB per level, with res N*N (again essential that
-    N is a power of 2) that would be 256x256x3x7=1300k, no problem, small memory
-    if n is just stored to a texture when it is computed, we get n_c without extra
-    cost, we only need to store and update one texture per level and need to enhance
-    the shader, and need to store n in the texture.
-    we can easily give the mix factor alpha from the vshader to the fshader
-    so it is all a matter of texture updates.
-    to find the up to 4 update areas:
-    update area mod N, if tr.xy < bl.xy then horiz/vert there are 2 areas (< not <= )
-    the width is then tr.xy + 1 for the second area, N - bl.xy for the first (N=2^n)
-    so max coordinates for bl/tr are N-1.
+    NOW works much better, but check for exact vertex<->pixel mapping!
   - render triangles from outmost patch to horizon
     problem later when rendering coast, to the sea horizon z-value must be < 0,
     to the land > 0. maybe stretch xy coordinates of last level beyond viewing range,
     that would solve both problems, but the height values must get computed accordingly then
   - later check if texture coordinates needs to get translated by 0.25 of one texel or so,
     because a value in the normal tex must match a vertex, but a texel spans an area normally...
+  - maybe store normals with double resolution (request higher level from height gen.)
+    for extra detail, or maybe even ask height generator for normals directly
   - viewpos change is too small compared to last rendered viewpos, do nothing, else
     render and update last rendered viewpos
   - generate tri-strips with better post-transform-cache-use
@@ -287,6 +269,24 @@ const char* credits[] = {
     It depends on viewer height also, and the extra-clip-space depends on level!
     viewerpos-xy should be an additional min/max in the clipping, but then
     clipping is less effective?
+  - compute z_c and n_c correctly
+    linear interpol. of z of coarser level!
+    can be done by requesting patch of 1/2 size of coarser level, then upscaling
+    coordinates by hand in the scratchbuffer
+    same for normals! costly...
+    normals should be placed in textures, then n_c is computed correctly by the
+    GPU already (linear interpolation of the values)
+    what do we need? one texture RGB per level, with res N*N (again essential that
+    N is a power of 2) that would be 256x256x3x7=1300k, no problem, small memory
+    if n is just stored to a texture when it is computed, we get n_c without extra
+    cost, we only need to store and update one texture per level and need to enhance
+    the shader, and need to store n in the texture.
+    we can easily give the mix factor alpha from the vshader to the fshader
+    so it is all a matter of texture updates.
+    to find the up to 4 update areas:
+    update area mod N, if tr.xy < bl.xy then horiz/vert there are 2 areas (< not <= )
+    the width is then tr.xy + 1 for the second area, N - bl.xy for the first (N=2^n)
+    so max coordinates for bl/tr are N-1.
 
 
     triangle count: N*N*2*3/4 per level plus N*N*2*1/4 for inner level
@@ -305,6 +305,7 @@ const char* credits[] = {
 */
 
 
+//#define GEOCLIPMAPTEST
 #undef  GEOCLIPMAPTEST
 
 #ifdef GEOCLIPMAPTEST
@@ -320,7 +321,7 @@ public:
 	///@param detail - accuracy of height (level of detail)
 	///@param coord - coordinate to compute z/z_c for
 	///@param dest - pointer to first z value to write to
-	virtual void compute_height(unsigned detail, const vector2i& coord, float* dest) = 0;
+	virtual float compute_height(unsigned detail, const vector2i& coord) = 0;
 	virtual void get_min_max_height(double& minh, double& maxh) const = 0;
 };
 
@@ -329,10 +330,10 @@ public:
 class height_generator_test : public height_generator
 {
 public:
-	void compute_height(unsigned detail, const vector2i& coord, float* dest) {
+	float compute_height(unsigned detail, const vector2i& coord) {
 		int xc = coord.x * int(1 << detail);
 		int yc = coord.y * int(1 << detail);
-		dest[0] = dest[1] = sin(2*3.14159*xc*0.01) * sin(2*3.14159*yc*0.01) * 40.0;
+		return sin(2*3.14159*xc*0.01) * sin(2*3.14159*yc*0.01) * 40.0;
 	}
 	void get_min_max_height(double& minh, double& maxh) const { minh = -40.0; maxh = 40.0; }
 };
@@ -358,19 +359,13 @@ public:
 			asin_lookup.set_value(i, asin(float(i)/256) / M_PI + 0.5);
 		*/
 	}
-	void compute_height(unsigned detail, const vector2i& coord, float* dest) {
+	float compute_height(unsigned detail, const vector2i& coord) {
 		int xc = coord.x * int(1 << detail);
 		int yc = coord.y * int(1 << detail);
 		if (detail <= 6)
-			dest[0] = -100.0 + pn.value(xc, yc, 6-detail) * 0.75;
+			return -100.0 + pn.value(xc, yc, 6-detail)*0.75;
 		else
-			dest[0] = 0;
-		//fixme: bilinear interpol. of height of coarser level needed for
-		//all coordinates with odd numbers!
-		if (detail <= 5)
-			dest[1] = -100.0 + pn.value(xc, yc, 5-detail) * 0.75;
-		else
-			dest[1] = 0;
+			return 0;
 	}
 	void get_min_max_height(double& minh, double& maxh) const { minh = -100.0; maxh = -100+256*0.75; }
 };
@@ -407,12 +402,12 @@ public:
 			heightdata[i] = scaledown(heightdata[i-1], baseres >> i);
 		heightdata.back().resize(1, 0);
 	}
-	void compute_height(unsigned detail, const vector2i& coord, float* dest) {
+	float compute_height(unsigned detail, const vector2i& coord) {
 		const unsigned shift = (baseres >> detail);
 		const unsigned mask = shift - 1;
 		unsigned xc = unsigned(coord.x + shift/2) & mask;
 		unsigned yc = unsigned(coord.y + shift/2) & mask;
-		dest[0] = dest[1] = heightdata[detail][yc * shift + xc] * heightmult + heightadd;
+		return heightdata[detail][yc * shift + xc] * heightmult + heightadd;
 	}
 	void get_min_max_height(double& minh, double& maxh) const { minh = heightadd; maxh = heightadd + 255*heightmult; }
 };
@@ -422,9 +417,8 @@ public:
 class height_generator_test4 : public height_generator
 {
 public:
-	void compute_height(unsigned detail, const vector2i& coord, float* dest) {
-		dest[0] = detail * 20.0f;
-		dest[1] = (detail+1) * 20.0f;
+	float compute_height(unsigned detail, const vector2i& coord) {
+		return detail * 20.0f;
 	}
 	void get_min_max_height(double& minh, double& maxh) const { minh = 0.0; maxh = 8*20.0; }
 };
@@ -434,13 +428,11 @@ public:
 class height_generator_test5 : public height_generator
 {
 public:
-	void compute_height(unsigned detail, const vector2i& coord, float* dest) {
+	float compute_height(unsigned detail, const vector2i& coord) {
 		if (coord.x == 0 || coord.y == 0 || coord.x==coord.y) {
-		dest[0] = 40.0;
-		dest[1] = 40.0;
+			return 40.0;
 		} else {
-		dest[0] = 0.0;
-		dest[1] = 0.0;
+			return 0.0;
 		}
 	}
 	void get_min_max_height(double& minh, double& maxh) const { minh = 0.0; maxh = 40.0; }
@@ -811,28 +803,74 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	// it depends on wether upcrd.xy is odd or even where to add lines for z_c computation
 	// later we need to compute n_c as well, so we need even more lines.
 	// note! do not call "x / 2" for int x, its more efficient to use "x >> 1"!
+	// It is even WRONG to call x / 2 sometimes, as -1 / 2 gives 0 and not -1 as the shift method does,
+	// when we want to round down...
 	unsigned ptr = 0;
 	for (int y = 0; y < sz.y + 2; ++y) {
 		vector2i upcrd2 = upcrd;
 		for (int x = 0; x < sz.x + 2; ++x) {
-			float* fptr = &gcm.vboscratchbuf[ptr];
-			//fixme: heights (z,z_c) seem ok, interpolation factor too,
-			//but still gaps. is x/y borked?
-			//seems not, but what is wrong then? height is not interpolated?
-			fptr[0] = upcrd2.x * L_l; // fixme: maybe subtract viewerpos here later.
-			fptr[1] = upcrd2.y * L_l;
-			gcm.height_gen.compute_height(index, upcrd2, &fptr[2]);
-			//gcm.height_gen.compute_height(index+1, upcrd2, &fptr[3]);
+			gcm.vboscratchbuf[ptr+0] = upcrd2.x * L_l; // fixme: maybe subtract viewerpos here later.
+			gcm.vboscratchbuf[ptr+1] = upcrd2.y * L_l;
+			gcm.vboscratchbuf[ptr+2] = gcm.height_gen.compute_height(index, upcrd2);
 			ptr += geoclipmap_fperv;
 			++upcrd2.x;
 		}
 		++upcrd.y;
 	}
 
+	// get heights of coarser level, only for values inside original scratchbuf area
+	// (without the +1 perimeter for normals)
+	upcrd.x = upar.bl.x >> 1; // need to shift here because values could be negative!
+	upcrd.y = upar.bl.y >> 1;
+	// sz.xy can be odd, so we must compute size with rounding up tr...
+	const vector2 szc(((upar.tr.x+1)>>1) - upcrd.x + 1, ((upar.tr.y+1)>>1) - upcrd.y + 1);
+	unsigned ptr3 = ptr = ((sz.x+2)*(1-(upar.bl.y & 1)) + (1-(upar.bl.x & 1)))*geoclipmap_fperv;
+	for (int y = 0; y < szc.y; ++y) {
+		vector2i upcrd2 = upcrd;
+		unsigned ptr2 = ptr;
+		for (int x = 0; x < szc.x; ++x) {
+			gcm.vboscratchbuf[ptr2+3] = gcm.height_gen.compute_height(index+1, upcrd2);
+			ptr2 += 2*geoclipmap_fperv;
+			++upcrd2.x;
+		}
+		++upcrd.y;
+		ptr += 2*(sz.x+2)*geoclipmap_fperv;
+	}
+
+	// interpolate z_c, first fill in missing columns on even rows
+	ptr = ptr3;
+	for (int y = 0; y < szc.y; ++y) {
+		unsigned ptr2 = ptr;
+		for (int x = 0; x < szc.x-1; ++x) {
+			float f0 = gcm.vboscratchbuf[ptr2+3];
+			float f1 = gcm.vboscratchbuf[ptr2+2*geoclipmap_fperv+3];
+			gcm.vboscratchbuf[ptr2+geoclipmap_fperv+3] = (f0+f1)*0.5f;
+			ptr2 += 2*geoclipmap_fperv;
+		}
+		ptr += 2*(sz.x+2)*geoclipmap_fperv;
+	}
+
+	// interpolate z_c, first fill in missing rows
+	ptr = ptr3 + (sz.x+2)*geoclipmap_fperv;
+	for (int y = 0; y < szc.y-1; ++y) {
+		unsigned ptr2 = ptr;
+		for (int x = 0; x < szc.x*2-1; ++x) {//here we could spare 1 column
+			float f0 = gcm.vboscratchbuf[ptr2-(sz.x+2)*geoclipmap_fperv+3];
+			float f1 = gcm.vboscratchbuf[ptr2+(sz.x+2)*geoclipmap_fperv+3];
+			gcm.vboscratchbuf[ptr2+3] = (f0+f1)*0.5f;
+			ptr2 += geoclipmap_fperv;
+		}
+		ptr += 2*(sz.x+2)*geoclipmap_fperv;
+	}
+
 	// compute normals
 	ptr = (sz.x+2 + 1)*geoclipmap_fperv;
 	unsigned tptr = 0;//(sz.y-1)*3*sz.x;
 	//log_debug("tex scratch sz="<<sz);
+	/* fixme: maybe let height generator let deliver normals directly */
+	/* fixme: maybe store normals in double res. (from next finer level) in texture
+	   with double res. as vertices -> more detail!
+	*/
 	for (int y = 0; y < sz.y; ++y) {
 		for (int x = 0; x < sz.x; ++x) {
 #if 1
@@ -842,7 +880,6 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 			float hd = gcm.vboscratchbuf[ptr-geoclipmap_fperv*(sz.x+2)+2];
 			vector3f nm = vector3f(hl-hr, hd-hu, L_l * 2).normal();
 			nm = nm * 127;
-			//fixme: maybe store texture upsidedown?
 			gcm.texscratchbuf[tptr+0] = Uint8(nm.x + 128);
 			gcm.texscratchbuf[tptr+1] = Uint8(nm.y + 128);
 			gcm.texscratchbuf[tptr+2] = Uint8(nm.z + 128);
@@ -912,6 +949,13 @@ void geoclipmap::level::update_VBO_and_tex(const vector2i& scratchoff,
 					   const vector2i& sz,
 					   const vector2i& vbooff)
 {		
+	/* fixme: CPU load is high, especially kernel part, could be cause of
+	   these calls to GL.
+	   We could at least reduce the glTexSubImage2D calls by copying the
+	   texture data to a consecutive block. But then we need to do y-clipping
+	   in the calling function.
+	   And we could try buffer-mapping instead of many glBufferSubData calls
+	*/
 	//log_debug("update2 off="<<scratchoff<<" sz="<<sz<<" vbooff="<<vbooff);
 	// fixme: later texture coordinates maybe must get shifted a bit,
 	// so that texel 0,0 matches vertex at 0,0. texel 0,0 spans area of vertices 0,0->0,1
