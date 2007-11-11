@@ -31,7 +31,7 @@ void main()
 	vpos.z = mix(vpos.z, z_c, alpha);
 
 	// terrain color (test)
-	texcoord = vec2(0.0, 1.0 - (vpos.z + 50.0) / 150.0);
+	texcoord = vec2(0.0, 1.0 - (vpos.z + 20.0) / 128.0);
 
 	// shift is 0.5 texel, so it is 1/texres * 0.5
 	texcoordnormal = vpos.xy * L_l_rcp * N_rcp + texcshift;

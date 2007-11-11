@@ -374,9 +374,10 @@ public:
 	float compute_height(unsigned detail, const vector2i& coord) {
 		int xc = coord.x * int(1 << detail);
 		int yc = coord.y * int(1 << detail);
-		if (detail <= 6)
-			return -100.0 + pn.value(xc, yc, 6-detail)*0.75;
-		else
+		if (detail <= 6) {
+			float h = pn.value(xc, yc, 6-detail)/255.0f;
+			return 0 + h*h*h*0.5 * 256;
+		} else
 			return 0;
 	}
 	float compute_height_extra(unsigned detail, const vector2i& coord) {
@@ -388,7 +389,7 @@ public:
 		baseh += extrah[(coord.y&31)*32+(coord.x&31)];
 		return baseh;
 	}
-	void get_min_max_height(double& minh, double& maxh) const { minh = -100.0; maxh = -100+256*0.75; }
+	void get_min_max_height(double& minh, double& maxh) const { minh = 0.0; maxh = 128.0; }
 };
 
 
