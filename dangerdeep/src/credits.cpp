@@ -509,6 +509,9 @@ class geoclipmap
 					  const vector2i& offset,
 					  const vector2i& size,
 					  const vector2i& vbooff) const;
+		unsigned generate_indices2(uint32_t* buffer, unsigned idxbase,
+					   const vector2i& size,
+					   const vector2i& vbooff) const;
 		unsigned generate_indices_T(uint32_t* buffer, unsigned idxbase) const;
 		void update_region(const geoclipmap::area& upar);
 		void update_VBO_and_tex(const vector2i& scratchoff,
@@ -1056,28 +1059,62 @@ unsigned geoclipmap::level::generate_indices(const frustum& f,
 	// check again if patch is still valid
 	if (size2.x <= 1 || size2.y <= 1) return 0;
 
+	return generate_indices2(buffer, idxbase, size2, vbooff2);
+}
+
+unsigned geoclipmap::level::generate_indices2(uint32_t* buffer, unsigned idxbase,
+					     const vector2i& size2,
+					     const vector2i& vbooff2) const
+{
+	// fixme: according to the profiler, this eats 70% of cpu time!!!
+	//gcm.mod costs 3 instructions because of dereferencing...
+	//better handle/inc buffer pointer directly instead of maintaining ptr-variable!
+	//to get the address of buffer the gcc uses many strange instructions!
+	//it seems the writing to the VBO costs most...
+	//not really, when writing to a victim buffer, total cpu usage goes from 70%
+	//down to 43%. So VBO writing is 1-43/70=39% of the cpu time.
+	//It is doubtful that glBufferSubData would be faster...
+	//so replace gcm.mod, we can't do much more...
+	//done, now cpu load 65%, but still high.
+	//it variies with geometric detail or viewer height, so its hard to tell
+	//but current version has least number of instructions in inner loop
+	//that can be generated with gcc, for lower numbers one needs
+	//assembler.
+
 	// always put the first index of a row twice and also the last
-	unsigned ptr = idxbase;
-	int vbooffy0 = gcm.mod(vbooff2.y);
-	int vbooffy1 = gcm.mod(vbooffy0 + 1);
+	uint32_t* bufptr = buffer + idxbase;
+	const unsigned resolution_vbo_mod = gcm.resolution_vbo_mod;
+	int vbooffy0 = vbooff2.y & resolution_vbo_mod;
+	int vbooffy1 = (vbooffy0 + 1) & resolution_vbo_mod;
 	for (int y = 0; y + 1 < size2.y; ++y) {
 		int vbooffy0_l = vbooffy0 * gcm.resolution_vbo;
 		int vbooffy1_l = vbooffy1 * gcm.resolution_vbo;
-		int vbooffx0 = gcm.mod(vbooff2.x);
+		int vbooffx0 = vbooff2.x & resolution_vbo_mod;
 		// store first index twice (line or patch transition)
-		buffer[ptr++] = vbooffy1_l + vbooffx0;
-		uint32_t lastidx = 0;
+		*bufptr++ = vbooffy1_l + vbooffx0;
+#if 0
 		for (int x = 0; x < size2.x; ++x) {
-			buffer[ptr++] = vbooffy1_l + vbooffx0;
-			buffer[ptr++] = lastidx = vbooffy0_l + vbooffx0;
-			vbooffx0 = gcm.mod(vbooffx0 + 1);
+			//gcc does strange things with this line!
+			//it is indexing it via the loop counter etc., it cant be optimal
+ 			*bufptr++ = vbooffy1_l + vbooffx0;
+ 			*bufptr++ = vbooffy0_l + vbooffx0;
+			vbooffx0 = (vbooffx0 + 1) & resolution_vbo_mod;
 		}
+#else
+		// try a loop with pointers directly
+		for (uint32_t* limit = bufptr + size2.x*2; bufptr != limit; bufptr += 2) {
+ 			bufptr[0] = vbooffy1_l + vbooffx0;
+ 			bufptr[1] = vbooffy0_l + vbooffx0;
+			vbooffx0 = (vbooffx0 + 1) & resolution_vbo_mod;
+		}
+#endif
+		uint32_t lastidx = vbooffy0_l + ((vbooffx0 - 1) & resolution_vbo_mod);
 		// store last index twice (line or patch transition)
-		buffer[ptr++] = lastidx;
+		*bufptr++ = lastidx;
 		vbooffy0 = vbooffy1;
-		vbooffy1 = gcm.mod(vbooffy1 + 1);
+		vbooffy1 = (vbooffy1 + 1) & resolution_vbo_mod;
 	}
-	return ptr - idxbase;
+	return bufptr - (buffer + idxbase);
 }
 
 
@@ -1891,9 +1928,9 @@ void show_credits()
 		perlinnoise pn(64, 4, 6, true); // max. 8192
 		const unsigned s2 = 256*16;
 		heights = pn.values(0, 0, s2, s2, 6);
-#if 0		
+#if 1
 		const unsigned height_segments = 10;
-		const float total_height = 256.0;
+		const float total_height = 128.0;
 		const float terrace_height = total_height / height_segments;
 		lookup_function<float, 256U> asin_lookup;
 		for (unsigned i = 0; i <= 256; ++i)
@@ -1905,7 +1942,7 @@ void show_credits()
 				float f_frac = f / terrace_height - t;
 				float f2 = f_frac * 2.0 - 1.0; // be in -1...1 range
 				// skip this for softer hills (x^3 = more steep walls)
-				f2 = f2 * f2 * f2;
+				//f2 = f2 * f2 * f2;
 				f2 = asin_lookup.value(f2);
 				heights[y*s2+x] = Uint8((t + f2) * terrace_height);
 			}
