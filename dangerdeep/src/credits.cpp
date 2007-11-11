@@ -323,6 +323,7 @@ public:
 	///@param coord - coordinate to compute z/z_c for
 	///@param dest - pointer to first z value to write to
 	virtual float compute_height(unsigned detail, const vector2i& coord) = 0;
+	virtual float compute_height_extra(unsigned detail, const vector2i& coord) { return 0.0; }
 	virtual void get_min_max_height(double& minh, double& maxh) const = 0;
 };
 
@@ -349,16 +350,24 @@ class height_generator_test2 : public height_generator
 	const unsigned height_segments;
 	const float total_height;
 	const float terrace_height;
+	std::vector<float> extrah;
 public:
 	height_generator_test2()
 		: pn(64, 4, 6, true), s2(256*16), height_segments(10),
-		  total_height(256.0), terrace_height(total_height/height_segments)
+		  total_height(256.0), terrace_height(total_height/height_segments),
+		  extrah(32*32)
 	{
 		/*
 		lookup_function<float, 256U> asin_lookup;
 		for (unsigned i = 0; i <= 256; ++i)
 			asin_lookup.set_value(i, asin(float(i)/256) / M_PI + 0.5);
 		*/
+		for (unsigned y = 0; y < 32; ++y)
+			for (unsigned x = 0; x < 32; ++x)
+				if ((x&1)==0 && (y&1)==0)
+					extrah[32*y+x] = 0.0;
+				else
+					extrah[32*y+x] = rnd()*0.6-0.3;
 	}
 	float compute_height(unsigned detail, const vector2i& coord) {
 		int xc = coord.x * int(1 << detail);
@@ -367,6 +376,15 @@ public:
 			return -100.0 + pn.value(xc, yc, 6-detail)*0.75;
 		else
 			return 0;
+	}
+	float compute_height_extra(unsigned detail, const vector2i& coord) {
+		int xc = coord.x >> detail;
+		int yc = coord.y >> detail;
+		float baseh = compute_height(0, vector2i(xc, yc));
+		xc = coord.x & ((1 << detail)-1);
+		yc = coord.y & ((1 << detail)-1);
+		baseh += extrah[(coord.y&31)*32+(coord.x&31)];
+		return baseh;
 	}
 	void get_min_max_height(double& minh, double& maxh) const { minh = -100.0; maxh = -100+256*0.75; }
 };
@@ -549,6 +567,7 @@ class geoclipmap
 	unsigned loc_xysize2;
 	unsigned loc_L_l_rcp;
 	unsigned loc_N_rcp;
+	unsigned loc_texcshift;
 	texture::ptr terrain_tex;
 	texture::ptr horizon_normal;
 
@@ -581,7 +600,7 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, h
 	  L(L_),
 	  vboscratchbuf((resolution_vbo+2)*(resolution_vbo+2)*geoclipmap_fperv), // 4 floats per VBO sample (x,y,z,zc)
 	  // ^ extra space for normals
-	  texscratchbuf(resolution_vbo*resolution_vbo*3),
+	  texscratchbuf(resolution_vbo*resolution_vbo*3 * 4),
 	  levels(nr_levels),
 	  height_gen(hg),
 	  myshader(get_shader_dir() + "geoclipmap.vshader",
@@ -604,10 +623,12 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, h
 	loc_xysize2 = myshader.get_uniform_location("xysize2");
 	loc_L_l_rcp = myshader.get_uniform_location("L_l_rcp");
 	loc_N_rcp = myshader.get_uniform_location("N_rcp");
+	loc_texcshift = myshader.get_uniform_location("texcshift");
 	const float w_fac = 0.2f;//0.1f;
 	myshader.set_uniform(loc_w_p1, resolution_vbo * w_fac + 1.0f);
 	myshader.set_uniform(loc_w_rcp, 1.0f/(resolution_vbo * w_fac));
 	myshader.set_uniform(loc_N_rcp, 1.0f/resolution_vbo);
+	myshader.set_uniform(loc_texcshift, 0.5f/resolution_vbo);
 	myshader.use_fixed();
 	std::vector<Uint8> terrcol2(&terrcol[0], &terrcol[3*32]);
 	terrain_tex.reset(new texture(terrcol2, 1, 32, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
@@ -701,9 +722,9 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx)
 	indices.init_data(gcm.resolution_vbo*gcm.resolution_vbo*2*4 + (4*gcm.resolution/2*4)*4,
 			  0, GL_STATIC_DRAW);
 	// create space for normal texture
-	std::vector<Uint8> pxl(3*gcm.resolution_vbo*gcm.resolution_vbo);
-	normals.reset(new texture(pxl, gcm.resolution_vbo,
-				  gcm.resolution_vbo, GL_RGB, texture::LINEAR, texture::REPEAT));
+	std::vector<Uint8> pxl(3*gcm.resolution_vbo*gcm.resolution_vbo*2*2);
+	normals.reset(new texture(pxl, gcm.resolution_vbo*2,
+				  gcm.resolution_vbo*2, GL_RGB, texture::LINEAR, texture::REPEAT));
 }
 
 
@@ -875,6 +896,38 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	/* fixme: maybe store normals in double res. (from next finer level) in texture
 	   with double res. as vertices -> more detail!
 	*/
+#if 1
+	if(index>0)
+	for (int y = 0; y < sz.y*2; ++y) {
+		for (int x = 0; x < sz.x*2; ++x) {
+			float hr = gcm.height_gen.compute_height(index-1, upar.bl*2 + vector2i(x+1, y));
+			float hu = gcm.height_gen.compute_height(index-1, upar.bl*2 + vector2i(x, y+1));
+			float hl = gcm.height_gen.compute_height(index-1, upar.bl*2 + vector2i(x-1, y));
+			float hd = gcm.height_gen.compute_height(index-1, upar.bl*2 + vector2i(x, y-1));
+			vector3f nm = vector3f(hl-hr, hd-hu, L_l * 2*0.5).normal();
+			nm = nm * 127;
+			gcm.texscratchbuf[tptr+0] = Uint8(nm.x + 128);
+			gcm.texscratchbuf[tptr+1] = Uint8(nm.y + 128);
+			gcm.texscratchbuf[tptr+2] = Uint8(nm.z + 128);
+			tptr += 3;
+		}
+	}
+	else
+	for (int y = 0; y < sz.y*2; ++y) {
+		for (int x = 0; x < sz.x*2; ++x) {
+			float hr = gcm.height_gen.compute_height_extra(1, upar.bl*2 + vector2i(x+1, y));
+			float hu = gcm.height_gen.compute_height_extra(1, upar.bl*2 + vector2i(x, y+1));
+			float hl = gcm.height_gen.compute_height_extra(1, upar.bl*2 + vector2i(x-1, y));
+			float hd = gcm.height_gen.compute_height_extra(1, upar.bl*2 + vector2i(x, y-1));
+			vector3f nm = vector3f(hl-hr, hd-hu, L_l * 2*0.5).normal();
+			nm = nm * 127;
+			gcm.texscratchbuf[tptr+0] = Uint8(nm.x + 128);
+			gcm.texscratchbuf[tptr+1] = Uint8(nm.y + 128);
+			gcm.texscratchbuf[tptr+2] = Uint8(nm.z + 128);
+			tptr += 3;
+		}
+	}
+#else
 	for (int y = 0; y < sz.y; ++y) {
 		for (int x = 0; x < sz.x; ++x) {
 			float hr = gcm.vboscratchbuf[ptr+geoclipmap_fperv+2];
@@ -890,9 +943,8 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 			ptr += geoclipmap_fperv;
 		}
 		ptr += 2*geoclipmap_fperv;
-		//tptr-=2*3*sz.x;
 	}
-	//log_debug("tptr final="<<tptr);
+#endif
 
 	ptr = 0;
 	geoclipmap::area vboupdate(gcm.clamp(upar.bl - vboarea.bl + dataoffset),
@@ -960,11 +1012,11 @@ void geoclipmap::level::update_VBO_and_tex(const vector2i& scratchoff,
 	// copy data to normals texture
 	// we need to do it line by line anyway, as the source is not packed.
 	// maybe we can get higher frame rates if it would be packed...
-	for (int y = 0; y < sz.y; ++y) {
+	for (int y = 0; y < sz.y*2; ++y) {
 		//log_debug("update texture xy off ="<<vbooff.x<<"|"<<gcm.mod(vbooff.y+y)<<" idx="<<((scratchoff.y+y)*scratchmod+scratchoff.x)*3);
 		glTexSubImage2D(GL_TEXTURE_2D, 0 /* mipmap level */,
-				vbooff.x, gcm.mod(vbooff.y+y), sz.x, 1, GL_RGB, GL_UNSIGNED_BYTE,
-				&gcm.texscratchbuf[((scratchoff.y+y)*scratchmod+scratchoff.x)*3]);
+				vbooff.x*2, (vbooff.y*2+y) & (gcm.resolution_vbo_mod*2+1), sz.x*2, 1, GL_RGB, GL_UNSIGNED_BYTE,
+				&gcm.texscratchbuf[((scratchoff.y*2+y)*scratchmod*2+scratchoff.x*2)*3]);
 	}
 
 	// copy data to real VBO.

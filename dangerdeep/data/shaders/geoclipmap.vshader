@@ -17,6 +17,7 @@ uniform float w_p1;
 uniform float w_rcp;
 uniform float L_l_rcp;
 uniform float N_rcp;
+uniform vec2 texcshift;
 
 attribute float z_c;
 
@@ -33,7 +34,6 @@ void main()
 	texcoord = vec2(0.0, 1.0 - (vpos.z + 50.0) / 150.0);
 
 	// shift is 0.5 texel, so it is 1/texres * 0.5
-	vec2 texcshift = vec2(N_rcp*0.5, N_rcp*0.5);
 	texcoordnormal = vpos.xy * L_l_rcp * N_rcp + texcshift;
 	texcoordnormal_c = vpos.xy * L_l_rcp * 0.5 * N_rcp + texcshift;
 
