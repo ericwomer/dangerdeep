@@ -721,7 +721,7 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx)
 	// fixme: init space for indices, give correct access mode or experiment
 	// fixme: set correct max. size, seems enough and not too much atm.
 	// size of T-junction triangles: 4 indices per triangle (3 + 2 degen. - 1), 4*N/2 triangles
-	indices.init_data(gcm.resolution_vbo*gcm.resolution_vbo*2*4 + (4*gcm.resolution/2*4)*4,
+	indices.init_data((gcm.resolution_vbo+2)*gcm.resolution_vbo*2*4 + (4*gcm.resolution/2*4)*4,
 			  0, GL_STATIC_DRAW);
 	// create space for normal texture
 	std::vector<Uint8> pxl(3*gcm.resolution_vbo*gcm.resolution_vbo*2*2);
