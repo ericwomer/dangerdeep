@@ -228,19 +228,19 @@ const char* credits[] = {
     that would solve both problems, but the height values must get computed accordingly then
   - maybe store normals with double resolution (request higher level from height gen.)
     for extra detail, or maybe even ask height generator for normals directly.
-    Give then doubled N to v-shader...
+    Give then doubled N to v-shader... DONE but a bit crude
   - viewpos change is too small compared to last rendered viewpos, do nothing, else
     render and update last rendered viewpos
-  - generate tri-strips with better post-transform-cache-use
-    (columns of 16-32 triangles) PERFORMANCE
   - check for combining updates to texture/VBO (at least texture possible) PERFORMANCE
   - write good height generator
   - do not render too small detail (start at min_level, but test that this works)
   - compute how many tris per second are rendered as performance measure
-  - current implementation is CPU limited! profile it
+  - current implementation is CPU limited! profile it DONE, slightly optimized
+  - check if map vs. bufferdata/buffersubdata would be faster
 
   done:
   - render T-junction triangles
+  - don't waste space for index VBO, compute correct max. space
   - vertex shader for height interpolation
   - normal computation (or do it via texture)
     compute 2 vertices more in xy direction when computing an update
@@ -288,6 +288,8 @@ const char* credits[] = {
     so max coordinates for bl/tr are N-1.
   - texcoord computation is not fully correct in shader
     NOW works much better, but check for exact vertex<->pixel mapping!
+  - generate tri-strips with better post-transform-cache-use
+    (columns of 16-32 triangles) PERFORMANCE
 
 
     triangle count: N*N*2*3/4 per level plus N*N*2*1/4 for inner level
@@ -717,7 +719,7 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx)
 	// mostly static...
 	vertices.init_data(gcm.resolution_vbo*gcm.resolution_vbo*geoclipmap_fperv*4, 0, GL_STATIC_DRAW);
 	// fixme: init space for indices, give correct access mode or experiment
-	// fixme: set correct max. size
+	// fixme: set correct max. size, seems enough and not too much atm.
 	// size of T-junction triangles: 4 indices per triangle (3 + 2 degen. - 1), 4*N/2 triangles
 	indices.init_data(gcm.resolution_vbo*gcm.resolution_vbo*2*4 + (4*gcm.resolution/2*4)*4,
 			  0, GL_STATIC_DRAW);
@@ -1006,12 +1008,10 @@ void geoclipmap::level::update_VBO_and_tex(const vector2i& scratchoff,
 	   And we could try buffer-mapping instead of many glBufferSubData calls
 	*/
 	//log_debug("update2 off="<<scratchoff<<" sz="<<sz<<" vbooff="<<vbooff);
-	// fixme: later texture coordinates maybe must get shifted a bit,
-	// so that texel 0,0 matches vertex at 0,0. texel 0,0 spans area of vertices 0,0->0,1
-	// and 0,0->1,0 to 1,1...?
 	// copy data to normals texture
 	// we need to do it line by line anyway, as the source is not packed.
 	// maybe we can get higher frame rates if it would be packed...
+	// test showed that this is negligible
 	for (int y = 0; y < sz.y*2; ++y) {
 		//log_debug("update texture xy off ="<<vbooff.x<<"|"<<gcm.mod(vbooff.y+y)<<" idx="<<((scratchoff.y+y)*scratchmod+scratchoff.x)*3);
 		glTexSubImage2D(GL_TEXTURE_2D, 0 /* mipmap level */,
@@ -1111,7 +1111,22 @@ unsigned geoclipmap::level::generate_indices(const frustum& f,
 	// check again if patch is still valid
 	if (size2.x <= 1 || size2.y <= 1) return 0;
 
+#if 1
+	const unsigned colw = 17;
+	unsigned cols = (size2.x + colw-2) / (colw-1);
+	unsigned coloff = 0;
+	unsigned result = 0;
+	for (unsigned c = 0; c < cols; ++c) {
+		unsigned szx = std::min(colw, unsigned(size2.x) - coloff);
+		result += generate_indices2(buffer, idxbase+result,
+					    vector2i(szx, size2.y),
+					    vector2i(vbooff2.x+coloff,vbooff2.y));
+		coloff += colw-1;
+	}
+	return result;
+#else
 	return generate_indices2(buffer, idxbase, size2, vbooff2);
+#endif
 }
 
 unsigned geoclipmap::level::generate_indices2(uint32_t* buffer, unsigned idxbase,
