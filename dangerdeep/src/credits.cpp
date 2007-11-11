@@ -325,6 +325,14 @@ public:
 	///@param coord - coordinate to compute z/z_c for
 	///@param dest - pointer to first z value to write to
 	virtual float compute_height(unsigned detail, const vector2i& coord) = 0;
+	virtual vector3f compute_normal(unsigned detail, const vector2i& coord, float zh) {
+		float hr = compute_height(detail, coord + vector2i(1, 0));
+		float hu = compute_height(detail, coord + vector2i(0, 1));
+		float hl = compute_height(detail, coord + vector2i(-1, 0));
+		float hd = compute_height(detail, coord + vector2i(0, -1));
+		return vector3f(hl-hr, hd-hu, zh*2).normal();
+	}
+	virtual vector3f compute_normal_extra(unsigned detail, const vector2i& coord, float zh) { return vector3(0,0,1); }
 	virtual float compute_height_extra(unsigned detail, const vector2i& coord) { return 0.0; }
 	virtual void get_min_max_height(double& minh, double& maxh) const = 0;
 };
@@ -353,23 +361,23 @@ class height_generator_test2 : public height_generator
 	const float total_height;
 	const float terrace_height;
 	std::vector<float> extrah;
+	perlinnoise pn2;
 public:
 	height_generator_test2()
 		: pn(64, 4, 6, true), s2(256*16), height_segments(10),
 		  total_height(256.0), terrace_height(total_height/height_segments),
-		  extrah(32*32)
+		  pn2(64, 2, 16)
 	{
 		/*
 		lookup_function<float, 256U> asin_lookup;
 		for (unsigned i = 0; i <= 256; ++i)
 			asin_lookup.set_value(i, asin(float(i)/256) / M_PI + 0.5);
 		*/
-		for (unsigned y = 0; y < 32; ++y)
-			for (unsigned x = 0; x < 32; ++x)
-				if ((x&1)==0 && (y&1)==0)
-					extrah[32*y+x] = 0.0;
-				else
-					extrah[32*y+x] = rnd()*0.6-0.3;
+		std::vector<Uint8> extrah2 = pn2.generate();
+		extrah.resize(64*64);
+		for (unsigned y = 0; y < 64; ++y)
+			for (unsigned x = 0; x < 64; ++x)
+				extrah[64*y+x] = rnd()-0.5;//extrah2[64*y+x]/256.0-0.5;
 	}
 	float compute_height(unsigned detail, const vector2i& coord) {
 		int xc = coord.x * int(1 << detail);
@@ -384,10 +392,19 @@ public:
 		int xc = coord.x >> detail;
 		int yc = coord.y >> detail;
 		float baseh = compute_height(0, vector2i(xc, yc));
+		/*
 		xc = coord.x & ((1 << detail)-1);
 		yc = coord.y & ((1 << detail)-1);
-		baseh += extrah[(coord.y&31)*32+(coord.x&31)];
+		*/
+		baseh += extrah[(coord.y&63)*64+(coord.x&63)];
 		return baseh;
+	}
+	vector3f compute_normal_extra(unsigned detail, const vector2i& coord, float zh) {
+		vector3f n = compute_normal(0, vector2i(coord.x >> detail, coord.y >> detail),
+					    zh * (1 << detail));
+		n.x += extrah[(coord.y&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
+		n.y += extrah[(coord.y+32&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
+		return n.normal();
 	}
 	void get_min_max_height(double& minh, double& maxh) const { minh = 0.0; maxh = 128.0; }
 };
@@ -903,11 +920,7 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	if(index>0)
 	for (int y = 0; y < sz.y*2; ++y) {
 		for (int x = 0; x < sz.x*2; ++x) {
-			float hr = gcm.height_gen.compute_height(index-1, upar.bl*2 + vector2i(x+1, y));
-			float hu = gcm.height_gen.compute_height(index-1, upar.bl*2 + vector2i(x, y+1));
-			float hl = gcm.height_gen.compute_height(index-1, upar.bl*2 + vector2i(x-1, y));
-			float hd = gcm.height_gen.compute_height(index-1, upar.bl*2 + vector2i(x, y-1));
-			vector3f nm = vector3f(hl-hr, hd-hu, L_l * 2*0.5).normal();
+			vector3f nm = gcm.height_gen.compute_normal(index-1, upar.bl*2 + vector2i(x, y), L_l*0.5);
 			nm = nm * 127;
 			gcm.texscratchbuf[tptr+0] = Uint8(nm.x + 128);
 			gcm.texscratchbuf[tptr+1] = Uint8(nm.y + 128);
@@ -918,11 +931,7 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	else
 	for (int y = 0; y < sz.y*2; ++y) {
 		for (int x = 0; x < sz.x*2; ++x) {
-			float hr = gcm.height_gen.compute_height_extra(1, upar.bl*2 + vector2i(x+1, y));
-			float hu = gcm.height_gen.compute_height_extra(1, upar.bl*2 + vector2i(x, y+1));
-			float hl = gcm.height_gen.compute_height_extra(1, upar.bl*2 + vector2i(x-1, y));
-			float hd = gcm.height_gen.compute_height_extra(1, upar.bl*2 + vector2i(x, y-1));
-			vector3f nm = vector3f(hl-hr, hd-hu, L_l * 2*0.5).normal();
+			vector3f nm = gcm.height_gen.compute_normal_extra(1, upar.bl*2 + vector2i(x, y), L_l*0.5);
 			nm = nm * 127;
 			gcm.texscratchbuf[tptr+0] = Uint8(nm.x + 128);
 			gcm.texscratchbuf[tptr+1] = Uint8(nm.y + 128);
