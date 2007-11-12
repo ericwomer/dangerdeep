@@ -237,6 +237,8 @@ const char* credits[] = {
   - compute how many tris per second are rendered as performance measure
   - current implementation is CPU limited! profile it DONE, slightly optimized
   - check if map vs. bufferdata/buffersubdata would be faster
+  - the terrace-like look is no bug but is caused by the low resolution of height maps
+    (8 bit per height)
 
   done:
   - render T-junction triangles
@@ -432,14 +434,22 @@ class height_generator_test3 : public height_generator
 	std::vector<std::vector<Uint8> > heightdata;
 	const unsigned baseres;
 	const float heightmult, heightadd;
+	std::vector<float> extrah;
+	perlinnoise pn2;
 public:
 	height_generator_test3(const std::vector<Uint8>& hg, unsigned baseres_log2, float hm = 0.75, float ha = -80.0f)
-		: heightdata(baseres_log2+1), baseres(1<<baseres_log2), heightmult(hm), heightadd(ha)
+		: heightdata(baseres_log2+1), baseres(1<<baseres_log2), heightmult(hm), heightadd(ha),
+		  pn2(64, 2, 16)
 	{
 		heightdata[0] = hg;
 		for (unsigned i = 1; i + 1 < heightdata.size(); ++i)
 			heightdata[i] = scaledown(heightdata[i-1], baseres >> i);
 		heightdata.back().resize(1, 0);
+		std::vector<Uint8> extrah2 = pn2.generate();
+		extrah.resize(64*64);
+		for (unsigned y = 0; y < 64; ++y)
+			for (unsigned x = 0; x < 64; ++x)
+				extrah[64*y+x] = rnd()-0.5;//extrah2[64*y+x]/256.0-0.5;
 	}
 	float compute_height(unsigned detail, const vector2i& coord) {
 		const unsigned shift = (baseres >> detail);
@@ -447,6 +457,13 @@ public:
 		unsigned xc = unsigned(coord.x + shift/2) & mask;
 		unsigned yc = unsigned(coord.y + shift/2) & mask;
 		return heightdata[detail][yc * shift + xc] * heightmult + heightadd;
+	}
+	vector3f compute_normal_extra(unsigned detail, const vector2i& coord, float zh) {
+		vector3f n = compute_normal(0, vector2i(coord.x >> detail, coord.y >> detail),
+					    zh * (1 << detail));
+		n.x += extrah[(coord.y&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
+		n.y += extrah[(coord.y+32&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
+		return n.normal();
 	}
 	void get_min_max_height(double& minh, double& maxh) const { minh = heightadd; maxh = heightadd + 255*heightmult; }
 };
@@ -1996,10 +2013,10 @@ void show_credits()
 	/* geoclipmap test*/
 #ifdef GEOCLIPMAPTEST
 	//height_generator_test hgt;
-	height_generator_test2 hgt;
-#if 0
-	std::vector<Uint8> heights;
+	//height_generator_test2 hgt;
 #if 1
+	std::vector<Uint8> heights;
+#if 0
 	float hm = 0.75, ha = -80.0f;
 	{
 		perlinnoise pn(64, 4, 6, true); // max. 8192
@@ -2030,8 +2047,8 @@ void show_credits()
 	float hm = 0.2, ha = -40.0f;
 	{
 		// set heights from a file
-		unsigned s2 = 4096;
-		sdl_image si("./heights.png");
+		unsigned s2 = 1024;
+		sdl_image si("./heights2.png");
 		if (si->w != s2 || si->h != s2)
 			throw error("invalid pic size");
 		si.lock();
@@ -2045,7 +2062,8 @@ void show_credits()
 		si.unlock();
 	}
 #endif
-	height_generator_test3 hgt(heights, 12, hm, ha);
+	//height_generator_test3 hgt(heights, 12, hm, ha);
+	height_generator_test3 hgt(heights, 10, 1.0, -64);
 	heights.clear();
 #endif
 	//height_generator_test4 hgt;
