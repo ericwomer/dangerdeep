@@ -6,7 +6,6 @@
 */
 
 varying vec3 lightdir;
-varying vec2 texcoord;
 varying vec2 texcoordnormal;
 varying vec2 texcoordnormal_c;
 varying float alpha;
@@ -29,9 +28,6 @@ void main()
 	d = clamp(d * w_rcp, 0.0, 1.0);
 	alpha = max(d.x, d.y);
 	vpos.z = mix(vpos.z, z_c, alpha);
-
-	// terrain color (test)
-	texcoord = vec2(0.0, 1.0 - (vpos.z + 20.0) / 128.0);
 
 	// shift is 0.5 texel, so it is 1/texres * 0.5
 	texcoordnormal = vpos.xy * L_l_rcp * N_rcp + texcshift;
