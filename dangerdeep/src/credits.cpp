@@ -414,16 +414,16 @@ public:
 };
 
 
-
-std::vector<Uint8> scaledown(const std::vector<Uint8>& v, unsigned newres)
+template<class T, class U>
+std::vector<T> scaledown(const std::vector<T>& v, unsigned newres)
 {
-	std::vector<Uint8> result(newres * newres);
+	std::vector<T> result(newres * newres);
 	for (unsigned y = 0; y < newres; ++y) {
 		for (unsigned x = 0; x < newres; ++x) {
-			result[y*newres+x] = Uint8((Uint32(v[2*y*newres*2+2*x]) +
-						    Uint32(v[2*y*newres*2+2*x+1]) +
-						    Uint32(v[(2*y+1)*newres*2+2*x]) +
-						    Uint32(v[(2*y+1)*newres*2+2*x+1])) / 4);
+			result[y*newres+x] = T((U(v[2*y*newres*2+2*x]) +
+						U(v[2*y*newres*2+2*x+1]) +
+						U(v[(2*y+1)*newres*2+2*x]) +
+						U(v[(2*y+1)*newres*2+2*x+1])) / 4);
 		}
 	}
 	return result;
@@ -433,19 +433,20 @@ std::vector<Uint8> scaledown(const std::vector<Uint8>& v, unsigned newres)
 
 class height_generator_test3 : public height_generator
 {
-	std::vector<std::vector<Uint8> > heightdata;
+//	std::vector<std::vector<Uint8> > heightdata;
+	std::vector<std::vector<Uint16> > heightdata;
 	const unsigned baseres;
 	const float heightmult, heightadd;
 	std::vector<float> extrah;
 	perlinnoise pn2;
 public:
-	height_generator_test3(const std::vector<Uint8>& hg, unsigned baseres_log2, float hm = 0.75, float ha = -80.0f)
+	height_generator_test3(const std::vector<Uint16>& hg, unsigned baseres_log2, float hm = 0.75, float ha = -80.0f)
 		: heightdata(baseres_log2+1), baseres(1<<baseres_log2), heightmult(hm), heightadd(ha),
 		  pn2(64, 2, 16)
 	{
 		heightdata[0] = hg;
 		for (unsigned i = 1; i + 1 < heightdata.size(); ++i)
-			heightdata[i] = scaledown(heightdata[i-1], baseres >> i);
+			heightdata[i] = scaledown<Uint16, Uint32>(heightdata[i-1], baseres >> i);
 		heightdata.back().resize(1, 0);
 		std::vector<Uint8> extrah2 = pn2.generate();
 		extrah.resize(64*64);
@@ -474,10 +475,10 @@ public:
 		float h = compute_height(detail, coord);
 		vector3f n = compute_normal(detail, coord, 1.0*(1<<detail));//fixme hack
 		float k = extrah[(coord.y&63)*64+(coord.x&63)];
-		return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,50+k*25,20))
+		return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,75+k*50,20))
 			: color(64+h*0.5+k*32, 64+h*0.5+k*32, 64+h*0.5+k*32);
 	}
-	void get_min_max_height(double& minh, double& maxh) const { minh = heightadd; maxh = heightadd + 255*heightmult; }
+	void get_min_max_height(double& minh, double& maxh) const { minh = heightadd; maxh = heightadd + 65535*heightmult; }
 };
 
 
@@ -2072,6 +2073,7 @@ void show_credits()
 	//height_generator_test2 hgt;
 #if 1
 	std::vector<Uint8> heights;
+	std::vector<Uint16> heights16;
 #if 0
 	float hm = 0.75, ha = -80.0f;
 	{
@@ -2104,6 +2106,7 @@ void show_credits()
 	{
 		// set heights from a file
 		unsigned s2 = 1024;
+#if 0
 		sdl_image si("./heights2.png");
 		if (si->w != s2 || si->h != s2)
 			throw error("invalid pic size");
@@ -2116,10 +2119,26 @@ void show_credits()
 			}
 		}
 		si.unlock();
+#else
+		std::ifstream is("test.tif.raw");
+ 		heights16.resize(s2*s2);
+		is.read((char*)&heights16[0], s2*s2*2);
+// 		sdl_image si("./heights2rg.png");
+// 		if (si->w != s2 || si->h != s2)
+// 			throw error("invalid pic size");
+// 		si.lock();
+// 		Uint8* px = (Uint8*) si->pixels;
+// 		for (unsigned y = 0; y < s2; ++y) {
+// 			for (unsigned x = 0; x < s2; ++x) {
+// 				heights16[y*s2+x] = Uint16(px[y*si->pitch+3*x])*256+px[y*si->pitch+3*x+1];
+// 			}
+// 		}
+// 		si.unlock();
+#endif
 	}
 #endif
 	//height_generator_test3 hgt(heights, 12, hm, ha);
-	height_generator_test3 hgt(heights, 10, 1.0, -64);
+	height_generator_test3 hgt(heights16, 10, 1.0/256, -64);
 	heights.clear();
 #endif
 	//height_generator_test4 hgt;
