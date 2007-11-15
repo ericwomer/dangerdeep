@@ -1321,6 +1321,10 @@ void geoclipmap::level::display(const frustum& f) const
 	gcm.myshader.set_uniform(gcm.loc_xysize2, outsz);
 	gcm.myshader.set_uniform(gcm.loc_L_l_rcp, 1.0f/L_l);
 
+	// this could be done to clear the VBO because we refill it completely.
+	// it doesn't increase frame rate though.
+ 	indices.init_data((gcm.resolution_vbo+2)*gcm.resolution_vbo*2*4 + (4*gcm.resolution/2*4)*4,
+ 			  0, GL_STREAM_DRAW);
 	// compute indices and store them in the VBO.
 	// mapping of VBO should be sensible.
 	uint32_t* indexvbo = (uint32_t*)indices.map(GL_WRITE_ONLY);
