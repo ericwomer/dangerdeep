@@ -785,6 +785,9 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx)
 	// fixme: init space for indices, give correct access mode or experiment
 	// fixme: set correct max. size, seems enough and not too much atm.
 	// size of T-junction triangles: 4 indices per triangle (3 + 2 degen. - 1), 4*N/2 triangles
+	// max. size for normal triangles + T-junc.: 2*N^2 - 4*N + 8*N - 16 = 2*N^2 + 4*N - 16
+	// size for multiple columns: 2 per new column, at most N columns, mostly less.
+	// fixme: we have here: 2*N^2 + 4*N + 8*N = 2*N^2 + 12*N, so enough but a bit too much.
 	indices.init_data((gcm.resolution_vbo+2)*gcm.resolution_vbo*2*4 + (4*gcm.resolution/2*4)*4,
 			  0, GL_STATIC_DRAW);
 	// create space for normal texture
@@ -1310,7 +1313,7 @@ unsigned geoclipmap::level::generate_indices_T(uint32_t* buffer, unsigned idxbas
 }
 
 
-
+uint32_t idxtmp[2*256*256+6*256];
 void geoclipmap::level::display(const frustum& f) const
 {
 	//glColor4f(1,index/8.0,0,1);//fixme test
@@ -1321,6 +1324,7 @@ void geoclipmap::level::display(const frustum& f) const
 	gcm.myshader.set_uniform(gcm.loc_xysize2, outsz);
 	gcm.myshader.set_uniform(gcm.loc_L_l_rcp, 1.0f/L_l);
 
+#if 0
 	// this could be done to clear the VBO because we refill it completely.
 	// it doesn't increase frame rate though.
  	indices.init_data((gcm.resolution_vbo+2)*gcm.resolution_vbo*2*4 + (4*gcm.resolution/2*4)*4,
@@ -1328,6 +1332,9 @@ void geoclipmap::level::display(const frustum& f) const
 	// compute indices and store them in the VBO.
 	// mapping of VBO should be sensible.
 	uint32_t* indexvbo = (uint32_t*)indices.map(GL_WRITE_ONLY);
+#else
+	uint32_t* indexvbo = (uint32_t*)idxtmp;
+#endif
 
 	// we need to compute up to four rectangular areas made up of tri-strips.
 	// they need to get clipped to the viewing frustum later.
@@ -1373,7 +1380,11 @@ void geoclipmap::level::display(const frustum& f) const
 	}
 	// add t-junction triangles - they are never clipped against viewing frustum, but there are only few
 	nridx += generate_indices_T(indexvbo, nridx);
+#if 0
 	indices.unmap();
+#else
+	indices.init_sub_data(0, nridx*4, idxtmp);
+#endif
 
 	// render the data
 	if (nridx < 4) return; // first index is remove always, and we need at least 3 for one triangle
