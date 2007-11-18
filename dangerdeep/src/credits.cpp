@@ -235,10 +235,6 @@ const char* credits[] = {
   - write good height generator
   - do not render too small detail (start at min_level, but test that this works)
   - compute how many tris per second are rendered as performance measure
-  - current implementation is CPU limited! profile it DONE, slightly optimized
-  - check if map vs. bufferdata/buffersubdata would be faster
-  - the terrace-like look is no bug but is caused by the low resolution of height maps
-    (8 bit per height)
 
   done:
   - render T-junction triangles
@@ -292,6 +288,10 @@ const char* credits[] = {
     NOW works much better, but check for exact vertex<->pixel mapping!
   - generate tri-strips with better post-transform-cache-use
     (columns of 16-32 triangles) PERFORMANCE
+  - current implementation is CPU limited! profile it DONE, slightly optimized
+  - check if map vs. bufferdata/buffersubdata would be faster
+  - the terrace-like look is no bug but is caused by the low resolution of height maps
+    (8 bit per height)
 
 
     triangle count: N*N*2*3/4 per level plus N*N*2*1/4 for inner level
@@ -509,16 +509,6 @@ public:
 
 
 
-static Uint8 terrcol[32*3] = {
-239, 237, 237, 202, 196, 195, 180, 171, 170, 178, 159, 158, 162, 148,
-147, 163, 147, 144, 191, 183, 180, 185, 176, 172, 173, 163, 158, 166,
-154, 146, 163, 146, 135, 170, 139, 122, 205, 138, 106, 217, 139, 101,
-228, 131, 88, 245, 156, 96, 255, 194, 106, 255, 215, 108, 233, 231, 92,
-207, 232, 70, 197, 234, 57, 199, 244, 35, 192, 249, 20, 152, 255, 0,
-109, 255, 0, 53, 236, 21, 50, 230, 24, 43, 235, 30, 16, 251, 75, 12,
-221, 180, 17, 200, 203, 28, 159, 227,
-};
-
 /// geoclipmap rendering
 class geoclipmap
 {
@@ -538,6 +528,9 @@ class geoclipmap
 
 	// scratch buffer for color texture data, for transmission
 	std::vector<Uint8> texcolorscratchbuf;
+
+	// scratch buffer for index generation, for transmission
+	std::vector<uint32_t> idxscratchbuf;
 
 	struct area
 	{
@@ -625,7 +618,6 @@ class geoclipmap
 	unsigned loc_L_l_rcp;
 	unsigned loc_N_rcp;
 	unsigned loc_texcshift;
-	texture::ptr terrain_tex;
 	texture::ptr horizon_normal;
 
 public:
@@ -657,6 +649,7 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, h
 	  // ^ extra space for normals
 	  texnormalscratchbuf(resolution_vbo*2*resolution_vbo*2*3),
 	  texcolorscratchbuf(resolution_vbo*resolution_vbo*3),
+	  idxscratchbuf((resolution_vbo+2)*resolution_vbo*2 + 256),
 	  levels(nr_levels),
 	  height_gen(hg),
 	  myshader(get_shader_dir() + "geoclipmap.vshader",
@@ -688,8 +681,6 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, h
 	myshader.set_uniform(loc_N_rcp, 1.0f/resolution_vbo);
 	myshader.set_uniform(loc_texcshift, 0.5f/resolution_vbo);
 	myshader.use_fixed();
-	std::vector<Uint8> terrcol2(&terrcol[0], &terrcol[3*32]);
-	terrain_tex.reset(new texture(terrcol2, 1, 32, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
 	// set a texture for normals outside coarsest level, just 0,0,1
 	std::vector<Uint8> pxl(3, 128);
 	pxl[2] = 255;
@@ -748,7 +739,6 @@ void geoclipmap::display(const frustum& f) const
 	glActiveTexture(GL_TEXTURE3);
 	glEnable(GL_TEXTURE_2D);
 	myshader.use();
-	myshader.set_gl_texture(*terrain_tex, loc_texterrain, 2);
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
 		myshader.set_gl_texture(levels[lvl]->colors_tex(), loc_texcolor, 0);
 		myshader.set_gl_texture(levels[lvl]->normals_tex(), loc_texnormal, 2);
@@ -1313,7 +1303,7 @@ unsigned geoclipmap::level::generate_indices_T(uint32_t* buffer, unsigned idxbas
 }
 
 
-uint32_t idxtmp[2*256*256+6*256];
+
 void geoclipmap::level::display(const frustum& f) const
 {
 	//glColor4f(1,index/8.0,0,1);//fixme test
@@ -1324,17 +1314,7 @@ void geoclipmap::level::display(const frustum& f) const
 	gcm.myshader.set_uniform(gcm.loc_xysize2, outsz);
 	gcm.myshader.set_uniform(gcm.loc_L_l_rcp, 1.0f/L_l);
 
-#if 0
-	// this could be done to clear the VBO because we refill it completely.
-	// it doesn't increase frame rate though.
- 	indices.init_data((gcm.resolution_vbo+2)*gcm.resolution_vbo*2*4 + (4*gcm.resolution/2*4)*4,
- 			  0, GL_STREAM_DRAW);
-	// compute indices and store them in the VBO.
-	// mapping of VBO should be sensible.
-	uint32_t* indexvbo = (uint32_t*)indices.map(GL_WRITE_ONLY);
-#else
-	uint32_t* indexvbo = (uint32_t*)idxtmp;
-#endif
+	uint32_t* indexvbo = &gcm.idxscratchbuf[0];
 
 	// we need to compute up to four rectangular areas made up of tri-strips.
 	// they need to get clipped to the viewing frustum later.
@@ -1380,11 +1360,7 @@ void geoclipmap::level::display(const frustum& f) const
 	}
 	// add t-junction triangles - they are never clipped against viewing frustum, but there are only few
 	nridx += generate_indices_T(indexvbo, nridx);
-#if 0
-	indices.unmap();
-#else
-	indices.init_sub_data(0, nridx*4, idxtmp);
-#endif
+	indices.init_sub_data(0, nridx*4, &gcm.idxscratchbuf[0]);
 
 	// render the data
 	if (nridx < 4) return; // first index is remove always, and we need at least 3 for one triangle
