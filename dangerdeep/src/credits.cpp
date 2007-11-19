@@ -222,21 +222,23 @@ const char* credits[] = {
 
   fixme todo:
   - move geoclipmap part to standalone test program like portal!
-  - render triangles from outmost patch to horizon
-    problem later when rendering coast, to the sea horizon z-value must be < 0,
-    to the land > 0. maybe stretch xy coordinates of last level beyond viewing range,
-    that would solve both problems, but the height values must get computed accordingly then
-  - maybe store normals with double resolution (request higher level from height gen.)
-    for extra detail, or maybe even ask height generator for normals directly.
-    Give then doubled N to v-shader... DONE but a bit crude
   - viewpos change is too small compared to last rendered viewpos, do nothing, else
     render and update last rendered viewpos
   - check for combining updates to texture/VBO (at least texture possible) PERFORMANCE
   - write good height generator
   - do not render too small detail (start at min_level, but test that this works)
   - compute how many tris per second are rendered as performance measure
+  - interpolation between levels is sometimes visible (on sharp high mountain ridges),
+    there heights seem to jump. It seems that interpolation area doesnt reach 1.0 on
+    outer edge always, but close to. But the jumps are worse - reason unknown.
 
   done:
+  - render triangles from outmost patch to horizon
+    problem later when rendering coast, to the sea horizon z-value must be < 0,
+    to the land > 0. maybe stretch xy coordinates of last level beyond viewing range,
+    that would solve both problems, but the height values must get computed accordingly then
+  - store normals with double resolution (request higher level from height gen.)
+    for extra detail, or maybe even ask height generator for normals directly.
   - render T-junction triangles
   - don't waste space for index VBO, compute correct max. space
   - vertex shader for height interpolation
@@ -473,7 +475,7 @@ public:
 		int xc = coord.x * int(1 << detail);
 		int yc = coord.y * int(1 << detail);
 		float h = compute_height(detail, coord);
-		vector3f n = compute_normal(detail, coord, 1.0*(1<<detail));//fixme hack
+		vector3f n = compute_normal(detail, coord, 1.0*(1<<detail));//fixme hack, give zh here
 		float k = extrah[(coord.y&63)*64+(coord.x&63)];
 		return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,75+k*50,20))
 			: color(64+h*0.5+k*32, 64+h*0.5+k*32, 64+h*0.5+k*32);
@@ -567,6 +569,7 @@ class geoclipmap
 		vector2i dataoffset;
 
 		mutable area tmp_inner, tmp_outer;
+		bool outmost;
 
 		unsigned generate_indices(const frustum& f,
 					  uint32_t* buffer, unsigned idxbase,
@@ -577,6 +580,7 @@ class geoclipmap
 					   const vector2i& size,
 					   const vector2i& vbooff) const;
 		unsigned generate_indices_T(uint32_t* buffer, unsigned idxbase) const;
+		unsigned generate_indices_horizgap(uint32_t* buffer, unsigned idxbase) const;
 		void update_region(const geoclipmap::area& upar);
 		void update_VBO_and_tex(const vector2i& scratchoff,
 					int scratchmod,
@@ -586,7 +590,7 @@ class geoclipmap
 		texture::ptr normals;
 		texture::ptr colors;
 	public:
-		level(geoclipmap& gcm_, unsigned idx);
+		level(geoclipmap& gcm_, unsigned idx, bool outmost_level);
 		area set_viewerpos(const vector3f& new_viewpos, const geoclipmap::area& inner);
 		void display(const frustum& f) const;
 		texture& normals_tex() const { return *normals; }
@@ -658,7 +662,7 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, h
 {
 	// initialize vertex VBO and all level VBOs
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
-		levels.reset(lvl, new level(*this, lvl));
+		levels.reset(lvl, new level(*this, lvl, lvl+1==levels.size()));
 	}
 
 	myshader.use();
@@ -734,6 +738,8 @@ void geoclipmap::display(const frustum& f) const
 {
 	// display levels from inside to outside
 	//unsigned min_level = unsigned(std::max(floor(log2(new_viewpos.z/(0.4*resolution*L))), 0.0));
+	glActiveTexture(GL_TEXTURE1);
+	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE2);
 	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE3);
@@ -743,10 +749,10 @@ void geoclipmap::display(const frustum& f) const
 		myshader.set_gl_texture(levels[lvl]->colors_tex(), loc_texcolor, 0);
 		myshader.set_gl_texture(levels[lvl]->normals_tex(), loc_texnormal, 2);
 		if (lvl + 1 < levels.size()) {
-			myshader.set_gl_texture(levels[lvl+1]->colors_tex(), loc_texnormal_c, 1);
+			myshader.set_gl_texture(levels[lvl+1]->colors_tex(), loc_texcolor_c, 1);
 			myshader.set_gl_texture(levels[lvl+1]->normals_tex(), loc_texnormal_c, 3);
 		} else {
-			myshader.set_gl_texture(*horizon_normal, loc_texcolor_c, 1);
+			myshader.set_gl_texture(levels[levels.size()-1]->colors_tex(), loc_texcolor_c, 1);
 			myshader.set_gl_texture(*horizon_normal, loc_texnormal_c, 3);
 		}
 		levels[lvl]->display(f);
@@ -763,22 +769,23 @@ void geoclipmap::display(const frustum& f) const
 
 
 
-geoclipmap::level::level(geoclipmap& gcm_, unsigned idx)
+geoclipmap::level::level(geoclipmap& gcm_, unsigned idx, bool outmost_level)
 	: gcm(gcm_),
 	  L_l(gcm.L * double(1 << idx)),
 	  index(idx),
 	  vertices(false),
-	  indices(true)
+	  indices(true),
+	  outmost(outmost_level)
 {
 	// mostly static...
-	vertices.init_data(gcm.resolution_vbo*gcm.resolution_vbo*geoclipmap_fperv*4, 0, GL_STATIC_DRAW);
-	// fixme: init space for indices, give correct access mode or experiment
-	// fixme: set correct max. size, seems enough and not too much atm.
+	vertices.init_data(gcm.resolution_vbo*gcm.resolution_vbo*geoclipmap_fperv*4
+			   + (outmost ? 8*geoclipmap_fperv*4 : 0),
+			   0, GL_STATIC_DRAW);
 	// size of T-junction triangles: 4 indices per triangle (3 + 2 degen. - 1), 4*N/2 triangles
 	// max. size for normal triangles + T-junc.: 2*N^2 - 4*N + 8*N - 16 = 2*N^2 + 4*N - 16
 	// size for multiple columns: 2 per new column, at most N columns, mostly less.
-	// fixme: we have here: 2*N^2 + 4*N + 8*N = 2*N^2 + 12*N, so enough but a bit too much.
-	indices.init_data((gcm.resolution_vbo+2)*gcm.resolution_vbo*2*4 + (4*gcm.resolution/2*4)*4,
+	indices.init_data(2*gcm.resolution_vbo*gcm.resolution_vbo*4 + 4*gcm.resolution*4
+			  + (outmost ? 4*2*gcm.resolution_vbo*4 : 0),
 			  0, GL_STATIC_DRAW);
 	// create space for normal texture
 	std::vector<Uint8> pxl(3*gcm.resolution_vbo*gcm.resolution_vbo*2*2);
@@ -802,7 +809,6 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 	// when 3.5 is rounded up to 4.0, then -3.5 is rounded up to -3.0.
 	// this is done by using round(x) := floor(x + 0.5)
 	// so when this gives -3.5....3.5 we take floor(-3.0)....floor(4.0) -> -3...4
-	//fime: transform to int first, then *2 ? doesnt help
 	area outer(vector2i(int(floor(0.5*new_viewpos.x/L_l - 0.25*gcm.resolution + 0.5))*2,
 			    int(floor(0.5*new_viewpos.y/L_l - 0.25*gcm.resolution + 0.5))*2),
 		   vector2i(int(floor(0.5*new_viewpos.x/L_l + 0.25*gcm.resolution + 0.5))*2,
@@ -810,11 +816,6 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 	tmp_inner = inner;
 	tmp_outer = outer;
 	//log_debug("index="<<index<<" area inner="<<inner.bl<<"|"<<inner.tr<<" outer="<<outer.bl<<"|"<<outer.tr);
-	// set active texture for update
-	glActiveTexture(GL_TEXTURE0);
-	colors->set_gl_texture();
-	glActiveTexture(GL_TEXTURE2);
-	normals->set_gl_texture();
 	// for vertex updates we only need to know the outer area...
 	// compute part of "outer" that is NOT covered by old outer area,
 	// this gives a rectangular or L-shaped form, but this can not be expressed
@@ -852,6 +853,21 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 	// we updated the vertices, so update area/offset
 	dataoffset = gcm.clamp(outer.bl - vboarea.bl + dataoffset);
 	vboarea = outer;
+
+	if (outmost) {
+		// give 8 vertices to fill horizon gap
+		static const int dx[8] = { -1, 0, 1, 1, 1, 0, -1, -1 };
+		static const int dy[8] = { -1,-1,-1, 0, 1, 1,  1,  0 };
+		for (unsigned i = 0; i < 8; ++i) {
+			gcm.vboscratchbuf[4*i+0] = new_viewpos.x + 32000 * dx[i];
+			gcm.vboscratchbuf[4*i+1] = new_viewpos.x + 32000 * dy[i];
+			gcm.vboscratchbuf[4*i+2] = 0; // fixme: later give +- 10 for land/sea
+			gcm.vboscratchbuf[4*i+3] = 0; // same value here
+		}
+		vertices.init_sub_data(gcm.resolution_vbo*gcm.resolution_vbo*geoclipmap_fperv*4,
+				       8*geoclipmap_fperv*4, &gcm.vboscratchbuf[0]);
+	}
+
 	return outer;
 }
 
@@ -1081,6 +1097,7 @@ void geoclipmap::level::update_VBO_and_tex(const vector2i& scratchoff,
 	// we need to do it line by line anyway, as the source is not packed.
 	// maybe we can get higher frame rates if it would be packed...
 	// test showed that this is negligible
+	glActiveTexture(GL_TEXTURE2);
 	normals->set_gl_texture();
 	for (int y = 0; y < sz.y*2; ++y) {
 		//log_debug("update texture xy off ="<<vbooff.x<<"|"<<gcm.mod(vbooff.y+y)<<" idx="<<((scratchoff.y+y)*scratchmod+scratchoff.x)*3);
@@ -1089,6 +1106,7 @@ void geoclipmap::level::update_VBO_and_tex(const vector2i& scratchoff,
 				&gcm.texnormalscratchbuf[((scratchoff.y*2+y)*scratchmod*2+scratchoff.x*2)*3]);
 	}
 
+	glActiveTexture(GL_TEXTURE0);
 	colors->set_gl_texture();
 	for (int y = 0; y < sz.y; ++y) {
 		glTexSubImage2D(GL_TEXTURE_2D, 0 /* mipmap level */,
@@ -1304,6 +1322,54 @@ unsigned geoclipmap::level::generate_indices_T(uint32_t* buffer, unsigned idxbas
 
 
 
+unsigned geoclipmap::level::generate_indices_horizgap(uint32_t* buffer, unsigned idxbase) const
+{
+	// repeat last index for degenerated triangle conjunction. legal, because
+	// there are always indices in buffer from former generate_indices_T.
+	unsigned ptr = idxbase;
+	buffer[ptr++] = buffer[idxbase-1];
+	// extra vertices base index
+	unsigned evb = gcm.resolution_vbo*gcm.resolution_vbo;
+	const vector2i sz = tmp_outer.size();
+	vector2i offset  = gcm.clamp(tmp_outer.bl - vboarea.bl + dataoffset);
+	vector2i offset2 = gcm.clamp(tmp_outer.tr - vboarea.bl + dataoffset);
+
+	// bottom edge
+	buffer[ptr++] = evb+2;
+	buffer[ptr++] = offset2.x + gcm.resolution_vbo*offset.y;
+	for (int i = 1; i < sz.x; ++i) {
+		buffer[ptr++] = evb+1;
+		buffer[ptr++] = gcm.mod(offset2.x-i) + gcm.resolution_vbo*offset.y;
+	}
+	// left edge
+	buffer[ptr++] = evb+0;
+	buffer[ptr++] = offset.x + gcm.resolution_vbo*offset.y;
+	for (int i = 1; i < sz.x; ++i) {
+		buffer[ptr++] = evb+7;
+		buffer[ptr++] = offset.x + gcm.resolution_vbo*gcm.mod(offset.y+i);
+	}
+	// top edge
+	buffer[ptr++] = evb+6;
+	buffer[ptr++] = offset.x + gcm.resolution_vbo*offset2.y;
+	for (int i = 1; i < sz.x; ++i) {
+		buffer[ptr++] = evb+5;
+		buffer[ptr++] = gcm.mod(offset.x+i) + gcm.resolution_vbo*offset2.y;
+	}
+	// right edge
+	buffer[ptr++] = evb+4;
+	buffer[ptr++] = offset2.x + gcm.resolution_vbo*offset2.y;
+	for (int i = 1; i < sz.x; ++i) {
+		buffer[ptr++] = evb+3;
+		buffer[ptr++] = offset2.x + gcm.resolution_vbo*gcm.mod(offset2.y-i);
+	}
+	// final vertex to close it
+	buffer[ptr++] = evb+2;
+
+	return ptr - idxbase;
+}
+
+
+
 void geoclipmap::level::display(const frustum& f) const
 {
 	//glColor4f(1,index/8.0,0,1);//fixme test
@@ -1360,6 +1426,12 @@ void geoclipmap::level::display(const frustum& f) const
 	}
 	// add t-junction triangles - they are never clipped against viewing frustum, but there are only few
 	nridx += generate_indices_T(indexvbo, nridx);
+
+	// add horizon gap triangles if needed
+	if (outmost) {
+		nridx += generate_indices_horizgap(indexvbo, nridx);
+	}
+
 	indices.init_sub_data(0, nridx*4, &gcm.idxscratchbuf[0]);
 
 	// render the data
