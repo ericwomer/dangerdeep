@@ -338,6 +338,7 @@ public:
 	}
 	virtual vector3f compute_normal_extra(unsigned detail, const vector2i& coord, float zh) { return vector3(0,0,1); }
 	virtual color compute_color(unsigned detail, const vector2i& coord) { return color(128, 128, 128); }
+	virtual color compute_color_extra(unsigned detail, const vector2i& coord) { return color(128, 128, 128); }
 	// deprecated?
 	virtual float compute_height_extra(unsigned detail, const vector2i& coord) { return 0.0; }
 	virtual void get_min_max_height(double& minh, double& maxh) const = 0;
@@ -476,6 +477,13 @@ public:
 		int yc = coord.y * int(1 << detail);
 		float h = compute_height(detail, coord);
 		vector3f n = compute_normal(detail, coord, 1.0*(1<<detail));//fixme hack, give zh here
+		float k = extrah[(coord.y&63)*64+(coord.x&63)];
+		return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,75+k*50,20))
+			: color(64+h*0.5+k*32, 64+h*0.5+k*32, 64+h*0.5+k*32);
+	}
+	color compute_color_extra(unsigned detail, const vector2i& coord) {
+		float h = compute_height(0, vector2i(coord.x>>detail, coord.y>>detail));
+		vector3f n = compute_normal_extra(detail, coord, 1.0/(1<<detail));//fixme hack, give zh here
 		float k = extrah[(coord.y&63)*64+(coord.x&63)];
 		return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,75+k*50,20))
 			: color(64+h*0.5+k*32, 64+h*0.5+k*32, 64+h*0.5+k*32);
@@ -652,7 +660,7 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, h
 	  vboscratchbuf((resolution_vbo+2)*(resolution_vbo+2)*geoclipmap_fperv), // 4 floats per VBO sample (x,y,z,zc)
 	  // ^ extra space for normals
 	  texnormalscratchbuf(resolution_vbo*2*resolution_vbo*2*3),
-	  texcolorscratchbuf(resolution_vbo*resolution_vbo*3),
+	  texcolorscratchbuf(resolution_vbo*2*resolution_vbo*2*3),
 	  idxscratchbuf((resolution_vbo+2)*resolution_vbo*2 + 256),
 	  levels(nr_levels),
 	  height_gen(hg),
@@ -791,9 +799,9 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx, bool outmost_level)
 	std::vector<Uint8> pxl(3*gcm.resolution_vbo*gcm.resolution_vbo*2*2);
 	normals.reset(new texture(pxl, gcm.resolution_vbo*2,
 				  gcm.resolution_vbo*2, GL_RGB, texture::LINEAR, texture::REPEAT));
-	memset(&pxl[0], index*30, gcm.resolution_vbo*gcm.resolution_vbo*3);
-	colors.reset(new texture(pxl, gcm.resolution_vbo,
-				 gcm.resolution_vbo, GL_RGB, texture::LINEAR, texture::REPEAT));
+	memset(&pxl[0], index*30, gcm.resolution_vbo*gcm.resolution_vbo*2*2*3);
+	colors.reset(new texture(pxl, gcm.resolution_vbo*2,
+				 gcm.resolution_vbo*2, GL_RGB, texture::LINEAR, texture::REPEAT));
 }
 
 
@@ -969,14 +977,12 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	}
 
 	// compute normals
-	ptr = (sz.x+2 + 1)*geoclipmap_fperv;
-	unsigned tptr = 0;//(sz.y-1)*3*sz.x;
+	unsigned tptr = 0;
 	//log_debug("tex scratch sz="<<sz);
 	/* fixme: maybe let height generator let deliver normals directly */
 	/* fixme: maybe store normals in double res. (from next finer level) in texture
 	   with double res. as vertices -> more detail!
 	*/
-#if 1
 	if(index>0)
 	for (int y = 0; y < sz.y*2; ++y) {
 		for (int x = 0; x < sz.x*2; ++x) {
@@ -999,38 +1005,28 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 			tptr += 3;
 		}
 	}
-#else
-	for (int y = 0; y < sz.y; ++y) {
-		for (int x = 0; x < sz.x; ++x) {
-			float hr = gcm.vboscratchbuf[ptr+geoclipmap_fperv+2];
-			float hu = gcm.vboscratchbuf[ptr+geoclipmap_fperv*(sz.x+2)+2];
-			float hl = gcm.vboscratchbuf[ptr-geoclipmap_fperv+2];
-			float hd = gcm.vboscratchbuf[ptr-geoclipmap_fperv*(sz.x+2)+2];
-			vector3f nm = vector3f(hl-hr, hd-hu, L_l * 2).normal();
-			nm = nm * 127;
-			gcm.texnormalscratchbuf[tptr+0] = Uint8(nm.x + 128);
-			gcm.texnormalscratchbuf[tptr+1] = Uint8(nm.y + 128);
-			gcm.texnormalscratchbuf[tptr+2] = Uint8(nm.z + 128);
-			tptr += 3;
-			ptr += geoclipmap_fperv;
-		}
-		ptr += 2*geoclipmap_fperv;
-	}
-#endif
 
 	// color update
-	ptr = (sz.x + 1)*geoclipmap_fperv;
 	tptr = 0;
-	for (int y = 0; y < sz.y; ++y) {
-		for (int x = 0; x < sz.x; ++x) {
-			color c = gcm.height_gen.compute_color(index, upar.bl + vector2i(x, y));
+	if(index>0)
+	for (int y = 0; y < sz.y*2; ++y) {
+		for (int x = 0; x < sz.x*2; ++x) {
+			color c = gcm.height_gen.compute_color(index-1, upar.bl*2 + vector2i(x, y));
 			gcm.texcolorscratchbuf[tptr+0] = c.r;
 			gcm.texcolorscratchbuf[tptr+1] = c.g;
 			gcm.texcolorscratchbuf[tptr+2] = c.b;
 			tptr += 3;
-			ptr += geoclipmap_fperv;
 		}
-		ptr += 2*geoclipmap_fperv;
+	}
+	else
+	for (int y = 0; y < sz.y*2; ++y) {
+		for (int x = 0; x < sz.x*2; ++x) {
+			color c = gcm.height_gen.compute_color_extra(1, upar.bl*2 + vector2i(x, y));
+			gcm.texcolorscratchbuf[tptr+0] = c.r;
+			gcm.texcolorscratchbuf[tptr+1] = c.g;
+			gcm.texcolorscratchbuf[tptr+2] = c.b;
+			tptr += 3;
+		}
 	}
 
 	ptr = 0;
@@ -1108,10 +1104,10 @@ void geoclipmap::level::update_VBO_and_tex(const vector2i& scratchoff,
 
 	glActiveTexture(GL_TEXTURE0);
 	colors->set_gl_texture();
-	for (int y = 0; y < sz.y; ++y) {
+	for (int y = 0; y < sz.y*2; ++y) {
 		glTexSubImage2D(GL_TEXTURE_2D, 0 /* mipmap level */,
-				vbooff.x, (vbooff.y+y) & gcm.resolution_vbo_mod, sz.x, 1, GL_RGB, GL_UNSIGNED_BYTE,
-				&gcm.texcolorscratchbuf[((scratchoff.y+y)*scratchmod+scratchoff.x)*3]);
+				vbooff.x*2, (vbooff.y*2+y) & (gcm.resolution_vbo_mod*2+1), sz.x*2, 1, GL_RGB, GL_UNSIGNED_BYTE,
+				&gcm.texcolorscratchbuf[((scratchoff.y*2+y)*scratchmod*2+scratchoff.x*2)*3]);
 	}
 
 	// copy data to real VBO.
