@@ -309,6 +309,58 @@ const char* credits[] = {
     but it could be easier and save computations.
     7 levels with 2^8 res each give 458752 samples, with 10*4 bytes each: 18.3mb ca, that is ok
     some extra for overlap (N+1 or N+3) but ca. 20mb.
+
+
+
+
+    About terrain synthesis:
+    
+    final height data is built recursivly from coarsest level to finest level.
+    Each value of level x is build of surrounding values of level x+1 using
+    smooth surface interpolation with factors -1/16 9/16 9/16 -1/16.
+    In 2d this gives 16 values of level x+1 to generate one value of level x
+    from. We need to store only the difference between the interpolated
+    value and the real value. The values should be quantized on a level-
+    adaptive basis, with growing quantizers for finer levels.
+    Compacting the resulting quantizers with some entropy coder like zlib
+    should give a much smaller result (original paper achieved factor
+    1:100 using only 0.02 byte per sample), so 40GB of data could get
+    compressed to 400mb.
+    Generation is done by partitioning original data to smaller tiles with
+    e.g. 256x256 size and downsampling each tile down to 1x1. From that
+    coarse level tiles are upsampled with subdivision (using adjacent
+    tiles for information across edges to avoid creases), and the differences
+    between interpolated tile and orignal tile is stored (avoid to accumulate
+    errors, always compare level with original one!)
+    For a 256x256 tile with 16bit per height we would have 128k. With levels
+    we have 4^0+4^1+...+4^8 coefficients. That makes 4^9-1 / 4-3 = 87381
+    total, so 1/3 more than the original 65536. Compression thus must be
+    factor 1:133 to reach original 1:100.
+    To generate the data:
+    downsample original tile T in N steps T1...TN, where T1=T by simple 2:1
+    downsampling. Sample back up T'k-1 from T'k where T'N=TN by interpolatory
+    subdivision. Compute difference between T'k and Tk and code that
+    difference. Only TN and the N-1 difference coefficient maps are stored.
+    Several problems remain:
+    1- what happens near tile edges, problematic for interpolatory upsampling
+    2- what happens near global edges
+    3- how to efficiently store difference coefficients to make compression
+       as best as possible
+    4- what quantizers to use, how large they may be
+    ad 1: We could take data from neighbouring tiles for upsampling, this would
+    give best results for later, but we would need level data of all 4
+    surrounding tiles as well - can be done though.
+    ad 2: Just use data of line 0 for virtual line -1 and -2, should give best
+    results. To avoid costly checks, we could store global data in a 2+2 larger
+    array (both in x/y directions) and replicate the first/last row/column
+    twice. Or use dummy neighbour tiles (virtual ones) that have same height
+    values on their edge and all rows/cols as the neighbour.
+    ad 3: best method would be to store all coefficients of level N, then N-1
+    and so on. No special pattern like with jpeg is useful as we have no
+    DCT or similar.
+    ad 4: remaining height diffs should use less than or equal 8 bits.
+    hopefully a good entropy encoder can pack them with high rates.
+
 */
 
 
