@@ -30,8 +30,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "particle.h"
 #include "gun_shell.h"
 #include "global_data.h"
-#include "physics.h"
 #include "log.h"
+#include "global_constants.h"
 
 using std::vector;
 using std::list;

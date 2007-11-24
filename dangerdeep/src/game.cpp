@@ -1992,7 +1992,6 @@ const double MOON_ORBIT_TIME_SYNODIC = 29.5306 * 86400.0;	// synodic month is 29
 //new moon was on 18/11/1998 9:36:00 pm
 const double MOON_ORBIT_AXIS_ANGLE = 5.15;		// degrees
 const double EARTH_ROTATION_TIME = 86164.09;		// 23h56m4.09s, one sidereal day!
-const double EARTH_PERIMETER = 2.0 * M_PI * EARTH_RADIUS;
 const double EARTH_ORBIT_TIME = 31556926.5;		// in seconds. 365 days, 5 hours, 48 minutes, 46.5 seconds
 
 const double MOON_POS_ADJUST = 300.0;	// in degrees. Moon pos in its orbit on 1.1.1939 fixme: research the value

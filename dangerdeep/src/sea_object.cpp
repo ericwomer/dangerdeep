@@ -30,20 +30,18 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ai.h"
 #include "game.h"
 #include "datadirs.h"
-#include "environment.h"
+#include "global_constants.h"
 #include "log.h"
 using std::string;
 using std::list;
 
 
-const double earthperimeter2 = 20015086.795;
-
 
 void sea_object::degrees2meters(bool west, unsigned degx, unsigned minx, bool south,
 	unsigned degy, unsigned miny, double& x, double& y)
 {
-	x = (west ? -1.0 : 1.0)*(double(degx)+double(minx)/60.0)*earthperimeter2/180.0;
-	y = (south ? -1.0 : 1.0)*(double(degy)+double(miny)/60.0)*earthperimeter2/180.0;
+	x = (west ? -1.0 : 1.0)*(double(degx)+double(minx)/60.0)*EARTH_PERIMETER/360.0;
+	y = (south ? -1.0 : 1.0)*(double(degy)+double(miny)/60.0)*EARTH_PERIMETER/360.0;
 }
 
 
@@ -51,8 +49,8 @@ void sea_object::degrees2meters(bool west, unsigned degx, unsigned minx, bool so
 void sea_object::meters2degrees(double x, double y, bool& west, unsigned& degx, unsigned& minx, bool& south,
 	unsigned& degy, unsigned& miny)
 {
-	double fracdegrx = fabs(x*180.0/earthperimeter2);
-	double fracdegry = fabs(y*180.0/earthperimeter2);
+	double fracdegrx = fabs(x*360.0/EARTH_PERIMETER);
+	double fracdegry = fabs(y*360.0/EARTH_PERIMETER);
 	degx = unsigned(floor(fracdegrx));
 	degy = unsigned(floor(fracdegry));
 	minx = unsigned(60.0 * myfrac(fracdegrx) + 0.5);

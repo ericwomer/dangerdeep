@@ -32,14 +32,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "system.h"
 #include "log.h"
 #include "datadirs.h"
+#include "global_constants.h"
 #include <SDL_image.h>
 #include <stdexcept>
 
 using namespace std;
 
-// computed with an earth radius of 40030.17359km
-const double DEGREE_IN_METERS = 111194.9266388889;
-const double MINUTE_IN_METERS = 1853.248777315;
 
 
 // same with version string
