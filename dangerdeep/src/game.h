@@ -122,6 +122,17 @@ public:
 		virtual ~job() {}
 	};
 
+	struct player_info {
+		std::string name;
+		unsigned flotilla;
+		std::string submarineid;
+		std::string photo;
+
+		player_info();
+		player_info(const xml_elem& parent);
+		void save(xml_elem& parent) const;
+	};
+
 	// in which state is the game
 	// normal mode (running), or stop on next cycle (reason given by value)
 	enum run_state { running, player_killed, mission_complete, contact_lost };
@@ -204,6 +215,8 @@ protected:
 
 	thread::auto_ptr<simulate_worker> myworker;
 
+	player_info playerinfo;
+
 	/// check objects collide with any other object
 	void check_collisions();
 
@@ -216,7 +229,7 @@ public:
 	// expects: size small,medium,large, escort size none,small,medium,large,
 	// time of day [0,4) night,dawn,day,dusk
 	game(const std::string& subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
-		unsigned timeperiod, unsigned nr_of_players = 1);
+	     unsigned timeperiod, const player_info& pi = player_info()/*fixme - must be always given*/, unsigned nr_of_players = 1);
 
 	// create from mission file or savegame (xml file)
 	game(const std::string& filename);
@@ -381,6 +394,8 @@ public:
 
 	/// get pointers to all ships for collision tests.
 	std::vector<ship*> get_all_ships() const;
+
+	virtual const player_info& get_player_info() const { return playerinfo; }
 };
 
 #endif

@@ -128,6 +128,36 @@ void game::sink_record::save(xml_elem& parent) const
 
 
 
+game::player_info::player_info()
+	: name("Heinz Mustermann"),
+	  flotilla(1),
+	  submarineid("U 999"),
+	  photo("player_photo_1.jpg")
+{
+}
+
+
+
+game::player_info::player_info(const xml_elem& parent)
+	: name(parent.attr("name")),
+	  flotilla(parent.attru("flotilla")),
+	  submarineid(parent.attr("submarineid")),
+	  photo(parent.attr("photo"))
+{
+}
+
+
+
+void game::player_info::save(xml_elem& parent) const
+{
+	parent.set_attr(name, "name");
+	parent.set_attr(flotilla, "flottila");
+	parent.set_attr(submarineid, "submarineid");
+	parent.set_attr(photo, "photo");
+}
+
+
+
 game::game()
 {
 	// empty, so that heirs can construct a game object. Needed for editor
@@ -148,7 +178,8 @@ game::game()
 
 
 game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
-	unsigned timeperiod, unsigned nr_of_players)
+	   unsigned timeperiod, const player_info& pi, unsigned nr_of_players)
+	: playerinfo(pi)
 {
 /****************************************************************
 	custom mission generation:
@@ -490,6 +521,8 @@ game::game(const string& filename)
 	for (xml_elem::iterator it = pgs.iterate("ping"); !it.end(); it.next()) {
 		pings.push_back(ping(it.elem()));
 	}
+
+	playerinfo = player_info(sg.child("player_info"));
 }
 
 
@@ -631,6 +664,9 @@ void game::save(const string& savefilename, const string& description) const
 	for (list<ping>::const_iterator it = pings.begin(); it != pings.end(); ++it) {
 		it->save(pgs);
 	}
+
+	xml_elem pi = sg.add_child("player_info");
+	playerinfo.save(pi);
 
 	// finally save file
 	doc.save();

@@ -53,6 +53,7 @@ dftdsources = Split("""subsim.cpp
 	sub_ghg_display.cpp
 	sub_kdb_display.cpp
 	sub_periscope_display.cpp
+	sub_soldbuch_display.cpp
 	sub_tdc_display.cpp
 	sub_tdc_popup.cpp
 	sub_torpedo_display.cpp

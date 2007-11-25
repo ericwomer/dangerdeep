@@ -326,17 +326,12 @@ void check_for_highscore(const game& gm)
  	w.add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, (1024-128)/2, 768-32-16, 128, 32, texts::get(105)));
 	unsigned pos = hsl.get_listpos_for(points);
 	if (hsl.is_good_enough(points)) {
-		w.add_child(new widget_text(200, 200, 0,0, texts::get(199)));
+		std::string txt = texts::get(199);
 		if (pos == 0)
-			w.add_child(new widget_text(200, 240, 0,0, texts::get(201)));
-		w.add_child(new widget_text(400, 280, 0,0, texts::get(200)));
-		widget_edit* wname = new widget_edit(300, 320, 424, 32, "");
-		wbox->add_child(wname);
-		w.run(0, false, wname);
-		string playername = wname->get_text();
-		if (playername.length() == 0)
-			playername = "INCOGNITO";
-		hsl.record(points, playername);
+			txt += "\n\n" + texts::get(201);
+		auto_ptr<widget> w(widget::create_dialogue_ok(0, texts::get(197), txt));
+		w->run();
+		hsl.record(points, gm.get_player_info().name);
 	} else {
 		w.add_child(new widget_text(400, 200, 0,0, texts::get(198)));
 		w.run(0, false);
@@ -587,6 +582,154 @@ void run_game_editor(auto_ptr<game> gm)
 
 
 
+/** choose player data
+    @returns false when cancelled
+*/
+
+class widget_image_select : public widget
+{
+	std::list<std::string> imagenames;
+	std::string extension;
+	std::list<std::string>::iterator current;
+public:
+	widget_image_select(int x, int y, int w, int h, const std::string& ext_,
+			    const std::list<std::string>& imagenames_,
+			    widget* parent_ = 0)
+		: widget(x, y, w, h, "", parent_), imagenames(imagenames_),
+		  extension(ext_), current(imagenames.begin())
+	{
+		if (imagenames.empty()) throw error("can't use widget_image_select with empty list");
+		background = imagecache().ref(*current + extension);
+	}
+	virtual const std::string& get_current_imagename() const { return *current; }
+	void on_release()
+	{
+		++current;
+		if (current == imagenames.end()) current = imagenames.begin();
+ 		imagecache().unref(background);
+		background = 0;
+		background = imagecache().ref(*current + extension);
+		redraw();
+	}
+	void draw() const
+	{
+		redrawme = false;
+		vector2i p = get_pos();
+		int bw = int(background->get_width());
+		int bh = int(background->get_height());
+		glColor4f(1, 1, 1, 1);
+		background->draw(p.x + size.x/2 - bw/2, p.y + size.y/2 - bh/2);
+	}
+	virtual void select_by_nr(unsigned n)
+	{
+		std::list<std::string>::iterator next = imagenames.begin();
+		for ( ; n > 0; --n) {
+			++next;
+			if (next == imagenames.end()) next = imagenames.begin();
+		}
+		if (next != current) {
+			current = next;
+			imagecache().unref(background);
+			background = 0;
+			background = imagecache().ref(*current + extension);
+			redraw();
+		}
+	}
+	virtual unsigned get_selected() const
+	{
+		std::list<std::string>::const_iterator it = imagenames.begin();
+		unsigned n = 0;
+		while (it != current) {
+			++n;
+			++it;
+		}
+		return n;
+	}
+};
+
+bool choose_player_info(game::player_info& pi)
+{
+	widget w(0, 0, 1024, 768, "", 0, "playerselection_background.jpg");
+	widget* w2 = new widget(40, 40, 500, 640, "");
+	w.add_child(w2);
+	w2->add_child(new widget_text(20, 20, 0, 0, texts::get(200)));
+	widget_edit* wplayername = new widget_edit(20, 50, 460, 30, "Heinz Mustermann");
+	w2->add_child(wplayername);
+
+	static const unsigned flotnrs[] = { 1,2,3,5,6,7,8,9,10,11,12,13,14,19,21,22,23,24,25,26,29,0 };//fixme: read from data file
+
+	struct emblemselect : widget_image_select
+	{
+		widget_list* flst;
+		emblemselect(int x, int y, int w, int h,
+			     const std::string& ext_,
+			     const std::list<std::string>& imagenames_)
+			: widget_image_select(x,y,w,h,ext_,imagenames_), flst(0) {}
+		void on_release() {
+			widget_image_select::on_release();
+			if (flst)
+				flst->set_selected(get_selected());
+		}
+	};
+	std::list<std::string> emblems;
+	for (unsigned i = 0; flotnrs[i] != 0; ++i) {
+		emblems.push_back(std::string("insignia_flotille") + str(flotnrs[i]));
+	}
+	emblemselect* wemblem = new emblemselect(764-220/2, 572-32-300/2, 220, 300, ".png", emblems);
+
+	struct flotlist : public widget_list
+	{
+		widget_image_select* wis;
+		void on_sel_change() {
+			wis->select_by_nr(std::max(0, get_selected()));
+		}
+		flotlist(int x, int y, int w, int h, widget_image_select* w_) : widget_list(x, y, w, h), wis(w_) {}
+	};
+	flotlist* wflotilla = new flotlist(20, 110, 460, 200, wemblem);
+	std::string flotname = texts::get(164);
+	for (unsigned i = 0; flotnrs[i] != 0; ++i) {
+		std::string fn = flotname;
+		fn.replace(fn.find("#"), 1, str(flotnrs[i]));
+		wflotilla->append_entry(fn);
+	}
+	w2->add_child(new widget_text(20, 80, 0, 0, texts::get(175)));
+	w2->add_child(wflotilla);
+	wemblem->flst = wflotilla;
+	w2->add_child(new widget_text(20, 320, 0, 0, texts::get(163)));
+	w2->add_child(new widget_text(20, 350, 0, 0, "Brest, fixme"));
+
+	w2->add_child(new widget_text(20, 380, 0, 0, texts::get(176)));
+	widget_list* wsubnumber = new widget_list(20, 420, 460, 200);
+	wsubnumber->append_entry("U 99");
+	wsubnumber->append_entry("U 2540");
+	w2->add_child(wsubnumber);
+	std::list<std::string> playerphotos;
+	for (unsigned i = 1; i <= 11; ++i)
+		playerphotos.push_back(std::string("player_photo") + str(i));
+	widget_image_select* wplayerphoto = new widget_image_select(762-220/2, 215-400/2, 220, 400, ".jpg|png", playerphotos);
+	w.add_child(wplayerphoto);
+
+	w.add_child(wemblem);
+
+	widget_menu* wm = new widget_menu(40, 700, 0, 40, "", true);
+	w.add_child(wm);
+	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
+	wm->add_entry(texts::get(19), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 540, 700, 400, 40));
+	wm->adjust_buttons(944);
+	int result = w.run(0, false);
+	if (result == 2) {
+		pi.name = wplayername->get_text();
+		pi.flotilla = flotnrs[std::max(0, wflotilla->get_selected())];
+		pi.submarineid = wsubnumber->get_selected_entry();
+		pi.photo = wplayerphoto->get_current_imagename();
+		//log_debug(player_name<<","<<player_flotilla<<","<<player_subnumber<<","<<player_photo);
+		return true;
+	}
+	return false;
+}
+
+
+
 //
 // create a custom convoy mission
 //
@@ -612,9 +755,9 @@ void create_convoy_mission()
 	wsubtype->append_entry(texts::get(174));
 	wsubtype->append_entry(texts::get(18));
 	wsubtype->append_entry(texts::get(660));
-    wsubtype->append_entry(texts::get(661));
-    wsubtype->append_entry(texts::get(662));
-    wsubtype->append_entry(texts::get(663));
+	wsubtype->append_entry(texts::get(661));
+	wsubtype->append_entry(texts::get(662));
+	wsubtype->append_entry(texts::get(663));
 	wcvsize->append_entry(texts::get(85));
 	wcvsize->append_entry(texts::get(86));
 	wcvsize->append_entry(texts::get(87));
@@ -640,25 +783,38 @@ void create_convoy_mission()
 	wm->add_entry(texts::get(20), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 1, 70, 700, 400, 40));
 	wm->add_entry(texts::get(19), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 2, 540, 700, 400, 40));
 	wm->adjust_buttons(944);
-	int result = w.run(0, false);
-	if (result == 2) {	// start game
-		string st;
-		switch (wsubtype->get_selected()) {
+	while (true) {
+		int result = w.run(0, false);
+		if (result == 2) {	// start game
+			string st;
+			switch (wsubtype->get_selected()) {
 			case 0: st = "submarine_VIIc"; break;
 			case 1: st = "submarine_IXc40"; break;
 			case 2: st = "submarine_XXI"; break;
 			case 3: st = "submarine_IIa"; break;
-            case 4: st = "submarine_IIb"; break;
-            case 5: st = "submarine_IIc"; break;
-            case 6: st = "submarine_IId"; break;
+			case 4: st = "submarine_IIb"; break;
+			case 5: st = "submarine_IIc"; break;
+			case 6: st = "submarine_IId"; break;
+			}
+
+			// show player gui screen
+			// use strings for all data, more extendable
+			game::player_info pi;
+			bool ok = choose_player_info(pi);
+			if (!ok) continue;
+
+			// reset loading screen here to show user we are doing something
+			//fixme: give data to game! player data. maybe combine that to a struct!
+			reset_loading_screen();
+			run_game(auto_ptr<game>(new game(st,
+							 wcvsize->get_selected(),
+							 wescortsize->get_selected(),
+							 wtimeofday->get_selected(),
+							 wtimeperiod->get_selected(),
+							 pi)));
+		} else {
+			break;
 		}
-		// reset loading screen here to show user we are doing something
-		reset_loading_screen();
-		run_game(auto_ptr<game>(new game(st,
-						 wcvsize->get_selected(),
-						 wescortsize->get_selected(),
-						 wtimeofday->get_selected(),
-						 wtimeperiod->get_selected())));
 	}
 }
 
@@ -1607,7 +1763,7 @@ int mymain(list<string>& args)
 			}
 #if !(defined (WIN32) || (defined (__APPLE__) && defined (__MACH__)))
 		} else if (*it == "--vsync") {
-			if (putenv("__GL_SYNC_TO_VBLANK=1") < 0)
+			if (putenv((char*)"__GL_SYNC_TO_VBLANK=1") < 0)
 				cout << "ERROR: vsync setting failed.\n";
 			maxfps = 0;
 #endif
