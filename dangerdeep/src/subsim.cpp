@@ -656,6 +656,12 @@ bool choose_player_info(game::player_info& pi)
 	widget_edit* wplayername = new widget_edit(20, 50, 460, 30, "Heinz Mustermann");
 	w2->add_child(wplayername);
 
+	xml_doc flotilladb(get_data_dir() + "flotillas/available.xml");
+	flotilladb.load();
+	xml_elem eflotillas = flotilladb.child("flotillas");
+	// compute which flotillas are available by time and submarine type
+	// for every flotilla present a list of submarine IDs
+
 	static const unsigned flotnrs[] = { 1,2,3,5,6,7,8,9,10,11,12,13,14,19,21,22,23,24,25,26,29,0 };//fixme: read from data file
 
 	struct emblemselect : widget_image_select
@@ -680,12 +686,23 @@ bool choose_player_info(game::player_info& pi)
 	struct flotlist : public widget_list
 	{
 		widget_image_select* wis;
+		widget_list* wsns;
+		xml_elem& eflot;//rather list of elements..., we need data as well
 		void on_sel_change() {
 			wis->select_by_nr(std::max(0, get_selected()));
+			wsns->clear();
+			// iterate list of available flotillas and offer sub numbers
+			if (get_selected() == 0)
+				wsns->append_entry("U 99");
+			else
+				wsns->append_entry("U 2540");
 		}
-		flotlist(int x, int y, int w, int h, widget_image_select* w_) : widget_list(x, y, w, h), wis(w_) {}
+		flotlist(int x, int y, int w, int h, widget_image_select* w_, widget_list *ws,
+			 xml_elem& ef)
+			: widget_list(x, y, w, h), wis(w_), wsns(ws), eflot(ef) {}
 	};
-	flotlist* wflotilla = new flotlist(20, 110, 460, 200, wemblem);
+	widget_list* wsubnumber = new widget_list(20, 420, 460, 200);
+	flotlist* wflotilla = new flotlist(20, 110, 460, 200, wemblem, wsubnumber, eflotillas);
 	std::string flotname = texts::get(164);
 	for (unsigned i = 0; flotnrs[i] != 0; ++i) {
 		std::string fn = flotname;
@@ -699,10 +716,9 @@ bool choose_player_info(game::player_info& pi)
 	w2->add_child(new widget_text(20, 350, 0, 0, "Brest, fixme"));
 
 	w2->add_child(new widget_text(20, 380, 0, 0, texts::get(176)));
-	widget_list* wsubnumber = new widget_list(20, 420, 460, 200);
-	wsubnumber->append_entry("U 99");
-	wsubnumber->append_entry("U 2540");
+
 	w2->add_child(wsubnumber);
+
 	std::list<std::string> playerphotos;
 	for (unsigned i = 1; i <= 11; ++i)
 		playerphotos.push_back(std::string("player_photo") + str(i));
