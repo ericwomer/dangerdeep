@@ -540,8 +540,11 @@ int widget::run(unsigned timeout, bool do_stacking, widget* focussed_at_begin)
 
 		list<SDL_Event> events = sys().poll_event_queue();
 		if (!redrawme && inited && events.size() == 0) {
+			unsigned crsrstat0 = sys().millisec() / 500 & 1;
 			SDL_Delay(50);
-			continue;
+			unsigned crsrstat1 = sys().millisec() / 500 & 1;
+			if (crsrstat1 == crsrstat0)
+				continue;
 		}
 		inited = true;
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -1135,15 +1138,21 @@ void widget_list::set_column_width(int cw)
 
 void widget_edit::draw() const
 {
+	bool editing = this == (const widget*)focussed;
 	vector2i p = get_pos();
 	draw_area(p.x, p.y, size.x, size.y, false);
 	int fw = globaltheme->frame_size();
-	globaltheme->myfont->print_vc(p.x+fw, p.y+size.y/2, text, is_enabled() ? globaltheme->textcol : globaltheme->textdisabledcol, true);
-	vector2i sz = globaltheme->myfont->get_size(text.substr(0, cursorpos));
-	glBindTexture(GL_TEXTURE_2D, 0);
-	globaltheme->textcol.set_gl_color();
-	if (this == (const widget*)focussed)
-		sys().draw_rectangle(p.x+fw+sz.x, p.y+size.y/4, fw/2, size.y/2);
+	color cc = is_enabled() ? (editing ? globaltheme->textcol.more_contrast(3) : globaltheme->textcol) : globaltheme->textdisabledcol;
+	globaltheme->myfont->print_vc(p.x+fw, p.y+size.y/2, text, cc, true);
+	if (editing) {
+		Uint32 tm = sys().millisec();
+		if (tm / 500 & 1) {
+			vector2i sz = globaltheme->myfont->get_size(text.substr(0, cursorpos));
+			glBindTexture(GL_TEXTURE_2D, 0);
+			globaltheme->textcol.more_contrast(5).set_gl_color();
+			sys().draw_rectangle(p.x+fw+sz.x, p.y+size.y/8, std::max(fw/2, 2), size.y*3/4);
+		}
+	}
 }
 
 

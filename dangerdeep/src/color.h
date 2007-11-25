@@ -74,6 +74,15 @@ struct color {
 	
 	//color(istream& in) { r = read_u8(in); g = read_u8(in); b = read_u8(in); a = read_u8(in); }
 	//void save(ostream& out) const { write_u8(out, r); write_u8(out, g); write_u8(out, b); write_u8(out, a); }
+
+	color more_contrast(unsigned fac) const {
+		int rr = (int(r)-128)*fac+128;
+		int gg = (int(g)-128)*fac+128;
+		int bb = (int(b)-128)*fac+128;
+		return color(Uint8(rr > 255 ? 255 : rr < 0 ? 0 : rr),
+			     Uint8(gg > 255 ? 255 : gg < 0 ? 0 : gg),
+			     Uint8(bb > 255 ? 255 : bb < 0 ? 0 : bb));
+	}
 	
 	// some useful standard colors
 	static color black() { return color(0,0,0); }

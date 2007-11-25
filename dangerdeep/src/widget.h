@@ -421,7 +421,7 @@ protected:
 	widget_edit& operator= (const widget_edit& );
 public:
 	widget_edit(int x, int y, int w, int h, const std::string& text_, widget* parent_ = 0)
-		: widget(x, y, w, h, text_, parent_), cursorpos(0) {}
+		: widget(x, y, w, h, text_, parent_), cursorpos(text_.length()) {}
 	void set_text(const std::string& s) { widget::set_text(s); cursorpos = s.length(); }
 	void draw() const;
 	void on_char(const SDL_keysym& ks);
