@@ -1,0 +1,10 @@
+<flotillas>
+    <flotilla nr="1" type="combat" sign="flotille5insignia.png" base="Brest" operationareas="NA CA NS">
+         <timeperiod from="1940/7/1" until="1944/8/30">
+              <subs type="IIc">38 102 991</subs>
+              <subs type="VIIb">97 101 486</subs>
+         </timeperiod>
+         <description lang="en">4th Flotilla, based at Wilhelmshaven. Training flotilla, founded in 1939 by Kptlt. Wener Jacobsen.</description>
+         <description lang="fr">4ieme Flotille, baseé à Wilhelmshaven. Flotte de formation fondé en 1939 par Kptlt. Wener Jacobsen.</description>
+    </flotilla>
+</flotillas>
