@@ -84,9 +84,9 @@ void init_global_data()
 	font_arial = fontcache().ref("font_arial");
 	loading_screen_usable = true;
 	font_jphsl = fontcache().ref("font_jphsl");
-    font_vtremington10 = fontcache().ref("font_vtremington10");
-    font_vtremington12 = fontcache().ref("font_vtremington12");
-    font_typenr16 = fontcache().ref("font_typenr16");
+	font_vtremington10 = fontcache().ref("font_vtremington10");
+	font_vtremington12 = fontcache().ref("font_vtremington12");
+	font_typenr16 = fontcache().ref("font_typenr16");
 	add_loading_screen("fonts loaded");
 	// later: they should get loaded by environmental classes (sky/water/user_interface)
 	panelbackground = 0; // not used with new ingame gui
