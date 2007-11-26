@@ -5,13 +5,11 @@ import sys
 ################ base paths (needed for Win32 OS)
 sdlbase = 'D:\\sdl-devel\\SDL'
 sdlimagebase = 'D:\\sdl-devel\\SDL_image'
-sdlnetbase = 'D:\\sdl-devel\\SDL_net'
 sdlmixerbase = 'D:\\sdl-devel\\SDL_mixer'
 fftw3base = 'D:\\fftw3'
 glbase = 'D:\\Dev-Cpp\\include\\gl'
 #sdlbase = os.environ['SDL']
 #sdlimagebase = os.environ['SDLIMAGE']
-#sdlnetbase = os.environ['SDLNET']
 #sdlmixerbase = os.environ['SDLMIXER']
 #fftw3base = os.environ['FFTW']
 #glbase = os.environ['GLBASE']
@@ -34,8 +32,8 @@ fftwlib = 'fftw3'
 if sys.platform == 'win32':
 	print "Compiling for Win32 Environment"
 	env = Environment(ENV = os.environ, tools = ['mingw'])
-	env.Append(CPPPATH = [sdlbase + '\\include', sdlimagebase + '\\include', sdlnetbase + '\\include', sdlmixerbase + '\\include', fftw3base, glbase])
-	libpath = [sdlbase + '\\lib', sdlimagebase + '\\lib', sdlnetbase + '\\lib', sdlmixerbase + '\\lib', fftw3base]
+	env.Append(CPPPATH = [sdlbase + '\\include', sdlimagebase + '\\include', sdlmixerbase + '\\include', fftw3base, glbase])
+	libpath = [sdlbase + '\\lib', sdlimagebase + '\\lib', sdlmixerbase + '\\lib', fftw3base]
 	gllibs = ['opengl32', 'glu32']
 	sdllibs = ['SDL', 'SDL_image']
 	env.Append(CPPDEFINES = ['_REENTRANT'])

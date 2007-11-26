@@ -28,7 +28,6 @@ dftdsources = Split("""subsim.cpp
 	map_display.cpp
 	message_queue.cpp
 	music.cpp
-	network.cpp
 	parser.cpp
 	particle.cpp
 	perlinnoise.cpp
