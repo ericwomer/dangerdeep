@@ -722,8 +722,12 @@ bool choose_player_info(game::player_info& pi)
 	std::list<std::string> playerphotos;
 	for (unsigned i = 1; i <= 11; ++i)
 		playerphotos.push_back(std::string("player_photo") + str(i));
+
 	widget_image_select* wplayerphoto = new widget_image_select(762-220/2, 215-400/2, 220, 400, ".jpg|png", playerphotos);
 	w.add_child(wplayerphoto);
+
+	// photo change
+	w.add_child(new widget_text(762-220/2, 360, 0, 0, texts::get(664)));
 
 	w.add_child(wemblem);
 
