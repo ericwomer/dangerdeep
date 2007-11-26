@@ -178,7 +178,7 @@ game::game()
 
 
 game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
-	   unsigned timeperiod, const player_info& pi, unsigned nr_of_players)
+	   const date& timeperioddate, const player_info& pi, unsigned nr_of_players)
 	: playerinfo(pi)
 {
 /****************************************************************
@@ -219,21 +219,7 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 
 	// fixme: show some info like in Silent Service II? sun/moon pos,time,visibility?
 
-	date datebegin, dateend;
-	switch (timeperiod) {
-		case 0: datebegin = date(1939, 9, 1); dateend = date(1940, 5, 31); break;
-		case 1: datebegin = date(1940, 6, 1); dateend = date(1941, 3, 31); break;
-		case 2: datebegin = date(1941, 4, 1); dateend = date(1941, 12, 31); break;
-		case 3: datebegin = date(1942, 1, 1); dateend = date(1942, 6, 30); break;
-		case 4: datebegin = date(1942, 7, 1); dateend = date(1942, 12, 31); break;
-		case 5: datebegin = date(1943, 1, 1); dateend = date(1943, 5, 31); break;
-		case 6: datebegin = date(1943, 6, 1); dateend = date(1944, 6, 30); break;
-		case 7: datebegin = date(1944, 7, 1); dateend = date(1945, 5, 8); break;
-	}
-
-	double tpr = rnd();	
-	time = datebegin.get_time() * (1.0-tpr) + dateend.get_time() * tpr;
-	time = floor(time/86400)*86400;		// set to begin of day
+	time = timeperioddate.get_time();
 	
 	// all code from here on is fixme and experimental.
 	// fixme: we need exact sunrise and fall times for a day. (also moon state is needed

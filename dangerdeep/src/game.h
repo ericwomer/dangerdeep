@@ -229,7 +229,7 @@ public:
 	// expects: size small,medium,large, escort size none,small,medium,large,
 	// time of day [0,4) night,dawn,day,dusk
 	game(const std::string& subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
-	     unsigned timeperiod, const player_info& pi = player_info()/*fixme - must be always given*/, unsigned nr_of_players = 1);
+	     const date& timeperioddate, const player_info& pi = player_info()/*fixme - must be always given*/, unsigned nr_of_players = 1);
 
 	// create from mission file or savegame (xml file)
 	game(const std::string& filename);

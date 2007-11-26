@@ -645,7 +645,7 @@ public:
 	}
 };
 
-bool choose_player_info(game::player_info& pi)
+bool choose_player_info(game::player_info& pi, const std::string& subtype, const date& gamedate)
 {
 	widget w(0, 0, 1024, 768, "", 0, "playerselection_background.jpg");
 	widget* w2 = new widget(40, 40, 500, 640, "");
@@ -654,13 +654,47 @@ bool choose_player_info(game::player_info& pi)
 	widget_edit* wplayername = new widget_edit(20, 50, 460, 30, "Heinz Mustermann");
 	w2->add_child(wplayername);
 
+	std::vector<unsigned> flotnrs;
+	std::vector<std::list<unsigned> > flotsubs;
+
 	xml_doc flotilladb(get_data_dir() + "flotillas/available.xml");
 	flotilladb.load();
 	xml_elem eflotillas = flotilladb.child("flotillas");
 	// compute which flotillas are available by time and submarine type
 	// for every flotilla present a list of submarine IDs
+	for (xml_elem::iterator it = eflotillas.iterate("flotilla"); !it.end(); it.next()) {
+		xml_elem flot = it.elem();
+		for (xml_elem::iterator itt = flot.iterate("timeperiod"); !itt.end(); itt.next()) {
+			xml_elem tp = itt.elem();
+			date dfr = date(tp.attr("from"));
+			date dut = date(tp.attr("until"));
+			if (dfr <= gamedate && gamedate <= dut) {
+				// flotilla is available
+				flotnrs.push_back(flot.attru("nr"));
+				flotsubs.push_back(std::list<unsigned>());
+				for (xml_elem::iterator its = tp.iterate("subs"); !its.end(); its.next()) {
+					xml_elem subs = its.elem();
+					if (subtype.substr(std::string("submarine_").length()) == subs.attr("type")) {
+						// submarines are available
+						std::istringstream iss(subs.child_text());
+						while (!iss.eof()) {
+							unsigned nr;
+							iss >> nr;
+							flotsubs.back().push_back(nr);
+						}
+					}
+				}
+			}
+		}
+	}
+	if (flotnrs.empty()) {
+		flotnrs.push_back(29); // kind of dummy
+		flotsubs.push_back(std::list<unsigned>());
+		flotsubs.back().push_back(9999);
+	}
+	flotnrs.push_back(0);
 
-	static const unsigned flotnrs[] = { 1,2,3,5,6,7,8,9,10,11,12,13,14,19,21,22,23,24,25,26,29,0 };//fixme: read from data file
+//	static const unsigned flotnrs[] = { 1,2,3,5,6,7,8,9,10,11,12,13,14,19,21,22,23,24,25,26,29,0 };//fixme: read from data file
 
 	struct emblemselect : widget_image_select
 	{
@@ -685,22 +719,27 @@ bool choose_player_info(game::player_info& pi)
 	{
 		widget_image_select* wis;
 		widget_list* wsns;
-		xml_elem& eflot;//rather list of elements..., we need data as well
+		std::vector<std::list<unsigned> >& subnrs;
 		void on_sel_change() {
 			wis->select_by_nr(std::max(0, get_selected()));
 			wsns->clear();
 			// iterate list of available flotillas and offer sub numbers
-			if (get_selected() == 0)
-				wsns->append_entry("U 99");
-			else
-				wsns->append_entry("U 2540");
+			int s = get_selected();
+			if (s >= 0) {
+				const std::list<unsigned>& l = subnrs[s];
+				for (std::list<unsigned>::const_iterator it = l.begin(); it != l.end(); ++it) {
+					std::ostringstream oss;
+					oss << "U " << *it;
+					wsns->append_entry(oss.str());
+				}
+			}
 		}
 		flotlist(int x, int y, int w, int h, widget_image_select* w_, widget_list *ws,
-			 xml_elem& ef)
-			: widget_list(x, y, w, h), wis(w_), wsns(ws), eflot(ef) {}
+			 std::vector<std::list<unsigned> >& sns)
+			: widget_list(x, y, w, h), wis(w_), wsns(ws), subnrs(sns) {}
 	};
 	widget_list* wsubnumber = new widget_list(20, 420, 460, 200);
-	flotlist* wflotilla = new flotlist(20, 110, 460, 200, wemblem, wsubnumber, eflotillas);
+	flotlist* wflotilla = new flotlist(20, 110, 460, 200, wemblem, wsubnumber, flotsubs);
 	std::string flotname = texts::get(164);
 	for (unsigned i = 0; flotnrs[i] != 0; ++i) {
 		std::string fn = flotname;
@@ -815,10 +854,27 @@ void create_convoy_mission()
 			case 6: st = "submarine_IId"; break;
 			}
 
+			// compute mission time (date)
+			date datebegin, dateend;
+			switch (wtimeperiod->get_selected()) {
+			case 0: datebegin = date(1939, 9, 1); dateend = date(1940, 5, 31); break;
+			case 1: datebegin = date(1940, 6, 1); dateend = date(1941, 3, 31); break;
+			case 2: datebegin = date(1941, 4, 1); dateend = date(1941, 12, 31); break;
+			case 3: datebegin = date(1942, 1, 1); dateend = date(1942, 6, 30); break;
+			case 4: datebegin = date(1942, 7, 1); dateend = date(1942, 12, 31); break;
+			case 5: datebegin = date(1943, 1, 1); dateend = date(1943, 5, 31); break;
+			case 6: datebegin = date(1943, 6, 1); dateend = date(1944, 6, 30); break;
+			case 7: datebegin = date(1944, 7, 1); dateend = date(1945, 5, 8); break;
+			}
+			double tpr = rnd();	
+			double time = datebegin.get_time() * (1.0-tpr) + dateend.get_time() * tpr;
+			time = floor(time/86400)*86400;		// set to begin of day
+			date gamedate = date(unsigned(time));
+
 			// show player gui screen
 			// use strings for all data, more extendable
 			game::player_info pi;
-			bool ok = choose_player_info(pi);
+			bool ok = choose_player_info(pi, st, gamedate);
 			if (!ok) continue;
 
 			// reset loading screen here to show user we are doing something
@@ -828,7 +884,7 @@ void create_convoy_mission()
 							 wcvsize->get_selected(),
 							 wescortsize->get_selected(),
 							 wtimeofday->get_selected(),
-							 wtimeperiod->get_selected(),
+							 gamedate,
 							 pi)));
 		} else {
 			break;
