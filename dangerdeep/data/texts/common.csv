@@ -161,7 +161,7 @@
 159;;;;;;;;;
 160;;;;;;;;;
 161;;;;;;;;;
-162;;;;;;;;;
+162;"Click on photo to change it";"Auf Photo klicken,\num es zu wechseln";"Click on photo to change it";"Click on photo to change it";"Click on photo to change it";"Click on photo to change it";"Click on photo to change it";"Click on photo to change it";"Click on photo to change it"
 163;"Flotilla location:";"Flotillenstützpunkt:";"Flotilla location:";"Flotilla location:";"Flotilla location:";"Flotilla location:";"Flotilla location:";"Flotilla location:";"Flotilla location:"
 164;"Flotilla #";"#. U-Bootsflotille";"Flotilla #";"Flotilla #";"Flotilla #";"Flotilla #";"Flotilla #";"Flotilla #";"Flotilla #"
 165;"Damage: ";"Schaden: ";"Danno: ";"Daño:";"Dommages :";"Poškození:";;"Schade";"Hasar:"
@@ -374,4 +374,3 @@
 661;"type IIb";"Typ IIb";"tipo IIb";"tipo IIb";"type IIb";"typ IIb";;"type IIb";"Iıb tipi"
 662;"type IIc";"Typ IIc";"tipo IIc";"tipo IIc";"type IIc";"typ IIc";;"type IIc";"Iıc tipi"
 663;"type IId";"Typ IId";"tipo IId";"tipo IId";"type IId";"typ IId";;"type IId";"Iıd tipi"
-664;"Click here to change";;;;;;;;

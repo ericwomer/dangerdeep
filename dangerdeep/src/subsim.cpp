@@ -764,7 +764,7 @@ bool choose_player_info(game::player_info& pi, const std::string& subtype, const
 	w.add_child(wplayerphoto);
 
 	// photo change
-	w.add_child(new widget_text(762-220/2, 360, 0, 0, texts::get(664)));
+	w.add_child(new widget_text(762-220/2, 360, 0, 0, texts::get(162)));
 
 	w.add_child(wemblem);
 
