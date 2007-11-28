@@ -645,6 +645,18 @@ public:
 	}
 };
 
+// used for easier access of data later
+struct flotilla {
+	unsigned nr;
+	// later: type
+	std::string insignia;
+	std::string base;
+	// later: operation areas
+	std::vector<unsigned> subnrs;
+	std::string description;
+};
+
+//fixme: show description
 bool choose_player_info(game::player_info& pi, const std::string& subtype, const date& gamedate)
 {
 	widget w(0, 0, 1024, 768, "", 0, "playerselection_background.jpg");
@@ -654,8 +666,7 @@ bool choose_player_info(game::player_info& pi, const std::string& subtype, const
 	widget_edit* wplayername = new widget_edit(20, 50, 460, 30, "Heinz Mustermann");
 	w2->add_child(wplayername);
 
-	std::vector<unsigned> flotnrs;
-	std::vector<std::list<unsigned> > flotsubs;
+	std::vector<flotilla> availableflotillas;
 
 	xml_doc flotilladb(get_data_dir() + "flotillas/available.xml");
 	flotilladb.load();
@@ -664,14 +675,14 @@ bool choose_player_info(game::player_info& pi, const std::string& subtype, const
 	// for every flotilla present a list of submarine IDs
 	for (xml_elem::iterator it = eflotillas.iterate("flotilla"); !it.end(); it.next()) {
 		xml_elem flot = it.elem();
+		bool avail = false;
+		flotilla ft;
 		for (xml_elem::iterator itt = flot.iterate("timeperiod"); !itt.end(); itt.next()) {
 			xml_elem tp = itt.elem();
 			date dfr = date(tp.attr("from"));
 			date dut = date(tp.attr("until"));
 			if (dfr <= gamedate && gamedate <= dut) {
-				// flotilla is available
-				flotnrs.push_back(flot.attru("nr"));
-				flotsubs.push_back(std::list<unsigned>());
+				// flotilla is available by date
 				for (xml_elem::iterator its = tp.iterate("subs"); !its.end(); its.next()) {
 					xml_elem subs = its.elem();
 					if (subtype.substr(std::string("submarine_").length()) == subs.attr("type")) {
@@ -680,21 +691,46 @@ bool choose_player_info(game::player_info& pi, const std::string& subtype, const
 						while (!iss.eof()) {
 							unsigned nr;
 							iss >> nr;
-							flotsubs.back().push_back(nr);
+							ft.subnrs.push_back(nr);
+						}
+						if (!ft.subnrs.empty()) {
+							// list of available subs is not empty
+							avail = true;
+							break;
 						}
 					}
 				}
+				if (avail) break;
+			}
+		}
+		if (avail) {
+			ft.nr = flot.attru("nr");
+			ft.insignia = flot.attr("sign");
+			ft.base = flot.attr("base");
+			ft.description = "not available, fix me";
+			for (xml_elem::iterator itt = flot.iterate("description"); !itt.end(); itt.next()) {
+				if (itt.elem().attr("lang") == texts::get_language_code()) {
+					ft.description = it.elem().child_text();
+					break;
+				}
+			}
+			availableflotillas.push_back(ft);
+		}
+	}
+	if (availableflotillas.empty()) {
+		log_warning("No flotilla available with these settings");
+		return false;
+	}
+	// remove dummy flotilla if we have others
+	if (availableflotillas.size() > 1) {
+		for (std::vector<flotilla>::iterator it = availableflotillas.begin();
+		     it != availableflotillas.end(); ++it) {
+			if (it->nr == 99) {
+				availableflotillas.erase(it);
+				break;
 			}
 		}
 	}
-	if (flotnrs.empty()) {
-		flotnrs.push_back(29); // kind of dummy
-		flotsubs.push_back(std::list<unsigned>());
-		flotsubs.back().push_back(9999);
-	}
-	flotnrs.push_back(0);
-
-//	static const unsigned flotnrs[] = { 1,2,3,5,6,7,8,9,10,11,12,13,14,19,21,22,23,24,25,26,29,0 };//fixme: read from data file
 
 	struct emblemselect : widget_image_select
 	{
@@ -710,8 +746,8 @@ bool choose_player_info(game::player_info& pi, const std::string& subtype, const
 		}
 	};
 	std::list<std::string> emblems;
-	for (unsigned i = 0; flotnrs[i] != 0; ++i) {
-		emblems.push_back(std::string("insignia_flotille") + str(flotnrs[i]));
+	for (unsigned i = 0; i < availableflotillas.size(); ++i) {
+		emblems.push_back(availableflotillas[i].insignia);
 	}
 	emblemselect* wemblem = new emblemselect(764-220/2, 572-32-300/2, 220, 300, ".png", emblems);
 
@@ -719,38 +755,43 @@ bool choose_player_info(game::player_info& pi, const std::string& subtype, const
 	{
 		widget_image_select* wis;
 		widget_list* wsns;
-		std::vector<std::list<unsigned> >& subnrs;
+		widget_text* baseloc;
+		const std::vector<flotilla>& availableflotillas;
 		void on_sel_change() {
 			wis->select_by_nr(std::max(0, get_selected()));
 			wsns->clear();
 			// iterate list of available flotillas and offer sub numbers
 			int s = get_selected();
 			if (s >= 0) {
-				const std::list<unsigned>& l = subnrs[s];
-				for (std::list<unsigned>::const_iterator it = l.begin(); it != l.end(); ++it) {
+				const std::vector<unsigned>& l = availableflotillas[s].subnrs;
+				for (unsigned i = 0; i < l.size(); ++i) {
 					std::ostringstream oss;
-					oss << "U " << *it;
+					oss << "U " << l[i];
 					wsns->append_entry(oss.str());
 				}
+				baseloc->set_text(availableflotillas[s].base);
 			}
 		}
-		flotlist(int x, int y, int w, int h, widget_image_select* w_, widget_list *ws,
-			 std::vector<std::list<unsigned> >& sns)
-			: widget_list(x, y, w, h), wis(w_), wsns(ws), subnrs(sns) {}
+		flotlist(int x, int y, int w, int h, widget_image_select* w_, widget_list* ws,
+			 widget_text* bl, const std::vector<flotilla>& af)
+			: widget_list(x, y, w, h), wis(w_), wsns(ws), baseloc(bl),
+			  availableflotillas(af) {}
 	};
 	widget_list* wsubnumber = new widget_list(20, 420, 460, 200);
-	flotlist* wflotilla = new flotlist(20, 110, 460, 200, wemblem, wsubnumber, flotsubs);
+	widget_text* baselocation = new widget_text(20, 350, 0, 0, "");
+	w2->add_child(baselocation);
+	flotlist* wflotilla = new flotlist(20, 110, 460, 200, wemblem, wsubnumber,
+					   baselocation, availableflotillas);
 	std::string flotname = texts::get(164);
-	for (unsigned i = 0; flotnrs[i] != 0; ++i) {
+	for (unsigned i = 0; i < availableflotillas.size(); ++i) {
 		std::string fn = flotname;
-		fn.replace(fn.find("#"), 1, str(flotnrs[i]));
+		fn.replace(fn.find("#"), 1, str(availableflotillas[i].nr));
 		wflotilla->append_entry(fn);
 	}
 	w2->add_child(new widget_text(20, 80, 0, 0, texts::get(175)));
 	w2->add_child(wflotilla);
 	wemblem->flst = wflotilla;
 	w2->add_child(new widget_text(20, 320, 0, 0, texts::get(163)));
-	w2->add_child(new widget_text(20, 350, 0, 0, "Brest, fixme"));
 
 	w2->add_child(new widget_text(20, 380, 0, 0, texts::get(176)));
 
@@ -776,7 +817,7 @@ bool choose_player_info(game::player_info& pi, const std::string& subtype, const
 	int result = w.run(0, false);
 	if (result == 2) {
 		pi.name = wplayername->get_text();
-		pi.flotilla = flotnrs[std::max(0, wflotilla->get_selected())];
+		pi.flotilla = availableflotillas[std::max(0, wflotilla->get_selected())].nr;
 		pi.submarineid = wsubnumber->get_selected_entry();
 		pi.photo = wplayerphoto->get_current_imagename();
 		//log_debug(player_name<<","<<player_flotilla<<","<<player_subnumber<<","<<player_photo);
