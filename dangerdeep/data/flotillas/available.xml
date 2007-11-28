@@ -1,10 +1,23 @@
 <flotillas>
-    <flotilla nr="1" type="combat" sign="flotille5insignia.png" base="Brest" operationareas="NA CA NS">
+    <flotilla nr="1" type="combat" sign="insignia_flotille1" base="Brest" operationareas="NA CA NS">
          <timeperiod from="1940/7/1" until="1944/8/30">
               <subs type="IIc">38 102 991</subs>
               <subs type="VIIc">97 101 486</subs>
          </timeperiod>
          <description lang="en">4th Flotilla, based at Wilhelmshaven. Training flotilla, founded in 1939 by Kptlt. Wener Jacobsen.</description>
          <description lang="fr">4ieme Flotille, baseé à Wilhelmshaven. Flotte de formation fondé en 1939 par Kptlt. Wener Jacobsen.</description>
+    </flotilla>
+    <flotilla nr="99" type="combat" sign="insignia_flotille29" base="Universum" operationareas="NA CA NS">
+         <timeperiod from="1939/1/1" until="1945/5/8">
+              <subs type="IIa">9999</subs>
+              <subs type="IIb">9999</subs>
+              <subs type="IIc">9999</subs>
+              <subs type="IId">9999</subs>
+              <subs type="VIIc">9999</subs>
+              <subs type="IXc40">9999</subs>
+              <subs type="XXI">9999</subs>
+              <subs type="XXIII">9999</subs>
+         </timeperiod>
+         <description lang="en">Dummy flotilla.</description>
     </flotilla>
 </flotillas>
