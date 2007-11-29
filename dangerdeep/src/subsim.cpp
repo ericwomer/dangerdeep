@@ -656,7 +656,13 @@ struct flotilla {
 	std::string description;
 };
 
-//fixme: show description
+void show_flotilla_description(const std::string& infopopupdescr)
+{
+	auto_ptr<widget> w(widget::create_dialogue_ok(0, "", infopopupdescr));
+	w->run();
+	
+}
+
 bool choose_player_info(game::player_info& pi, const std::string& subtype, const date& gamedate)
 {
 	widget w(0, 0, 1024, 768, "", 0, "playerselection_background.jpg");
@@ -710,7 +716,7 @@ bool choose_player_info(game::player_info& pi, const std::string& subtype, const
 			ft.description = "not available, fix me";
 			for (xml_elem::iterator itt = flot.iterate("description"); !itt.end(); itt.next()) {
 				if (itt.elem().attr("lang") == texts::get_language_code()) {
-					ft.description = it.elem().child_text();
+					ft.description = itt.elem().child_text();
 					break;
 				}
 			}
@@ -757,6 +763,8 @@ bool choose_player_info(game::player_info& pi, const std::string& subtype, const
 		widget_list* wsns;
 		widget_text* baseloc;
 		const std::vector<flotilla>& availableflotillas;
+		widget_button* infobut;
+		std::string& infobutdesc;
 		void on_sel_change() {
 			wis->select_by_nr(std::max(0, get_selected()));
 			wsns->clear();
@@ -770,18 +778,27 @@ bool choose_player_info(game::player_info& pi, const std::string& subtype, const
 					wsns->append_entry(oss.str());
 				}
 				baseloc->set_text(availableflotillas[s].base);
+				infobut->enable();
+				infobutdesc = availableflotillas[s].description;
+			} else {
+				infobut->disable();
 			}
 		}
 		flotlist(int x, int y, int w, int h, widget_image_select* w_, widget_list* ws,
-			 widget_text* bl, const std::vector<flotilla>& af)
+			 widget_text* bl, const std::vector<flotilla>& af,
+			 widget_button* ib, std::string& ibd)
 			: widget_list(x, y, w, h), wis(w_), wsns(ws), baseloc(bl),
-			  availableflotillas(af) {}
+			  availableflotillas(af), infobut(ib), infobutdesc(ibd) {}
 	};
 	widget_list* wsubnumber = new widget_list(20, 420, 460, 200);
 	widget_text* baselocation = new widget_text(20, 350, 0, 0, "");
 	w2->add_child(baselocation);
+	std::string infopopupdescr;
+	widget_button* infobutton = new widget_func_arg_button<void (*)(const std::string& ), const std::string& >(&show_flotilla_description, infopopupdescr, 300, 320, 180, 40, texts::get(161));
+	w2->add_child(infobutton);
 	flotlist* wflotilla = new flotlist(20, 110, 460, 200, wemblem, wsubnumber,
-					   baselocation, availableflotillas);
+					   baselocation, availableflotillas,
+					   infobutton, infopopupdescr);
 	std::string flotname = texts::get(164);
 	for (unsigned i = 0; i < availableflotillas.size(); ++i) {
 		std::string fn = flotname;
@@ -819,7 +836,7 @@ bool choose_player_info(game::player_info& pi, const std::string& subtype, const
 		pi.name = wplayername->get_text();
 		pi.flotilla = availableflotillas[std::max(0, wflotilla->get_selected())].nr;
 		pi.submarineid = wsubnumber->get_selected_entry();
-		pi.photo = wplayerphoto->get_current_imagename();
+		pi.photo = wplayerphoto->get_current_imagename().substr(std::string("player_photo").length());
 		//log_debug(player_name<<","<<player_flotilla<<","<<player_subnumber<<","<<player_photo);
 		return true;
 	}

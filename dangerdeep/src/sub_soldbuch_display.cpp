@@ -53,7 +53,7 @@ void sub_soldbuch_display::display(class game& gm) const
 
 	// render player info here..
 	const game::player_info& pi = gm.get_player_info();
-	player_photo->draw(300, 300);
+	player_photo->draw(250, 200);
 	font_vtremington12->print(300, 600, pi.name, color(20, 20, 30));
 	std::string fn = texts::get(164);
 	fn.replace(fn.find("#"), 1, str(pi.flotilla));
@@ -115,7 +115,7 @@ void sub_soldbuch_display::process_input(class game& gm, const SDL_Event& event)
 void sub_soldbuch_display::enter(bool is_day)
 {
 	background.reset(new image(get_image_dir() + "soldbuchscreen_background.jpg"));
-	player_photo.reset(new image(get_image_dir() + ui.get_game().get_player_info().photo + ".jpg|png"));
+	player_photo.reset(new image(get_image_dir() + "photo_stamp" + ui.get_game().get_player_info().photo + ".jpg|png"));
 }
 
 
