@@ -1,11 +1,27 @@
 <flotillas>
     <flotilla nr="1" type="combat" sign="insignia_flotille1" base="Brest" operationareas="NA CA NS">
-         <timeperiod from="1940/7/1" until="1944/8/30">
-              <subs type="IIc">38 102 991</subs>
-              <subs type="VIIc">97 101 486</subs>
+         <timeperiod from="1941/1/1" until="1944/8/30">
+		 	  <subs type="IIb">7 8 9 10 11 12 13 14 15 16 17 18 19 20</subs>
+              <subs type="IIc">56 57 58 59 60 61 62 63</subs>
+			  <subs type="IId">137 138 139 140 141 142 143 144 145 146 147 148 149 150</subs>
+			  <subs type="VIIb">83 84 86</subs>
+              <subs type="VIIc">79 80 81 201 202 203 204 208 209 225 238 243 247 263 268 271 276 301 304 305 306 311 331 336 353 354 371 372 374 379 392 394 396 401 405 413 415 418 422 424 426 435 439 440 441 456 471 556 557 558 559 561 562 563 564 565 566 575 582 584 597 599 603 625 628 629 632 637 643 653 654 656 665 669 722 731 732 736 740 741 743 754 767 773 821 925 956 963 987 1199</subs>
+			  <subs type="VIIc41">292 1007</subs>
+			  <subs type="VIId">213</subs>
+			  <subs type="Xb">117</subs>
          </timeperiod>
-         <description lang="en">4th Flotilla, based at Wilhelmshaven. Training flotilla, founded in 1939 by Kptlt. Wener Jacobsen.</description>
-         <description lang="fr">4ieme Flotille, baseé à Wilhelmshaven. Flotte de formation fondé en 1939 par Kptlt. Wener Jacobsen.</description>
+         <description lang="en">1. Unterseebootsflotille, also known as Unterseebootsflotille "Weddingen", was founded on the 27th of September, 1935, by Fregkpt. Karl Dönitz, and was based in Kiel. Later, in June 1941, the flotille moved to Brest, where it was disbanded, in 1944. It was named in honour of Kptlt. Otto Weddingen, which during World War I, was the commander of the uboat UB-9, responsible for sinking the british cruisers HMS Aboukir, HMS Cressy, and HMS Hogue. Otto Weddingen died the 18th March 1915, when his U-29 uboat, was rammed by HMS Dreadnought.</description>
+         <description lang="fr">1ere flotille...</description>
+         <description lang="de">Die 1. Unterseebootsflotille, auch bekannt als Unterseebootsflotille "Weddingen",
+         	wurde am 27. September 1935 von Fregattenkapitän Karl Dönitz
+         gegründet. Ihr Heimathafen war Kiel. Im Juni 1941 wurde die
+         	Flotille nach Brest verlegt, wo sie 1944 aufgelöst wurde.
+         	Sie wurde zu Ehren von Kapitänleutnant Otto Weddigen
+         	benannt, der im ersten Weltkrieg Kommandant des U-Boots UB-9
+         	war, welches die britischen Kreuzer HMS Aboukir, HMS Cressy
+         	und HMS Hogue versenkte. Otto Weddingen fiel am 18. März
+         	1915, als sein U-Boot U-29 von HMS Dreadnought gerammt
+         	wurde.</description>
     </flotilla>
     <flotilla nr="99" type="combat" sign="insignia_flotille29" base="Universum" operationareas="NA CA NS">
          <timeperiod from="1939/1/1" until="1945/5/8">
