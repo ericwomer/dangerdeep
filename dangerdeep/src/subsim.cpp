@@ -659,6 +659,11 @@ struct flotilla {
 void show_flotilla_description(const std::string& infopopupdescr)
 {
 	auto_ptr<widget> w(widget::create_dialogue_ok(0, "", infopopupdescr, 1024*3/4, 768*3/4));
+	std::vector<Uint8> tmp(3);
+	tmp[0] = 16;
+	tmp[1] = 8;
+	texture t(tmp, 1, 1, GL_RGB, texture::NEAREST, texture::REPEAT);
+	w->set_background(&t);
 	w->run();
 	
 }
