@@ -658,7 +658,7 @@ struct flotilla {
 
 void show_flotilla_description(const std::string& infopopupdescr)
 {
-	auto_ptr<widget> w(widget::create_dialogue_ok(0, "", infopopupdescr));
+	auto_ptr<widget> w(widget::create_dialogue_ok(0, "", infopopupdescr, 1024*3/4, 768*3/4));
 	w->run();
 	
 }

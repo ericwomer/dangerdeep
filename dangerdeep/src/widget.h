@@ -178,8 +178,8 @@ public:
 	virtual bool check_for_mouse_event(const SDL_Event& event);
 
 	// run() always returns 1    - fixme: make own widget classes for them?
-	static widget* create_dialogue_ok(widget* parent_, const std::string& title, const std::string& text = "");
-	widget* create_dialogue_ok(const std::string& title, const std::string& text = "") { return create_dialogue_ok(this, title, text); }
+	static widget* create_dialogue_ok(widget* parent_, const std::string& title, const std::string& text = "", int w = 0, int h = 0);
+	widget* create_dialogue_ok(const std::string& title, const std::string& text = "", int w = 0, int h = 0) { return create_dialogue_ok(this, title, text, w, h); }
 	// run() returns 1 for ok, 0 for cancel
 	static widget* create_dialogue_ok_cancel(widget* parent_, const std::string& title, const std::string& text = "");
 	widget* create_dialogue_ok_cancel(const std::string& title, const std::string& text = "") { return create_dialogue_ok_cancel(this, title, text); }
