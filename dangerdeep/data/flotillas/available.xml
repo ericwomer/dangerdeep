@@ -39,8 +39,8 @@
 <subs type="IXc">66 67 68 125 126 127 128 129 130 131 153 154 156 157 161 162 173 501 502 503 504 505 507 518 519 520 521 522</subs>
          </timeperiod>
          <description lang="en">2. Unterseebootsflotille, was founded the 1st of September 1936, by Fregkpt. Scheer, and was based in Kiel for a brief period, then moving to Wilhelmshaven until May 1940, at which time it moved to Lorient, where it stayed until August 1944, when the allied advance forced the last uboats to leave to Norway bases. This flotille was also known as U-Flotille "Saltzwedel", in honour of Oblt.z.S. Reinhold Saltzwedel, an World War I uboat commander responsible for sinking 170526 tons of shipping during 22 patrols. He died the 2nd of December 1917, when his UB-81 uboat hit a mine in the English Channel.</description>
-         <description lang="fr"></description>
-         <description lang="de"></description>
+         <description lang="fr">bla</description>
+         <description lang="de">bla</description>
     </flotilla>
 
     <flotilla nr="3" type="combat" sign="insignia_flotille3" base="Kiel" operationareas="NA CA NS">
@@ -51,13 +51,13 @@
               <subs type="IIb">8 10 12 14 16 18 20 22 24</subs>
               <subs type="IId">138 141 143 146 147</subs>
          </timeperiod>
-         <timeperiod from="1941/1/1" until="1941/12/31">
+         <timeperiod from="1941/1/1" until="1941/12/31" base="La Pallice">
               <subs type="IIb">8 10 12 14 16 18 20 22 24</subs>
               <subs type="IId">138 141 143 146 147</subs>
               <subs type="VIIb">85</subs>
               <subs type="VIIc">82 132 134 205 206 212 231 241 242 245 246 257 258 259 262 275 280 289 332 333 334 341 343 344 352 373 375 376 378 384 391 398 402 423 431 432 433 444 451 452 458 466 468 469 476 478 483 484 553 567 568 569 570 571 572 573 596 600 611 613 615 619 620 625 630 635 645 652 657 661 671 677 701 706 712 719 734 752 753 760 763 952 953 957 960 970 971 975 978 992 993</subs>
          </timeperiod>
-         <timeperiod from="1942/1/1" until="1944/10/1">
+         <timeperiod from="1942/1/1" until="1944/10/1" base="La Rochelle">
               <subs type="VIIb">85</subs>
               <subs type="VIIc">82 132 134 205 206 212 231 241 242 245 246 257 258 259 262 275 280 289 332 333 334 341 343 344 352 373 375 376 378 384 391 398 402 423 431 432 433 444 451 452 458 466 468 469 476 478 483 484 553 567 568 569 570 571 572 573 596 600 611 613 615 619 620 625 630 635 645 652 657 661 671 677 701 706 712 719 734 752 753 760 763 952 953 957 960 970 971 975 978 992 993</subs>
          </timeperiod>

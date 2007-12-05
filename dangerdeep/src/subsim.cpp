@@ -687,6 +687,7 @@ bool choose_player_info(game::player_info& pi, const std::string& subtype, const
 	for (xml_elem::iterator it = eflotillas.iterate("flotilla"); !it.end(); it.next()) {
 		xml_elem flot = it.elem();
 		bool avail = false;
+		std::string base = flot.attr("base");
 		flotilla ft;
 		for (xml_elem::iterator itt = flot.iterate("timeperiod"); !itt.end(); itt.next()) {
 			xml_elem tp = itt.elem();
@@ -711,13 +712,17 @@ bool choose_player_info(game::player_info& pi, const std::string& subtype, const
 						}
 					}
 				}
-				if (avail) break;
+				if (avail) {
+					if (tp.has_attr("base"))
+						base = tp.attr("base");
+					break;
+                                }
 			}
 		}
 		if (avail) {
 			ft.nr = flot.attru("nr");
 			ft.insignia = flot.attr("sign");
-			ft.base = flot.attr("base");
+			ft.base = base;
 			ft.description = "not available, fix me";
 			for (xml_elem::iterator itt = flot.iterate("description"); !itt.end(); itt.next()) {
 				if (itt.elem().attr("lang") == texts::get_language_code()) {
