@@ -23,6 +23,49 @@
          	1915, als sein U-Boot U-29 von HMS Dreadnought gerammt
          	wurde.</description>
     </flotilla>
+    
+    <flotilla nr="2" type="combat" sign="insignia_flotille2" base="Wilhelmshaven" operationareas="NA CA NS">
+         <timeperiod from="1936/1/1" until="1940/12/31">
+              <subs type="Ia">25 26</subs>
+              <subs type="VIIa">27 28 29 30 31 32 33 34 35 36</subs>
+              <subs type="IX">37 38 41 43 44</subs>
+              <subs type="IXc">66 67 68 125 126 127 128 129 130 131 153 154 156 157 161 162 173 501 502 503 504 505 507 518 519 520 521 522</subs>
+              <subs type="IXc40">168 183 184 189 190 191 193 531 532 534 536 538 545 547 548 801 802 841 842 843 856 858 1223 1225 1226 1227 1228</subs>
+              <subs type="Xb">116 117</subs>
+         </timeperiod>
+         <timeperiod from="1941/1/1" until="1944/10/31">
+              <subs type="IX">37 38 41 43 44</subs>
+              <subs type="IXb">64 65 103 104 105 106 107 108 109 110 111 122 123 124</subs>
+<subs type="IXc">66 67 68 125 126 127 128 129 130 131 153 154 156 157 161 162 173 501 502 503 504 505 507 518 519 520 521 522</subs>
+         </timeperiod>
+         <description lang="en">2. Unterseebootsflotille, was founded the 1st of September 1936, by Fregkpt. Scheer, and was based in Kiel for a brief period, then moving to Wilhelmshaven until May 1940, at which time it moved to Lorient, where it stayed until August 1944, when the allied advance forced the last uboats to leave to Norway bases. This flotille was also known as U-Flotille "Saltzwedel", in honour of Oblt.z.S. Reinhold Saltzwedel, an World War I uboat commander responsible for sinking 170526 tons of shipping during 22 patrols. He died the 2nd of December 1917, when his UB-81 uboat hit a mine in the English Channel.</description>
+         <description lang="fr"></description>
+         <description lang="de"></description>
+    </flotilla>
+
+    <flotilla nr="3" type="combat" sign="insignia_flotille3" base="Kiel" operationareas="NA CA NS">
+         <timeperiod from="1937/1/1" until="1939/12/31">
+              <subs type="IIb">8 10 12 14 16 18 20 22 24</subs>
+         </timeperiod>
+         <timeperiod from="1940/1/1" until="1940/12/31">
+              <subs type="IIb">8 10 12 14 16 18 20 22 24</subs>
+              <subs type="IId">138 141 143 146 147</subs>
+         </timeperiod>
+         <timeperiod from="1941/1/1" until="1941/12/31">
+              <subs type="IIb">8 10 12 14 16 18 20 22 24</subs>
+              <subs type="IId">138 141 143 146 147</subs>
+              <subs type="VIIb">85</subs>
+              <subs type="VIIc">82 132 134 205 206 212 231 241 242 245 246 257 258 259 262 275 280 289 332 333 334 341 343 344 352 373 375 376 378 384 391 398 402 423 431 432 433 444 451 452 458 466 468 469 476 478 483 484 553 567 568 569 570 571 572 573 596 600 611 613 615 619 620 625 630 635 645 652 657 661 671 677 701 706 712 719 734 752 753 760 763 952 953 957 960 970 971 975 978 992 993</subs>
+         </timeperiod>
+         <timeperiod from="1942/1/1" until="1944/10/1">
+              <subs type="VIIb">85</subs>
+              <subs type="VIIc">82 132 134 205 206 212 231 241 242 245 246 257 258 259 262 275 280 289 332 333 334 341 343 344 352 373 375 376 378 384 391 398 402 423 431 432 433 444 451 452 458 466 468 469 476 478 483 484 553 567 568 569 570 571 572 573 596 600 611 613 615 619 620 625 630 635 645 652 657 661 671 677 701 706 712 719 734 752 753 760 763 952 953 957 960 970 971 975 978 992 993</subs>
+         </timeperiod>
+         <description lang="en">3. Unterseebootsflotille was founded on the 4th of October 1937. Based at Kiel, it was under the command of Kptlt. Hans Eckermann until 1939, at which time it was disbanded, only to be
+         later refounded in March 1941. Still based at Kiel, during 1941 the flotille was moved to La Pallice, and later to La Rochelle, until the allied advance forced its disbandment in October 1944, its last uboats leaving for bases in Norway. The 3. U-Flotille was also known as U-Flotille "Lohs", in honour of the Oblt.z.S. Johannes Lohs, an World War I commander, of the uboats UC-57, and UB-57, under which he sank a total of 148667 tons of shipping during 15 patrols. He died
+         on the 14th of August 1918, when UB-57 hit a mine and sunk.</description>
+   </flotilla> 
+         
     <flotilla nr="99" type="combat" sign="insignia_flotille29" base="Universum" operationareas="NA CA NS">
          <timeperiod from="1939/1/1" until="1945/5/8">
               <subs type="IIa">9999</subs>
