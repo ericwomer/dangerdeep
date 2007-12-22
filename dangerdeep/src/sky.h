@@ -45,12 +45,13 @@ class sky
 protected:
 	double mytime;					// store global time in seconds
 
+	const unsigned vsegs, hsegs;
 	texture::ptr sunglow;
 	texture::ptr clouds;
 	texture::ptr suntex;
 	double cloud_animphase;				// 0-1 phase of interpolation
 	std::vector<std::vector<Uint8> > noisemaps_0, noisemaps_1;// interpolate to animate clouds
-	unsigned clouds_dl;				// display list for clouds
+	vertexbufferobject clouds_vertices, clouds_indices;
 	unsigned cloud_levels, cloud_coverage, cloud_sharpness;
 	std::vector<Uint8> cloud_alpha;			// precomputed alpha texture
 	std::vector<unsigned> cloud_interpolate_func;	// give fraction as Uint8
@@ -86,7 +87,6 @@ public:
 	    const unsigned int sectors_v = 15);
 	//fixme: this should recompute sky color! not display...
 	void set_time(double tm);
-	~sky();
 
 	// call this whenever time or viewpos has changed, it will modify the mutable variables.
 	void rebuild_colors(const vector3& sunpos_, const vector3& moonpos_, const vector3& viewpos) const;

@@ -58,8 +58,14 @@ const double CLOUD_ANIMATION_CYCLE_TIME = 3600.0;
 
 sky::sky(const double tm, const unsigned int sectors_h, const unsigned int sectors_v)
 	: mytime(tm),
-	  sunglow(0), clouds(0),
-	  suntex(0), clouds_dl(0),
+	  vsegs(16),
+	  hsegs(64),
+	  sunglow(0),
+	  clouds(0),
+	  suntex(0),
+	  clouds_vertices(false),
+	  clouds_indices(true),
+	  sky_vertices(false),
 	  sky_indices(true),
 	  sun_azimuth(10.0f), sun_elevation(10.0f),
 	  turbidity(2.0f)//was 2.0, fixme
@@ -119,60 +125,46 @@ sky::sky(const double tm, const unsigned int sectors_h, const unsigned int secto
 	compute_clouds();
 
 	// create cloud mesh display list, FIXME get it from sky hemisphere mesh data!
-	unsigned skyvsegs = 16;
-	unsigned skyhsegs = 4*skyvsegs;
-	clouds_dl = glGenLists(1);
-	// fixme: rather use VBOs here!
-	glNewList(clouds_dl, GL_COMPILE);
-	unsigned skysegs = skyvsegs*skyhsegs;
-	vector<vector3f> points;
-	points.reserve(skysegs+1);
-	vector<vector2f> texcoords;
-	texcoords.reserve(skysegs+1);
-	for (unsigned beta = 0; beta < skyvsegs; ++beta) {
-		float t = (1.0-float(beta)/skyvsegs)/2;
-		float r = cos(M_PI/2*beta/skyvsegs);
-		float h = sin(M_PI/2*beta/skyvsegs);
-		for (unsigned alpha = 0; alpha < skyhsegs; ++alpha) {
-			float x = cos(2*M_PI*alpha/skyhsegs);
-			float y = sin(2*M_PI*alpha/skyhsegs);
-			points.push_back(vector3f(x*r, y*r, h));
-			texcoords.push_back(vector2f(x*t+0.5, y*t+0.5));
+	unsigned skysegs = vsegs*hsegs;
+	clouds_vertices.init_data((skysegs+1)*5*4, 0, GL_STATIC_DRAW);
+	float* ptr = (float*)clouds_vertices.map(GL_WRITE_ONLY);
+	for (unsigned beta = 0; beta < vsegs; ++beta) {
+		float t = (1.0-float(beta)/vsegs)/2;
+		float r = cos(M_PI/2*beta/vsegs);
+		float h = sin(M_PI/2*beta/vsegs);
+		for (unsigned alpha = 0; alpha < hsegs; ++alpha) {
+			float x = cos(2*M_PI*alpha/hsegs);
+			float y = sin(2*M_PI*alpha/hsegs);
+			*ptr++ = x*r;
+			*ptr++ = y*r;
+			*ptr++ = h;
+			*ptr++ = x*t+0.5;
+			*ptr++ = y*t+0.5;
 		}
 	}
-	points.push_back(vector3f(0, 0, 1));
-	texcoords.push_back(vector2f(0.5, 0.5));
-	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &points[0]);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	vector<unsigned> indices;
-	indices.reserve(skysegs*4);
-	for (unsigned beta = 0; beta < skyvsegs; ++beta) {
-		for (unsigned alpha = 0; alpha < skyhsegs; ++alpha) {
-			unsigned i0 = beta*skyhsegs+alpha;
+	*ptr++ = 0;
+	*ptr++ = 0;
+	*ptr++ = 1;
+	*ptr++ = 0.5;
+	*ptr++ = 0.5;
+	clouds_vertices.unmap();
+
+	// triangle strips would be better...
+	clouds_indices.init_data(skysegs*4*4, 0, GL_STATIC_DRAW);
+	Uint32* idxptr = (Uint32*)clouds_indices.map(GL_WRITE_ONLY);
+	for (unsigned beta = 0; beta < vsegs; ++beta) {
+		for (unsigned alpha = 0; alpha < hsegs; ++alpha) {
+			*idxptr++ = beta*hsegs+alpha;
+			*idxptr++ = (beta==vsegs-1) ? skysegs : (beta+1)*hsegs+alpha;
+			*idxptr++ = (beta==vsegs-1) ? skysegs : (beta+1)*hsegs+(alpha+1)%hsegs;
 //			if((alpha+beta)&1)continue;
-			unsigned i1 = beta*skyhsegs+(alpha+1)%skyhsegs;
-			unsigned i2 = (beta==skyvsegs-1) ? skysegs : (beta+1)*skyhsegs+alpha;
-			unsigned i3 = (beta==skyvsegs-1) ? skysegs : (beta+1)*skyhsegs+(alpha+1)%skyhsegs;
-			indices.push_back(i0);
-			indices.push_back(i2);
-			indices.push_back(i3);
-			indices.push_back(i1);
+			*idxptr++ = beta*hsegs+(alpha+1)%hsegs;
 		}
 	}
-	glDrawElements(GL_QUADS, skysegs*4 /* /2 */, GL_UNSIGNED_INT, &indices[0]);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEndList();
+	clouds_indices.unmap();
+	clouds_indices.unbind();
 }
 
-
-
-sky::~sky()
-{
-	glDeleteLists(clouds_dl, 1);
-}
 
 
 void sky::advance_cloud_animation(double fac)
@@ -453,7 +445,17 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	glPushMatrix();
 	glScalef(3000, 3000, 333);	// bottom of cloud layer has altitude of 3km., fixme varies with weather
 	clouds->set_gl_texture();
-	glCallList(clouds_dl);
+	clouds_vertices.bind();
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 5*4, 0);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 5*4, (float*)0 + 3);
+	clouds_indices.bind();
+	unsigned skysegs = vsegs*hsegs;
+	glDrawElements(GL_QUADS, skysegs*4, GL_UNSIGNED_INT, 0);
+	clouds_indices.unbind();
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glPopMatrix();
 
 	glDepthMask(GL_TRUE);
