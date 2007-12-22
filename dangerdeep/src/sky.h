@@ -34,6 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "model.h"
 #include "moon.h"
 #include "stars.h"
+#include "shader.h"
 #include "vertexbufferobject.h"
 
 class game;
@@ -53,7 +54,6 @@ protected:
 	std::vector<std::vector<Uint8> > noisemaps_0, noisemaps_1;// interpolate to animate clouds
 	vertexbufferobject clouds_vertices, clouds_indices;
 	unsigned cloud_levels, cloud_coverage, cloud_sharpness;
-	std::vector<Uint8> cloud_alpha;			// precomputed alpha texture
 	std::vector<unsigned> cloud_interpolate_func;	// give fraction as Uint8
 
 	sky& operator= (const sky& other);
@@ -78,6 +78,9 @@ protected:
 	mutable vector3 sundir, moondir;
 	mutable float sun_azimuth, sun_elevation;
 	float turbidity;
+
+	std::auto_ptr<glsl_shader_setup> glsl_clouds;
+	unsigned loc_cloudstex;
 
 	void build_dome(const unsigned int sectors_h, const unsigned int sectors_v);
 

@@ -522,6 +522,19 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 			}
 #endif
 		}
+	} else if (makenormalmap && format == GL_LUMINANCE_ALPHA) {
+		format = GL_RGBA;
+		vector<Uint8> nmpix = make_normals_with_alpha(*pdata, gl_width, gl_height, detailh);
+		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
+			     GL_UNSIGNED_BYTE, &nmpix[0]);
+#ifdef MEMMEASURE
+		add_mem_used = gl_width * gl_height * get_bpp();
+#endif
+		if (do_mipmapping[mapping]) {
+			// fixme: doesn't work with textures that don't have power of two size...
+			gluBuild2DMipmaps(GL_TEXTURE_2D, format, gl_width, gl_height,
+					  format, GL_UNSIGNED_BYTE, &nmpix[0]);
+		}
 	} else {
 		// make gl texture
 		int internalformat = format;
@@ -627,6 +640,41 @@ vector<Uint8> texture::make_normals(const vector<Uint8>& src, unsigned w, unsign
 			dst[ptr + 1] = Uint8(nm.y*127 + 128);
 			dst[ptr + 2] = Uint8(nm.z*127 + 128);
 			ptr += 3;
+		}
+	}
+	return dst;
+}
+
+
+
+vector<Uint8> texture::make_normals_with_alpha(const vector<Uint8>& src, unsigned w, unsigned h,
+					       float detailh)
+{
+	// src size must be w*h
+	vector<Uint8> dst(4*w*h);
+	// Note! zh must be multiplied with 2*sample_distance!
+	// sample_distance is real distance between texels, we assume 1 for it...
+	// This depends on the size of the face the normal map is mapped onto.
+	// but all other code is written to match 255/detailh, especially
+	// bump scaling in model.cpp, so don't change this!
+	float zh = /* 2.0f* */ 255.0f/detailh;
+	unsigned ptr = 0;
+	for (unsigned yy = 0; yy < h; ++yy) {
+		unsigned y1 = (yy + h - 1) & (h - 1);
+		unsigned y2 = (yy +     1) & (h - 1);
+		for (unsigned xx = 0; xx < w; ++xx) {
+			unsigned x1 = (xx + w - 1) & (w - 1);
+			unsigned x2 = (xx +     1) & (w - 1);
+			float hr = src[2*(yy*w+x2)+0];
+			float hu = src[2*(y1*w+xx)+0];
+			float hl = src[2*(yy*w+x1)+0];
+			float hd = src[2*(y2*w+xx)+0];
+			vector3f nm = vector3f(hl-hr, hd-hu, zh).normal();
+			dst[ptr + 0] = Uint8(nm.x*127 + 128);
+			dst[ptr + 1] = Uint8(nm.y*127 + 128);
+			dst[ptr + 2] = Uint8(nm.z*127 + 128);
+			dst[ptr + 3] = src[2*(yy*w+xx)+1];
+			ptr += 4;
 		}
 	}
 	return dst;

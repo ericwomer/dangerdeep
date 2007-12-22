@@ -221,10 +221,14 @@ public:
 	// w,h must be > 1
 	static std::vector<Uint8> scale_half(const std::vector<Uint8>& src,
 					     unsigned w, unsigned h, unsigned bpp);
-	
-	// give powers of two for w,h, bpp must be 1!
+
+	// give powers of two for w,h
 	static std::vector<Uint8> make_normals(const std::vector<Uint8>& src,
 					       unsigned w, unsigned h, float detailh);
+
+	// give powers of two for w,h
+	static std::vector<Uint8> make_normals_with_alpha(const std::vector<Uint8>& src,
+							  unsigned w, unsigned h, float detailh);
 };
 
 #endif

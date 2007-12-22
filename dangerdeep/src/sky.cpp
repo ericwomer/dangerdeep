@@ -38,6 +38,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "global_data.h"
 #include "game.h"
 #include "matrix4.h"
+#include "cfg.h"
 
 #include <iostream>
 using std::vector;
@@ -79,8 +80,6 @@ sky::sky(const double tm, const unsigned int sectors_h, const unsigned int secto
 
 	// ********************************** init clouds
 	// clouds are generated with Perlin noise.
-	// one big texture is rendered (1024x1024, could be dynamic) and distributed
-	// over 4x4 textures.
 	// We generate m levels of noise maps, m <= n, texture width = 2^n.
 	// here n = 10.
 	// Each level is a noise map of 2^(n-m+1) pixels wide and high, scaled to full size.
@@ -107,18 +106,6 @@ sky::sky(const double tm, const unsigned int sectors_h, const unsigned int secto
 	cloud_interpolate_func.resize(256);
 	for (unsigned n = 0; n < 256; ++n)
 		cloud_interpolate_func[n] = unsigned(128-cos(n*M_PI/256)*128);
-
-	cloud_alpha.resize(256*256);
-	for (unsigned y = 0; y < 256; ++y) {
-		for (unsigned x = 0; x < 256; ++x) {
-			float fx = float(x)-128;
-			float fy = float(y)-128;
-			float d = 1.0-sqrt(fx*fx+fy*fy)/128.0;
-			d = 1.0-exp(-d*5);
-			if (d < 0) d = 0;
-			cloud_alpha[y*256+x] = Uint8(255*d);
-		}
-	}
 
 	noisemaps_0 = compute_noisemaps();
 	noisemaps_1 = compute_noisemaps();
@@ -163,6 +150,15 @@ sky::sky(const double tm, const unsigned int sectors_h, const unsigned int secto
 	}
 	clouds_indices.unmap();
 	clouds_indices.unbind();
+
+	if (!(glsl_program::supported() && cfg::instance().getb("use_shaders")))
+		throw error("Can't use sky without shaders");//fixme: later check centrally
+
+	glsl_clouds.reset(new glsl_shader_setup(get_shader_dir() + "clouds.vshader",
+						get_shader_dir() + "clouds.fshader"));
+	glsl_clouds->use();
+	loc_cloudstex = glsl_clouds->get_uniform_location("tex_cloud");
+	glsl_clouds->use_fixed();
 }
 
 
@@ -205,12 +201,20 @@ void sky::compute_clouds()
 			cmaps[i][j] = Uint8(noisemaps_0[i][j]*(1-f) + noisemaps_1[i][j]*f);
 
 	// create full map
-	vector<Uint8> fullmap(256 * 256 * 2);
+	const unsigned res = 512;
+	vector<Uint8> fullmap(res * res * 2);
 	unsigned fullmapptr = 0;
-	vector2i sunpos(64,64);		// store sun coordinates here! fixme
-	float maxsundist = 362;		// sqrt(2*256^2)
-	for (unsigned y = 0; y < 256; ++y) {
-		for (unsigned x = 0; x < 256; ++x) {
+//	vector2i sunpos(res/4,res/4);		// store sun coordinates here! fixme
+//	float maxsundist = sqrt(2*res*res);		// sqrt(2*256^2)
+	for (unsigned y = 0; y < res; ++y) {
+		for (unsigned x = 0; x < res; ++x) {
+			// compute cloud alpha
+			float fx = float(x)-res/2;
+			float fy = float(y)-res/2;
+			float d = 1.0-sqrt(fx*fx+fy*fy)/128.0;
+			d = 1.0-exp(-d*5);
+			if (d < 0) d = 0;
+
 			unsigned v = 0;
 			// accumulate values
 			for (unsigned k = 0; k < cloud_levels; ++k) {
@@ -226,13 +230,13 @@ void sky::compute_clouds()
 				v -= invcover;
 			// use sharpness for exp function
 			v = 255 - v * 256 / cloud_coverage;	// equalize
-			int sundist = int(255-192*sqrt(float(vector2i(x,y).square_distance(sunpos)))/maxsundist);
-			fullmap[fullmapptr++] = sundist;	// luminance info is wasted here, but should be used, fixme
-			fullmap[fullmapptr++] = Uint8(v * unsigned(cloud_alpha[y*256+x]) / 255);
+//			int sundist = int(255-192*sqrt(float(vector2i(x,y).square_distance(sunpos)))/maxsundist);
+			fullmap[fullmapptr++] = v; ////sundist;	// luminance info is wasted here, but should be used, fixme
+			fullmap[fullmapptr++] = Uint8(v * d);
 		}
 	}
 
-	clouds = texture::ptr(new texture(fullmap, 256, 256, GL_LUMINANCE_ALPHA, texture::LINEAR, texture::CLAMP_TO_EDGE));
+	clouds = texture::ptr(new texture(fullmap, res, res, GL_LUMINANCE_ALPHA, texture::LINEAR, texture::CLAMP_TO_EDGE, true, 10.0f));
 }
 
 
@@ -444,7 +448,8 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 
 	glPushMatrix();
 	glScalef(3000, 3000, 333);	// bottom of cloud layer has altitude of 3km., fixme varies with weather
-	clouds->set_gl_texture();
+	glsl_clouds->use();
+	glsl_clouds->set_gl_texture(*clouds, loc_cloudstex, 0);
 	clouds_vertices.bind();
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 5*4, 0);
@@ -456,6 +461,7 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	clouds_indices.unbind();
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glsl_clouds->use_fixed();
 	glPopMatrix();
 
 	glDepthMask(GL_TRUE);
