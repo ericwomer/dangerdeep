@@ -447,7 +447,7 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	// FIXME add flares after cloud layer (?)
 
 	glPushMatrix();
-	glScalef(3000, 3000, 333);	// bottom of cloud layer has altitude of 3km., fixme varies with weather
+	glScalef(10000, 10000, 3330);	// bottom of cloud layer has altitude of 3km., fixme varies with weather
 	glsl_clouds->use();
 	glsl_clouds->set_gl_texture(*clouds, loc_cloudstex, 0);
 	clouds_vertices.bind();
