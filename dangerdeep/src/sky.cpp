@@ -201,20 +201,11 @@ void sky::compute_clouds()
 			cmaps[i][j] = Uint8(noisemaps_0[i][j]*(1-f) + noisemaps_1[i][j]*f);
 
 	// create full map
-	const unsigned res = 512;
-	vector<Uint8> fullmap(res * res * 2);
+	const unsigned res = 256;
+	vector<Uint8> fullmap(res * res);
 	unsigned fullmapptr = 0;
-//	vector2i sunpos(res/4,res/4);		// store sun coordinates here! fixme
-//	float maxsundist = sqrt(2*res*res);		// sqrt(2*256^2)
 	for (unsigned y = 0; y < res; ++y) {
 		for (unsigned x = 0; x < res; ++x) {
-			// compute cloud alpha
-			float fx = float(x)-res/2;
-			float fy = float(y)-res/2;
-			float d = 1.0-sqrt(fx*fx+fy*fy)/128.0;
-			d = 1.0-exp(-d*5);
-			if (d < 0) d = 0;
-
 			unsigned v = 0;
 			// accumulate values
 			for (unsigned k = 0; k < cloud_levels; ++k) {
@@ -222,21 +213,14 @@ void sky::compute_clouds()
 				v += (tv >> k);
 			}
 			// FIXME generate a lookup table for this function, depending on coverage/sharpness
+			if (v < 96) v = 96;
+			v -= 96;
 			if (v > 255) v = 255;
-			unsigned invcover = 256-cloud_coverage;
-			if (v < invcover)
-				v = 0;
-			else
-				v -= invcover;
-			// use sharpness for exp function
-			v = 255 - v * 256 / cloud_coverage;	// equalize
-//			int sundist = int(255-192*sqrt(float(vector2i(x,y).square_distance(sunpos)))/maxsundist);
-			fullmap[fullmapptr++] = v; ////sundist;	// luminance info is wasted here, but should be used, fixme
-			fullmap[fullmapptr++] = Uint8(v * d);
+			fullmap[fullmapptr++] = v;
 		}
 	}
 
-	clouds = texture::ptr(new texture(fullmap, res, res, GL_LUMINANCE_ALPHA, texture::LINEAR, texture::CLAMP_TO_EDGE, true, 10.0f));
+	clouds = texture::ptr(new texture(fullmap, res, res, GL_LUMINANCE, texture::LINEAR, texture::REPEAT));
 }
 
 
