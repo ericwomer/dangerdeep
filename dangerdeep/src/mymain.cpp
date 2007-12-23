@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "faulthandler.h"
 #include "log.h"
+#include "system.h"
 #include <list>
 #include <string>
 #include <exception>
@@ -52,6 +53,9 @@ int call_mymain(list<string>& args)
 		log_warning("Caught exception: " << e.what());
 		print_stack_trace();
 		result = -1;
+	}
+	catch (system::quit_exception& e) {
+		return e.retval;
 	}
 	catch (...) {
 		log_warning("Caught unknown exception");

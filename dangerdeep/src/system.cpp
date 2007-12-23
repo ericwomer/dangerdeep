@@ -358,24 +358,13 @@ list<SDL_Event> system::poll_event_queue()
 			events.push_back(event);
 			switch (event.type) {
 				case SDL_QUIT:			// Quit event
-					//fixme: this is A VERY BAD IDEA!
-					//threads hang on exit...
-					//better pass this event to user and let him handle it!
-#if 0
-					events.pop_back();
-					break;
-#else
-					SDL_Quit();	// to clean up mouse etc. after kill
-					// we need to write the log here, since mymain
-					// can't write it, because we do exit here
 					log_info("---------- immediate exit ----------");
 					log::instance().write(std::cerr, log::LOG_SYSINFO);
-					{
-						std::ofstream f("log.txt");
-						log::instance().write(f, log::LOG_SYSINFO);
+ 					{
+ 						std::ofstream f("log.txt");
+ 						log::instance().write(f, log::LOG_SYSINFO);
 					}
-					exit(0);	// fixme
-#endif
+					throw quit_exception(0);
 				
 				case SDL_ACTIVEEVENT:		// Application activation or focus event
 					if (event.active.state & SDL_APPMOUSEFOCUS) {

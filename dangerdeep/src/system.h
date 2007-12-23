@@ -46,6 +46,14 @@ class texture;
 class system
 {
 public:
+	/// used to handle out-of-order quit events, do NOT heir from std::exception!
+	class quit_exception
+	{
+	public:
+		int retval;
+		quit_exception(int retval_ = 0) : retval(retval_) {}
+	};
+
 	enum button_type { left_button=0x1, right_button=0x2, middle_button=0x4, wheel_up=0x8, wheel_down=0x10 };
 	system(double nearz_, double farz_, unsigned res_x=1024, unsigned res_y=768, bool fullscreen=true);
 	~system();
