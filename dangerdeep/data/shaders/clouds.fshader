@@ -22,17 +22,17 @@ void main()
 	float hu = texture2D(tex_cloud, texcoord.xy*1.0 + vec2(0.0, d)).x;
 	float hl = texture2D(tex_cloud, texcoord.xy*1.0 + vec2(-d, 0.0)).x;
 	float hd = texture2D(tex_cloud, texcoord.xy*1.0 + vec2(0.0, -d)).x;
-	float hr2 = texture2D(tex_cloud, texcoord.xy*4.0 + vec2(d, 0.0)).x;
-	float hu2 = texture2D(tex_cloud, texcoord.xy*4.0 + vec2(0.0, d)).x;
-	float hl2 = texture2D(tex_cloud, texcoord.xy*4.0 + vec2(-d, 0.0)).x;
-	float hd2 = texture2D(tex_cloud, texcoord.xy*4.0 + vec2(0.0, -d)).x;
-	vec3 N = normalize(vec3(hl - hr + (hl2 - hr2)*0.25, hd - hu + (hd2 - hu2)*0.25, zh));// * 0.5 + 0.5;
+	float hr2 = texture2D(tex_cloud, texcoord.xy*2.0 + vec2(d, 0.0)).x;
+	float hu2 = texture2D(tex_cloud, texcoord.xy*2.0 + vec2(0.0, d)).x;
+	float hl2 = texture2D(tex_cloud, texcoord.xy*2.0 + vec2(-d, 0.0)).x;
+	float hd2 = texture2D(tex_cloud, texcoord.xy*2.0 + vec2(0.0, -d)).x;
+	vec3 N = normalize(vec3(hl - hr + (hl2 - hr2)*0.5, hd - hu + (hd2 - hu2)*0.5, zh));// * 0.5 + 0.5;
 	float alpha = (hr - density) * density_rcp * horizon_alpha;
 
 	float c = clamp(dot(N, L), 0.0, 1.0);
 	const vec3 cloudcol = vec3(0.85, 0.85, 0.9);
 	float mixfac = 0.5;
-	vec3 final_color = mix(cloudcol * lightcolor, vec3(c, c, c), mixfac);
+	vec3 final_color = mix(cloudcol, vec3(c, c, c), mixfac) * lightcolor;
 
 	// add linear fog
 //	float fog_factor = clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0);
