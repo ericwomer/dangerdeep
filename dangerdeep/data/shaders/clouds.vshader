@@ -3,6 +3,7 @@
 varying vec2 texcoord;
 varying vec3 lightdir;
 varying vec3 lightcolor;
+varying vec3 viewerdir;
 varying float horizon_alpha;
 
 void main()
@@ -16,6 +17,8 @@ void main()
 	vec3 lightpos_obj = vec3(gl_ModelViewMatrixInverse * gl_LightSource[0].position);
 	vec3 lightdir_obj = normalize(lightpos_obj - vec3(gl_Vertex) * gl_LightSource[0].position.w);
 	lightdir = lightdir_obj;
+
+	viewerdir = vec3(gl_ModelViewMatrixInverse[3])-vec3(gl_Vertex);
 
 	// finally compute position
 	gl_Position = ftransform();
