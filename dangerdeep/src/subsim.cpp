@@ -1761,6 +1761,46 @@ int mymain(list<string>& args)
 	mysys->set_res_2d(1024, 768);
 	mysys->set_max_fps(maxfps);
 
+	reset_loading_screen();
+	// init the global_data object before calling init_global_data
+	auto_ptr<global_data> gbd(new global_data());
+	init_global_data();
+	widget::set_image_cache(&(imagecache()));
+
+	// --------------------------------------------------------------------------------
+	// check for shader/glsl support
+	if (!glsl_program::supported()) {
+		glClearColor(0, 0, 0, 0);
+		glClear(GL_COLOR_BUFFER_BIT);
+		sys().prepare_2d_drawing();
+		glColor4f(1, 1, 1, 1);
+		font_arial->print(0, 0, "OpenGL 2.0 not detected!\n\nSorry this game needs an OpenGL 2.0 or newer system\n"
+				  "with support for Vertex and Pixel shaders.\n"
+				  "(extensions GL_ARB_fragment_shader, GL_ARB_shader_objects and\n"
+				  "GL_ARB_vertex_shader).\n"
+				  "We can't support ancient hardware any longer as it would cost us extra time\n"
+				  "to do so and we develop all of this in our spare time.\n"
+				  "By the way, cards supporting OpenGL2.0 are available for less than 30 dollars.\n"
+				  "All cards Nvidia GeForce 5x00 or newer or AMD/ATI Radeon 9500 or newer support\n"
+				  "OpenGL2.0. Check also that you have recent drivers.\n"
+				  "\nPress any key to quit.\n");
+		sys().unprepare_2d_drawing();
+		sys().swap_buffers();
+		bool quit = false;
+		while (!quit) {
+			list<SDL_Event> events = sys().poll_event_queue();
+			for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
+				if (it->type == SDL_KEYDOWN) {
+					quit = true;
+				} else if (it->type == SDL_MOUSEBUTTONUP) {
+					quit = true;
+				}
+			}
+		}
+		throw system::quit_exception(-1);
+	}
+	// --------------------------------------------------------------------------------
+
 	log_info("Danger from the Deep");
 	log_info("Copyright (C) 2003-2007  Thorsten Jordan, Luis Barrancos and others.");
 	log_info("Version " << get_program_version());
@@ -1776,12 +1816,6 @@ int mymain(list<string>& args)
 	// create and start thread for music handling.
 	thread::auto_ptr<music> mmusic(new music(use_sound));
 	mmusic->start();
-
-	reset_loading_screen();
-	// init the global_data object before calling init_global_data
-	auto_ptr<global_data> gbd(new global_data());
-	init_global_data();
-	widget::set_image_cache(&(imagecache()));
 
 	mmusic->append_track("ImInTheMood.ogg");
 	mmusic->append_track("Betty_Roche-Trouble_Trouble.ogg");
