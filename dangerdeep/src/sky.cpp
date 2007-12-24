@@ -151,9 +151,6 @@ sky::sky(const double tm, const unsigned int sectors_h, const unsigned int secto
 	clouds_indices.unmap();
 	clouds_indices.unbind();
 
-	if (!(glsl_program::supported() && cfg::instance().getb("use_shaders")))
-		throw error("Can't use sky without shaders");//fixme: later check centrally
-
 	glsl_clouds.reset(new glsl_shader_setup(get_shader_dir() + "clouds.vshader",
 						get_shader_dir() + "clouds.fshader"));
 	glsl_clouds->use();

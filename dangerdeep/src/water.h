@@ -120,7 +120,6 @@ protected:
 	std::auto_ptr<texture> water_bumpmap;
 
 	// Config options (only used when supported)
-	bool use_shaders;
 	bool use_hqsfx; // high quality special effects.
 
 	// Shader program

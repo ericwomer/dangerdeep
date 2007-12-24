@@ -42,7 +42,6 @@ class sub_periscope_display : public freeview_display
 	
 	bool zoomed;	// use 1,5x (false) or 6x zoom (true)
 
-	bool use_shaders;
 	bool use_hqsfx;
 	texture::ptr viewtex;
 	texture::ptr blurtex;

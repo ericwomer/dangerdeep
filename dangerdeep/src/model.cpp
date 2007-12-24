@@ -56,11 +56,9 @@ using std::isfinite;
 using namespace std;
 
 texture::mapping_mode model::mapping = texture::LINEAR_MIPMAP_LINEAR;//texture::NEAREST;
-bool model::enable_shaders = true;
 bool model::enable_hqsfx = true;
 
 unsigned model::init_count = 0;
-bool model::use_shaders = false;
 
 auto_ptr<glsl_shader_setup> model::glsl_color_normal;
 auto_ptr<glsl_shader_setup> model::glsl_color_normal_specular;
@@ -190,65 +188,58 @@ matrix4f model::object::get_transformation() const
 
 void model::render_init()
 {
-	use_shaders = enable_shaders && glsl_program::supported();
+	// initialize shaders
+	//log_info("Using OpenGL GLSL shaders...");
 
-	// initialize shaders if wanted
-	if (use_shaders) {
-		log_info("Using OpenGL GLSL shaders...");
-
-		glsl_shader::defines_list dl;
-		glsl_color_normal.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
-							      get_shader_dir() + "modelrender.fshader"));
-		dl.push_back("USE_SPECULARMAP");
-		glsl_color_normal_specular.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
-								       get_shader_dir() + "modelrender.fshader", dl));
-		dl.clear(); dl.push_back("USE_CAUSTIC");
-		glsl_color_normal_caustic.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
+	glsl_shader::defines_list dl;
+	glsl_color_normal.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
+						      get_shader_dir() + "modelrender.fshader"));
+	dl.push_back("USE_SPECULARMAP");
+	glsl_color_normal_specular.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
+							       get_shader_dir() + "modelrender.fshader", dl));
+	dl.clear(); dl.push_back("USE_CAUSTIC");
+	glsl_color_normal_caustic.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
 							      get_shader_dir() + "modelrender.fshader", dl));
-		dl.push_back("USE_SPECULARMAP");
-		glsl_color_normal_specular_caustic.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
+	dl.push_back("USE_SPECULARMAP");
+	glsl_color_normal_specular_caustic.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
 								       get_shader_dir() + "modelrender.fshader", dl));
-		dl.clear();
-		if (enable_hqsfx)
-			dl.push_back("DO_REAL_CLIPPING");
- 		glsl_mirror_clip.reset(new glsl_shader_setup(get_shader_dir() + "modelrender_mirrorclip.vshader",
-							     get_shader_dir() + "modelrender_mirrorclip.fshader", dl));
-		// request uniform locations
-		glsl_color_normal->use();
-		loc_cn_tex_normal = glsl_color_normal->get_uniform_location("tex_normal");
-		loc_cn_tex_color = glsl_color_normal->get_uniform_location("tex_color");
-		glsl_color_normal_caustic->use();
-		loc_cnc_tex_normal = glsl_color_normal_caustic->get_uniform_location("tex_normal");
-		loc_cnc_tex_color = glsl_color_normal_caustic->get_uniform_location("tex_color");
-		loc_cnc_tex_caustic = glsl_color_normal_caustic->get_uniform_location("tex_caustic");
-		glsl_color_normal_specular->use();
-		loc_cns_tex_normal = glsl_color_normal_specular->get_uniform_location("tex_normal");
-		loc_cns_tex_color = glsl_color_normal_specular->get_uniform_location("tex_color");
-		loc_cns_tex_specular = glsl_color_normal_specular->get_uniform_location("tex_specular");
-		glsl_color_normal_specular_caustic->use();
-		loc_cnsc_tex_normal = glsl_color_normal_specular_caustic->get_uniform_location("tex_normal");
-		loc_cnsc_tex_color = glsl_color_normal_specular_caustic->get_uniform_location("tex_color");
-		loc_cnsc_tex_specular = glsl_color_normal_specular_caustic->get_uniform_location("tex_specular");
-		loc_cnsc_tex_caustic = glsl_color_normal_specular_caustic->get_uniform_location("tex_caustic");
-		glsl_mirror_clip->use();
-		loc_mc_tex_color = glsl_mirror_clip->get_uniform_location("tex_color");
-		glsl_mirror_clip->use_fixed();
-
-	}
+	dl.clear();
+	if (enable_hqsfx)
+		dl.push_back("DO_REAL_CLIPPING");
+	glsl_mirror_clip.reset(new glsl_shader_setup(get_shader_dir() + "modelrender_mirrorclip.vshader",
+						     get_shader_dir() + "modelrender_mirrorclip.fshader", dl));
+	// request uniform locations
+	glsl_color_normal->use();
+	loc_cn_tex_normal = glsl_color_normal->get_uniform_location("tex_normal");
+	loc_cn_tex_color = glsl_color_normal->get_uniform_location("tex_color");
+	glsl_color_normal_caustic->use();
+	loc_cnc_tex_normal = glsl_color_normal_caustic->get_uniform_location("tex_normal");
+	loc_cnc_tex_color = glsl_color_normal_caustic->get_uniform_location("tex_color");
+	loc_cnc_tex_caustic = glsl_color_normal_caustic->get_uniform_location("tex_caustic");
+	glsl_color_normal_specular->use();
+	loc_cns_tex_normal = glsl_color_normal_specular->get_uniform_location("tex_normal");
+	loc_cns_tex_color = glsl_color_normal_specular->get_uniform_location("tex_color");
+	loc_cns_tex_specular = glsl_color_normal_specular->get_uniform_location("tex_specular");
+	glsl_color_normal_specular_caustic->use();
+	loc_cnsc_tex_normal = glsl_color_normal_specular_caustic->get_uniform_location("tex_normal");
+	loc_cnsc_tex_color = glsl_color_normal_specular_caustic->get_uniform_location("tex_color");
+	loc_cnsc_tex_specular = glsl_color_normal_specular_caustic->get_uniform_location("tex_specular");
+	loc_cnsc_tex_caustic = glsl_color_normal_specular_caustic->get_uniform_location("tex_caustic");
+	glsl_mirror_clip->use();
+	loc_mc_tex_color = glsl_mirror_clip->get_uniform_location("tex_color");
+	glsl_mirror_clip->use_fixed();
 }
 
 
 
 void model::render_deinit()
 {
-	if (use_shaders) {
-		glsl_program::use_fixed();
-		glsl_color_normal.reset();
-		glsl_color_normal_caustic.reset();
-		glsl_color_normal_specular.reset();
-		glsl_color_normal_specular_caustic.reset();
-		glsl_mirror_clip.reset();
-	}
+	glsl_program::use_fixed();
+	glsl_color_normal.reset();
+	glsl_color_normal_caustic.reset();
+	glsl_color_normal_specular.reset();
+	glsl_color_normal_specular_caustic.reset();
+	glsl_mirror_clip.reset();
 }
 
 
@@ -724,45 +715,39 @@ model::mesh::mesh(unsigned w, unsigned h, const std::vector<float>& heights, con
 void model::mesh::compile()
 {
 	bool has_texture_u0 = false, has_texture_u1 = false;
-	bool normalmapping = false;
 	if (mymaterial != 0) {
 		if (mymaterial->colormap.get())
 			has_texture_u0 = true;
 		if (mymaterial->normalmap.get())
 			has_texture_u1 = true;
-		normalmapping = has_texture_u1;	// maybe more options here...
 	}
 	const unsigned vs = vertices.size();
 
 	// vertices
 	vbo_positions.init_data(sizeof(vector3f) * vs, &vertices[0].x, GL_STATIC_DRAW);
 	// normals
-	if (!normalmapping || use_shaders) {
-		vbo_normals.init_data(sizeof(vector3f) * vs, &normals[0].x, GL_STATIC_DRAW);
-	}
+	vbo_normals.init_data(sizeof(vector3f) * vs, &normals[0].x, GL_STATIC_DRAW);
 	// texcoords
 	if (has_texture_u0 && texcoords.size() == vs) {
 		vbo_texcoords.init_data(sizeof(vector2f) * vs, &texcoords[0].x, GL_STATIC_DRAW);
 	}
 	// auxiliary data
-	if (use_shaders) {
-		// give tangents as texture coordinates for unit 1.
-		if (has_texture_u0 && tangentsx.size() == vs) {
-			vbo_tangents_righthanded.init_data(4 * sizeof(float) * vs, 0, GL_STATIC_DRAW);
-			float* xdata = (float*) vbo_tangents_righthanded.map(GL_WRITE_ONLY);
-			for (unsigned i = 0; i < vs; ++i) {
-				xdata[4*i+0] = tangentsx[i].x;
-				xdata[4*i+1] = tangentsx[i].y;
-				xdata[4*i+2] = tangentsx[i].z;
-				xdata[4*i+3] = (righthanded[i]) ? 1.0f : -1.0f;
-			}
-			vbo_tangents_righthanded.unmap();
-			vbo_tangents_righthanded.unbind();
-			glsl_shader_setup& gss = mymaterial->specularmap.get() ? *glsl_color_normal_specular : *glsl_color_normal;
-			gss.use();
-			vertex_attrib_index = gss.get_vertex_attrib_index("tangentx_righthanded");
-			gss.use_fixed();
+	// give tangents as texture coordinates for unit 1.
+	if (has_texture_u0 && tangentsx.size() == vs) {
+		vbo_tangents_righthanded.init_data(4 * sizeof(float) * vs, 0, GL_STATIC_DRAW);
+		float* xdata = (float*) vbo_tangents_righthanded.map(GL_WRITE_ONLY);
+		for (unsigned i = 0; i < vs; ++i) {
+			xdata[4*i+0] = tangentsx[i].x;
+			xdata[4*i+1] = tangentsx[i].y;
+			xdata[4*i+2] = tangentsx[i].z;
+			xdata[4*i+3] = (righthanded[i]) ? 1.0f : -1.0f;
 		}
+		vbo_tangents_righthanded.unmap();
+		vbo_tangents_righthanded.unbind();
+		glsl_shader_setup& gss = mymaterial->specularmap.get() ? *glsl_color_normal_specular : *glsl_color_normal;
+		gss.use();
+		vertex_attrib_index = gss.get_vertex_attrib_index("tangentx_righthanded");
+		gss.use_fixed();
 	}
 
 	// indices - Note: for models with less than 65536 vertices we could
@@ -1243,9 +1228,7 @@ void model::material::map::set_texture(texture* t)
 
 void model::material::set_gl_values(const texture *caustic_map) const
 {
-	if (use_shaders) {
-		glsl_program::use_fixed();
-	}
+	glsl_program::use_fixed();
 
 	glActiveTexture(GL_TEXTURE0);
 	if (colormap.get()) {
@@ -1256,81 +1239,36 @@ void model::material::set_gl_values(const texture *caustic_map) const
 			// set primary color alpha to one.
 			glColor4f(1, 1, 1, 1);
 
-			if (use_shaders) {
+			// texture units / coordinates:
+			// tex0: color map / matching texcoords
+			// tex1: normal map / texcoords show vector to light
+			// tex2: specular map / texcoords show vector to viewer, if available
 
-				// texture units / coordinates:
-				// tex0: color map / matching texcoords
-				// tex1: normal map / texcoords show vector to light
-				// tex2: specular map / texcoords show vector to viewer, if available
+			GLfloat coltmp[4];
+			specular.store_rgba(coltmp);
+			glMaterialfv(GL_FRONT, GL_SPECULAR, coltmp);
+			glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
-				GLfloat coltmp[4];
-				specular.store_rgba(coltmp);
-				glMaterialfv(GL_FRONT, GL_SPECULAR, coltmp);
-				glMaterialf(GL_FRONT, GL_SHININESS, shininess);
-
-				if (specularmap.get() && !caustic_map) {
-					glsl_color_normal_specular->use();
-					specularmap->set_gl_texture(*glsl_color_normal_specular, loc_cns_tex_specular, 2);
-					normalmap->set_gl_texture(*glsl_color_normal_specular, loc_cns_tex_normal, 1);
-					colormap->set_gl_texture(*glsl_color_normal_specular, loc_cns_tex_color, 0);
-				} else if (specularmap.get() && caustic_map) {
-					glsl_color_normal_specular_caustic->use();
-					glsl_color_normal_specular_caustic->set_gl_texture(*const_cast<texture *>(caustic_map), loc_cnsc_tex_caustic, 3);
-					specularmap->set_gl_texture(*glsl_color_normal_specular_caustic, loc_cnsc_tex_specular, 2);
-					normalmap->set_gl_texture(*glsl_color_normal_specular_caustic, loc_cnsc_tex_normal, 1);
-					colormap->set_gl_texture(*glsl_color_normal_specular_caustic, loc_cnsc_tex_color, 0);
-				} else if (!specularmap.get() && !caustic_map) {
-					glsl_color_normal->use();
-					normalmap->set_gl_texture(*glsl_color_normal, loc_cn_tex_normal, 1);
-					colormap->set_gl_texture(*glsl_color_normal, loc_cn_tex_color, 0);
-				} else if (!specularmap.get() && caustic_map) {
-					glsl_color_normal_caustic->use();
-					glsl_color_normal_caustic->set_gl_texture(*const_cast<texture *>(caustic_map), loc_cnc_tex_caustic, 2);
-					normalmap->set_gl_texture(*glsl_color_normal_caustic, loc_cnc_tex_normal, 1);
-					colormap->set_gl_texture(*glsl_color_normal_caustic, loc_cnc_tex_color, 0);
-				}
-
-			} else {
-				// standard OpenGL texturing with special tricks
-				glActiveTexture(GL_TEXTURE0);
-				normalmap->setup_glmatrix();
-				normalmap->set_gl_texture();
-				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-				glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGBA); 
-				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
-				glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-				glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-				glActiveTexture(GL_TEXTURE1);
-				glEnable(GL_TEXTURE_2D);
-				colormap->setup_glmatrix();
-				colormap->set_gl_texture();
-
-				vector4t<GLfloat> ldifcol, lambcol;
-				glGetLightfv(GL_LIGHT0, GL_DIFFUSE, &ldifcol.x);
-				glGetLightfv(GL_LIGHT0, GL_AMBIENT, &lambcol.x);
-				ldifcol.w = lambcol.y;	// use ambient's y/green value as brightness value.
-
-				// normal map function with ambient:
-				// light_color * color * (normal_brightness * (1-ambient) + ambient)
-				glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, &ldifcol.x);
-				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-				glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_CONSTANT);
-				glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-				glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-
-				glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_INTERPOLATE);
-				// we need one here, so we take primary color alpha, which is one.
-				// couldn't we just use GL_ONE as operand?
-				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
-				glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_PREVIOUS);
-				glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
-				glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA, GL_CONSTANT);
-				glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA, GL_SRC_ALPHA);
-				glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
+			if (specularmap.get() && !caustic_map) {
+				glsl_color_normal_specular->use();
+				specularmap->set_gl_texture(*glsl_color_normal_specular, loc_cns_tex_specular, 2);
+				normalmap->set_gl_texture(*glsl_color_normal_specular, loc_cns_tex_normal, 1);
+				colormap->set_gl_texture(*glsl_color_normal_specular, loc_cns_tex_color, 0);
+			} else if (specularmap.get() && caustic_map) {
+				glsl_color_normal_specular_caustic->use();
+				glsl_color_normal_specular_caustic->set_gl_texture(*const_cast<texture *>(caustic_map), loc_cnsc_tex_caustic, 3);
+				specularmap->set_gl_texture(*glsl_color_normal_specular_caustic, loc_cnsc_tex_specular, 2);
+				normalmap->set_gl_texture(*glsl_color_normal_specular_caustic, loc_cnsc_tex_normal, 1);
+				colormap->set_gl_texture(*glsl_color_normal_specular_caustic, loc_cnsc_tex_color, 0);
+			} else if (!specularmap.get() && !caustic_map) {
+				glsl_color_normal->use();
+				normalmap->set_gl_texture(*glsl_color_normal, loc_cn_tex_normal, 1);
+				colormap->set_gl_texture(*glsl_color_normal, loc_cn_tex_color, 0);
+			} else if (!specularmap.get() && caustic_map) {
+				glsl_color_normal_caustic->use();
+				glsl_color_normal_caustic->set_gl_texture(*const_cast<texture *>(caustic_map), loc_cnc_tex_caustic, 2);
+				normalmap->set_gl_texture(*glsl_color_normal_caustic, loc_cnc_tex_normal, 1);
+				colormap->set_gl_texture(*glsl_color_normal_caustic, loc_cnc_tex_color, 0);
 			}
 		} else {
 			// just standard lighting, no need for shaders.
@@ -1365,8 +1303,6 @@ void model::material::set_gl_values(const texture *caustic_map) const
 
 void model::material::set_gl_values_mirror_clip() const
 {
-	if (!use_shaders) return;
-
 	glsl_mirror_clip->use();
 
 	if (colormap.get()) {
@@ -1396,7 +1332,7 @@ void model::material::register_layout(const std::string& name, const std::string
 	// maybe because direction vectors are no longer normalized over faces...
 	// with shaders a value of 1.0 is enough.
 	// fixme: read value from model file... and multiply with this value...
-	float normalmapheight = use_shaders ? 4.0f : 16.0f;
+	float normalmapheight = 4.0f;
 	if (normalmap.get())
 		normalmap->register_layout(name, basepath, texture::LINEAR/*_MIPMAP_LINEAR*/, true, normalmapheight, true);
 	if (specularmap.get())
@@ -1456,13 +1392,11 @@ void model::mesh::display(const texture *caustic_map) const
 	transformation.multiply_glf();
 
 	bool has_texture_u0 = false, has_texture_u1 = false;
-	bool normalmapping = false;
 	if (mymaterial != 0) {
 		if (mymaterial->colormap.get())
 			has_texture_u0 = true;
 		if (mymaterial->normalmap.get())
 			has_texture_u1 = true;
-		normalmapping = has_texture_u1;	// maybe more options here...
 	}
 
 	// set up vertex data.
@@ -1471,11 +1405,9 @@ void model::mesh::display(const texture *caustic_map) const
 	glEnableClientState(GL_VERTEX_ARRAY);
 
 	// set up normals (only used with shaders or for plain rendering without normal maps).
-	if (!normalmapping || use_shaders) {
-		vbo_normals.bind();
-		glNormalPointer(GL_FLOAT, sizeof(vector3f), 0);
-		glEnableClientState(GL_NORMAL_ARRAY);
-	}
+	vbo_normals.bind();
+	glNormalPointer(GL_FLOAT, sizeof(vector3f), 0);
+	glEnableClientState(GL_NORMAL_ARRAY);
 
 	// without pixel shaders texture coordinates must be set for both texture units and are the same.
 	glClientActiveTexture(GL_TEXTURE0);
@@ -1487,91 +1419,13 @@ void model::mesh::display(const texture *caustic_map) const
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 
-	if (use_shaders) {
-		// Using vertex and fragment programs.
-		// give tangents/righthanded info as vertex attribute.
-		if (has_texture_u0 && tangentsx.size() == vertices.size()) {
-			vbo_tangents_righthanded.bind();
-			glVertexAttribPointer(vertex_attrib_index, 4, GL_FLOAT, GL_FALSE,
-					      0, 0);
-			glEnableVertexAttribArray(vertex_attrib_index);
-		}
-	} else {
-		// No shaders, basic old OpenGL 1.5 techniques.
-		glClientActiveTexture(GL_TEXTURE1);
-		if (has_texture_u1 && texcoords.size() == vertices.size()) {
-			vbo_texcoords.bind();
-			// maybe offer second texture coords. how are they stored in .3ds files?!
-			glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), 0);
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		} else {
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		}
-
-		//with normal mapping, we need colors.
-		if (normalmapping) {
-			vector4f lightpos_abs;
-			glGetLightfv(GL_LIGHT0, GL_POSITION, &lightpos_abs.x);
-			//lightpos_abs = vector4f(200,0,-117,0);//test hack
-			//fixme: with directional light we have darker results... are some vectors not
-			//of unit length then?
-			matrix4f invmodelview = (matrix4f::get_gl(GL_MODELVIEW_MATRIX)).inverse();
-			vector4f lightpos_rel = invmodelview * lightpos_abs;
-			//cout << "lightpos abs " << lightpos_abs << "\n";
-			//cout << "lightpos rel " << lightpos_rel << "\n";
-			vector3f lightpos3 = lightpos_rel.to_real();
-			//cout << "lightpos3 " << lightpos3 << "," << lightpos_rel.xyz() << "," << ((lightpos_rel.w != 0.0f)) << "\n";
-			vector<Uint8> colors(3*vertices.size());
-			// this loop could be speed up with mmx/sse instructions.
-			// however, with shaders it isn't used anyway and more and more computers
-			// have cards with shaders. at least newer computers that can do sse should
-			// also have shaders, no shaders but sse is rather rare...
-			for (unsigned i = 0; i < vertices.size(); ++i) {
-				const vector3f& nx = tangentsx[i];
-				const vector3f& nz = normals[i];
-				vector3f ny = nz.cross(nx);
-
-				//fixme: ny length is not always 1, which can only happen when nx and nz are not othogonal
-				//but they should be constructed that way!!!
-				//but maybe this is because of unset tangentsx!!! yes, see above
-				//cout << nx.length() << "," << ny.length() << "," << nz.length() << " vert " << i << " <-------------\n";
-
-				vector3f lp = (lightpos_rel.w != 0.0f) ? (lightpos3 - vertices[i]) : lightpos_rel.xyz();
-				vector3f nl = vector3f(nx * lp, ny * lp, nz * lp).normal();
-
-				// swap light Y direction if in left handed coordinate system
-				//test hack: do it the other way round. seems to be necessary?! maybe texture normals are computed wrongly?! no, now it is ok. but tex-y-coordinates are reversed... why it works then?!
-				if (!righthanded[i]) nl.y = -nl.y;
-
-				const float s = 127.5f;
-				colors[3*i+0] = Uint8(nl.x*s + s);
-				colors[3*i+1] = Uint8(nl.y*s + s);
-				colors[3*i+2] = Uint8(nl.z*s + s);
-			}
-			vbo_colors.init_data(3 * vertices.size(), &colors[0], GL_STREAM_DRAW);
-			vbo_colors.bind();	// do not forget to bind again
-			glColorPointer(3, GL_UNSIGNED_BYTE, 0, 0);
-			glEnableClientState(GL_COLOR_ARRAY);
-			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		} else {
-			glDisableClientState(GL_COLOR_ARRAY);
-		}
-		//	caustics
-		if(caustic_map)
-		{
-			GLfloat plane_s[4] = { 0.05, 0.0, 0.03, 0.0 };
-			GLfloat plane_t[4] = { 0.0, 0.05, 0.03, 0.0 };
-			glActiveTexture(GL_TEXTURE2);
-			glEnable(GL_TEXTURE_2D);
-			caustic_map->set_gl_texture();
-			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, 2);
-			glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-			glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-			glTexGenfv(GL_S, GL_OBJECT_PLANE, plane_s);
-			glTexGenfv(GL_T, GL_OBJECT_PLANE, plane_t);
-			glEnable(GL_TEXTURE_GEN_S);
-			glEnable(GL_TEXTURE_GEN_T);
-		}
+	// Using vertex and fragment programs.
+	// give tangents/righthanded info as vertex attribute.
+	if (has_texture_u0 && tangentsx.size() == vertices.size()) {
+		vbo_tangents_righthanded.bind();
+		glVertexAttribPointer(vertex_attrib_index, 4, GL_FLOAT, GL_FALSE,
+				      0, 0);
+		glEnableVertexAttribArray(vertex_attrib_index);
 	}
 
 	// unbind VBOs (can't be static or we would need to define type of VBO vert/index)
@@ -1585,17 +1439,15 @@ void model::mesh::display(const texture *caustic_map) const
 	// maybe: add code to show normals as Lines
 
 	// cleanup
-	if (use_shaders) {
-		glsl_shader_setup::use_fixed();
-		glActiveTexture(GL_TEXTURE3);
-		glDisable(GL_TEXTURE_2D);
-		glActiveTexture(GL_TEXTURE2);
-		glDisable(GL_TEXTURE_2D);
-		glActiveTexture(GL_TEXTURE1);
-		glDisable(GL_TEXTURE_2D);
-		glActiveTexture(GL_TEXTURE0);
-		glDisableVertexAttribArray(vertex_attrib_index);
-	}
+	glsl_shader_setup::use_fixed();
+	glActiveTexture(GL_TEXTURE3);
+	glDisable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE2);
+	glDisable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE1);
+	glDisable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	glDisableVertexAttribArray(vertex_attrib_index);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
@@ -1604,24 +1456,6 @@ void model::mesh::display(const texture *caustic_map) const
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
 	
-	//  caustics
-	if(caustic_map)
-	{
-		if(use_shaders)
-		{
-		}
-		else
-		{
-			glActiveTexture(GL_TEXTURE2);
-			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, 1);
-			glDisable(GL_TEXTURE_GEN_S);
-			glDisable(GL_TEXTURE_GEN_T);
-			glDisable(GL_TEXTURE_2D);
-			glActiveTexture(GL_TEXTURE0);
-		}
-
-	}
-    
 	// local transformation matrix.
 	glPopMatrix();
 
@@ -1634,8 +1468,6 @@ void model::mesh::display(const texture *caustic_map) const
 
 void model::mesh::display_mirror_clip() const
 {
-	if (!use_shaders) return;
-
 	// matrix mode is GL_MODELVIEW and active texture is GL_TEXTURE1 here
 	glPushMatrix();
 	transformation.multiply_glf();
@@ -1680,9 +1512,7 @@ void model::mesh::display_mirror_clip() const
 	glDrawRangeElements(gl_primitive_type(), 0, vertices.size()-1, indices.size(), GL_UNSIGNED_INT, 0);
 	index_data.unbind();
 
-	if (use_shaders) {
-		glsl_shader_setup::use_fixed();
-	}
+	glsl_shader_setup::use_fixed();
 
 	glEnable(GL_LIGHTING);
 	glDisableClientState(GL_VERTEX_ARRAY);

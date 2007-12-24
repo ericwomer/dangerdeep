@@ -157,8 +157,6 @@ int mymain(list<string>& args)
 		}
 	}
 
-	model::enable_shaders = true;
-
 	// fixme: also allow 1280x1024, set up gl viewport for 4:3 display
 	// with black borders at top/bottom (height 2*32pixels)
 	res_y = res_x*3/4;

@@ -212,10 +212,6 @@ int scalelength(int i)
 
 void view_model(const string& modelfilename, const string& datafilename)
 {
-	model::enable_shaders = true;
-
-	//fixme ^ make chooseable via command line!
-
 	model* mdl = new model(/*get_model_dir() + */ modelfilename);
 	mdl->register_layout(model_layout);
 	mdl->set_layout(model_layout);

@@ -156,7 +156,6 @@ water::water(double tm) :
 	    wave_resolution * (1e-8) /* roughly 2e-6 for 128 */,	// scale factor for heights. depends on wave resolution, maybe also on tidecycle time
 	    wavetile_length,
 	    wave_tidecycle_time),
-	use_shaders(false),
 	use_hqsfx(false),
 	vattr_aof_index(0),
 	rerender_new_wtp(true),
@@ -241,44 +240,40 @@ water::water(double tm) :
 	log_info("reflection image size " << rx << "x" << ry);
 	log_info("water detail: " << geoclipmap_resolution);
 
-	use_shaders = glsl_program::supported() &&
-		cfg::instance().getb("use_shaders") && cfg::instance().getb("use_shaders_for_water");
-	use_hqsfx = (use_shaders && cfg::instance().getb("use_hqsfx"));
+	use_hqsfx = cfg::instance().getb("use_hqsfx");
 
-	// initialize shaders if wanted
-	if (use_shaders) {
-		glsl_shader::defines_list defines;
-		if (use_hqsfx) {
-			defines.push_back("HQ_SFX");
-		}
-		glsl_water.reset(new glsl_shader_setup(get_shader_dir() + "water.vshader",
-						       get_shader_dir() + "water.fshader",
-						       defines));
-		glsl_under_water.reset(new glsl_shader_setup(get_shader_dir() + "under_water.vshader",
-							     get_shader_dir() + "under_water.fshader"));
-		glsl_water->use();
-		vattr_aof_index = glsl_water->get_vertex_attrib_index("amount_of_foam");
-		loc_w_noise_xform_0 = glsl_water->get_uniform_location("noise_xform_0");
-		loc_w_noise_xform_1 = glsl_water->get_uniform_location("noise_xform_1");
-		loc_w_reflection_mvp = glsl_water->get_uniform_location("reflection_mvp");
-		loc_w_viewpos = glsl_water->get_uniform_location("viewpos");
-		loc_w_upwelltop = glsl_water->get_uniform_location("upwelltop");
-		loc_w_upwellbot = glsl_water->get_uniform_location("upwellbot");
-		loc_w_upwelltopbot = glsl_water->get_uniform_location("upwelltopbot");
-		loc_w_tex_normal = glsl_water->get_uniform_location("tex_normal");
-		loc_w_tex_reflection = glsl_water->get_uniform_location("tex_reflection");
-		loc_w_tex_foam = glsl_water->get_uniform_location("tex_foam");
-		loc_w_tex_foamamount = glsl_water->get_uniform_location("tex_foamamount");
-		glsl_under_water->use();
-		loc_uw_noise_xform_0 = glsl_under_water->get_uniform_location("noise_xform_0");
-		loc_uw_noise_xform_1 = glsl_under_water->get_uniform_location("noise_xform_1");
-		loc_uw_viewpos = glsl_under_water->get_uniform_location("viewpos");
-		loc_uw_upwelltop = glsl_under_water->get_uniform_location("upwelltop");
-		loc_uw_upwellbot = glsl_under_water->get_uniform_location("upwellbot");
-		loc_uw_upwelltopbot = glsl_under_water->get_uniform_location("upwelltopbot");
-		loc_uw_tex_normal = glsl_under_water->get_uniform_location("tex_normal");
-		glsl_water->use_fixed();
+	// initialize shaders
+	glsl_shader::defines_list defines;
+	if (use_hqsfx) {
+		defines.push_back("HQ_SFX");
 	}
+	glsl_water.reset(new glsl_shader_setup(get_shader_dir() + "water.vshader",
+					       get_shader_dir() + "water.fshader",
+					       defines));
+	glsl_under_water.reset(new glsl_shader_setup(get_shader_dir() + "under_water.vshader",
+						     get_shader_dir() + "under_water.fshader"));
+	glsl_water->use();
+	vattr_aof_index = glsl_water->get_vertex_attrib_index("amount_of_foam");
+	loc_w_noise_xform_0 = glsl_water->get_uniform_location("noise_xform_0");
+	loc_w_noise_xform_1 = glsl_water->get_uniform_location("noise_xform_1");
+	loc_w_reflection_mvp = glsl_water->get_uniform_location("reflection_mvp");
+	loc_w_viewpos = glsl_water->get_uniform_location("viewpos");
+	loc_w_upwelltop = glsl_water->get_uniform_location("upwelltop");
+	loc_w_upwellbot = glsl_water->get_uniform_location("upwellbot");
+	loc_w_upwelltopbot = glsl_water->get_uniform_location("upwelltopbot");
+	loc_w_tex_normal = glsl_water->get_uniform_location("tex_normal");
+	loc_w_tex_reflection = glsl_water->get_uniform_location("tex_reflection");
+	loc_w_tex_foam = glsl_water->get_uniform_location("tex_foam");
+	loc_w_tex_foamamount = glsl_water->get_uniform_location("tex_foamamount");
+	glsl_under_water->use();
+	loc_uw_noise_xform_0 = glsl_under_water->get_uniform_location("noise_xform_0");
+	loc_uw_noise_xform_1 = glsl_under_water->get_uniform_location("noise_xform_1");
+	loc_uw_viewpos = glsl_under_water->get_uniform_location("viewpos");
+	loc_uw_upwelltop = glsl_under_water->get_uniform_location("upwelltop");
+	loc_uw_upwellbot = glsl_under_water->get_uniform_location("upwellbot");
+	loc_uw_upwelltopbot = glsl_under_water->get_uniform_location("upwelltopbot");
+	loc_uw_tex_normal = glsl_under_water->get_uniform_location("tex_normal");
+	glsl_water->use_fixed();
 
 	foamtex.reset(new texture(get_texture_dir() + "foam.png", texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
 	foamamounttex.reset(new texture(FOAMAMOUNTRES, FOAMAMOUNTRES, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
@@ -389,97 +384,81 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
 
-	if (use_shaders) {
-		if (under_water) {
-			glsl_under_water->use();
-		} else {
-			glsl_water->use();
-			glsl_water->set_gl_texture(*foamtex, loc_w_tex_foam, 2);
-			glsl_water->set_gl_texture(*foamamounttex, loc_w_tex_foamamount, 3);
-		}
-
-		// texture units / coordinates:
-		// tex0: noise map (color normals) / matching texcoords
-		// tex1: reflection map / matching texcoords
-		// tex2: foam
-		// tex3: amount of foam
-		glActiveTexture(GL_TEXTURE0);
-
-		// set up scale/translation of foam and noise maps
-		// we do not use the texture matrix here, as this would be overkill
-		// and would be clumsy
-		/* how to compute that.
-		   We would need to compute a closed path over a tile (modulo tile size).
-		   This can be any path with curves etc., but lets take a linear movement.
-		   Start and end point must be the same in the tile (modulo tilesize)
-		   after a given time t.
-		   To achieve this we need to know how many tiles we move horizontally and vertically
-		   for the path. This are numbers A and B. We move with velocity V (meters/second),
-		   thus we get as time t for the path:
-		   t = tile_size * sqrt(a*a + b*b) / V
-		   and for the direction vector of movement:
-		   D = (V/sqrt(a*a + b*b)) * (a, b)
-		   Example, if we would like to move 2 tiles right and 5 down, with 0.5m/s, we get
-		   t = 256m * sqrt(2*2+5*5) / 0.5m/s = 2757.2s
-		   and D = (0.186, 0.464)
-		   So we have to take mytime module t and use that as multiplier with D to get
-		   the current position (plus initial offset S).
-		   In the shader the vertex position is multiplied with factor z here and then
-		   xy are added. So z translates meters to texture coordinates.
-		   For noise #0 scale is 8/256m, so we have 8 tiles of the texture per wave tile.
-		   So one noise tile is 256m/8 = 1/z = 32m long. That is the tile size we have
-		   to use for the computation above.
-		   32m with V=2m/sec -> t = 86.162 and D = (0.743, 1.857)
-		*/
-		static const int a_0 = 2, b_0 = 5;
-		static const int a_1 = -4, b_1 = 3;
-		static const double s_0 = sqrt(a_0*a_0 + b_0*b_0), s_1 = sqrt(a_1*a_1 + b_1*b_1);
-		static const double V_0 = 2.0, V_1 = 1.0;
-		// maybe: remove hardwired scale factors of 8 and 32, but looks best with that values.
-		static const double t_0 = wavetile_length / 8.0 * s_0 / V_0, t_1 = wavetile_length / 32.0 * s_1 / V_1;
-		// need to divide by noise tile size here too (tex coordinates are in [0...1], not meters)
-		static const vector2f D_0 = vector2f(a_0, b_0) * (V_0/s_0/32.0); // noise tile is 256/8=32m long
-		static const vector2f D_1 = vector2f(a_1, b_1) * (V_1/s_1/8.0);  // noise tile is 256/32=8m long
-		vector2f noise_0_pos = vector2f(0, 0) + D_0 * myfmod(mytime, t_0);
-		vector2f noise_1_pos = vector2f(0, 0) + D_1 * myfmod(mytime, t_1);
-		//fixme: do we have to treat the viewer offset here, like with tex matrix
-		//       setup below?!
-		if (under_water) {
-			glsl_under_water->set_uniform(loc_uw_noise_xform_0, noise_0_pos.xyz(wavetile_length_rcp * 8.0f));
-			glsl_under_water->set_uniform(loc_uw_noise_xform_1, noise_1_pos.xyz(wavetile_length_rcp * 32.0f));
-			glsl_under_water->set_gl_texture(*water_bumpmap, loc_uw_tex_normal, 0);
-		} else {
-			glsl_water->set_uniform(loc_w_noise_xform_0, noise_0_pos.xyz(wavetile_length_rcp * 8.0f));
-			glsl_water->set_uniform(loc_w_noise_xform_1, noise_1_pos.xyz(wavetile_length_rcp * 32.0f));
-			glsl_water->set_gl_texture(*water_bumpmap, loc_w_tex_normal, 0);
-		}
-
-		// set up texture matrix, so that texture coordinates can be computed from position.
-		//fixme: use uniform here as well.
-		glMatrixMode(GL_TEXTURE);
-		glLoadIdentity();
-		float noisetilescale = 32.0f;//meters (128/16=8, 8tex/m).
-		// fixme 32m wide noise is a good compromise, that would be a noise
-		// sample every 12.5cm. But it works only if the noise map
-		// has high frequencies in it... this noise map has to few details
-		glScalef(1.0f/noisetilescale,1.0f/noisetilescale,1);	// fixme adjust scale
-		glTranslatef(transl.x, transl.y, 0);
-		glMatrixMode(GL_MODELVIEW);
+	if (under_water) {
+		glsl_under_water->use();
 	} else {
-		// standard code path, no fragment programs
-	
-		//tex0: get alpha from fresnelcolortex, just pass color from primary color
-		//tex1: interpolate between previous color and tex1 with previous alpha (fresnel)
-		glActiveTexture(GL_TEXTURE0);
-		fresnelcolortex->set_gl_texture();
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+		glsl_water->use();
+		glsl_water->set_gl_texture(*foamtex, loc_w_tex_foam, 2);
+		glsl_water->set_gl_texture(*foamamounttex, loc_w_tex_foamamount, 3);
 	}
+
+	// texture units / coordinates:
+	// tex0: noise map (color normals) / matching texcoords
+	// tex1: reflection map / matching texcoords
+	// tex2: foam
+	// tex3: amount of foam
+	glActiveTexture(GL_TEXTURE0);
+
+	// set up scale/translation of foam and noise maps
+	// we do not use the texture matrix here, as this would be overkill
+	// and would be clumsy
+	/* how to compute that.
+	   We would need to compute a closed path over a tile (modulo tile size).
+	   This can be any path with curves etc., but lets take a linear movement.
+	   Start and end point must be the same in the tile (modulo tilesize)
+	   after a given time t.
+	   To achieve this we need to know how many tiles we move horizontally and vertically
+	   for the path. This are numbers A and B. We move with velocity V (meters/second),
+	   thus we get as time t for the path:
+	   t = tile_size * sqrt(a*a + b*b) / V
+	   and for the direction vector of movement:
+	   D = (V/sqrt(a*a + b*b)) * (a, b)
+	   Example, if we would like to move 2 tiles right and 5 down, with 0.5m/s, we get
+	   t = 256m * sqrt(2*2+5*5) / 0.5m/s = 2757.2s
+	   and D = (0.186, 0.464)
+	   So we have to take mytime module t and use that as multiplier with D to get
+	   the current position (plus initial offset S).
+	   In the shader the vertex position is multiplied with factor z here and then
+	   xy are added. So z translates meters to texture coordinates.
+	   For noise #0 scale is 8/256m, so we have 8 tiles of the texture per wave tile.
+	   So one noise tile is 256m/8 = 1/z = 32m long. That is the tile size we have
+	   to use for the computation above.
+	   32m with V=2m/sec -> t = 86.162 and D = (0.743, 1.857)
+	*/
+	static const int a_0 = 2, b_0 = 5;
+	static const int a_1 = -4, b_1 = 3;
+	static const double s_0 = sqrt(a_0*a_0 + b_0*b_0), s_1 = sqrt(a_1*a_1 + b_1*b_1);
+	static const double V_0 = 2.0, V_1 = 1.0;
+	// maybe: remove hardwired scale factors of 8 and 32, but looks best with that values.
+	static const double t_0 = wavetile_length / 8.0 * s_0 / V_0, t_1 = wavetile_length / 32.0 * s_1 / V_1;
+	// need to divide by noise tile size here too (tex coordinates are in [0...1], not meters)
+	static const vector2f D_0 = vector2f(a_0, b_0) * (V_0/s_0/32.0); // noise tile is 256/8=32m long
+	static const vector2f D_1 = vector2f(a_1, b_1) * (V_1/s_1/8.0);  // noise tile is 256/32=8m long
+	vector2f noise_0_pos = vector2f(0, 0) + D_0 * myfmod(mytime, t_0);
+	vector2f noise_1_pos = vector2f(0, 0) + D_1 * myfmod(mytime, t_1);
+	//fixme: do we have to treat the viewer offset here, like with tex matrix
+	//       setup below?!
+	if (under_water) {
+		glsl_under_water->set_uniform(loc_uw_noise_xform_0, noise_0_pos.xyz(wavetile_length_rcp * 8.0f));
+		glsl_under_water->set_uniform(loc_uw_noise_xform_1, noise_1_pos.xyz(wavetile_length_rcp * 32.0f));
+		glsl_under_water->set_gl_texture(*water_bumpmap, loc_uw_tex_normal, 0);
+	} else {
+		glsl_water->set_uniform(loc_w_noise_xform_0, noise_0_pos.xyz(wavetile_length_rcp * 8.0f));
+		glsl_water->set_uniform(loc_w_noise_xform_1, noise_1_pos.xyz(wavetile_length_rcp * 32.0f));
+		glsl_water->set_gl_texture(*water_bumpmap, loc_w_tex_normal, 0);
+	}
+
+	// set up texture matrix, so that texture coordinates can be computed from position.
+	//fixme: use uniform here as well.
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	float noisetilescale = 32.0f;//meters (128/16=8, 8tex/m).
+	// fixme 32m wide noise is a good compromise, that would be a noise
+	// sample every 12.5cm. But it works only if the noise map
+	// has high frequencies in it... this noise map has to few details
+	glScalef(1.0f/noisetilescale,1.0f/noisetilescale,1);	// fixme adjust scale
+	glTranslatef(transl.x, transl.y, 0);
+	glMatrixMode(GL_MODELVIEW);
 
 	/* 2005/06/28:
 	   fixme: with shaders there are some errors, reflections look strange (dark blue
@@ -500,12 +479,8 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 
 	glActiveTexture(GL_TEXTURE1);
 	glEnable(GL_TEXTURE_2D);
-	if (use_shaders) {
-		if (!under_water) {
-			glsl_water->set_gl_texture(*reflectiontex, loc_w_tex_reflection, 1);
-		}
-	} else {
-		reflectiontex->set_gl_texture();
+	if (!under_water) {
+		glsl_water->set_gl_texture(*reflectiontex, loc_w_tex_reflection, 1);
 	}
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
@@ -520,36 +495,13 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 					* reflection_projmvmat);
 	}
 	glMatrixMode(GL_MODELVIEW);
-
-	if (!use_shaders) {
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PREVIOUS);
-		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_PREVIOUS);
-		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);
-		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-	}
-/*
-	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_CONSTANT);
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
-*/
 }
 
 
 
 void water::cleanup_textures() const
 {
-	if (use_shaders) {
-		glsl_program::use_fixed();
-	}
+	glsl_program::use_fixed();
 	
 	glColor4f(1,1,1,1);
 
@@ -670,9 +622,6 @@ void water::draw_foam_for_ship(const game& gm, const ship* shp, const vector3& v
 void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpos,
 					   const vector<ship*>& allships) const
 {
-	if (!use_shaders)
-		return;	// no foam without shaders
-
 //	glPushMatrix();
 
 	unsigned afs = foamamounttex->get_gl_width();	// size of amount of foam size, depends on water grid detail, fixme
@@ -779,14 +728,12 @@ void water::display(const vector3& viewpos, double max_view_dist, bool under_wat
 
 	// give -viewpos.z to vertex shader for generation of foam projection coordinates
 	// the plane z = -viewpos.z is the water plane.
-	if (use_shaders) {
-		if (under_water) {
-			glsl_under_water->use();
-			glsl_under_water->set_uniform(loc_uw_viewpos, viewpos);
-		} else {
-			glsl_water->use();
-			glsl_water->set_uniform(loc_w_viewpos, viewpos);
-		}
+	if (under_water) {
+		glsl_under_water->use();
+		glsl_under_water->set_uniform(loc_uw_viewpos, viewpos);
+	} else {
+		glsl_water->use();
+		glsl_water->set_uniform(loc_w_viewpos, viewpos);
 	}
 	setup_textures(reflection_projmvmat, transl, under_water);
 	glColor4f(1,1,1,1);
@@ -847,9 +794,8 @@ void water::display(const vector3& viewpos, double max_view_dist, bool under_wat
 	// compute vertices for all levels, if needed
 	// this optimization brings 3% more frame rates on a GF7600GT,
 	// with only a few lines of code
-	const unsigned nr_vert_attr = use_shaders ? 7 : 8;
+	const unsigned nr_vert_attr = 7;
 	if (recompute_vertices) {
-		const float VIRTUAL_PLANE_HEIGHT = 25.0f;
 		unsigned nr_verts_total = geoclipmap_levels * (N+1)*(N+1) + 8 /* horizon */;
 		// which data do we need per vertex?
 		// without shaders:
@@ -899,92 +845,40 @@ void water::display(const vector3& viewpos, double max_view_dist, bool under_wat
 			const wavetile_phase::mipmap_level& mml = curr_wtp->mipmaps[level];
 			unsigned mod = (wave_resolution >> level) - 1;
 			unsigned mult = (wave_resolution >> level);
-			if (use_shaders) {
-				for (unsigned y = 0; y < N+1; ++y) {
-					unsigned lineidx = (yy & mod) * mult;
-					unsigned xx = xoff;
-					float coordxoff = offset.x;
-					for (unsigned x = 0; x < N+1; ++x) {
-						// fixme: adding values of two tiles here could be worth the
-						// trouble, use same data twice with different scales,
-						// thus increasing geometrical detail.
-						// like a 512m tile length with smallest waves of 0.25m
-						// (4m-512m detail on coarse level, 0.25m-32m on fine level)
-						// etc., uses view cpu time, but can increase detail
-						// dramatically... already tried that to add subdetail
-						// for nearer levels (<0) on earlier water renderings.
-						// would increase number of rendered levels by 3 or 4, but still
-						// ok for memory consumption...
-						unsigned colidx = (xx & mod);
-						const vector3f& p0 = mml.wavedata[lineidx + colidx];
-						const vector3f& n0 = mml.normals[lineidx + colidx];
-						vertex_data[vertex_data_ptr+0] = p0.x + coordxoff;
-						vertex_data[vertex_data_ptr+1] = p0.y + coordyoff;
-						vertex_data[vertex_data_ptr+2] = p0.z - viewpos.z;
-						//vertex_data[vertex_data_ptr+3] = coordxoff;
-						//vertex_data[vertex_data_ptr+4] = coordyoff;
-						//vertex_data[vertex_data_ptr+5] = foamamount;
-						vertex_data[vertex_data_ptr+3] = n0.x;
-						vertex_data[vertex_data_ptr+4] = n0.y;
-						vertex_data[vertex_data_ptr+5] = n0.z;
-						vertex_data[vertex_data_ptr+6] = mml.amount_of_foam[lineidx + colidx];
-						vertex_data_ptr += nr_vert_attr;
-						++xx;
-						coordxoff += coordxadd;
-					}
-					++yy;
-					coordyoff += coordyadd;
+			for (unsigned y = 0; y < N+1; ++y) {
+				unsigned lineidx = (yy & mod) * mult;
+				unsigned xx = xoff;
+				float coordxoff = offset.x;
+				for (unsigned x = 0; x < N+1; ++x) {
+					// fixme: adding values of two tiles here could be worth the
+					// trouble, use same data twice with different scales,
+					// thus increasing geometrical detail.
+					// like a 512m tile length with smallest waves of 0.25m
+					// (4m-512m detail on coarse level, 0.25m-32m on fine level)
+					// etc., uses view cpu time, but can increase detail
+					// dramatically... already tried that to add subdetail
+					// for nearer levels (<0) on earlier water renderings.
+					// would increase number of rendered levels by 3 or 4, but still
+					// ok for memory consumption...
+					unsigned colidx = (xx & mod);
+					const vector3f& p0 = mml.wavedata[lineidx + colidx];
+					const vector3f& n0 = mml.normals[lineidx + colidx];
+					vertex_data[vertex_data_ptr+0] = p0.x + coordxoff;
+					vertex_data[vertex_data_ptr+1] = p0.y + coordyoff;
+					vertex_data[vertex_data_ptr+2] = p0.z - viewpos.z;
+					//vertex_data[vertex_data_ptr+3] = coordxoff;
+					//vertex_data[vertex_data_ptr+4] = coordyoff;
+					//vertex_data[vertex_data_ptr+5] = foamamount;
+					vertex_data[vertex_data_ptr+3] = n0.x;
+					vertex_data[vertex_data_ptr+4] = n0.y;
+					vertex_data[vertex_data_ptr+5] = n0.z;
+					vertex_data[vertex_data_ptr+6] = mml.amount_of_foam[lineidx + colidx];
+					vertex_data_ptr += nr_vert_attr;
+					++xx;
+					coordxoff += coordxadd;
 				}
-			} else {
-				for (unsigned y = 0; y < N+1; ++y) {
-					unsigned lineidx = (yy & mod) * mult;
-					unsigned xx = xoff;
-					float coordxoff = offset.x;
-					for (unsigned x = 0; x < N+1; ++x) {
-						unsigned colidx = (xx & mod);
-						const vector3f& p0 = mml.wavedata[lineidx + colidx];
-						const vector3f& n0 = mml.normals[lineidx + colidx];
-						vector3f coord(p0.x + coordxoff, p0.y + coordyoff, p0.z - viewpos.z);
-						vertex_data[vertex_data_ptr+0] = coord.x;
-						vertex_data[vertex_data_ptr+1] = coord.y;
-						vertex_data[vertex_data_ptr+2] = coord.z;
-						float rel_coord_length = coord.length();
-						vector3f E = -coord * (1.0f/rel_coord_length); // viewer is in (0,0,0)
-						float F = E*n0;		// compute Fresnel term F(x) = ~ 1/(x+1)^8
-						// make water less reflective in the distance to simulate
-						// the fact that we look not on a flat plane in the distance
-						// but mostly wave sides,
-						// but the water display is similar to such a plane
-						if (rel_coord_length > 500) {
-							float tmp = (30000 - rel_coord_length)/29500;
-							tmp = tmp * tmp;
-							// 0.09051=x gives fresnel term 0.5
-							F = F * tmp + 0.09051f * (1 - tmp);
-						}
-						//fixme: far water reflects atmosphere seen from a farer distance
-						//the reflected ray goes right up into the atmosphere (earth
-						//surface is curved!) so reflected color would be rather blue
-						//not the horizon like greyish fog...
-						// value clamping is done by texture unit.
-						// water color depends on height of wave and slope
-						// slope (N.z) it mostly > 0.8
-						float colorfac = (p0.z + 3) * (1.0f/9) + (n0.z - 0.8f);
-						vertex_data[vertex_data_ptr+3] = F; // set fresnel and water color
-						vertex_data[vertex_data_ptr+4] = colorfac;
-						// reflection texture coordinates
-						vector3f texc = coord + n0 * (VIRTUAL_PLANE_HEIGHT * n0.z);
-						texc.z -= VIRTUAL_PLANE_HEIGHT;
-						// fixme check: texmatrix must match modelview/projection matrix...
-						vertex_data[vertex_data_ptr+5] = texc.x;
-						vertex_data[vertex_data_ptr+6] = texc.y;
-						vertex_data[vertex_data_ptr+7] = texc.z;
-						vertex_data_ptr += nr_vert_attr;
-						++xx;
-						coordxoff += coordxadd;
-					}
-					++yy;
-					coordyoff += coordyadd;
-				}
+				++yy;
+				coordyoff += coordyadd;
 			}
 		}
 		// force vertex height on border to horizon faces to zero, normal to (0,0,1).
@@ -994,51 +888,27 @@ void water::display(const vector3& viewpos, double max_view_dist, bool under_wat
 					  vertex_data_ptr + nr_vert_attr*(i + N*(N+1)),
 					  vertex_data_ptr + nr_vert_attr*(i*(N+1)),
 					  vertex_data_ptr + nr_vert_attr*(i*(N+1) + N) };
-			if (use_shaders) {
-				for (unsigned j = 0; j < 4; ++j) {
-					vertex_data[k[j] + 2] = -viewpos.z;
-					vertex_data[k[j] + 3] = 0.0f;
-					vertex_data[k[j] + 4] = 0.0f;
-					vertex_data[k[j] + 5] = 1.0f;
-					vertex_data[k[j] + 6] = 0.0f; // no foam
-				}
-			} else {
-				for (unsigned j = 0; j < 4; ++j) {
-					vertex_data[k[j] + 2] = -viewpos.z;
-					vertex_data[k[j] + 4] = 0.0f; // colorfac
-					//fixme: set fresnel term here to constant value,
-					//or we can see the triangle pattern to the horizon.
-					vertex_data[k[j] + 7] = -viewpos.z; // texc.z
-				}
+			for (unsigned j = 0; j < 4; ++j) {
+				vertex_data[k[j] + 2] = -viewpos.z;
+				vertex_data[k[j] + 3] = 0.0f;
+				vertex_data[k[j] + 4] = 0.0f;
+				vertex_data[k[j] + 5] = 1.0f;
+				vertex_data[k[j] + 6] = 0.0f; // no foam
 			}
 		}
 		// add horizon faces
 		int hzx[8] = { -1, 0, 1, -1, 1, -1, 0, 1 };
 		int hzy[8] = { -1,-1,-1,  0, 0,  1, 1, 1 };
 		vertex_data_ptr = geoclipmap_levels * (N+1)*(N+1) * nr_vert_attr;
-		if (use_shaders) {
-			for (unsigned j = 0; j < 8; ++j) {
-				vertex_data[vertex_data_ptr + 0] = hzx[j] * max_view_dist;
-				vertex_data[vertex_data_ptr + 1] = hzy[j] * max_view_dist;
-				vertex_data[vertex_data_ptr + 2] = -viewpos.z;
-				vertex_data[vertex_data_ptr + 3] = 0.0f;
-				vertex_data[vertex_data_ptr + 4] = 0.0f;
-				vertex_data[vertex_data_ptr + 5] = 1.0f;
-				vertex_data[vertex_data_ptr + 6] = 0.0f; // no foam
-				vertex_data_ptr += nr_vert_attr;
-			}
-		} else {
-			for (unsigned j = 0; j < 8; ++j) {
-				vertex_data[vertex_data_ptr + 0] = hzx[j] * max_view_dist;
-				vertex_data[vertex_data_ptr + 1] = hzy[j] * max_view_dist;
-				vertex_data[vertex_data_ptr + 2] = -viewpos.z;
-				vertex_data[vertex_data_ptr + 3] = 0.09051f; // fresnel term
-				vertex_data[vertex_data_ptr + 4] = 0.0f; // colorfac
-				vertex_data[vertex_data_ptr + 5] = hzx[j] * max_view_dist;
-				vertex_data[vertex_data_ptr + 6] = hzy[j] * max_view_dist;
-				vertex_data[vertex_data_ptr + 7] = -viewpos.z;
-				vertex_data_ptr += nr_vert_attr;
-			}
+		for (unsigned j = 0; j < 8; ++j) {
+			vertex_data[vertex_data_ptr + 0] = hzx[j] * max_view_dist;
+			vertex_data[vertex_data_ptr + 1] = hzy[j] * max_view_dist;
+			vertex_data[vertex_data_ptr + 2] = -viewpos.z;
+			vertex_data[vertex_data_ptr + 3] = 0.0f;
+			vertex_data[vertex_data_ptr + 4] = 0.0f;
+			vertex_data[vertex_data_ptr + 5] = 1.0f;
+			vertex_data[vertex_data_ptr + 6] = 0.0f; // no foam
+			vertex_data_ptr += nr_vert_attr;
 		}
 		// finish
 		vertices.unmap();
@@ -1054,19 +924,10 @@ void water::display(const vector3& viewpos, double max_view_dist, bool under_wat
 	vertices.bind();
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, nr_vert_attr*4, (float*)0 + 0);
-	if (use_shaders) {
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glNormalPointer(GL_FLOAT, nr_vert_attr*4, (float*)0 + 3);
-		glVertexAttribPointer(vattr_aof_index, 1, GL_FLOAT, GL_FALSE, nr_vert_attr*4, (float*)0 + 6);
-		glEnableVertexAttribArray(vattr_aof_index);
-	} else {
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, nr_vert_attr*4, (float*)0 + 3);
-		glClientActiveTexture(GL_TEXTURE1);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(3, GL_FLOAT, nr_vert_attr*4, (float*)0 + 5);
-	}
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glNormalPointer(GL_FLOAT, nr_vert_attr*4, (float*)0 + 3);
+	glVertexAttribPointer(vattr_aof_index, 1, GL_FLOAT, GL_FALSE, nr_vert_attr*4, (float*)0 + 6);
+	glEnableVertexAttribArray(vattr_aof_index);
 	vertices.unbind();
 	glDisableClientState(GL_COLOR_ARRAY);
 
@@ -1138,15 +999,8 @@ void water::display(const vector3& viewpos, double max_view_dist, bool under_wat
 	}
 
 	// unmap, cleanup
-	if (use_shaders) {
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glDisableVertexAttribArray(vattr_aof_index);
-	} else {
-		//glClientActiveTexture(GL_TEXTURE1); // still active
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glClientActiveTexture(GL_TEXTURE0);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	}
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableVertexAttribArray(vattr_aof_index);
 	glDisableClientState(GL_VERTEX_ARRAY);
 
 	// clean up textures
@@ -1515,23 +1369,21 @@ void water::set_refraction_color(const colorf& light_color)
 	colorf wavetop = light_color.lerp(colorf(color(0, 0, 0)), colorf(color(49, 83, 94)));
 	colorf wavebottom = light_color.lerp(colorf(color(0, 0, 0)), colorf(color(29, 56, 91)));
 
-	if (use_shaders) {
-		float wt[3], wb[3];
-		wavetop.store_rgb(wt);
-		wavebottom.store_rgb(wb);
-		vector3f upwelltop(wt[0], wt[1], wt[2]);
-		vector3f upwellbot(wb[0], wb[1], wb[2]);
-		vector3f upwelltopbot = upwelltop - upwellbot;
-		glsl_water->use();
-		glsl_water->set_uniform(loc_w_upwelltop, upwelltop);
-		glsl_water->set_uniform(loc_w_upwellbot, upwellbot);
-		glsl_water->set_uniform(loc_w_upwelltopbot, upwelltopbot);
-		glsl_under_water->use();
-		glsl_under_water->set_uniform(loc_uw_upwelltop, upwelltop);
-		glsl_under_water->set_uniform(loc_uw_upwellbot, upwellbot);
-		glsl_under_water->set_uniform(loc_uw_upwelltopbot, upwelltopbot);
-		glsl_water->use_fixed();
-	}
+	float wt[3], wb[3];
+	wavetop.store_rgb(wt);
+	wavebottom.store_rgb(wb);
+	vector3f upwelltop(wt[0], wt[1], wt[2]);
+	vector3f upwellbot(wb[0], wb[1], wb[2]);
+	vector3f upwelltopbot = upwelltop - upwellbot;
+	glsl_water->use();
+	glsl_water->set_uniform(loc_w_upwelltop, upwelltop);
+	glsl_water->set_uniform(loc_w_upwellbot, upwellbot);
+	glsl_water->set_uniform(loc_w_upwelltopbot, upwelltopbot);
+	glsl_under_water->use();
+	glsl_under_water->set_uniform(loc_uw_upwelltop, upwelltop);
+	glsl_under_water->set_uniform(loc_uw_upwellbot, upwellbot);
+	glsl_under_water->set_uniform(loc_uw_upwelltopbot, upwelltopbot);
+	glsl_water->use_fixed();
 
 	for (unsigned s = 0; s < REFRAC_COLOR_RES; ++s) {
 		float fs = float(s)/(REFRAC_COLOR_RES-1);

@@ -95,7 +95,7 @@ void sub_periscope_display::set_modelview_matrix(game& gm, const vector3& viewpo
 
 void sub_periscope_display::post_display(game& gm) const
 {
-	if (use_shaders && use_hqsfx) {
+	if (use_hqsfx) {
 		// here we render scope view as blurred, watery image
 		viewtex->set_gl_texture();
 		projection_data pd = get_projection_data(gm);
@@ -182,41 +182,38 @@ void sub_periscope_display::post_display(game& gm) const
 
 
 sub_periscope_display::sub_periscope_display(user_interface& ui_)
-	: freeview_display(ui_), zoomed(false), use_shaders(false), use_hqsfx(false)
+	: freeview_display(ui_), zoomed(false), use_hqsfx(false)
 {
 	add_pos = vector3(0, 0, 8);//fixme, depends on sub
 	aboard = true;
 	withunderwaterweapons = false;//they can be seen when scope is partly below water surface, fixme
 	drawbridge = false;
 
-	use_shaders = glsl_program::supported() && cfg::instance().getb("use_shaders");
-	use_hqsfx = (use_shaders && cfg::instance().getb("use_hqsfx"));
-	if (use_shaders) {
-		viewtex.reset(new texture(512, 512, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
-		glsl_blurview.reset(new glsl_shader_setup(get_shader_dir() + "blurview.vshader",
-							  get_shader_dir() + "blurview.fshader"));
-		glsl_blurview->use();
-		loc_blur_texc_offset = glsl_blurview->get_uniform_location("blur_texc_offset");
-		loc_tex_view = glsl_blurview->get_uniform_location("tex_view");
-		loc_tex_blur = glsl_blurview->get_uniform_location("tex_blur");
-		glsl_blurview->use_fixed();
-		/* Note 2007/05/08:
-		   we can have a better Blur texture if we generate it at runtime.
-		   What makes up the blur texture?
-		   Water running down over the lens of the periscope.
-		   So use one texture, no UV scrolling, just (re)generate it every frame.
-		   Make an empty (black) texture, draw a set of drops on it (GL_POINTS
-		   of a certain size with a texture that is like a blurmap for a
-		   water drop).
-		   Simulate each drop (moving down by gravity, adding more drops when
-		   periscope collides with water surface).
-		   Render the drops to the texture (with textured GL_POINTS).
-		   Use the texture to render the final effect.
-		   This can be done quick & cheap, but the current scrolling texture
-		   is also ok.
-		*/
-		blurtex.reset(new texture(get_texture_dir() + "blurtest.png", texture::LINEAR, texture::REPEAT));
-	}
+	use_hqsfx = cfg::instance().getb("use_hqsfx");
+	viewtex.reset(new texture(512, 512, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
+	glsl_blurview.reset(new glsl_shader_setup(get_shader_dir() + "blurview.vshader",
+						  get_shader_dir() + "blurview.fshader"));
+	glsl_blurview->use();
+	loc_blur_texc_offset = glsl_blurview->get_uniform_location("blur_texc_offset");
+	loc_tex_view = glsl_blurview->get_uniform_location("tex_view");
+	loc_tex_blur = glsl_blurview->get_uniform_location("tex_blur");
+	glsl_blurview->use_fixed();
+	/* Note 2007/05/08:
+	   we can have a better Blur texture if we generate it at runtime.
+	   What makes up the blur texture?
+	   Water running down over the lens of the periscope.
+	   So use one texture, no UV scrolling, just (re)generate it every frame.
+	   Make an empty (black) texture, draw a set of drops on it (GL_POINTS
+	   of a certain size with a texture that is like a blurmap for a
+	   water drop).
+	   Simulate each drop (moving down by gravity, adding more drops when
+	   periscope collides with water surface).
+	   Render the drops to the texture (with textured GL_POINTS).
+	   Use the texture to render the final effect.
+	   This can be done quick & cheap, but the current scrolling texture
+	   is also ok.
+	*/
+	blurtex.reset(new texture(get_texture_dir() + "blurtest.png", texture::LINEAR, texture::REPEAT));
 }
 
 

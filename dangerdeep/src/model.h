@@ -302,9 +302,6 @@ protected:
 	// class-wide variables: shaders supported and enabled, shader number and init count
 	static unsigned init_count;
 
-	// Config options (only used when supported and enabled)
-	static bool use_shaders;
-
 	// Shader programs
 	static std::auto_ptr<glsl_shader_setup> glsl_color_normal;
 	static std::auto_ptr<glsl_shader_setup> glsl_color_normal_caustic;
@@ -392,7 +389,6 @@ public:
 	model();
 
 	static texture::mapping_mode mapping;	// GL_* mapping constants (default GL_LINEAR_MIPMAP_LINEAR)
-	static bool enable_shaders;	// en-/disable use of FP/VP (default true)
 	static bool enable_hqsfx;
 
 	model(const std::string& filename, bool use_material = true);
