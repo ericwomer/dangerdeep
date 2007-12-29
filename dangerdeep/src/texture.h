@@ -105,14 +105,10 @@ public:
 	};
 
 private:
-	texture();
 	texture& operator=(const texture& other);
 	texture(const texture& other);
 
 protected:
-	// fixme: with automatic size adjustment width/height could change...
-	// when user retrieves w/h later he could get strange results.
-	// maybe store real and gl width, with two get_... functions.
 	GLuint opengl_name;
 	unsigned width;
 	unsigned height;
@@ -138,6 +134,8 @@ protected:
 	static unsigned mem_used;
 	static unsigned mem_alloced;
 	static unsigned mem_freed;
+
+	texture() {}
 
 public:
 	class texerror : public error
@@ -187,13 +185,13 @@ public:
 
 	int get_format() const { return format; }
 	unsigned get_bpp() const;
-	unsigned get_opengl_name() const { return opengl_name; };
+	unsigned get_opengl_name() const { return opengl_name; }
 	void set_gl_texture() const;
-	std::string get_name() const { return texfilename; };
-	unsigned get_width() const { return width; };
-	unsigned get_height() const { return height; };
-	unsigned get_gl_width() const { return gl_width; };
-	unsigned get_gl_height() const { return gl_height; };
+	std::string get_name() const { return texfilename; }
+	unsigned get_width() const { return width; }
+	unsigned get_height() const { return height; }
+	unsigned get_gl_width() const { return gl_width; }
+	unsigned get_gl_height() const { return gl_height; }
 
 	// 2d drawing must be turned on for this functions
 	void draw(int x, int y) const;
@@ -229,6 +227,50 @@ public:
 	// give powers of two for w,h
 	static std::vector<Uint8> make_normals_with_alpha(const std::vector<Uint8>& src,
 							  unsigned w, unsigned h, float detailh);
+};
+
+
+
+///\brief Handles an OpenGL 3d texture
+class texture3d : public texture
+{
+ protected:
+	unsigned depth;
+	unsigned gl_depth;
+
+ public:
+	// create texture from memory values (use openGl constants for format,etc.
+	texture3d(const std::vector<Uint8>& pixels, unsigned w, unsigned h, unsigned d,
+		int format_, mapping_mode mapping_, clamping_mode clamp);
+
+	// allocate a GL texture, set some values, but do not fill texel values
+	// w,h are more for information purposes.
+	texture3d(unsigned w, unsigned h, unsigned d,
+		int format_, mapping_mode mapping_,
+		clamping_mode clamp);
+
+	/// change sub-area of texture from memory values (use openGL constants for format,etc.
+	void sub_image(int xoff, int yoff, int zoff, unsigned w, unsigned h, unsigned d,
+		       const std::vector<Uint8>& pixels, int format);
+
+	unsigned get_depth() const { return depth; }
+	unsigned get_gl_depth() const { return gl_depth; }
+
+ private:
+	// not available for 3d textures
+	void sub_image(int xoff, int yoff, unsigned w, unsigned h,
+		       const std::vector<Uint8>& pixels, int format);
+	void draw(int x, int y) const;
+	void draw_hm(int x, int y) const;
+	void draw_vm(int x, int y) const;
+	void draw(int x, int y, int w, int h) const;
+	void draw_hm(int x, int y, int w, int h) const;
+	void draw_vm(int x, int y, int w, int h) const;
+	void draw_rot(int x, int y, double angle) const;
+	void draw_rot(int x, int y, double angle, int tx, int ty) const;
+	void draw_tiles(int x, int y, int w, int h) const;
+	void draw_subimage(int x, int y, int w, int h, unsigned tx, unsigned ty,
+		unsigned tw, unsigned th) const;
 };
 
 #endif

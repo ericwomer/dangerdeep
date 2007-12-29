@@ -413,50 +413,9 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 	if (clamping < 0 || clamping >= NR_OF_CLAMPING_MODES)
 		throw texerror(get_name(), "illegal clamping mode!");
 
-	// automatic resizing of textures if they're too large
-	// fixme: this old code for old cards. should be obsolete. any cards newer
-	// than geforce2mx can do 4096x4096 textures. Geforce2mx can do 2048x2048.
-	// Far enough for us. So do it only when card is so old, that it can't do
-	// non-power-two textures.
-	const vector<Uint8>* pdata = &data;
-	if (!size_non_power_two()) {
-		vector<Uint8> data2;
-		unsigned ms = get_max_size();
-		if (width > ms || height > ms) {
-			unsigned newwidth = width, newheight = height;
-			unsigned xf = 1, yf = 1;
-			if (width > ms) {
-				newwidth = ms;
-				xf = width/ms;
-			}
-			if (height > ms) {
-				newheight = ms;
-				yf = height/ms;
-			}
-			unsigned bpp = get_bpp();
-			data2.resize(newwidth*newheight*bpp);
-			unsigned area = xf*yf;
-			for (unsigned y = 0; y < newheight; ++y) {
-				for (unsigned x = 0; x < newwidth; ++x) {
-					for (unsigned b = 0; b < bpp; ++b) {
-						unsigned valsum = 0;
-						for (unsigned yy = 0; yy < yf; ++yy) {
-							for (unsigned xx = 0; xx < xf; ++xx) {
-								unsigned ptr = ((y*yf+yy) * width +
-										(x*xf+xx)) * bpp + b;
-								valsum += unsigned(data[ptr]);
-							}
-						}
-						valsum /= area;
-						data2[(y*newwidth+x)*bpp + b] = Uint8(valsum);
-					}
-				}
-			}
-			pdata = &data2;
-			gl_width = newwidth;
-			gl_height = newheight;
-		}
-	}
+	unsigned ms = get_max_size();
+	if (width > ms || height > ms)
+		throw texerror(texfilename, "texture values too large, not supported by card");
 
 	glGenTextures(1, &opengl_name);
 	glBindTexture(GL_TEXTURE_2D, opengl_name);
@@ -470,7 +429,7 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		// give increasing levels with decreasing w/h down to 1x1
 		// e.g. 64x16 -> 32x8, 16x4, 8x2, 4x1, 2x1, 1x1
 		format = GL_RGB;
-		vector<Uint8> nmpix = make_normals(*pdata, gl_width, gl_height, detailh);
+		vector<Uint8> nmpix = make_normals(data, gl_width, gl_height, detailh);
 		int internalformat = format;
 #ifdef COMPRESSED_TEXTURES
 		format = GL_COMPRESSED_LUMINANCE_ARB;
@@ -503,7 +462,7 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 			// fixme: mipmapping for textures with non-power-of-two resolution is
 			// untested!
 			vector<Uint8> curlvl;
-			const vector<Uint8>* gdat = pdata;
+			const vector<Uint8>* gdat = &data;
 			for (unsigned level = 1, w = gl_width/2, h = gl_height/2;
 			     w > 0 && h > 0; w /= 2, h /= 2) {
 				cout << "level " << level << " w " << w << " h " << h << "\n";
@@ -524,7 +483,7 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		}
 	} else if (makenormalmap && format == GL_LUMINANCE_ALPHA) {
 		format = GL_RGBA;
-		vector<Uint8> nmpix = make_normals_with_alpha(*pdata, gl_width, gl_height, detailh);
+		vector<Uint8> nmpix = make_normals_with_alpha(data, gl_width, gl_height, detailh);
 		glTexImage2D(GL_TEXTURE_2D, 0, format, gl_width, gl_height, 0, format,
 			     GL_UNSIGNED_BYTE, &nmpix[0]);
 #ifdef MEMMEASURE
@@ -555,7 +514,7 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		}
 #endif
 		glTexImage2D(GL_TEXTURE_2D, 0, internalformat, gl_width, gl_height, 0, format,
-			     GL_UNSIGNED_BYTE, &((*pdata)[0]));
+			     GL_UNSIGNED_BYTE, &data[0]);
 #ifdef MEMMEASURE
 		add_mem_used = gl_width * gl_height * get_bpp();
 #endif
@@ -564,7 +523,7 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 			// i.e. are the two gl commands redundant?
 			// fixme: doesn't work with textures that don't have power of two size...
 			gluBuild2DMipmaps(GL_TEXTURE_2D, format, gl_width, gl_height,
-					  format, GL_UNSIGNED_BYTE, &((*pdata)[0]));
+					  format, GL_UNSIGNED_BYTE, &data[0]);
 		}
 	}
 
@@ -944,4 +903,130 @@ unsigned texture::get_max_size()
 	GLint i;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &i);
 	return i;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// texture3d
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+texture3d::texture3d(const std::vector<Uint8>& pixels, unsigned w, unsigned h, unsigned d,
+		     int format_, mapping_mode mapping_, clamping_mode clamp)
+{
+	mapping = mapping_;
+	clamping = clamp;
+	
+	if (!size_non_power_two()) {
+		if (w < 1 || (w & (w-1)) != 0)
+			throw texerror(get_name(), "texture width is no power of two!");
+		if (h < 1 || (h & (h-1)) != 0)
+			throw texerror(get_name(), "texture height is no power of two!");
+		if (d < 1 || (d & (d-1)) != 0)
+			throw texerror(get_name(), "texture depth is no power of two!");
+	}
+
+	width = gl_width = w;
+	height = gl_height = h;
+	depth = gl_depth = d;
+	format = format_;
+
+	if (mapping < 0 || mapping >= NR_OF_MAPPING_MODES)
+		throw texerror(get_name(), "illegal mapping mode!");
+	if (clamping < 0 || clamping >= NR_OF_CLAMPING_MODES)
+		throw texerror(get_name(), "illegal clamping mode!");
+
+	unsigned ms = get_max_size();
+	if (width > ms || height > ms || depth > ms)
+		throw texerror("3d tex", "texture values too large, not supported by card");
+
+	glGenTextures(1, &opengl_name);
+	glBindTexture(GL_TEXTURE_3D, opengl_name);
+
+	// make gl texture
+	int internalformat = format;
+#ifdef COMPRESSED_TEXTURES
+	switch (format) {
+	case GL_RGB:
+		internalformat = GL_COMPRESSED_RGB_ARB;
+		break;
+	case GL_RGBA:
+		internalformat = GL_COMPRESSED_RGBA_ARB;
+		break;
+	case GL_LUMINANCE:
+		internalformat = GL_COMPRESSED_LUMINANCE_ARB;
+		break;
+	case GL_LUMINANCE_ALPHA:
+		internalformat = GL_COMPRESSED_LUMINANCE_ALPHA_ARB;
+		break;
+	}
+#endif
+	glTexImage3D(GL_TEXTURE_3D, 0, internalformat, gl_width, gl_height, gl_depth, 0, format,
+		     GL_UNSIGNED_BYTE, &pixels[0]);
+	
+	if (do_mipmapping[mapping]) {
+		// fixme: does this command set the base level, too?
+		// i.e. are the two gl commands redundant?
+		// fixme: doesn't work with textures that don't have power of two size...
+		gluBuild3DMipmaps(GL_TEXTURE_3D, format, gl_width, gl_height, gl_depth,
+				  format, GL_UNSIGNED_BYTE, &pixels[0]);
+	}
+
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, mapmodes[mapping]);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, magfilter[mapping]);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, clampmodes[clamping]);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, clampmodes[clamping]);
+}
+
+
+
+texture3d::texture3d(unsigned w, unsigned h, unsigned d,
+		     int format_, mapping_mode mapping_,
+		     clamping_mode clamp)
+{
+	mapping = mapping_;
+	clamping = clamp;
+	
+	if (!size_non_power_two()) {
+		if (w < 1 || (w & (w-1)) != 0)
+			throw texerror(get_name(), "texture width is no power of two!");
+		if (h < 1 || (h & (h-1)) != 0)
+			throw texerror(get_name(), "texture height is no power of two!");
+		if (d < 1 || (d & (d-1)) != 0)
+			throw texerror(get_name(), "texture depth is no power of two!");
+	}
+
+	width = gl_width = w;
+	height = gl_height = h;
+	depth = gl_depth = d;
+	format = format_;
+
+	if (mapping < 0 || mapping >= NR_OF_MAPPING_MODES)
+		throw texerror(get_name(), "illegal mapping mode!");
+	if (clamping < 0 || clamping >= NR_OF_CLAMPING_MODES)
+		throw texerror(get_name(), "illegal clamping mode!");
+
+	glGenTextures(1, &opengl_name);
+	glBindTexture(GL_TEXTURE_3D, opengl_name);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, mapmodes[mapping]);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, magfilter[mapping]);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, clampmodes[clamping]);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, clampmodes[clamping]);
+	glTexImage3D(GL_TEXTURE_3D, 0, format, w, h, d, 0, GL_RGB,
+		     GL_UNSIGNED_BYTE, (void*)0);
+}
+
+
+
+void texture3d::sub_image(int xoff, int yoff, int zoff, unsigned w, unsigned h, unsigned d,
+			  const std::vector<Uint8>& pixels, int format_)
+{
+	glBindTexture(GL_TEXTURE_3D, opengl_name);
+	glTexSubImage3D(GL_TEXTURE_3D, 0 /* mipmap level */,
+			xoff, yoff, zoff, w, h, d, format_, GL_UNSIGNED_BYTE, &pixels[0]);
+	glBindTexture(GL_TEXTURE_3D, 0);
 }
