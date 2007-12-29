@@ -73,6 +73,7 @@ class vector3t
 	vector4t<D> xyzw(const D& w) const { return vector4t<D>(x, y, z, w); }
 	template<class D2> friend std::ostream& operator<< ( std::ostream& os, const vector3t<D2>& v );
 	template<class E> void assign(const vector3t<E>& other) { x = D(other.x); y = D(other.y); z = D(other.z); }
+	void to_mem(float* p) const { p[0] = x; p[1] = y; p[2] = z; }
 };
 
 template<class D2> inline vector3t<D2> operator* (const D2& scalar, const vector3t<D2>& v) { return v * scalar; }
