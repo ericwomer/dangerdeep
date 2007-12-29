@@ -1030,3 +1030,35 @@ void texture3d::sub_image(int xoff, int yoff, int zoff, unsigned w, unsigned h, 
 			xoff, yoff, zoff, w, h, d, format_, GL_UNSIGNED_BYTE, &pixels[0]);
 	glBindTexture(GL_TEXTURE_3D, 0);
 }
+
+
+
+void texture3d::draw(int x, int y, int w, int h,
+		     const vector3f& tc0, const vector3f& tcdx, const vector3f& tcdy) const
+{
+	// glEnable(GL_TEXTURE_3D); // important! let caller do this...
+	float data[4*(2+3)];
+	data[0*5+0] = x;
+	data[0*5+1] = y+h;
+	(tc0+tcdy).to_mem(&data[0*5+2]);
+	data[1*5+0] = x+w;
+	data[1*5+1] = y+h;
+	(tc0+tcdy+tcdx).to_mem(&data[1*5+2]);
+	data[2*5+0] = x+w;
+	data[2*5+1] = y;
+	(tc0+tcdx).to_mem(&data[2*5+2]);
+	data[3*5+0] = x;
+	data[3*5+1] = y;
+	tc0.to_mem(&data[3*5+2]);
+	glBindTexture(GL_TEXTURE_2D, 0); // important
+	glBindTexture(GL_TEXTURE_3D, opengl_name);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, 4*5, &data[0]);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(3, GL_FLOAT, 4*5, &data[2]);
+	Uint8 idx[4] = { 0, 1, 2, 3 };
+	glDrawRangeElements(GL_QUADS, 0, 3, 4, GL_UNSIGNED_BYTE, &idx[0]);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glBindTexture(GL_TEXTURE_3D, 0);
+}

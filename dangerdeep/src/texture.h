@@ -45,7 +45,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <memory>
 
 #include "error.h"
-
+#include "vector3.h"
 
 /// wrapper for SDL_Surface/SDL_images to make memory management automatic
 class sdl_image
@@ -255,6 +255,10 @@ class texture3d : public texture
 
 	unsigned get_depth() const { return depth; }
 	unsigned get_gl_depth() const { return gl_depth; }
+
+	/// render a quad with the texture applied
+	void draw(int x, int y, int w, int h,
+		  const vector3f& tc0, const vector3f& tcdx, const vector3f& tcdy) const;
 
  private:
 	// not available for 3d textures
