@@ -80,6 +80,15 @@ glsl_shader::glsl_shader(const string& filename, type stype, const glsl_shader::
 		if (sys().extension_supported("GL_NV_texture_env_combine4")) {
 			// we have an Nvidia card (most probably)
 			prg += "#version 110\n";
+			// add some more performance boost stuff if requested
+			if (1) { // fixme: later add cfg-switch for it
+				prg += "#pragma optionNV(fastmath on)\n"
+					"#pragma optionNV(bestprecision off)\n"
+					"#pragma optionNV(fastprecision on)\n"
+					"#pragma optionNV(ifcvt all)\n"
+					"#pragma optionNV(inline all)\n"
+					"#pragma optionNV(unroll all)\n";
+			}
 		}
 
 		// add defines to top of list for preprocessor
