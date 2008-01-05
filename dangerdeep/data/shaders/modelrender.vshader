@@ -22,8 +22,8 @@ attribute vec4 tangentx_righthanded;
 
 #ifdef USE_CAUSTIC
 varying vec2 caustic_texcoord;
-const vec4 plane_s = { 0.05, 0.0, 0.03, 0.0 };
-const vec4 plane_t = { 0.0, 0.05, 0.03, 0.0 };
+const vec4 plane_s = vec4(0.05, 0.0, 0.03, 0.0);
+const vec4 plane_t = vec4(0.0, 0.05, 0.03, 0.0);
 
 float calculate_caustic_coords(vec3 pos, vec4 plane)
 {
