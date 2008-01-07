@@ -59,6 +59,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "credits.h"
 #include "log.h"
 #include "mymain.cpp"
+#include "dftdtester/tests.h"
 
 using std::auto_ptr;
 
@@ -1760,36 +1761,57 @@ int mymain(list<string>& args)
 
 	// --------------------------------------------------------------------------------
 	// check for shader/glsl support
-	if (!glsl_program::supported()) {
-		glClearColor(0, 0, 0, 0);
-		glClear(GL_COLOR_BUFFER_BIT);
-		sys().prepare_2d_drawing();
-		glColor4f(1, 1, 1, 1);
-		font_arial->print(0, 0, "OpenGL 2.0 not detected!\n\nSorry this game needs an OpenGL 2.0 or newer system\n"
-				  "with support for Vertex and Pixel shaders.\n"
-				  "(extensions GL_ARB_fragment_shader, GL_ARB_shader_objects and\n"
-				  "GL_ARB_vertex_shader).\n"
-				  "We can't support ancient hardware any longer as it would cost us extra time\n"
-				  "to do so and we develop all of this in our spare time.\n"
-				  "By the way, cards supporting OpenGL2.0 are available for less than 30 dollars.\n"
-				  "All cards Nvidia GeForce 5x00 or newer or AMD/ATI Radeon 9500 or newer support\n"
-				  "OpenGL2.0. Check also that you have recent drivers.\n"
-				  "\nPress any key to quit.\n");
-		sys().unprepare_2d_drawing();
-		sys().swap_buffers();
-		bool quit = false;
-		while (!quit) {
-			list<SDL_Event> events = sys().poll_event_queue();
-			for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
-				if (it->type == SDL_KEYDOWN) {
-					quit = true;
-				} else if (it->type == SDL_MOUSEBUTTONUP) {
-					quit = true;
+		tests gltest = tests();
+		int problems = gltest.do_gl_tests();
+		std::string warnings;
+
+		// check for fatal errors
+		if ( 0 == problems ) {
+			// non fatal errors
+			if ( !gltest.warn_log.empty() ) {
+				ostringstream str_problems;
+				str_problems << "Warnings (missing functionality):\n"; // TODO: use texts::get ?
+
+				for( set<string>::const_iterator it = gltest.warn_log.begin(); it != gltest.warn_log.end(); it++ )
+					str_problems << "  " << it->c_str() << "\n";
+
+				warnings = str_problems.str();
+			}
+
+			// fatal errors detected...
+			if ( !gltest.error_log.empty() ) {
+				ostringstream str_problems;
+
+				str_problems << "Dangerdeep cannot run on this machine because the following tests failed:\n\n";
+
+				for( set<string>::const_iterator it = gltest.error_log.begin(); it != gltest.error_log.end(); it++ )
+					str_problems << "  " << it->c_str() << "\n";
+
+				str_problems << "\nPress any key to quit.";
+				str_problems << "\n\n" << warnings;
+				
+				glClearColor(0, 0, 1, 0);
+				glClear(GL_COLOR_BUFFER_BIT);
+				sys().prepare_2d_drawing();
+				glColor4f(1, 1, 1, 1);
+				font_arial->print(0, 0, str_problems.str());
+				sys().unprepare_2d_drawing();
+				sys().swap_buffers();
+				bool quit = false;
+				while (!quit) {
+					list<SDL_Event> events = sys().poll_event_queue();
+					for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
+						if (it->type == SDL_KEYDOWN) {
+							quit = true;
+						} else if (it->type == SDL_MOUSEBUTTONUP) {
+							quit = true;
+						}
+					}
 				}
+				throw system::quit_exception(-1);
 			}
 		}
-		throw system::quit_exception(-1);
-	}
+
 	// --------------------------------------------------------------------------------
 
 	log_info("Danger from the Deep");
@@ -1894,6 +1916,11 @@ int mymain(list<string>& args)
 		do {	// loop until menu is closed.
 			// main menu
 			w.remove_children();
+			// opengl warnings
+			if ( 0 != warnings.length() )
+			{
+				w.add_child(new widget_text(20, 20, 0, 0, warnings));
+			}
 			widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(104));
 			wm->set_entry_spacing(8);
 			w.add_child(wm);

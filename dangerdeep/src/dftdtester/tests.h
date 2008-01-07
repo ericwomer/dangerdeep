@@ -29,6 +29,9 @@ class tests
 {
 	public:
 		int main();
+		int do_gl_tests();
+		std::set<std::string> error_log;     // set of generate errors
+		std::set<std::string> warn_log;     // set of generate warnings
 
 	protected:
 		void load_gl_info();
@@ -42,7 +45,6 @@ class tests
 		int do_vshader_check();
 		int do_shaderobj_check();
 
-		int do_gl_tests();
 		int pt_out( std::string message, enum status );
 
 		void *opengl;
@@ -54,8 +56,6 @@ class tests
 		std::string extensions;
 
 		std::set<std::string> supported_extensions;     // memory supported OpenGL extensions
-		std::set<std::string> error_log;     // set of generate errors
-		std::set<std::string> warn_log;     // set of generate warnings
 
 		bool extension_supported(const std::string& s);
 

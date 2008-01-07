@@ -33,20 +33,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "tests.h"
 
-#ifndef WIN32
-
-#include <dlfcn.h>
-#include "glue.h"
-
-#else
-
-#include <windows.h>
-#include <GL/glext.h>
-#define glGetString( a ) (const char *)glGetString( (a) )
-
-#endif
-
-
 using namespace std;
 
 int tests::main()
@@ -85,11 +71,11 @@ int tests::main()
 
 void tests::load_gl_info()
 {
-	const char *c_vendor = glGetString( GL_VENDOR );
-	const char *c_render = glGetString( GL_RENDERER );
+	const char *c_vendor = (const char *)glGetString( GL_VENDOR );
+	const char *c_render = (const char *)glGetString( GL_RENDERER );
 
-	c_version = glGetString( GL_VERSION );
-	c_extensions = glGetString( GL_EXTENSIONS );
+	c_version = (const char *)glGetString( GL_VERSION );
+	c_extensions = (const char *)glGetString( GL_EXTENSIONS );
 
 	string vendor = c_vendor ? c_vendor : "Unknown";
 	string render = c_render ? c_render : "Unknown";
@@ -243,7 +229,7 @@ int tests::do_power2_check()
 	{
 		status = sGOOD;
 	} else {
-		status = sBAD;
+		status = sMED;
 	}
 		
 	return pt_out( "Support for non power of two textures", status );
@@ -328,7 +314,7 @@ bool tests::extension_supported(const string& s)
 	return (it != supported_extensions.end());
 }
 
-#ifndef WIN32
+#if 0
 
 int tests::loadlibs()
 {
