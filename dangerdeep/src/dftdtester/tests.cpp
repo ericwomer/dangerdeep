@@ -130,13 +130,14 @@ int tests::pt_out( std::string message, enum status status )
 		break;
 		case sMED:
 			cout << MED << message << endl;
+			warn_log.insert( message );
 		break;
 		case sBAD:
 			cout << BAD << message << endl;
+			error_log.insert( message );
 		break;
 	}
 
-	error_log.insert( message );
 
 	return 0;
 }
@@ -181,7 +182,6 @@ int tests::do_version_check()
 			status = sMED;
 		} else {
 			status = sBAD;
-			cout << BAD;
 		}
 
 		MPT_OUT( "OpenGL Version: " << major << "." << minor << ".x ", status );

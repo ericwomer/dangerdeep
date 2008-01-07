@@ -54,7 +54,8 @@ class tests
 		std::string extensions;
 
 		std::set<std::string> supported_extensions;     // memory supported OpenGL extensions
-		std::set<std::string> error_log;     // set of generate warnings and errors
+		std::set<std::string> error_log;     // set of generate errors
+		std::set<std::string> warn_log;     // set of generate warnings
 
 		bool extension_supported(const std::string& s);
 
