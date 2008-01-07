@@ -67,7 +67,8 @@ dftdsources = Split("""subsim.cpp
 	user_interface.cpp
 	caustics.cpp
 	water.cpp
-	water_splash.cpp""")
+	water_splash.cpp
+	dftdtester/tests.cpp""")
 
 dftdmediasources = Split("""
 	error.cpp
