@@ -94,4 +94,55 @@ public:
 	std::vector<float> valuesf(unsigned x, unsigned y, unsigned w, unsigned h, unsigned depth = 0xffffffff) const;
 };
 
+
+
+///\brief Generates perlin noise 3d data
+class perlinnoise3d
+{
+public:
+	struct noise_func
+	{
+		std::vector<float> data;
+		unsigned size;		// in powers of two
+		unsigned frequency;	// 1-x
+		float phasex;
+		float phasey;
+		float phasez;
+		// create random noise function
+		noise_func(unsigned s, unsigned f, float px = 0.0f, float py = 0.0f, float pz = 0.0f);
+
+		//fixme: must be there for a plane too
+		// interpolate noise function value
+		mutable unsigned offsetline1, offsetline2;
+		mutable unsigned offsetplane1, offsetplane2;
+		mutable float linefac1, linefac2;
+		mutable float planefac1, planefac2;
+		void set_line_for_interpolation(const std::vector<float>& interpolation_func, float y) const;
+		void set_plane_for_interpolation(const std::vector<float>& interpolation_func, float z) const;
+		float interpolate(const std::vector<float>& interpolation_func, float x) const;
+	};
+
+protected:
+	std::vector<noise_func> noise_functions;
+	unsigned resultsize;
+
+	std::vector<float> interpolation_func;
+
+public:
+	// give size of result (power of two), size of noise function with minimal frequency and maximum frequency
+	// sizeminfreq is usually very small, 2 or 4 at least, at most the same as size, at least 2
+	// sizemaxfreq is usually very high, at most the same as size, at least as sizeminfreq
+	perlinnoise3d(unsigned size, unsigned sizeminfreq, unsigned sizemaxfreq);
+
+	// get number of functions/levels
+	unsigned get_number_of_levels() const { return noise_functions.size(); }
+
+	// set phase of a level
+	void set_phase(unsigned level, float px, float py, float pz);
+
+	// generate a composition of the noise functions
+	std::vector<float> generate(float& minv, float& maxv) const;
+};
+
+
 #endif

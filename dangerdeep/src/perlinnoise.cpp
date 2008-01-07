@@ -361,3 +361,158 @@ std::vector<float> perlinnoise::valuesf(unsigned x, unsigned y, unsigned w, unsi
 	}
 	return result;
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// perlin noise 3d
+//
+////////////////////////////////////////////////////////////////////////////////
+
+perlinnoise3d::noise_func::noise_func(unsigned s, unsigned f, float px, float py, float pz)
+	: size(s), frequency(f), phasex(px), phasey(py), phasez(pz)
+{
+	data.resize(size*size*size);
+	uint32_t base = rand();
+	const float bd = 1.0f / float(1LL << 32);
+	for (unsigned i = 0; i < size * size * size; ++i) {
+		data[i] = float(base) * bd;
+		base = base * (base * 15731 + 789221) + 1376312589;
+	}
+}
+
+
+
+inline float myfrac(float a) { return a-floorf(a); }
+void perlinnoise3d::noise_func::set_line_for_interpolation(const vector<float>& interpolation_func, float y) const
+{
+	float by = myfrac(phasey + y);
+	// remap to value/subvalue coordinates
+	by = by * (size * frequency);
+	unsigned sz1 = size - 1;
+	offsetline1 = int(floorf(by)) & sz1;
+	offsetline2 = (offsetline1 + 1) & sz1;
+	offsetline1 *= size;
+	offsetline2 *= size;
+	linefac2 = interpolation_func[int(floorf(myfrac(by) * interpolation_func.size()))];
+	linefac1 = 1.0f - linefac2;
+}
+
+
+
+void perlinnoise3d::noise_func::set_plane_for_interpolation(const vector<float>& interpolation_func, float z) const
+{
+	float bz = myfrac(phasez + z);
+	// remap to value/subvalue coordinates
+	bz = bz * (size * frequency);
+	unsigned sz1 = size - 1;
+	offsetplane1 = int(floorf(bz)) & sz1;
+	offsetplane2 = (offsetplane1 + 1) & sz1;
+	offsetplane1 *= size*size;
+	offsetplane2 *= size*size;
+	planefac2 = interpolation_func[int(floorf(myfrac(bz) * interpolation_func.size()))];
+	planefac1 = 1.0f - planefac2;
+}
+
+
+
+float perlinnoise3d::noise_func::interpolate(const vector<float>& interpolation_func, float x) const
+{
+	float bx = myfrac(phasex + x);
+	// remap to value/subvalue coordinates
+	bx = bx * (size * frequency);
+	unsigned sz1 = size - 1;
+	unsigned x1 = int(floorf(bx)) & sz1;
+	unsigned x2 = (x1 + 1) & sz1;
+	float a2 = interpolation_func[int(floorf(myfrac(bx) * interpolation_func.size()))];
+	float a1 = 1.0f - a2;
+	float v1 = a1 * data[offsetplane1+offsetline1+x1] + a2 * data[offsetplane1+offsetline1+x2];
+	float v2 = a1 * data[offsetplane1+offsetline2+x1] + a2 * data[offsetplane1+offsetline2+x2];
+	float r1 = linefac1 * v1 + linefac2 * v2;
+	v1 = a1 * data[offsetplane2+offsetline1+x1] + a2 * data[offsetplane2+offsetline1+x2];
+	v2 = a1 * data[offsetplane2+offsetline2+x1] + a2 * data[offsetplane2+offsetline2+x2];
+	float r2 = linefac1 * v1 + linefac2 * v2;
+	return planefac1 * r1 + planefac2 * r2;
+}
+
+
+
+perlinnoise3d::perlinnoise3d(unsigned size, unsigned sizeminfreq, unsigned sizemaxfreq)
+	: resultsize(size)
+{
+	if (!is_power2(size)) throw std::invalid_argument("size is not power of two");
+	if (!is_power2(sizeminfreq)) throw std::invalid_argument("sizeminfreq is not power of two");
+	if (!is_power2(sizemaxfreq)) throw std::invalid_argument("sizemaxfreq is not power of two");
+	if (!(sizeminfreq >= 1 && sizeminfreq <= size && sizeminfreq <= sizemaxfreq)) throw std::invalid_argument("sizeminfreq out of range");
+	if (!(sizemaxfreq >= 2 && sizemaxfreq <= size)) throw std::invalid_argument("sizemaxfreq out of range");
+	unsigned nrfunc = 0;
+	for (unsigned j = sizemaxfreq/sizeminfreq; j > 0; j >>= 1)
+		++nrfunc;
+	// generate functions, most significant first.
+	noise_functions.reserve(nrfunc);
+	for (unsigned i = 0; i < nrfunc; ++i) {
+		// growing size, constant frequency
+		noise_functions.push_back(noise_func(size/(sizemaxfreq>>i), 1));
+		// alternative, always same size, but growing frequency
+//		noise_functions.push_back(noise_func(size/sizemaxfreq, 1<<i));
+	}
+
+	// create interpolation function
+	const unsigned res = 256;
+	interpolation_func.resize(res);
+	for (unsigned i = 0; i < res; ++i) {
+		float f = M_PI * float(i)/res;
+		interpolation_func[i] = (1.0f - cosf(f)) * 0.5f;
+	}
+}
+
+
+
+void perlinnoise3d::set_phase(unsigned func, float px, float py, float pz)
+{
+	if (func < noise_functions.size()) {
+		noise_functions[func].phasex = px;
+		noise_functions[func].phasey = py;
+		noise_functions[func].phasez = pz;
+	}
+}
+
+
+vector<float> perlinnoise3d::generate(float& minv, float& maxv) const
+{
+	vector<float> result(resultsize * resultsize * resultsize);
+	float dxyz = 1.0f/resultsize;
+	unsigned ptr = 0;
+	float fz = 0.0f;
+	maxv = -1e10f;
+	minv = -maxv;
+	for (unsigned z = 0; z < resultsize; ++z) {
+		for (unsigned i = 0; i < noise_functions.size(); ++i) {
+			noise_functions[i].set_plane_for_interpolation(interpolation_func, fz);
+		}
+		float fy = 0.0f;
+		for (unsigned y = 0; y < resultsize; ++y) {
+			for (unsigned i = 0; i < noise_functions.size(); ++i) {
+				noise_functions[i].set_line_for_interpolation(interpolation_func, fy);
+			}
+			float fx = 0.0f;
+			for (unsigned x = 0; x < resultsize; ++x) {
+				float sum = 0;
+				float divi = 1.0f;
+				for (unsigned i = 0; i < noise_functions.size(); ++i) {
+					sum += noise_functions[i].interpolate(interpolation_func, fx) * divi;
+					divi *= 0.5f;
+				}
+				result[ptr++] = sum;
+				minv = std::min(minv, sum);
+				maxv = std::max(maxv, sum);
+				fx += dxyz;
+			}
+			fy += dxyz;
+		}
+		fz += dxyz;
+	}
+
+	return result;
+}
