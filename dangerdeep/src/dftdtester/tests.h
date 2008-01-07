@@ -22,7 +22,8 @@
 
 #endif
 
-
+#define MPT_OUT( a, b ) { ostringstream __temp; __temp << a; return pt_out( __temp.str(), (b) ); }
+enum status { sGOOD, sMED, sBAD };
 
 class tests
 {
@@ -30,11 +31,31 @@ class tests
 		int main();
 
 	protected:
+		void load_gl_info();
+
+		int do_version_check();
+		int do_texunit_check();
+		int do_vbo_check();
+		int do_fb_check();
+		int do_power2_check();
+		int do_fshader_check();
+		int do_vshader_check();
+		int do_shaderobj_check();
+
 		int do_gl_tests();
+		int pt_out( std::string message, enum status );
+
 		void *opengl;
 		void *xlib;
 
+		const char *c_version;
+		const char *c_extensions;
+		std::string version;
+		std::string extensions;
+
 		std::set<std::string> supported_extensions;     // memory supported OpenGL extensions
+		std::set<std::string> error_log;     // set of generate warnings and errors
+
 		bool extension_supported(const std::string& s);
 
 		virtual int loadlibs();

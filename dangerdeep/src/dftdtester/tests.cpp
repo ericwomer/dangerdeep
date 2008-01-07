@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
 #include <iostream>
+#include <sstream>
 #include <set>
 
 #include <GL/gl.h>
@@ -64,7 +65,13 @@ int tests::main()
 
 	if ( 0 ==  do_gl_tests() )
 	{
-		cout << endl << BAD << "Not all tests returned successful. Dangerdeep might not run well or at all on your hardware!" << endl;
+		cout << endl << BAD << "Not all tests returned successful. Dangerdeep might not run well or at all on your hardware! Problems include:" << endl;
+		{
+			for( set<string>::const_iterator it = error_log.begin(); it != error_log.end(); it++ )
+			{
+				cout << it->c_str() << endl;
+			}
+		}
 	} else {
 		cout << endl << GOOD << "No problems were found. You should have no problems running Dangerdeep." << endl;
 	}
@@ -76,30 +83,26 @@ int tests::main()
 	return 0;
 }
 
-int tests::do_gl_tests()
+void tests::load_gl_info()
 {
-	int retval = 1;
-
 	const char *c_vendor = glGetString( GL_VENDOR );
 	const char *c_render = glGetString( GL_RENDERER );
-	const char *c_version = glGetString( GL_VERSION );
-	const char *c_extensions = glGetString( GL_EXTENSIONS );
+
+	c_version = glGetString( GL_VERSION );
+	c_extensions = glGetString( GL_EXTENSIONS );
 
 	string vendor = c_vendor ? c_vendor : "Unknown";
 	string render = c_render ? c_render : "Unknown";
-	string version = c_version ? c_version : "Unknown";
-	string extensions = c_extensions ? c_extensions : "Unknown";
+	version = c_version ? c_version : "Unknown";
+	extensions = c_extensions ? c_extensions : "Unknown";
 
 	cout << START_ITEM << "Vendor: " << STOP_ITEM << vendor << endl;
 	cout << START_ITEM << "Render: " << STOP_ITEM<< render << endl;
-//	cout << START_ITEM << "Version: " << STOP_ITEM<< version << endl;
+	cout << START_ITEM << "Version: " << STOP_ITEM<< version << endl;
 
-
-	// some modifled dftd code
+	// some modifled dftd code to parse the extensions
 	if (c_extensions)
 	{
-//		cout << START_ITEM << "Extensions: " << STOP_ITEM << endl;
-
 		unsigned spos = 0;
 		while ( spos < extensions.length() )
 		{
@@ -111,17 +114,42 @@ int tests::do_gl_tests()
 			} else {
 				supported_extensions.insert(extensions.substr(spos, pos-spos));
 
-//				cout << "\t" << extensions.substr(spos, pos-spos) << endl;
 				spos = pos+1;
 			}
 		}
 	}
+}
 
+int tests::pt_out( std::string message, enum status status )
+{
+	switch ( status )
+	{
+		case sGOOD:
+			cout << GOOD << message << endl;
+			return 1;
+		break;
+		case sMED:
+			cout << MED << message << endl;
+		break;
+		case sBAD:
+			cout << BAD << message << endl;
+		break;
+	}
+
+	error_log.insert( message );
+
+	return 0;
+}
+
+int tests::do_version_check()
+{
 	if ( c_version )
 	{
 		unsigned spos = 0;
 		unsigned count = 0;
 		unsigned last = 0;
+
+		enum status status;
 
 		int major = 0;
 		int minor = 0;
@@ -148,95 +176,147 @@ int tests::do_gl_tests()
 
 		if ( 2 == major )
 		{
-			cout << GOOD;
+			status = sGOOD;
 		} else if ( 1 == major && 5 == minor ) {
-			cout << MED;
-			retval = 0;
+			status = sMED;
 		} else {
+			status = sBAD;
 			cout << BAD;
-			retval = 0;
 		}
 
-		cout << "OpenGL Version: " << major << "." << minor << ".x " << endl;
-
+		MPT_OUT( "OpenGL Version: " << major << "." << minor << ".x ", status );
 	} else {
-		cout << BAD << "No version" << endl;
-		retval = 0;
+		return pt_out( "No version", sBAD );
 	}
+}
 
 
+int tests::do_texunit_check()
+{
 	int texture_units = 0;
+	enum status status;
 
-//#ifndef WIN32
-	// wtf broken under windows or wine ?
 	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &texture_units );
-//#endif
 
 	if ( texture_units > 3 )
 	{
-		cout << GOOD;
+		status = sGOOD;
 	} else if( texture_units > 2 )
 	{
-		cout << MED;
-		retval = 0;
+		status = sMED;
 	} else {
-		cout << BAD;
-		retval = 0;
+		status = sBAD;
 	}
-	cout << "Found " << texture_units << " Texture Units " << endl;
 
+	MPT_OUT( "Found " << texture_units << " Texture Units ", status );
+}
+
+int tests::do_vbo_check()
+{
+	enum status status;
 	if ( extension_supported( "GL_ARB_vertex_buffer_object" ) )
 	{
-		cout << GOOD;
+		status = sGOOD;
 	} else {
-		cout << BAD;
-		retval = 0;
+		status = sBAD;
 	}
-	cout << "Support for vertex buffer objects " << endl;
 
+	return pt_out( "Support for vertex buffer objects", status );
+}
+
+int tests::do_fb_check()
+{
+	enum status status;
 	if ( extension_supported( "GL_EXT_framebuffer_object" ) )
 	{
-		cout << GOOD;
+		status = sGOOD;
 	} else {
-		cout << BAD;
-		retval = 0;
+		status = sBAD;
 	}
-	cout << "Support for framebuffer objects " << endl;
 
+	return pt_out( "Support for framebuffer objects", status );
+}
+int tests::do_power2_check()
+{
+	enum status status;
 	if ( extension_supported( "GL_ARB_texture_non_power_of_two" ) )
 	{
-		cout << GOOD;
+		status = sGOOD;
 	} else {
-		cout << MED;
+		status = sBAD;
 	}
-	cout << "Support for non power of two textures " << endl;
+		
+	return pt_out( "Support for non power of two textures", status );
+}
 
+int tests::do_fshader_check()
+{
+	enum status status;
 	if ( extension_supported( "GL_ARB_fragment_shader" ) )
 	{
-		cout << GOOD;
+		status = sGOOD;
 	} else {
-		cout << BAD;
-		retval = 0;
+		status = sBAD;
 	}
-	cout << "Support for fragment shaders " << endl;
 
+	return pt_out( "Support for fragment shaders", status );
+}
+
+int tests::do_vshader_check()
+{
+	enum status status;
 	if ( extension_supported( "GL_ARB_vertex_shader" ) )
 	{
-		cout << GOOD;
+		status = sGOOD;
 	} else {
-		cout << BAD;
-		retval = 0;
+		status = sBAD;
 	}
-	cout << "Support for vertex shaders " << endl;
 
+	return pt_out( "Support for vertex shaders", status );
+}
+
+int tests::do_shaderobj_check()
+{
+	enum status status;
 	if ( extension_supported( "GL_ARB_shader_objects" ) )
 	{
-		cout << GOOD;
+		status = sGOOD;
 	} else {
-		cout << BAD;
-		retval = 0;
+		status = sBAD;
 	}
-	cout << "Support for shader objects " << endl;
+
+	return pt_out( "Support for shader objects", status );
+}
+
+int tests::do_gl_tests()
+{
+	int retval = 1;
+
+	load_gl_info();
+
+	if ( 0 == do_version_check() )
+		retval = 0;
+
+	if ( 0 == do_texunit_check() )
+		retval = 0;
+	
+	if ( 0 == do_vbo_check() )
+		retval = 0;
+
+	if ( 0 == do_fb_check() )
+		retval = 0;
+	
+	if ( 0 == do_power2_check() )
+		retval = 0;
+
+	if ( 0 == do_fshader_check() )
+		retval = 0;
+
+	if ( 0 == do_vshader_check() )
+		retval = 0;
+
+	if ( 0 == do_shaderobj_check() )
+		retval = 0;
 
 	return retval;
 }
