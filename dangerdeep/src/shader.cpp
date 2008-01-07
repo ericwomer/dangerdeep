@@ -83,7 +83,6 @@ glsl_shader::glsl_shader(const string& filename, type stype, const glsl_shader::
 			// add some more performance boost stuff if requested
 			if (1) { // fixme: later add cfg-switch for it
 				prg += "#pragma optionNV(fastmath on)\n"
-					"#pragma optionNV(bestprecision off)\n"
 					"#pragma optionNV(fastprecision on)\n"
 					"#pragma optionNV(ifcvt all)\n"
 					"#pragma optionNV(inline all)\n"
