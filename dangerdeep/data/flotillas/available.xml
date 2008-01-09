@@ -158,7 +158,61 @@
 			 <subs type="Xb">117 118 119 219 220 233</subs>
 			 <subs type="XIV">459 460 461 462 463 487 488 489 490</subs>
 		</timeperiod>
-		<description lang="en">The 12. Unterseebootsflotille was founded in October 1942, as a flotille for long range boats, under the command of Korvkpt. Klaus Scholz. The main area of operations for this flotille's boats was the south atlantic, and the indian ocean. Based at Bordeaux, when the allies advanced after D-day, the flotille was disbanded, most boats leaving to Flensburg. This flotille was also home to 2 italian submarines of the class Generale Liuzzi, the UIT-22 and UIT-23, previously Alpino Bagnolini and Reginaldo Giulini, respectively, as well as 2 Mercello/Marconi class submarines, the UIT-24 and UIT-25, previously the Comandante Cappellini, and the Luigi Torelli, boats which were also suited for long range operations.</description>
+		<description lang="en">The 12. Unterseebootsflotille was founded in October 1942, as a flotille for long range boats, under the command of Korvkpt. Klaus Scholz. The main area of operations for this flotille boats was the south atlantic, and the indian ocean. Based at Bordeaux, when the allies advanced after D-day, the flotille was disbanded, most boats leaving to Flensburg. This flotille was also home to 2 italian submarines of the class Generale Liuzzi, the UIT-22 and UIT-23, previously Alpino Bagnolini and Reginaldo Giulini, respectively, as well as 2 Mercello/Marconi class submarines, the UIT-24 and UIT-25, previously the Comandante Cappellini, and the Luigi Torelli, boats which were also suited for long range operations.</description>
+   </flotilla>
+
+   <flotilla nr="13" type="combat" sign="insignia_flotille13" base="Trondheim" operationareas="NA CA NS">
+        <timeperiod from="1943/6/1" until="1945/5/31">
+		     <subs type="VIIc">212 251 255 277 278 286 288 289 302 307 310 312 313 315 354 360 362 363 365 366 387 425 427 586 601 622 625 636 639 668 673 703 711 713 716 737 739 742 771 921 956 957 959 965 968 992 994</subs>
+			 <subs type="VIIc41">293 294 295 299 318 995 997 1163</subs>
+		</timeperiod>
+		<description lang="en">The 13. Unterseebootsflotille was founded in June 1943. Based at Trondheim, Norway, it was under the command of Fregkpt. Rolf Ruggeberg, until its disbandment at the end of the war. During the allied advance in 1944, most boats fled the french atlantic bases and left for norwegian bases, being incorporated into norwegian based flotilles, such as the 13. U-flotille.</description>
+   </flotilla>
+
+   <flotilla nr="14" type="combat" sign="insignia_flotilla14" base="Narvik" operationareas="NS">
+        <timeperiod from="1944/12/1" until="1945/5/31">
+		     <subs type="VIIc">427 716</subs>
+			 <subs type="VIIc41">294 295 299 318 995 997</subs>
+		</timeperiod>
+		<description lang="en">The 14. Unterseebootsflotille was founded in December 1944. Based at Narvik, in Norway, it was comprised of boats that fled the french atlantic bases, now in hands of the Allies. Its commander was Kptlt. Helmut Mohlmann, until the flotilla was disbanded, at the end of hostilities.</description>
+   </flotilla>
+
+   <flotilla nr="23" type="combat" sign="insignia_flotille23" base="Salamis" operationareas="MS">
+        <timeperiod from="1941/9/1" until="1942/5/31">
+		     <subs type="VIIb">75 83</subs>
+			 <subs type="VIIc">77 79 97 133 331 371 559</subs>
+		</timeperiod>
+		<description lang="en">23. Unterseebootsflotille, was founded in September 1941 to cover the eastern Mediterranean area. Based at Salamis, Greece, was under the command of Kptlt. Fritz Frauenheim until May 1942, at which time the flotille was disbanded, and the boats incorporated into the 29. Unterseebootsflotille. In September 1943, the flotilla was refounded as a training flotilla, and was under the command of Korvkpt. Otto von Bulow until the end of the war.</description>
+   </flotilla>
+
+   <flotilla nr="29" type="combat" sign="insignia_flotille29" base="La Spezia" operationareas="MS">
+        <timeperiod from="1941/12/1" until="1943/7/31">
+		     <subs type="VIIb">73 74 83</subs>
+			 <subs type="VIIc">77 81 97 205 223 230 301 303 331 343 371 372 374 375 380 407 409 410 414 421 431 443 450 453 455 458 466 471 557 559 562 565 568 573 577 586 593 596 602 605 616 617 642 652 660 755 952 967 969</subs>
+		</timeperiod>
+		<timeperiod from="1943/8/1" until="1944/9/31" base="Toulon">
+		     <subs type="VIIb">73 74 83</subs>
+			 <subs type="VIIc">77 81 97 205 223 230 301 303 331 343 371 372 374 375 380 407 409 410 414 421 431 443 450 453 455 458 466 471 557 559 562 565 568 573 577 586 593 596 602 605 616 617 642 652 660 755 952 967 969</subs>
+		</timeperiod>
+		<description lang="en">The 29. Unterseebootsflotille was founded in December 1941, to cover the Mediterranean area. Under the command of Korvkpt. Franz Becker and then Korvkpt. Fritz Frauenheim, it was based in La Spezia, Italy. When the french port of Toulon was captured, in late 1942, the kriegsmarine decided to transfer the flotilla boats to Toulon, which happened during 1943, now under the command of Korvkpt. Gunther Jahn, altough some boats remained in Pola, Marseille, and Salamis. By 1944 however, the situation had deteriorated, and when the last flotilla boats were destroyed, the flotilla was disbanded.</description>
+   </flotilla>
+
+   <flotilla nr="30" type="combat" sign="insignia_none" base="Constanza" operationareas="BS">
+        <timeperiod from="1942/10/1" until="1944/10/31">
+		     <subs type="IIb">9 18 19 20 23 24</subs>
+		</timeperiod>
+		<description lang="en">The 30. Unterseebootsflotille was founded in October 1944, and was based in Constanza, Romenia, with its intended area of operations as the Black Sea. Since Turkey was neutral, and according to the Montreux Convention of 1936, couldn't allow the passage of beligerant ships through the Bosphorus or the Dardanelles, and there were no U-boat capable shipyards in either Romenia or Bulgary, there was no alternative but to disassemble U-boats, and transport them to their base. In what was one of the strangest operations of WW2, type IIB U-boats were disassembled at Kiel, then transported by water, on the Elbe, until Dresden, then carried by highway until Ingolstadt, and the operation repeated in the Danube, until they were reassembled in Galatz. The flotilla managed to harass the soviet navy, until October 1944, at which time the flotilla was disbanded, when its last boats were scuttled. During its career, it was under the command of Kptlt. Helmut Rosenbaum, Kptlt. Clemens Scholer, and Kptlt. Klaus Petersen.</description>
+   </flotilla>
+
+   <flotilla nr="33" type="combat" sign="insignia_none" base="Flensburg" operationareas="NA CA MS">
+        <timeperiod from="1944/9/1" until="1945/5/31">
+		     <subs type="VIIc">245 260 262 267 281 309 382 398 714 758 763 953 989 1205</subs>
+			 <subs type="IXc">155 510 516 518</subs>
+			 <subs type="IXc40">168 170 183 190 530 532 534 537 539 541 546 547 548 802 804 805 806 843 853 857 858 866 868 869 870 877 878 879 880 881 889 1221 1223 1226 1227 1228 1230 1231 1232 1233 1235</subs>
+			 <subs type="IXd">181 195 196 861 862 864 873 874 875</subs>
+			 <subs type="Xb">219 234</subs>
+		</timeperiod>
+		<description lang="en">The 33. Unterseebootsflotille was founded in September 1944, primarily equipped with long range U-boats that fled the french atlantic bases, now in hands of the Allies. Altough based in Flensburg, some boats were based in Penang, and Jakarta, covering the Indian Ocean. Some boats did transport missions to Japan, in an interchange of strategic materials and technology. Altough most boats were of the IX type, and some XB minelayers, the Kriegsmarine exchanged some VIIC boats, by italian Marcello/Marconi class, which were also used as transport boats. During its career, the flotilla was under the command of Korvkpt. Goerg Schewe, and later, Korvkpt. Gunther Kuhnke, until the flotilla disbandment, at the end of the war.</description>
    </flotilla>
             
     <flotilla nr="99" type="combat" sign="insignia_flotille29" base="Universum" operationareas="NA CA NS">
