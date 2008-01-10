@@ -46,13 +46,12 @@ class sky
 protected:
 	double mytime;					// store global time in seconds
 
-	const unsigned vsegs, hsegs;
 	texture::ptr sunglow;
 	texture::ptr clouds;
 	texture::ptr suntex;
 	double cloud_animphase;				// 0-1 phase of interpolation
 	std::vector<std::vector<Uint8> > noisemaps_0, noisemaps_1;// interpolate to animate clouds
-	vertexbufferobject clouds_vertices, clouds_indices;
+	vertexbufferobject clouds_texcoords;
 	unsigned cloud_levels, cloud_coverage, cloud_sharpness;
 	std::vector<unsigned> cloud_interpolate_func;	// give fraction as Uint8
 
@@ -86,8 +85,8 @@ protected:
 
 public:
 	sky(const double tm = 0.0,
-	    const unsigned int sectors_h = 40,
-	    const unsigned int sectors_v = 15);
+	    const unsigned int sectors_h = 64,
+	    const unsigned int sectors_v = 16);
 	//fixme: this should recompute sky color! not display...
 	void set_time(double tm);
 

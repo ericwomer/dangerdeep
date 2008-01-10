@@ -59,13 +59,10 @@ const double CLOUD_ANIMATION_CYCLE_TIME = 3600.0;
 
 sky::sky(const double tm, const unsigned int sectors_h, const unsigned int sectors_v)
 	: mytime(tm),
-	  vsegs(16),
-	  hsegs(64),
 	  sunglow(0),
 	  clouds(0),
 	  suntex(0),
-	  clouds_vertices(false),
-	  clouds_indices(true),
+	  clouds_texcoords(false),
 	  sky_vertices(false),
 	  sky_indices(true),
 	  sun_azimuth(10.0f), sun_elevation(10.0f),
@@ -111,45 +108,18 @@ sky::sky(const double tm, const unsigned int sectors_h, const unsigned int secto
 	noisemaps_1 = compute_noisemaps();
 	compute_clouds();
 
-	// create cloud mesh display list, FIXME get it from sky hemisphere mesh data!
-	unsigned skysegs = vsegs*hsegs;
-	clouds_vertices.init_data((skysegs+1)*5*4, 0, GL_STATIC_DRAW);
-	float* ptr = (float*)clouds_vertices.map(GL_WRITE_ONLY);
-	for (unsigned beta = 0; beta < vsegs; ++beta) {
-		float t = (1.0-float(beta)/vsegs)/2;
-		float r = cos(M_PI/2*beta/vsegs);
-		float h = sin(M_PI/2*beta/vsegs);
-		for (unsigned alpha = 0; alpha < hsegs; ++alpha) {
-			float x = cos(2*M_PI*alpha/hsegs);
-			float y = sin(2*M_PI*alpha/hsegs);
-			*ptr++ = x*r;
-			*ptr++ = y*r;
-			*ptr++ = h;
+	clouds_texcoords.init_data(nr_sky_vertices*2*4, 0, GL_STATIC_DRAW);
+	float* ptr = (float*)clouds_texcoords.map(GL_WRITE_ONLY);
+	for (unsigned beta = 0; beta <= sectors_v; ++beta) {
+		float t = (1.0-float(beta)/sectors_v)/2;
+		for (unsigned alpha = 0; alpha <= sectors_h; ++alpha) {
+			float x = cos(2*M_PI*alpha/sectors_h);
+			float y = sin(2*M_PI*alpha/sectors_h);
 			*ptr++ = x*t+0.5;
 			*ptr++ = y*t+0.5;
 		}
 	}
-	*ptr++ = 0;
-	*ptr++ = 0;
-	*ptr++ = 1;
-	*ptr++ = 0.5;
-	*ptr++ = 0.5;
-	clouds_vertices.unmap();
-
-	// triangle strips would be better...
-	clouds_indices.init_data(skysegs*4*4, 0, GL_STATIC_DRAW);
-	Uint32* idxptr = (Uint32*)clouds_indices.map(GL_WRITE_ONLY);
-	for (unsigned beta = 0; beta < vsegs; ++beta) {
-		for (unsigned alpha = 0; alpha < hsegs; ++alpha) {
-			*idxptr++ = beta*hsegs+alpha;
-			*idxptr++ = (beta==vsegs-1) ? skysegs : (beta+1)*hsegs+alpha;
-			*idxptr++ = (beta==vsegs-1) ? skysegs : (beta+1)*hsegs+(alpha+1)%hsegs;
-//			if((alpha+beta)&1)continue;
-			*idxptr++ = beta*hsegs+(alpha+1)%hsegs;
-		}
-	}
-	clouds_indices.unmap();
-	clouds_indices.unbind();
+	clouds_texcoords.unmap();
 
 	glsl_clouds.reset(new glsl_shader_setup(get_shader_dir() + "clouds.vshader",
 						get_shader_dir() + "clouds.fshader"));
@@ -431,17 +401,22 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	glScalef(10000, 10000, 3330);	// bottom of cloud layer has altitude of 3km., fixme varies with weather
 	glsl_clouds->use();
 	glsl_clouds->set_gl_texture(*clouds, loc_cloudstex, 0);
-	clouds_vertices.bind();
+	sky_vertices.bind();
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 5*4, 0);
+	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, 5*4, (float*)0 + 3);
-	clouds_indices.bind();
-	unsigned skysegs = vsegs*hsegs;
-	glDrawElements(GL_QUADS, skysegs*4, GL_UNSIGNED_INT, 0);
-	clouds_indices.unbind();
+	clouds_texcoords.bind();
+	glTexCoordPointer(2, GL_FLOAT, 2*4, (float*)0);
+	glEnableClientState(GL_COLOR_ARRAY);
+	sky_colors.bind();
+	glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0);
+	sky_colors.unbind();
+	sky_indices.bind();
+	glDrawRangeElements(GL_QUAD_STRIP, 0, nr_sky_vertices-1, nr_sky_indices, GL_UNSIGNED_INT, 0);
+	sky_indices.unbind();
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
 	glsl_clouds->use_fixed();
 	glPopMatrix();
 
@@ -467,9 +442,7 @@ void sky::build_dome(const unsigned int sectors_h, const unsigned int sectors_v)
 
 	float phi,theta;
 	float x,y,z;
-	// sectors are connected around the (hemisphere), so we have sectors_h vertices per vertical
-	// sector, not sectors_h+1
-	nr_sky_vertices = sectors_h*(sectors_v+1);
+	nr_sky_vertices = (sectors_h+1)*(sectors_v+1);
 	// 2 start indices, two indices per quad, 4 indices for sector change (2 degenerated quads)
 	// but not for last sector.
 	nr_sky_indices = 2 + sectors_v*sectors_h*2 + (sectors_v-1)*2*2;
@@ -495,7 +468,7 @@ void sky::build_dome(const unsigned int sectors_h, const unsigned int sectors_v)
 		}
 
 		// definition of the circular sections
-		for(unsigned int j=0; j<sectors_h; j++) {
+		for(unsigned int j=0; j<= sectors_h; j++) {
 			theta = 2 * j * M_PI / sectors_h;
 
 			x = radius * cos(theta) * cos(phi);
@@ -508,21 +481,17 @@ void sky::build_dome(const unsigned int sectors_h, const unsigned int sectors_v)
 	}
 
 	// build index list
-	skyindices.push_back(sectors_h);	// start indices
-	skyindices.push_back(0);
 	for(unsigned i=0; i<sectors_v; i++) {
 		// traverse indices in reserve order because angles are ccw, so we walk around
 		// the horizontal sector in ccw order (quad-strips normally clockwise)
-		for(unsigned j=0; j<sectors_h;j++) {
-			skyindices.push_back((i+1)*sectors_h + sectors_h - j - 1);
-			skyindices.push_back( i   *sectors_h + sectors_h - j - 1);
+		for(unsigned j=0; j<=sectors_h;j++) {
+			skyindices.push_back((i+1)*(sectors_h+1) + sectors_h - j);
+			skyindices.push_back( i   *(sectors_h+1) + sectors_h - j);
 		}
 		// degenerated quads for sector conjunction
 		if (i + 1 < sectors_v) {
-			skyindices.push_back((i+1)*sectors_h);
-			skyindices.push_back((i+1)*sectors_h);
-			skyindices.push_back((i+2)*sectors_h);
-			skyindices.push_back((i+1)*sectors_h);
+			skyindices.push_back( i   *(sectors_h+1));
+			skyindices.push_back((i+2)*(sectors_h+1) + sectors_h);
 		}
 	}
 	sky_vertices.init_data(nr_sky_vertices*sizeof(vector3f), &skyverts[0], GL_STATIC_DRAW);
