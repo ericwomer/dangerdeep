@@ -61,9 +61,7 @@
               <subs type="VIIb">85</subs>
               <subs type="VIIc">82 132 134 205 206 212 231 241 242 245 246 257 258 259 262 275 280 289 332 333 334 341 343 344 352 373 375 376 378 384 391 398 402 423 431 432 433 444 451 452 458 466 468 469 476 478 483 484 553 567 568 569 570 571 572 573 596 600 611 613 615 619 620 625 630 635 645 652 657 661 671 677 701 706 712 719 734 752 753 760 763 952 953 957 960 970 971 975 978 992 993</subs>
          </timeperiod>
-         <description lang="en">3. Unterseebootsflotille was founded on the 4th of October 1937. Based at Kiel, it was under the command of Kptlt. Hans Eckermann until 1939, at which time it was disbanded, only to be
-         later refounded in March 1941. Still based at Kiel, during 1941 the flotille was moved to La Pallice, and later to La Rochelle, until the allied advance forced its disbandment in October 1944, its last uboats leaving for bases in Norway. The 3. U-Flotille was also known as U-Flotille "Lohs", in honour of the Oblt.z.S. Johannes Lohs, an World War I commander, of the uboats UC-57, and UB-57, under which he sank a total of 148667 tons of shipping during 15 patrols. He died
-         on the 14th of August 1918, when UB-57 hit a mine and sunk.</description>
+         <description lang="en">3. Unterseebootsflotille was founded on the 4th of October 1937. Based at Kiel, it was under the command of Kptlt. Hans Eckermann until 1939, at which time it was disbanded, only to be later refounded in March 1941. Still based at Kiel, during 1941 the flotille was moved to La Pallice, and later to La Rochelle, until the allied advance forced its disbandment in October 1944, its last uboats leaving for bases in Norway. The 3. U-Flotille was also known as U-Flotille "Lohs", in honour of the Oblt.z.S. Johannes Lohs, an World War I commander, of the uboats UC-57, and UB-57, under which he sank a total of 148667 tons of shipping during 15 patrols. He died on the 14th of August 1918, when UB-57 hit a mine and sunk.</description>
    </flotilla>
 
    <flotilla nr="4" type="training" sign="insignia_none" base="Stettin" operationareas="NA CA NS">
@@ -290,6 +288,99 @@
 		<description lang="en">23. Unterseebootsflotille, was founded in September 1941 to cover the eastern Mediterranean area. Based at Salamis, Greece, was under the command of Kptlt. Fritz Frauenheim until May 1942, at which time the flotille was disbanded, and the boats incorporated into the 29. Unterseebootsflotille. In September 1943, the flotilla was refounded as a training flotilla, and was under the command of Korvkpt. Otto von Bulow until the end of the war.</description>
    </flotilla>
 
+   <flotilla nr="24" type="training" sign="insignia_flotille24" base="Danzig" operationareas="NA CA NS">
+         <timeperiod from="1939/11/1" until="1940/5/31">
+		      <subs type="IIb"></subs>
+		 </timeperiod>
+		 <timeperiod from="1940/6/1" until="1941/5/31" base="Memel">
+		      <subs type="IIb">8 9 14 18 19 121</subs>
+			  <subs type="IIc">56</subs>
+			  <subs type="IId">142 143 148 151 152</subs>
+			  <subs type="VIIc">71 72 80 96 236 251 287 351 393 554 555 560 579 612 704 747 748 749 750 763 821 982 1161 1162 1192 1193 1195 1207</subs>
+			  <subs type="VIIc41">999 1007 1008</subs>
+			  <subs type="IX">38</subs>
+		 </timeperiod>
+		 <timeperiod from="1941/6/1" until="1941/8/31" base="Trondheim">
+		      <subs type="IIb">8 9 14 18 19 121</subs>
+			  <subs type="IIc">56</subs>
+			  <subs type="IId">142 143 148 151 152</subs>
+			  <subs type="VIIc">71 72 80 96 236 251 287 351 393 554 555 560 579 612 704 747 748 749 750 763 821 982 1161 1162 1192 1193 1195 1207</subs>
+			  <subs type="VIIc41">999 1007 1008</subs>
+			  <subs type="IX">38</subs>
+		 </timeperiod>
+		 <timeperiod from="1941/9/1" until="1944/9/30" base="Memel">
+		      <subs type="IIb">8 9 14 18 19 121</subs>
+			  <subs type="IIc">56</subs>
+			  <subs type="IId">142 143 148 151 152</subs>
+			  <subs type="VIIc">71 72 80 96 236 251 287 351 393 554 555 560 579 612 704 747 748 749 750 763 821 982 1161 1162 1192 1193 1195 1207</subs>
+			  <subs type="VIIc41">999 1007 1008</subs>
+			  <subs type="IX">38</subs>
+		 </timeperiod>
+		 <timeperiod from="1944/10/1" until="1945/1/31" base="Gotenhafen">
+		      <subs type="IIb">8 9 14 18 19 121</subs>
+			  <subs type="IIc">56</subs>
+			  <subs type="IId">142 143 148 151 152</subs>
+			  <subs type="VIIc">71 72 80 96 236 251 287 351 393 554 555 560 579 612 704 747 748 749 750 763 821 982 1161 1162 1192 1193 1195 1207</subs>
+			  <subs type="VIIc41">999 1007 1008</subs>
+			  <subs type="IX">38</subs>
+		 </timeperiod>
+		 <timeperiod from="1945/2/1" until="1945/3/31" base="Eckernforde">
+		      <subs type="IIb">8 9 14 18 19 121</subs>
+			  <subs type="IIc">56</subs>
+			  <subs type="IId">142 143 148 151 152</subs>
+			  <subs type="VIIc">71 72 80 96 236 251 287 351 393 554 555 560 579 612 704 747 748 749 750 763 821 982 1161 1162 1192 1193 1195 1207</subs>
+			  <subs type="VIIc41">999 1007 1008</subs>
+			  <subs type="IX">38</subs>
+		 </timeperiod>
+		 <description lang="en">The 24. Unterseebootsflotille was founded in November 1939, as a training flotille, under the command of Korvkpt. Hannes Weingartner. This was one of the flotilles where future commanders were trained. During its existence, it was based at Danzig, Memel, Trondheim, Memel, Gotenhafen, and Eckernforde, where it remained until being disbanded in March 1945. Kpt.z.See R.Peters, Fregkpt. Karl-Friedrich Merten, Korvkpt. Karl Jasper, and again Fregkpt. Karl-Friedrich Merten, succeeded Korvkpt. Hannes Wingartner in the command of the flotille during its existence.</description>
+   </flotilla>
+
+   <flotilla nr="25" type="training" sign="insignia_flotille25" base="Danzig" operationareas="NA CA NS">
+        <timeperiod from="1940/4/1" until="1941/5/31">
+		     <subs type="none">0</subs>
+		</timeperiod>
+		<timeperiod from="1941/6/1" until="1941/8/31" base="Trondheim">
+		     <subs type="none">0</subs>
+		</timeperiod>
+		<timeperiod from="1941/9/1" until="1943/5/31" base="Danzig">
+		     <subs type="none">0</subs>
+		</timeperiod>
+		<timeperiod from="1943/6/1" until="1943/11/31" base="Memel">
+		     <subs type="none">0</subs>
+		</timeperiod>
+		<timeperiod from="1943/12/1" until="1944/5/31" base="Libau">
+		     <subs type="none">0</subs>
+		</timeperiod>
+		<timeperiod from="1944/6/1" until="1945/1/15" base="Gotenhafen">
+		     <subs type="none">0</subs>
+		</timeperiod>
+		<timeperiod from="1945/1/16" until="1945/5/31" base="Travemunde">
+		     <subs type="none">0</subs>
+		</timeperiod>
+		<description lang="en">The 25. Unterseebootsflotille, was a torpedo fire-training flotille with no attached boats (Torpedoschiessausbildung). Founded in April of 1940, under the command of Korvkpt. Ernst Hashagen, it was based at Danzig and Trondheim during 1941, then Danzig, Memel, and Libau until 1944, then finally Gotenhafen and Travemunde, where it remained until being disbanded at the end of hostilities. Korvkpt. Karl Jaspter, Fregkpt. Karl Neitzel, Korvkpt. Robert Gysae, and Korvkpt. Wilhelm Schulz followed Korvkpt. Ernst Hashagen in the command of the flotille.</description>
+   </flotilla>
+
+   <flotilla nr="26" type="training" sign="insignia_flotille26" base="Pillau" operationareas="NA CA NS">
+        <timeperiod from="1941/4/1" until="1945/1/31">
+		     <subs type="VIIb">46 48 52 101</subs>
+			 <subs type="VIIc">80 351</subs>
+		     <subs type="IX">37</subs>
+		</timeperiod>
+		<timeperiod from="1945/2/1" until="1945/5/31" base="Warnemunde">
+		     <subs type="VIIb">46 48 52 101</subs>
+			 <subs type="VIIc">80 351</subs>
+		     <subs type="IX">37</subs>
+		</timeperiod>
+		<description lang="en">The 26. Unterseebootsflotille was founded in April 1941, as a torpedo fire-training flotille (Torpedoschiessausbildung), however unlike flotille 25, it had boats assigned. Based at Pillau, it was under the command of Korvkpt. Hans-Gerrit von Stockhausen, followed by Korvkpt. Karl-Friedrich Marten, Fregkpt. Helmut Brummer-Patzig, and Korvkpt. Ernsst Bauer. Early 1945, it moved to Warnemunde, where it stayed until being disbanded at the end of the war.</description>
+   </flotilla>
+
+   <flotilla nr="27" type="training" sign="insignia_none" base="Gotenhafen" operationareas="NA CA NS">
+        <timeperiod from="1940/1/1" until="1945/3/31">
+		     <subs type="UD4">4</subs>
+		</timeperiod>
+		<description lang="en">The 27. Unterseebootsflotille was founded in January 1940 as a training flotille, focused on tactical training (Taktische Ausbildung Unterseeboote), providing an 1 to 2 weeks course on simulated convoy attack tactics (Taktische Ubung). It was under the command of Korvkpt. Ersnt Sobe until 1941, at which time Fregkptn. Werner Hartmann took command until 1942, followed by Korvkpt. Erich Topp from 1942 to 1944, and Kptlt. Ernst Bauer until the flotille disbandment in March 1945. During its entire operational career the flotille was based at Gotenhafen, having as single boat, the UD-4, an dutch submarine previously named O-26.</description>
+   </flotilla>
+
    <flotilla nr="29" type="combat" sign="insignia_flotille29" base="La Spezia" operationareas="MS">
         <timeperiod from="1941/12/1" until="1943/7/31">
 		     <subs type="VIIb">73 74 83</subs>
@@ -307,6 +398,30 @@
 		     <subs type="IIb">9 18 19 20 23 24</subs>
 		</timeperiod>
 		<description lang="en">The 30. Unterseebootsflotille was founded in October 1944, and was based in Constanza, Romenia, with its intended area of operations as the Black Sea. Since Turkey was neutral, and according to the Montreux Convention of 1936, couldn't allow the passage of beligerant ships through the Bosphorus or the Dardanelles, and there were no U-boat capable shipyards in either Romenia or Bulgary, there was no alternative but to disassemble U-boats, and transport them to their base. In what was one of the strangest operations of WW2, type IIB U-boats were disassembled at Kiel, then transported by water, on the Elbe, until Dresden, then carried by highway until Ingolstadt, and the operation repeated in the Danube, until they were reassembled in Galatz. The flotilla managed to harass the soviet navy, until October 1944, at which time the flotilla was disbanded, when its last boats were scuttled. During its career, it was under the command of Kptlt. Helmut Rosenbaum, Kptlt. Clemens Scholer, and Kptlt. Klaus Petersen.</description>
+   </flotilla>
+
+   <flotilla nr="31" type="training" sign="insignia_none" base="Hamburg" operationareas="NA CA NS">
+        <timeperiod from="1943/9/1" until="1945/5/31">
+		     <subs type="IIb">120 121</subs>
+			 <subs type="IId">140 141 148 150 151 152</subs>
+			 <subs type="VIIc">235 236 237 251 276 287 291 316 349 350 367 368 369 397 428 429 430 554 560 612 677 679 680 681 683 683 708 712 720 721 722 733 746 747 748 768 771 772 773 774 775 776 777 778 779 903 905 907 922 924 975 977 982 1101 1102 1132 1192 1193 1194 1196 1197 1198 1201 1204</subs>
+			 <subs type="VIIc41">999 1000 1001 1002 1003 1004 1005 1006 1007 1008 1009 1010 1013 1014 1015 1016 1017 1018 1019 1020 1021 1022 1023 1024 1103 1167 </subs>
+			 <subs type="IXc40">1224 1225 1226 1227 1228 1229 1230 1231 1232 1233 1234 1235</subs>
+			 <subs type="XXI">2501 2502 2503 2504 2505 2506 2507 2508 2509 2510 2511 2512 2513 2514 2515 2516 2517 2518 2519 2520 2521 2522 2523 2524 2525 2526 2527 2528 2529 2530 2531 2533 2534 2535 2536 2538 2539 2540 2541 2542 2543 2544 2545 2546 2548 2551 2552</subs>
+		</timeperiod>
+		<description lang="en">The 31. Unterseebootsflotille was founded in September 1941, as a training flotille. Under the command of Kptn.z.See S. Bruno Mahn, it was based at Hamburg, the most important U-boat yard in Germany during WW2, but it also shared the Hamburg base, with an Wilhelmshaven base, and a Wesermunde base. In April 1945, Korvkpt. Carl Emmermann took command of the flotille, until the flotille disbandment in May 1945, at the end of the war.</description>
+   </flotilla>
+
+   <flotilla nr="32" type="training" sign="insignia_none" base="Konigsberg" operationareas="NA CA NS">
+        <timeperiod from="1944/4/1" until="1944/12/31">
+		     <subs type="XXI">3001 3002</subs>
+			 <subs type="XXIII">2321 2322 2324 2325 2326 2327 2328 2329 2330 2331 2334 2335 2336 2337 2338 2339 2340 2341 2342 2343 2344 2345 2346 2347 2348 2349 2350 2351 2352 2353 2354 2355 2356 2357 2358 2359 2360 2361 2362 2363 2364</subs>
+		</timeperiod>
+		<timeperiod from="1945/1/1" until="1945/5/31" base="Hamburg">
+		     <subs type="XXI">3001 3002</subs>
+			 <subs type="XXIII">2321 2322 2324 2325 2326 2327 2328 2329 2330 2331 2334 2335 2336 2337 2338 2339 2340 2341 2342 2343 2344 2345 2346 2347 2348 2349 2350 2351 2352 2353 2354 2355 2356 2357 2358 2359 2360 2361 2362 2363 2364</subs>
+		</timeperiod>
+		<description lang="en">The 32. Unterseebootsflotille was founded in April 1944 as a training flotille. Originally based at Konigsberg, it was used for training on the electric U-boats, the type XXI, of which it had 2 boats assigned, and the type XXIII coastal boats, that comprised the almost totality of the flotille boats. In January 1945, the based was moved to Hamburg, where it was located the biggest U-boat shipyard in Germany. Korvkpt. Ulrich Heyse took command of the flotille in March 1945, and he remained in command until the flotille was disbanded in May 1945, at the end of hostilities.</description>
    </flotilla>
 
    <flotilla nr="33" type="combat" sign="insignia_none" base="Flensburg" operationareas="NA CA MS">
