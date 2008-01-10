@@ -165,7 +165,7 @@ int tests::do_version_check()
 		{
 			status = sGOOD;
 		} else if ( 1 == major && 5 == minor ) {
-			status = sMED;
+			status = sBAD; // we require OpenGL 2.x as a minimum.
 		} else {
 			status = sBAD;
 		}
