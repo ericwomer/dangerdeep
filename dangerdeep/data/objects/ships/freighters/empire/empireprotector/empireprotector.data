@@ -13,9 +13,9 @@
     <near lang="it">Empire Protector (Mercantile di classe Empire)</near>
   </description>
   <motion maxspeed="1" maxrevspeed="0" acceleration="0.1" turnrate="0.1"/>
-  <tonnage value="7061" />
-  <mass value="10000000" />
-  <smoke type="1" x="0" y="-3.13" z="16.58"/>
+  <tonnage value="6061" />
+  <mass value="7500000" />
+  <smoke type="1" x="0" y="-4" z="18"/>
   <sensors>
     <sensor type="lookout"/>
   </sensors>
