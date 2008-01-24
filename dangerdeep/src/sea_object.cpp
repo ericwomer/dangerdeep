@@ -232,6 +232,43 @@ string sea_object::compute_skin_name() const
 
 
 
+void sea_object::set_random_skin_name(const date& d)
+{
+	unsigned nr_possible = 0;
+	for (list<skin_variant>::const_iterator it = skin_variants.begin();
+	     it != skin_variants.end(); ++it) {
+		if (d >= it->from && d <= it->until)
+			++nr_possible;
+	}
+	if (nr_possible == 0) {
+		log_debug("Could not chose valid skin, using anyone");
+		nr_possible = skin_variants.size();
+		if (nr_possible == 0) {
+			set_skin_layout(model::default_layout);
+			return; // can't set anything, shouldn't happen
+		}
+	}
+	unsigned chosen = rnd(nr_possible);
+	for (list<skin_variant>::const_iterator it = skin_variants.begin();
+	     it != skin_variants.end(); ++it) {
+		if (d >= it->from && d <= it->until) {
+			if (chosen == 0) {
+				skin_date = d;
+				skin_regioncode = "NN";
+				skin_country = UNKNOWNCOUNTRY;
+				log_debug("using skin name " << it->name << " as random skin");
+				set_skin_layout(it->name);
+				return;
+			}
+			--chosen;
+		}
+	}
+	// set default layout if everything else fails
+	set_skin_layout(model::default_layout);
+}
+
+
+
 void sea_object::set_skin_layout(const std::string& layout)
 {
 //	cout << "set skin layout = '" << layout << "'\n";

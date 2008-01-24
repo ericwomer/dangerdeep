@@ -155,7 +155,7 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 				xml_doc doc(data_file().get_filename(shiptype));
 				doc.load();
 				ship* s = new ship(gm, doc.first_child());
-				s->set_skin_layout(model::default_layout);
+				s->set_random_skin_name(gm.get_date());
 				vector2 pos = vector2(
 					dx*intershipdist + rnd()*60.0-30.0,
 					dy*intershipdist + rnd()*60.0-30.0 );
@@ -190,7 +190,7 @@ convoy::convoy(game& gm_, convoy::types type_, convoy::esctypes esct_)
 			xml_doc doc(data_file().get_filename(shiptype));
 			doc.load();
 			ship* s = new ship(gm, doc.first_child());
-			s->set_skin_layout(model::default_layout);
+			s->set_random_skin_name(gm.get_date());
 			vector2 pos = vector2(
 				dx+nx + rnd()*100.0-50.0,
 				dy+ny + rnd()*100.0-50.0 );

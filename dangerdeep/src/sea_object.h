@@ -386,6 +386,9 @@ public:
 
 	/// get reference to model of this object, throws error if no model
 	class model& get_model() const;
+
+	/// set random skin_name by given date, only to use for convoy creation
+	void set_random_skin_name(const date& d);
 };
 
 #endif
