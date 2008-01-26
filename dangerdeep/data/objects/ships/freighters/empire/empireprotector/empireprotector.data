@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
-  <classification identifier="empireprotector" modelname="empireprotector.ddxml" type="merchant" country="GB" />
+  <classification identifier="empireprotector" modelname="empireprotector.ddxml" type="merchant" country="GB" >
+    <skin name="empirebruce" regions="CA,SA,CS,IO,GM,ES,SC,MS" countries="CD,GB" from="1939/1/1" until="1945/12/31" />
+	<skin name="empirelancer" regions="NA,WA,NW,NS,BA,CA,BS,CE" countries="CD,GB" from="1940/1/1" until="1945/12/31"/>
+  </classification>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>

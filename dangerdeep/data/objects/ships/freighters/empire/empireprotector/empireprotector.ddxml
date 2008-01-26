@@ -3,7 +3,10 @@
     <diffuse color="1 1 1" />
     <specular color="1 1 1" />
     <shininess exponent="75" />
-    <map type="diffuse" filename="empireprotector_diffuse.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0"/>
+    <map type="diffuse" filename="empireprotector_diffuse.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0">
+	<skin filename="empire_bruce.jpg" layout="empirebruce"/>
+	<skin filename="empire_lancer.jpg" layout="empirelancer"/>
+    </map>
     <map type="normal" filename="empireprotector_bump.png" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0"/>
     <map type="specular" filename="empireprotector_specular.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0"/>
   </material>
