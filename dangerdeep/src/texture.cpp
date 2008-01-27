@@ -943,6 +943,7 @@ texture3d::texture3d(const std::vector<Uint8>& pixels, unsigned w, unsigned h, u
 		throw texerror("3d tex", "texture values too large, not supported by card");
 
 	glGenTextures(1, &opengl_name);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindTexture(GL_TEXTURE_3D, opengl_name);
 
 	// make gl texture
@@ -979,6 +980,7 @@ texture3d::texture3d(const std::vector<Uint8>& pixels, unsigned w, unsigned h, u
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, clampmodes[clamping]);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, clampmodes[clamping]);
+	glBindTexture(GL_TEXTURE_3D, 0);
 }
 
 
@@ -1010,6 +1012,7 @@ texture3d::texture3d(unsigned w, unsigned h, unsigned d,
 		throw texerror(get_name(), "illegal clamping mode!");
 
 	glGenTextures(1, &opengl_name);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindTexture(GL_TEXTURE_3D, opengl_name);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, mapmodes[mapping]);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, magfilter[mapping]);
@@ -1018,6 +1021,7 @@ texture3d::texture3d(unsigned w, unsigned h, unsigned d,
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, clampmodes[clamping]);
 	glTexImage3D(GL_TEXTURE_3D, 0, format, w, h, d, 0, GL_RGB,
 		     GL_UNSIGNED_BYTE, (void*)0);
+	glBindTexture(GL_TEXTURE_3D, 0);
 }
 
 
