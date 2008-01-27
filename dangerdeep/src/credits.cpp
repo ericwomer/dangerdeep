@@ -2397,6 +2397,22 @@ void show_credits()
 				     texture::NEAREST, texture::REPEAT));
 	unsigned fadein_ctr = 0;
 
+#undef  TEX3DTEST
+#ifdef TEX3DTEST
+#define TEX3DRES 32
+	std::vector<Uint8> pix3d(TEX3DRES*TEX3DRES*TEX3DRES*3);
+	for (unsigned z = 0; z < TEX3DRES; ++z) {
+		for (unsigned y = 0; y < TEX3DRES; ++y) {
+			for (unsigned x = 0; x < TEX3DRES; ++x) {
+				pix3d[3*((z*TEX3DRES+y)*TEX3DRES+x)+0] = 255*x/TEX3DRES;
+				pix3d[3*((z*TEX3DRES+y)*TEX3DRES+x)+1] = 255*y/TEX3DRES;
+				pix3d[3*((z*TEX3DRES+y)*TEX3DRES+x)+2] = 255*z/TEX3DRES;
+			}
+		}
+	}
+	texture3d tex3d(pix3d, TEX3DRES, TEX3DRES, TEX3DRES, GL_RGB, texture::LINEAR, texture::REPEAT);
+#endif
+
 	bool quit = false;
 	float lines_per_sec = 2;
 	float ctr = 0.0, ctradd = 1.0/32.0;
@@ -2536,6 +2552,21 @@ void show_credits()
 			}
 		}
 #endif
+
+#ifdef TEX3DTEST
+		// 3d tex test
+		glColor4f(1,1,1,1);
+		glEnable(GL_TEXTURE_3D); // important!
+#if 0
+		float d = ((sys().millisec() - tm0)/1000.0)/10.0;
+		tex3d.draw(256, 128, 512, 512, vector3f(0,0,d), vector3f(1,0,0), vector3f(0,1,0));
+#else
+		float d = 2*3.14159*((sys().millisec() - tm0)/1000.0)/10.0;
+		tex3d.draw(256, 128, 512, 512, vector3f(0,0,0), vector3f(cos(d),0,sin(d)), vector3f(0,1,0));
+#endif
+		glDisable(GL_TEXTURE_3D); // important!
+#endif
+
 		sys().unprepare_2d_drawing();
 
 		unsigned tm2 = sys().millisec();
