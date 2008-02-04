@@ -138,6 +138,7 @@ void gun_shell::check_collision()
 		if (t0*t1 < 0.0 || t0 >= 0.0 && t0 <= dvl || t1 >= 0.0 && t1 <= dvl) {
 			//log_debug("gun_shell "<<this<<" intersects bsphere of "<<s);
 			check_collision_precise(*s, -k, dv2 - k);
+			if (alive_stat == dead) return; // no more checks after hit
 		}
 	}
 
@@ -202,6 +203,7 @@ void gun_shell::check_collision_precise(ship& s, const vector3& oldrelpos,
 		//log_debug("shell hit object?!");
 		vector3f d = newrelbbox - oldrelbbox;
 		check_collision_voxel(s, oldrelbbox + d * tmin, oldrelbbox + d * tmax);
+		if (alive_stat == dead) return; // no more checks after hit
 	}
 }
 
@@ -217,15 +219,46 @@ void gun_shell::check_collision_voxel(ship& s, const vector3f& oldrelpos, const 
 	// and determine voxel number by pos.
 	// if coordinate is invalid, no hit, otherwise check voxel state (volume > 0.25 or similar)
 	// if the voxel is filled.
-
-	// hit:
-		if (s.damage(s.get_pos(), int(damage_amount))) { // fixme, crude
-			gm.ship_sunk(&s);
-		} else {
-			s.ignite();
+	vector3f voxel_size_rcp = s.get_model().get_voxel_size().rcp();
+	const vector3i& vres = s.get_model().get_voxel_resolution();
+	vector3f voxel_pos_trans = vector3f(vres) * 0.5f;
+	int lastvn = -1;
+	log_debug("check collision voxel");
+	for (unsigned k = 0; k <= 10; ++k) {
+		float kf = k/10.0f;
+		vector3f voxpos = oldvoxpos * kf + newvoxpos * (1.0f - kf);
+		vector3i v = vector3i(voxpos.coeff_mul(voxel_size_rcp) + voxel_pos_trans);
+		v = v.max(vector3i(0,0,0)).min(vres);
+		int vn = (v.z * vres.y + v.y)*vres.x + v.x;
+		if (vn != lastvn) {
+			lastvn = vn;
+			log_debug("voxel hit k="<<k<<" voxpos="<<voxpos<<" v="<<v<<" vn="<<vn);
+			const model::voxel& vox = s.get_model().get_voxel_data()[vn];
+			if (vox.part_of_volume > 0.001) {
+				// we hit a part of the object!
+				log_debug("..... Object hit! .....");
+				// first compute exact real word position of impact
+				vector3 impactpos = s.get_pos()
+					+ s.get_orientation().rotate(s.get_model().
+						get_base_mesh_transformation() * voxpos);
+				// move gun shell pos to hit position to
+				// let the explosion be at right position
+				position = impactpos;
+				log_debug("Hit object at real world pos " << impactpos);
+				log_debug("that is relative: " << s.get_pos()-impactpos);
+				// now damage the ship
+				if (s.damage(impactpos, int(damage_amount))) { // fixme, crude
+					gm.ship_sunk(&s);
+				} else {
+					s.ignite();
+				}
+				//fixme: spawn some location marker object for testing
+				//at exact impact position
+				gm.add_event(new event_shell_explosion(this));
+				kill(); // grenade is used and dead
+			}
 		}
-		gm.add_event(new event_shell_explosion(this));
-		kill(); // grenade is used and dead
+	}
 }
 
 
