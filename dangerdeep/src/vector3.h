@@ -74,6 +74,7 @@ class vector3t
 	template<class D2> friend std::ostream& operator<< ( std::ostream& os, const vector3t<D2>& v );
 	template<class E> void assign(const vector3t<E>& other) { x = D(other.x); y = D(other.y); z = D(other.z); }
 	void to_mem(float* p) const { p[0] = x; p[1] = y; p[2] = z; }
+	vector3t<D> rcp() const { return vector3t(D(1)/x, D(1)/y, D(1)/z); }
 };
 
 template<class D2> inline vector3t<D2> operator* (const D2& scalar, const vector3t<D2>& v) { return v * scalar; }
