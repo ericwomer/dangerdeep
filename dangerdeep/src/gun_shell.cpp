@@ -253,11 +253,14 @@ void gun_shell::check_collision_voxel(ship& s, const vector3f& oldrelpos, const 
 				} else {
 					s.ignite();
 				}
-				//fixme: spawn some location marker object for testing
+#if 0
+				//spawn some location marker object for testing
 				//at exact impact position
 				gm.spawn_particle(new marker_particle(impactpos));
+#endif
 				gm.add_event(new event_shell_explosion(get_pos()));
 				kill(); // grenade is used and dead
+				return; // no more checks
 			}
 		}
 	}
