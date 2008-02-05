@@ -1122,7 +1122,8 @@ ship::gun_status ship::fire_shell_at(const vector2& pos)
 										res = GUN_TARGET_IN_BLINDSPOT;
 									} else {
 										// fixme: snap angle values to simulate real cannon accuracy.
-										gm.spawn_gun_shell(new gun_shell(gm, get_pos(), direction, elevation, gun->initial_velocity, gun->shell_damage), 
+										// fixme #2, we add z + 4m to avoid shell<->water surface collisions
+										gm.spawn_gun_shell(new gun_shell(gm, get_pos() + vector3(0,0,4), direction, elevation, gun->initial_velocity, gun->shell_damage), 
 												   gun->calibre);
 										gun->num_shells_remaining--;
 										gun_barrel->load_time_remaining = GUN_RELOAD_TIME;
