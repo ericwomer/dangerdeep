@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "water_splash.h"
 #include "event.h"
 #include "log.h"
+#include "particle.h"
 
 gun_shell::gun_shell(game& gm_)
 	: sea_object(gm_, "gun_shell.3ds"), damage_amount(0)
@@ -254,6 +255,7 @@ void gun_shell::check_collision_voxel(ship& s, const vector3f& oldrelpos, const 
 				}
 				//fixme: spawn some location marker object for testing
 				//at exact impact position
+				gm.spawn_particle(new marker_particle(impactpos));
 				gm.add_event(new event_shell_explosion(this));
 				kill(); // grenade is used and dead
 			}

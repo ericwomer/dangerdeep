@@ -71,6 +71,7 @@ protected:
 	static std::vector<texture*> watersplashes;
 	static texture* tex_fireworks;
 	static texture* tex_fireworks_flare;
+	static texture* tex_marker;
 
 	// wh must be power of two (returns a square). 1 <= 2^low <= 2^high <= wh
 	static std::vector<float> interpolate_func;
@@ -214,5 +215,15 @@ public:
 
 
 
+class marker_particle : public particle
+{
+	bool is_z_up() const { return false; }
+public:
+	marker_particle(const vector3& pos);
+	double get_width() const;
+	double get_height() const;
+	void set_texture(game& gm, const colorf& light_color) const;
+	double get_life_time() const;
+};
 
 #endif

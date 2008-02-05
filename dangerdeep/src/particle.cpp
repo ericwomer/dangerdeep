@@ -40,6 +40,7 @@ vector<texture*> particle::explosionsml;
 vector<texture*> particle::watersplashes;
 texture* particle::tex_fireworks = 0;
 texture* particle::tex_fireworks_flare = 0;
+texture* particle::tex_marker = 0;
 
 #define NR_OF_SMOKE_TEXTURES 16
 #define NR_OF_FIRE_TEXTURES 64
@@ -315,6 +316,7 @@ void particle::init()
 
 	tex_fireworks = new texture(get_texture_dir() + "fireworks.png", texture::LINEAR, texture::CLAMP_TO_EDGE);
 	tex_fireworks_flare = new texture(get_texture_dir() + "fireworks_flare.png", texture::LINEAR, texture::CLAMP_TO_EDGE);
+	tex_marker = new texture(get_texture_dir() + "marker.png", texture::LINEAR, texture::CLAMP_TO_EDGE);
 }
 
 
@@ -335,6 +337,7 @@ void particle::deinit()
 		delete watersplashes[i];
 	delete tex_fireworks;
 	delete tex_fireworks_flare;
+	delete tex_marker;
 }
 
 
@@ -747,4 +750,42 @@ void fireworks_particle::custom_display(const vector3& viewpos, const vector3& d
 double fireworks_particle::get_life_time() const
 {
 	return 6.0; // seconds
+}
+
+
+
+// marker
+
+marker_particle::marker_particle(const vector3& pos) : particle(pos)
+{
+}
+
+
+
+double marker_particle::get_width() const
+{
+	// oscillate between 1m and 10m every two seconds
+	return myfrac(life * 500) * 9 + 1;
+}
+
+
+
+double marker_particle::get_height() const
+{
+	return get_width();
+}
+
+
+
+void marker_particle::set_texture(class game& /*gm*/, const colorf& /*light_color*/) const
+{
+	glColor4f(1, 1, 1, 1);
+	tex_marker->set_gl_texture();
+}
+
+
+
+double marker_particle::get_life_time() const
+{
+	return 1000.0; // stays for 1000 seconds
 }
