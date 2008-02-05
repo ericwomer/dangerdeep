@@ -40,8 +40,6 @@ public:
 	// create from mission file or savegame (xml file)
 	game_editor(const std::string& filename);
 
-	void simulate(double delta_t);
-
 	const ptrset<convoy>& get_convoy_list() const { return convoys; }
 
 	// is editor?

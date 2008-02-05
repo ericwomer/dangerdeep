@@ -701,7 +701,9 @@ template<class T> void cleanup(ptrset<T>& s)
 
 void game::simulate(double delta_t)
 {
-	if (my_run_state != running) return;
+	if (!is_editor()) {
+		if (my_run_state != running) return;
+	}
 
 	// protect physics simulation from bad values, simulation step must not
 	// be less than 20fps.
@@ -731,18 +733,20 @@ void game::simulate(double delta_t)
 		}
 	}
 
-	// this could be done in jobs, fixme
-	if (!player->is_alive()) {
-		log_info("player killed!");//testing fixme
-		my_run_state = player_killed;
-		return;
-	}
+	if (!is_editor()) {
+		// this could be done in jobs, fixme
+		if (!player->is_alive()) {
+			log_info("player killed!");//testing fixme
+			my_run_state = player_killed;
+			return;
+		}
 	
-	if (/* submarines.size() == 0 && */ ships.size() == 0 && torpedoes.size() == 0 && depth_charges.size() == 0 &&
-			airplanes.size() == 0 && gun_shells.size() == 0) {
-		log_info("no objects except player left!");//testing fixme
-		my_run_state = mission_complete; // or also contact lost?
-		return;
+		if (/* submarines.size() == 0 && */ ships.size() == 0 && torpedoes.size() == 0 && depth_charges.size() == 0 &&
+		    airplanes.size() == 0 && gun_shells.size() == 0) {
+			log_info("no objects except player left!");//testing fixme
+			my_run_state = mission_complete; // or also contact lost?
+			return;
+		}
 	}
 
 	compute_max_view_dist();
@@ -843,9 +847,11 @@ void game::simulate(double delta_t)
 			pings.erase(it2);
 	}
 	
-	if (nearest_contact > ENEMYCONTACTLOST) {
-		log_info("player lost contact to enemy!");//testing fixme
-		my_run_state = contact_lost;
+	if (!is_editor()) {
+		if (nearest_contact > ENEMYCONTACTLOST) {
+			log_info("player lost contact to enemy!");//testing fixme
+			my_run_state = contact_lost;
+		}
 	}
 }
 

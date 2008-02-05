@@ -1168,6 +1168,7 @@ ship::gun_status ship::fire_shell_at(const sea_object& s)
 
 bool ship::man_guns()
 {
+	log_debug("man guns, is gun manned? " << has_guns() && is_gun_manned());
 	if (has_guns() && !is_gun_manned()) {
 		if (!gun_manning_is_changing) {
 			// fixme: man ALL guns
@@ -1183,6 +1184,7 @@ bool ship::man_guns()
 
 bool ship::unman_guns()
 {
+	log_debug("UNman guns, is gun manned? " << has_guns() && is_gun_manned());
 	if (has_guns() && is_gun_manned()) {
 		if (!gun_manning_is_changing) {
 			// fixme: unman ALL guns
