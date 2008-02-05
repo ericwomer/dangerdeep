@@ -710,11 +710,11 @@ void user_interface::add_rudder_message()
 
 
 void user_interface::play_sound_effect(const string &se,
-				       const sea_object* noise_source /*, bool loop*/) const
+				       const vector3& noise_source /*, bool loop*/) const
 {	
 	music::inst().play_sfx(se, mygame->get_player()->get_pos(),
 			       mygame->get_player()->get_heading(),
-			       noise_source->get_pos());
+			       noise_source);
 }
 
 

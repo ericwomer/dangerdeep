@@ -189,7 +189,7 @@ public:
 	/** This method creates a message about the rudder state. */
 	virtual void add_rudder_message();
 	virtual void play_sound_effect(const std::string &se,
-				       const sea_object* noise_source /*, bool loop = false*/) const;
+				       const vector3& noise_source /*, bool loop = false*/) const;
 	virtual void pause_all_sound() const;
 	virtual void resume_all_sound() const;
 

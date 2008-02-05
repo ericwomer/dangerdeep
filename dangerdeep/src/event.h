@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define EVENT_H
 
 class user_interface;
-class sea_object;
+#include "vector3.h"
 
 /// interface for any event that needs special handling by user interface
 class event
@@ -93,81 +93,81 @@ class event_gun_unmanned : public event
 /// depth charge hitting water surface
 class event_depth_charge_in_water : public event
 {
-	const sea_object* source;
+	vector3 source;
  public:
-	event_depth_charge_in_water(const sea_object* src) : source(src) {}
+	event_depth_charge_in_water(const vector3& src) : source(src) {}
 	void evaluate(user_interface& ui);
 };
 
 /// depth charge exploding
 class event_depth_charge_exploding : public event
 {
-	const sea_object* source;
+	vector3 source;
  public:
-	event_depth_charge_exploding(const sea_object* src) : source(src) {}
+	event_depth_charge_exploding(const vector3& src) : source(src) {}
 	void evaluate(user_interface& ui);
 };
 
 /// light gun fires
 class event_gunfire_light : public event
 {
-	const sea_object* source;
+	vector3 source;
  public:
-	event_gunfire_light(const sea_object* src) : source(src) {}
+	event_gunfire_light(const vector3& src) : source(src) {}
 	void evaluate(user_interface& ui);
 };
 
 /// medium gun fires
 class event_gunfire_medium : public event
 {
-	const sea_object* source;
+	vector3 source;
  public:
-	event_gunfire_medium(const sea_object* src) : source(src) {}
+	event_gunfire_medium(const vector3& src) : source(src) {}
 	void evaluate(user_interface& ui);
 };
 
 /// heavy gun fires
 class event_gunfire_heavy : public event
 {
-	const sea_object* source;
+	vector3 source;
  public:
-	event_gunfire_heavy(const sea_object* src) : source(src) {}
+	event_gunfire_heavy(const vector3& src) : source(src) {}
 	void evaluate(user_interface& ui);
 };
 
 /// shell exploding
 class event_shell_explosion : public event
 {
-	const sea_object* source;
+	vector3 source;
  public:
-	event_shell_explosion(const sea_object* src) : source(src) {}
+	event_shell_explosion(const vector3& src) : source(src) {}
 	void evaluate(user_interface& ui);
 };
 
 /// shell splashes water
 class event_shell_splash : public event
 {
-	const sea_object* source;
+	vector3 source;
  public:
-	event_shell_splash(const sea_object* src) : source(src) {}
+	event_shell_splash(const vector3& src) : source(src) {}
 	void evaluate(user_interface& ui);
 };
 
 /// torpedo explodes
 class event_torpedo_explosion : public event
 {
-	const sea_object* source;
+	vector3 source;
  public:
-	event_torpedo_explosion(const sea_object* src) : source(src) {}
+	event_torpedo_explosion(const vector3& src) : source(src) {}
 	void evaluate(user_interface& ui);
 };
 
 /// ping is sent in water
 class event_ping : public event
 {
-	const sea_object* source;
+	vector3 source;
  public:
-	event_ping(const sea_object* src) : source(src) {}
+	event_ping(const vector3& src) : source(src) {}
 	void evaluate(user_interface& ui);
 };
 

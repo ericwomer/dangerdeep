@@ -152,7 +152,7 @@ void gun_shell::check_collision()
 			vector3 p = position;
 			position.z = wh;
 			gm.spawn_water_splash(new gun_shell_water_splash(gm, p));
-			gm.add_event(new event_shell_splash(this));
+			gm.add_event(new event_shell_splash(get_pos()));
 			kill();
 		}
 	}
@@ -256,7 +256,7 @@ void gun_shell::check_collision_voxel(ship& s, const vector3f& oldrelpos, const 
 				//fixme: spawn some location marker object for testing
 				//at exact impact position
 				gm.spawn_particle(new marker_particle(impactpos));
-				gm.add_event(new event_shell_explosion(this));
+				gm.add_event(new event_shell_explosion(get_pos()));
 				kill(); // grenade is used and dead
 			}
 		}

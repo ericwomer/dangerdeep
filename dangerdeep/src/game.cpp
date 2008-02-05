@@ -1371,24 +1371,24 @@ void game::spawn_gun_shell(gun_shell* s, const double &calibre)
 	gun_shells.push_back(s);
 	// vary the sound effect based on the gun size
 	if (calibre <= 120.0)
-		events.push_back(new event_gunfire_light(s));
+		events.push_back(new event_gunfire_light(s->get_pos()));
 	else if (calibre <= 200.0)
-		events.push_back(new event_gunfire_medium(s));
+		events.push_back(new event_gunfire_medium(s->get_pos()));
 	else
-		events.push_back(new event_gunfire_heavy(s));
+		events.push_back(new event_gunfire_heavy(s->get_pos()));
 }
 
 void game::spawn_water_splash(water_splash* s)
 {
 	water_splashes.push_back(s);
-	// events.push_back(new event_splash(s));
+	// events.push_back(new event_splash(s->get_pos()));
 }
 
 void game::spawn_depth_charge(depth_charge* dc)
 {
 	depth_charges.push_back(dc);
 	// evaluation of event should be only when player is near enough to hear it...
-	events.push_back(new event_depth_charge_in_water(dc));
+	events.push_back(new event_depth_charge_in_water(dc->get_pos()));
 }
 
 void game::spawn_convoy(convoy* cv)
@@ -1408,7 +1408,7 @@ void game::dc_explosion(const depth_charge& dc)
 {
 	// Create water splash.
 	spawn_water_splash(new depth_charge_water_splash(*this, dc.get_pos().xy().xy0()));
-	events.push_back(new event_depth_charge_exploding(&dc));
+	events.push_back(new event_depth_charge_exploding(dc.get_pos()));
 
 	// are subs affected?
 	// fixme: ships can be damaged by DCs also...
@@ -1424,12 +1424,12 @@ void game::torp_explode(const torpedo *t)
 	// each torpedo seems to explode twice, if it's only drawn twice or adds twice the damage is unknown.
 	// fixme!
 	spawn_water_splash(new torpedo_water_splash(*this, t->get_pos().xy().xy0()));
-	events.push_back(new event_torpedo_explosion(t));
+	events.push_back(new event_torpedo_explosion(t->get_pos()));
 }
 
 void game::ship_sunk(const ship* s)
 {
-	events.push_back(new event_ship_sunk(/*s*/));
+	events.push_back(new event_ship_sunk());
 	ostringstream oss;
 	oss << texts::get(83) << " " << s->get_description ( 2 );
 	date d((unsigned)time);
@@ -1465,7 +1465,7 @@ void game::ping_ASDIC ( list<vector3>& contacts, sea_object* d,
 		pings.push_back ( ping ( d->get_pos ().xy (),
 			ass->get_bearing () + d->get_heading (), time,
 			ass->get_range (), ass->get_detection_cone () ) );
-		events.push_back(new event_ping(d));
+		events.push_back(new event_ping(d->get_pos()));
 
 		// fixme: noise from ships can disturb ASDIC or may generate more contacs.
 		// ocean floor echoes ASDIC etc...
