@@ -764,8 +764,8 @@ marker_particle::marker_particle(const vector3& pos) : particle(pos)
 
 double marker_particle::get_width() const
 {
-	// oscillate between 1m and 16m every seconds
-	return myfrac(life * 1000) * 15 + 1;
+	// oscillate between 1m and 20m every seconds
+	return myfrac(life * 1000) * 19 + 1;
 }
 
 
