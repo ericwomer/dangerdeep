@@ -215,6 +215,7 @@ void gun_shell::check_collision_voxel(ship& s, const vector3f& oldrelpos, const 
 	// positions are relative to bbox of s.
 	matrix4f obj2voxel = s.get_model().get_base_mesh_transformation().inverse();
 	vector3f oldvoxpos = obj2voxel * oldrelpos, newvoxpos = obj2voxel * newrelpos;
+	vector3f diffvoxpos = newvoxpos - oldvoxpos;
 	// now iterate in 8 steps between oldvoxpos to newvoxpos,
 	// transform both to voxel coordinates (0...N)
 	// and determine voxel number by pos.
@@ -227,7 +228,7 @@ void gun_shell::check_collision_voxel(ship& s, const vector3f& oldrelpos, const 
 	log_debug("check collision voxel");
 	for (unsigned k = 0; k <= 10; ++k) {
 		float kf = k/10.0f;
-		vector3f voxpos = oldvoxpos * kf + newvoxpos * (1.0f - kf);
+		vector3f voxpos = oldvoxpos + diffvoxpos * kf;
 		vector3i v = vector3i(voxpos.coeff_mul(voxel_size_rcp) + voxel_pos_trans);
 		v = v.max(vector3i(0,0,0)).min(vres);
 		int vn = (v.z * vres.y + v.y)*vres.x + v.x;
