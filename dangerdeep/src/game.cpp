@@ -1946,6 +1946,23 @@ void game::check_collisions()
 	// intersection check like above using a sphere per voxel that has same
 	// volume as the voxel (like for buoyancy). Then we have 80*80=6400 sphere
 	// tests, which is acceptable.
+	// the remaining volume can give precise hints which voxels have to be checked
+	// for collisions, so the number of tests can be cut down much more.
+
+	// collision response:
+	// the two objects collide at a position P that is relative to their center
+	// (P(a) and P(b)). We have to compute their velocity (direction and strength,
+	// a vector), which can be derived from the rigid body state variables.
+	// The direction of the response force is orthogonal to the surface normal,
+	// but maybe direction of P(a)-P(b) would do it as well. In theory response
+	// vector is just +/- (P(a)-P(b)), for A/B (or vice versa), multiplied by some
+	// dampening factor simulating friction.
+	// just apply the force instantly to the body states to change their velocities
+	// and we are done...
+
+	// fixme: collision checks between fast moving small objects and bigger objects
+	// (like shells vs. ships) should be done here too, and not only in gun_shell
+	// class. Later other objects may need that code too (machine cannons, guns etc).
 }
 
 
