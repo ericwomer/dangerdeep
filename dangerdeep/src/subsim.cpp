@@ -580,7 +580,6 @@ void run_game_editor(auto_ptr<game> gm)
 }
 
 
-
 /** choose player data
     @returns false when cancelled
 */
@@ -599,12 +598,19 @@ public:
 	{
 		if (imagenames.empty()) throw error("can't use widget_image_select with empty list");
 		background = imagecache().ref(*current + extension);
+		add_child(new widget_text(20, 20, 0, 0, texts::get(117)));
 	}
 	virtual const std::string& get_current_imagename() const { return *current; }
-	void on_release()
+	void next(int direction)
 	{
-		++current;
-		if (current == imagenames.end()) current = imagenames.begin();
+		if (direction > 0) {
+			current++;
+			if (current == imagenames.end()) current = imagenames.begin();
+		} else {
+			if (current == imagenames.begin()) current = imagenames.end();
+			current--;
+		}
+
  		imagecache().unref(background);
 		background = 0;
 		background = imagecache().ref(*current + extension);
@@ -643,6 +649,27 @@ public:
 			++it;
 		}
 		return n;
+	}
+};
+
+class widget_button_next : public widget_button
+{
+	int direction;
+	widget_image_select* attached_widget;
+public:
+	widget_button_next(int x, int y, int w, int h, int dir, 
+			   widget_image_select* att, const std::string& text_,
+			   const std::string& bg_image_, widget* parent_ = 0)
+		: widget_button(x, y, w, h, text_, parent_, bg_image_)
+	{
+		direction = dir;
+		attached_widget = att;
+	}
+
+	void on_release ()
+	{
+		pressed = false;
+		attached_widget->next(direction);
 	}
 };
 
@@ -829,11 +856,16 @@ bool choose_player_info(game::player_info& pi, const std::string& subtype, const
 	for (unsigned i = 1; i <= 11; ++i)
 		playerphotos.push_back(std::string("player_photo") + str(i));
 
-	widget_image_select* wplayerphoto = new widget_image_select(762-220/2, 215-400/2, 220, 400, ".jpg|png", playerphotos);
+	w.add_child(new widget_text(652+60, 40+10, 0, 0, texts::get(162)));
+
+	widget_image_select* wplayerphoto = new widget_image_select(652+45, 40+45, 205, 300, ".jpg|png", playerphotos);
 	w.add_child(wplayerphoto);
 
-	// photo change
-	w.add_child(new widget_text(762-220/2, 360, 0, 0, texts::get(162)));
+	widget_button_next *widget_image_left_btn = new widget_button_next(652+10, 40+150, 25, 80, -1, wplayerphoto, "<", "");
+	w.add_child(widget_image_left_btn);
+
+	widget_button_next *widget_image_right_btn = new widget_button_next(652+260, 40+150, 25, 80, 1, wplayerphoto, ">", "");
+	w.add_child(widget_image_right_btn);
 
 	w.add_child(wemblem);
 
