@@ -1810,7 +1810,7 @@ water::geoclipmap_patch::geoclipmap_patch(unsigned N,
 	vbo.unmap();
 	vbo.unbind();
 
-#if 1 // paranoia checks for debug
+#if 0 // paranoia checks for debug
 	if (index_ptr != nr_indices) {
 		printf("ERROR: idxptr %u nri %u\n",index_ptr,nr_indices);
 		throw error("BUG");
