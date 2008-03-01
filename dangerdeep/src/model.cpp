@@ -1200,7 +1200,7 @@ void model::material::map::set_gl_texture() const
 
 
 
-void model::material::map::set_gl_texture(glsl_program& prog, unsigned loc, unsigned texunitnr) const
+void model::material::map::set_gl_texture(const glsl_program& prog, unsigned loc, unsigned texunitnr) const
 {
 	if (!tex)
 		throw error("set_gl_texture(shader) with empty texture");
@@ -1209,7 +1209,7 @@ void model::material::map::set_gl_texture(glsl_program& prog, unsigned loc, unsi
 
 
 
-void model::material::map::set_gl_texture(glsl_shader_setup& gss, unsigned loc, unsigned texunitnr) const
+void model::material::map::set_gl_texture(const glsl_shader_setup& gss, unsigned loc, unsigned texunitnr) const
 {
 	if (!tex)
 		throw error("set_gl_texture(shader) with empty texture");
@@ -1373,6 +1373,101 @@ void model::material::get_all_layout_names(std::set<std::string>& result) const
 		normalmap->get_all_layout_names(result);
 	if (specularmap.get())
 		specularmap->get_all_layout_names(result);
+}
+
+
+
+model::material_glsl::material_glsl(const std::string& nm, const std::string& vsfn, const std::string& fsfn)
+	: material(nm),
+	  vertexshaderfn(vsfn),
+	  fragmentshaderfn(fsfn),
+	  shadersetup(vsfn, fsfn),
+	  nrtex(0)
+{
+	for (unsigned i = 0; i < 4; ++i)
+		loc_texunit[i] = 0;
+}
+
+
+
+void model::material_glsl::compute_texloc()
+{
+	shadersetup.use();
+	for (unsigned i = 0; i < nrtex; ++i) {
+		loc_texunit[i] = shadersetup.get_uniform_location(texnames[i]);
+	}
+	shadersetup.use_fixed();
+}
+
+
+
+void model::material_glsl::set_gl_values(const texture * /*caustic_map*/) const
+{
+	shadersetup.use();
+	glMatrixMode(GL_TEXTURE);
+	// set up up to four tex units
+	for (unsigned i = 0; i < 4; ++i) {
+		if (texmaps[i].get()) {
+			// fixme: enable texture unit #i? should be already enabled?
+			glActiveTexture(GL_TEXTURE0 + i);
+			texmaps[i]->set_gl_texture(shadersetup, loc_texunit[i], i);
+		}
+	}
+	glMatrixMode(GL_MODELVIEW);
+	glActiveTexture(GL_TEXTURE0);
+}
+
+
+
+void model::material_glsl::set_gl_values_mirror_clip() const
+{
+	// no special handling possible
+	return set_gl_values();
+}
+
+
+
+void model::material_glsl::register_layout(const std::string& name, const std::string& basepath)
+{
+	for (unsigned i = 0; i < 4; ++i) {
+		if (texmaps[i].get()) {
+			// fixme: any specific mapping here?? see material::register_layout
+			texmaps[i]->register_layout(name, basepath, model::mapping);
+		}
+	}
+}
+
+
+
+void model::material_glsl::unregister_layout(const std::string& name)
+{
+	for (unsigned i = 0; i < 4; ++i) {
+		if (texmaps[i].get()) {
+			texmaps[i]->unregister_layout(name);
+		}
+	}
+}
+
+
+
+void model::material_glsl::set_layout(const std::string& layout)
+{
+	for (unsigned i = 0; i < 4; ++i) {
+		if (texmaps[i].get()) {
+			texmaps[i]->set_layout(name);
+		}
+	}
+}
+
+
+
+void model::material_glsl::get_all_layout_names(std::set<std::string>& result) const
+{
+	for (unsigned i = 0; i < 4; ++i) {
+		if (texmaps[i].get()) {
+			texmaps[i]->get_all_layout_names(result);
+		}
+	}
 }
 
 
@@ -1865,23 +1960,36 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 		mat.set_attr(m->name, "name");
 		mat.set_attr(nr, "id");
 
-		// colors.
-		write_color_to_dftd_model_file(mat, m->diffuse, "diffuse");
-		write_color_to_dftd_model_file(mat, m->specular, "specular");
+		const material_glsl* matglsl = dynamic_cast<const material_glsl*>(m);
+		if (matglsl) {
+			// fixme: save code
+			xml_elem es = mat.add_child("shader");
+			es.set_attr(matglsl->get_vertexshaderfn(), "vertex");
+			es.set_attr(matglsl->get_fragmentshaderfn(), "fragment");
+			for (unsigned i = 0; i < 4; ++i) {
+				if (matglsl->texmaps[i].get()) {
+					matglsl->texmaps[i]->write_to_dftd_model_file(mat, matglsl->texnames[i]);
+				}
+			}
+		} else {
+			// colors.
+			write_color_to_dftd_model_file(mat, m->diffuse, "diffuse");
+			write_color_to_dftd_model_file(mat, m->specular, "specular");
 
-		// shininess
-		xml_elem sh = mat.add_child("shininess");
-		sh.set_attr(m->shininess, "exponent");
+			// shininess
+			xml_elem sh = mat.add_child("shininess");
+			sh.set_attr(m->shininess, "exponent");
 
-		// maps.
-		if (m->colormap.get()) {
-			m->colormap->write_to_dftd_model_file(mat, "diffuse");
-		}
-		if (m->normalmap.get()) {
-			m->normalmap->write_to_dftd_model_file(mat, "normal");
-		}
-		if (m->specularmap.get()) {
-			m->specularmap->write_to_dftd_model_file(mat, "specular", false);
+			// maps.
+			if (m->colormap.get()) {
+				m->colormap->write_to_dftd_model_file(mat, "diffuse");
+			}
+			if (m->normalmap.get()) {
+				m->normalmap->write_to_dftd_model_file(mat, "normal");
+			}
+			if (m->specularmap.get()) {
+				m->specularmap->write_to_dftd_model_file(mat, "specular", false);
+			}
 		}
 	}
 
@@ -2550,19 +2658,36 @@ void model::read_dftd_model_file(const std::string& filename)
 		string etype = e.get_name();
 		if (etype == "material") {
 			// materials.
-			material* mat = new material();
-			mat->name = e.attr("name");
+			bool is_shader_material = e.has_child("shader");
+			std::auto_ptr<material> mat;
+			material_glsl* matglsl = 0;
+			if (is_shader_material) {
+				xml_elem es = e.child("shader");
+				matglsl = new material_glsl(e.attr("name"),
+							    es.attr("vertex"), es.attr("fragment"));
+				mat.reset(matglsl);
+			} else {
+				mat.reset(new material(e.attr("name")));
+			}
 			unsigned id = e.attru("id");
-			mat_id_mapping[id] = mat;
+			mat_id_mapping[id] = mat.get();
 
-			mat->diffuse = read_color_from_dftd_model_file(e, "diffuse");
-			mat->specular = read_color_from_dftd_model_file(e, "specular");
+			if (!is_shader_material) {
+				mat->diffuse = read_color_from_dftd_model_file(e, "diffuse");
+				mat->specular = read_color_from_dftd_model_file(e, "specular");
+			}
 
 			for (xml_elem::iterator it2 = e.iterate("map"); !it2.end(); it2.next()) {
 				xml_elem emap = it2.elem();
 				// check here for possible children of type "skin", fixme
 				string type = emap.attr("type");
-				if (type == "diffuse") {
+				if (is_shader_material) {
+					if (matglsl->nrtex >= 4)
+						throw xml_error(string("too many material maps for glsl material ") + type, emap.doc_name());
+					matglsl->texmaps[matglsl->nrtex].reset(new material::map(emap));
+					matglsl->texnames[matglsl->nrtex] = type;
+					matglsl->nrtex++;
+				} else if (type == "diffuse") {
 					mat->colormap.reset(new material::map(emap));
 				} else if (type == "normal") {
 					mat->normalmap.reset(new material::map(emap));
@@ -2573,14 +2698,18 @@ void model::read_dftd_model_file(const std::string& filename)
 				}
 			}
 
-			if (e.has_child("shininess")) {
+			if (!is_shader_material && e.has_child("shininess")) {
 				xml_elem eshin = e.child("shininess");
 				if (!eshin.has_attr("exponent"))
 					throw xml_error("shininess defined but no exponent given!", e.doc_name());
 				mat->shininess = eshin.attrf("exponent");
 			}
 
-			materials.push_back(mat);
+			if (is_shader_material)
+				matglsl->compute_texloc();
+
+			materials.push_back(0); // exception safe
+			materials.back() = mat.release();
 		} else if (etype == "mesh") {
 			// meshes.
 			mesh* msh = new mesh();

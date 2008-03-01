@@ -81,8 +81,8 @@ public:
 			// set up opengl texture matrix with map transformation values
 			void setup_glmatrix() const;
 			void set_gl_texture() const;
- 			void set_gl_texture(glsl_program& prog, unsigned loc, unsigned texunitnr) const;
- 			void set_gl_texture(glsl_shader_setup& gss, unsigned loc, unsigned texunitnr) const;
+ 			void set_gl_texture(const glsl_program& prog, unsigned loc, unsigned texunitnr) const;
+ 			void set_gl_texture(const glsl_shader_setup& gss, unsigned loc, unsigned texunitnr) const;
 			void set_texture(texture* t);
 			void register_layout(const std::string& name, const std::string& basepath,
 					     texture::mapping_mode mapping,
@@ -110,6 +110,29 @@ public:
 		virtual void unregister_layout(const std::string& name);
 		virtual void set_layout(const std::string& layout);
 		virtual void get_all_layout_names(std::set<std::string>& result) const;
+	};
+
+	class material_glsl : public material
+	{
+		material_glsl();
+		std::string vertexshaderfn, fragmentshaderfn;
+		glsl_shader_setup shadersetup;
+	public:
+		material_glsl(const std::string& nm, const std::string& vsfn, const std::string& fsfn);
+		void set_gl_values(const texture *caustic_map = 0) const;
+		void set_gl_values_mirror_clip() const;
+		void register_layout(const std::string& name, const std::string& basepath);
+		void unregister_layout(const std::string& name);
+		void set_layout(const std::string& layout);
+		void get_all_layout_names(std::set<std::string>& result) const;
+		void compute_texloc();
+		const std::string& get_vertexshaderfn() const { return vertexshaderfn; }
+		const std::string& get_fragmentshaderfn() const { return fragmentshaderfn; }
+
+		std::auto_ptr<map> texmaps[4]; // up to four texture units
+		std::string texnames[4];
+		unsigned loc_texunit[4];
+		unsigned nrtex;
 	};
 	
 	class mesh {
