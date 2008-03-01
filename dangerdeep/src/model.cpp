@@ -1381,7 +1381,7 @@ model::material_glsl::material_glsl(const std::string& nm, const std::string& vs
 	: material(nm),
 	  vertexshaderfn(vsfn),
 	  fragmentshaderfn(fsfn),
-	  shadersetup(vsfn, fsfn),
+	  shadersetup(get_shader_dir() + vsfn, get_shader_dir() + fsfn),
 	  nrtex(0)
 {
 	for (unsigned i = 0; i < 4; ++i)
@@ -1395,6 +1395,7 @@ void model::material_glsl::compute_texloc()
 	shadersetup.use();
 	for (unsigned i = 0; i < nrtex; ++i) {
 		loc_texunit[i] = shadersetup.get_uniform_location(texnames[i]);
+		log_debug("texunit i="<<i<<" is "<<loc_texunit[i]);
 	}
 	shadersetup.use_fixed();
 }
@@ -1408,8 +1409,10 @@ void model::material_glsl::set_gl_values(const texture * /*caustic_map*/) const
 	// set up up to four tex units
 	for (unsigned i = 0; i < 4; ++i) {
 		if (texmaps[i].get()) {
-			// fixme: enable texture unit #i? should be already enabled?
 			glActiveTexture(GL_TEXTURE0 + i);
+			// fixme: enable texture unit #i? should be already enabled?
+			// doesn't help - model is black yet (still a bug)
+			//glEnable(GL_TEXTURE_2D);
 			texmaps[i]->set_gl_texture(shadersetup, loc_texunit[i], i);
 		}
 	}
