@@ -127,7 +127,17 @@ public:
 		unsigned flotilla;
 		std::string submarineid;
 		std::string photo;
-
+		
+		std::string soldbuch_nr;
+		std::string gasmask_size;
+		std::string bloodgroup;
+		std::string marine_roll;
+		std::string marine_group;
+		/* 'cause the career list is linear we do not need to store 
+		 * ranks or paygroups. a list of the dates should be enough
+		 */
+		std::list<std::string> career;
+		
 		player_info();
 		player_info(const xml_elem& parent);
 		void save(xml_elem& parent) const;

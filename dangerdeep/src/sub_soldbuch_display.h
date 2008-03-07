@@ -30,6 +30,8 @@ class sub_soldbuch_display : public user_display
 protected:
 	std::auto_ptr<image> background;
 	std::auto_ptr<image> player_photo;
+	std::auto_ptr<image> primary_overlay;
+	std::auto_ptr<image> stamps;
 
 public:
 	sub_soldbuch_display(class user_interface& ui_);

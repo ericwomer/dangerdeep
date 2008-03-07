@@ -610,7 +610,6 @@ public:
 			if (current == imagenames.begin()) current = imagenames.end();
 			current--;
 		}
-
  		imagecache().unref(background);
 		background = 0;
 		background = imagecache().ref(*current + extension);
@@ -665,7 +664,20 @@ public:
 		direction = dir;
 		attached_widget = att;
 	}
-
+	void draw() const
+	{
+		redrawme = false;
+		vector2i p = get_pos();
+		int bw = int(background->get_width());
+		int bh = int(background->get_height());
+		
+		if (mouseover==this)
+			glColor4f(1.0, 1.0, 1.0, 1.0);
+		else
+			glColor4f(1.0, 1.0, 1.0, 0.75);
+		background->draw(p.x + size.x/2 - bw/2, p.y + size.y/2 - bh/2);
+		
+	}
 	void on_release ()
 	{
 		pressed = false;
@@ -861,12 +873,12 @@ bool choose_player_info(game::player_info& pi, const std::string& subtype, const
 	widget_image_select* wplayerphoto = new widget_image_select(652+45, 40+45, 205, 300, ".jpg|png", playerphotos);
 	w.add_child(wplayerphoto);
 
-	widget_button_next *widget_image_left_btn = new widget_button_next(652+10, 40+150, 25, 80, -1, wplayerphoto, "<", "");
+	widget_button_next *widget_image_left_btn = new widget_button_next(652+10, 40+150, 25, 80, -1, wplayerphoto, "", "BG_btn_left.png");
 	w.add_child(widget_image_left_btn);
 
-	widget_button_next *widget_image_right_btn = new widget_button_next(652+260, 40+150, 25, 80, 1, wplayerphoto, ">", "");
+	widget_button_next *widget_image_right_btn = new widget_button_next(652+260, 40+150, 25, 80, 1, wplayerphoto, "", "BG_btn_right.png");
 	w.add_child(widget_image_right_btn);
-
+	
 	w.add_child(wemblem);
 
 	widget_menu* wm = new widget_menu(40, 700, 0, 40, "", true);

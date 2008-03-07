@@ -134,18 +134,41 @@ game::player_info::player_info()
 	  submarineid("U 999"),
 	  photo("player_photo_1.jpg")
 {
+	//generate a random soldbuch_nr between 1 and 9999
+	soldbuch_nr = str(rnd(9999)+1);
+
+	// generate a random bloodgroup
+	const string bloodgroups[] = {"A", "B", "AB", "0"};
+	bloodgroup = bloodgroups[rnd(4)];
+
+	// there are just 3 sizes
+	gasmask_size = str(rnd(3)+1);
+
+	/* first part of the marine roll nr is a character that specifies the naval command
+	 * for submarines that should be the naval command west --> W
+	 * the second part is a contnious number that is unique for every soldier in the roll (of his flotilla)
+	 * 20.000 as max value should be high enough
+	 * third part is unknown so just take the soldbuch nr */
+	marine_roll = "W " + str(rnd(20000)+1) + " / " + soldbuch_nr;
 }
 
 
 
 game::player_info::player_info(const xml_elem& parent)
-	: name(parent.attr("name")),
-	  flotilla(parent.attru("flotilla")),
-	  submarineid(parent.attr("submarineid")),
-	  photo(parent.attr("photo"))
 {
+	name = parent.attr("name");
+	photo = parent.attr("photo");
+	flotilla = parent.attru("flotilla");
+	submarineid = parent.attr("submarineid");
+	soldbuch_nr = parent.attr("soldbuch_nr");
+	gasmask_size = parent.attr("gasmask_size");
+	bloodgroup = parent.attr("bloodgroup");
+	marine_roll = parent.attr("marine_roll");
+	marine_group = parent.attr("marine_group");
+	for (xml_elem::iterator it = parent.iterate("promotions"); !it.end(); it.next()) {
+		career.push_back(it.elem().attr("date"));
+	}
 }
-
 
 
 void game::player_info::save(xml_elem& parent) const
@@ -153,9 +176,17 @@ void game::player_info::save(xml_elem& parent) const
 	parent.set_attr(name, "name");
 	parent.set_attr(flotilla, "flottila");
 	parent.set_attr(submarineid, "submarineid");
-	parent.set_attr(photo, "photo");
+	parent.set_attr(soldbuch_nr, "soldbuch_nr");
+	parent.set_attr(gasmask_size, "gasmask_size");
+	parent.set_attr(bloodgroup, "bloodgroup");
+	parent.set_attr(marine_roll, "marine_roll");
+	parent.set_attr(marine_group, "marine_group");
+	xml_elem xml_career = parent.add_child("promotions");
+	for (list<string>::const_iterator it = career.begin(); it != career.end(); ++it ) {
+		xml_elem elem = xml_career.add_child("promotion");
+		elem.set_attr(*it, "date");
+	}
 }
-
 
 
 game::game()
