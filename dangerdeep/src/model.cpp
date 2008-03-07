@@ -1412,6 +1412,8 @@ void model::material_glsl::set_gl_values(const texture * /*caustic_map*/) const
 			glActiveTexture(GL_TEXTURE0 + i);
 			// fixme: enable texture unit #i? should be already enabled?
 			// doesn't help - model is black yet (still a bug)
+			// maybe its needed though
+			// line 745 etc and more, need to handle material_glsl
 			//glEnable(GL_TEXTURE_2D);
 			texmaps[i]->set_gl_texture(shadersetup, loc_texunit[i], i);
 		}
