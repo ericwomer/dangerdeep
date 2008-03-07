@@ -312,7 +312,7 @@ void sub_torpedo_display::process_input(class game& gm, const SDL_Event& event)
 		// check if there is a tube below and if its empty
 		if (event.button.button == SDL_BUTTON_LEFT) {
 			unsigned torptransdst = get_tube_below_mouse(get_tubecoords(sub));
-			if (torptransdst != ILLEGAL_TUBE) {
+			if (torptransdst != ILLEGAL_TUBE && torptranssrc != ILLEGAL_TUBE ) {
 				if (torpedoes[torptransdst].status ==
 				    submarine::stored_torpedo::st_empty) {
 					sub->transfer_torpedo(torptranssrc, torptransdst);
