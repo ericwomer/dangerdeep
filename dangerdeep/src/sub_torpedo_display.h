@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector2.h"
 #include "texture.h"
 #include "objcache.h"
+#include "log.h"
 
 class sub_torpedo_display : public user_display
 {
@@ -57,6 +58,9 @@ class sub_torpedo_display : public user_display
 	std::auto_ptr<texture> submodelVIIc;
 	std::auto_ptr<image> background;
 	std::auto_ptr<image> subtopsideview;
+	rotat_tex pointer_seconds;
+	rotat_tex pointer_minutes;
+	rotat_tex pointer_hours;
 
 	class desc_text
 	{

@@ -254,7 +254,15 @@ void sub_torpedo_display::display(class game& gm) const
 				torp_desc_line = torpdesctext->nr_of_lines();
 			font_vtremington12->print_wrapped(100, 550, 570, 0, torpdesctext->str(torp_desc_line, 10), color(0,0,0));
 		}
-
+		if (torpedoes[tb].status == submarine::stored_torpedo::st_reloading || torpedoes[tb].status == submarine::stored_torpedo::st_unloading) {
+			double hours, minutes, seconds;
+			hours = torpedoes[tb].remaining_time/3600;
+			minutes = (torpedoes[tb].remaining_time - floor(hours)*3600)/60;
+			seconds = torpedoes[tb].remaining_time - floor(hours)*3600 - floor(minutes)*60;
+			pointer_seconds.draw(floor(seconds)*6);
+			pointer_minutes.draw(minutes*6);
+			pointer_hours.draw(hours*30);
+		}
 		if (mb & SDL_BUTTON_LMASK) {
 			// display remaining time if possible
             // torpedo reload remaning time
@@ -275,7 +283,7 @@ void sub_torpedo_display::display(class game& gm) const
 		sprintf(a, "%ld", sub->num_shells_remaining());
 		font_vtremington12->print(400, 85, a, color(0,0,0));
 	}
-	
+
 	ui.draw_infopanel();
 	sys().unprepare_2d_drawing();
 }
@@ -312,7 +320,7 @@ void sub_torpedo_display::process_input(class game& gm, const SDL_Event& event)
 		// check if there is a tube below and if its empty
 		if (event.button.button == SDL_BUTTON_LEFT) {
 			unsigned torptransdst = get_tube_below_mouse(get_tubecoords(sub));
-			if (torptransdst != ILLEGAL_TUBE && torptranssrc != ILLEGAL_TUBE ) {
+			if (torptransdst != ILLEGAL_TUBE && torptranssrc != ILLEGAL_TUBE) {
 				if (torpedoes[torptransdst].status ==
 				    submarine::stored_torpedo::st_empty) {
 					sub->transfer_torpedo(torptranssrc, torptransdst);
@@ -371,6 +379,9 @@ void sub_torpedo_display::enter(bool is_day)
 		std::cout << "ERROR: " << e.what() << "\n";
 	}
 	catch (...) {}
+	pointer_seconds.set("tmanage_seconds_pointer.png", 863, 524, 868, 621);
+	pointer_minutes.set("tmanage_minutes_pointer.png", 864, 528, 868, 621);
+	pointer_hours.set("tmanage_hours_pointer.png", 863, 548, 868, 621);
 }
 
 
