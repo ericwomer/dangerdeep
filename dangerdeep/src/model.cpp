@@ -1394,7 +1394,9 @@ void model::material_glsl::compute_texloc()
 	shadersetup.use();
 	for (unsigned i = 0; i < nrtex; ++i) {
 		loc_texunit[i] = shadersetup.get_uniform_location(texnames[i]);
-		//log_debug("texunit i="<<i<<" is "<<loc_texunit[i]);
+		//log_debug("texunit i="<<i<<" name=" << texnames[i] << " is "<<loc_texunit[i]);
+		if (loc_texunit[i] == unsigned(-1))
+			throw error("unable to lookup uniform location of shader for material_glsl");
 	}
 	shadersetup.use_fixed();
 }
@@ -1488,8 +1490,7 @@ void model::mesh::display(const texture *caustic_map) const
 
 	bool has_texture_u0 = false, has_texture_u1 = false;
 	if (mymaterial != 0) {
-		if (mymaterial->colormap.get())
-			has_texture_u0 = true;
+		has_texture_u0 = mymaterial->needs_texcoords();
 		if (mymaterial->normalmap.get())
 			has_texture_u1 = true;
 	}
@@ -1571,8 +1572,7 @@ void model::mesh::display_mirror_clip() const
 
 	bool has_texture_u0 = false;
 	if (mymaterial != 0) {
-		if (mymaterial->colormap.get())
-			has_texture_u0 = true;
+		has_texture_u0 = mymaterial->needs_texcoords();
 		mymaterial->set_gl_values_mirror_clip();
 	} else {
 		glBindTexture(GL_TEXTURE_2D, 0);
