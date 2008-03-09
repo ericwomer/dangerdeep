@@ -716,8 +716,7 @@ void model::mesh::compile()
 {
 	bool has_texture_u0 = false, has_texture_u1 = false;
 	if (mymaterial != 0) {
-		if (mymaterial->colormap.get())
-			has_texture_u0 = true;
+		has_texture_u0 = mymaterial->needs_texcoords();
 		if (mymaterial->normalmap.get())
 			has_texture_u1 = true;
 	}
@@ -733,7 +732,7 @@ void model::mesh::compile()
 	}
 	// auxiliary data
 	// give tangents as texture coordinates for unit 1.
-	if (has_texture_u0 && tangentsx.size() == vs) {
+	if (has_texture_u0 && tangentsx.size() == vs && mymaterial->use_default_shader()) {
 		vbo_tangents_righthanded.init_data(4 * sizeof(float) * vs, 0, GL_STATIC_DRAW);
 		float* xdata = (float*) vbo_tangents_righthanded.map(GL_WRITE_ONLY);
 		for (unsigned i = 0; i < vs; ++i) {
@@ -1395,7 +1394,7 @@ void model::material_glsl::compute_texloc()
 	shadersetup.use();
 	for (unsigned i = 0; i < nrtex; ++i) {
 		loc_texunit[i] = shadersetup.get_uniform_location(texnames[i]);
-		log_debug("texunit i="<<i<<" is "<<loc_texunit[i]);
+		//log_debug("texunit i="<<i<<" is "<<loc_texunit[i]);
 	}
 	shadersetup.use_fixed();
 }
@@ -1410,10 +1409,6 @@ void model::material_glsl::set_gl_values(const texture * /*caustic_map*/) const
 	for (unsigned i = 0; i < 4; ++i) {
 		if (texmaps[i].get()) {
 			glActiveTexture(GL_TEXTURE0 + i);
-			// fixme: enable texture unit #i? should be already enabled?
-			// doesn't help - model is black yet (still a bug)
-			// maybe its needed though
-			// line 745 etc and more, need to handle material_glsl
 			//glEnable(GL_TEXTURE_2D);
 			texmaps[i]->set_gl_texture(shadersetup, loc_texunit[i], i);
 		}

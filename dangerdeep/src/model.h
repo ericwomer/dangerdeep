@@ -110,6 +110,8 @@ public:
 		virtual void unregister_layout(const std::string& name);
 		virtual void set_layout(const std::string& layout);
 		virtual void get_all_layout_names(std::set<std::string>& result) const;
+		virtual bool needs_texcoords() const { return colormap.get() != 0; }
+		virtual bool use_default_shader() const { return true; }
 	};
 
 	class material_glsl : public material
@@ -128,6 +130,8 @@ public:
 		void compute_texloc();
 		const std::string& get_vertexshaderfn() const { return vertexshaderfn; }
 		const std::string& get_fragmentshaderfn() const { return fragmentshaderfn; }
+		bool needs_texcoords() const { return nrtex > 0; }
+		bool use_default_shader() const { return false; }
 
 		std::auto_ptr<map> texmaps[4]; // up to four texture units
 		std::string texnames[4];
