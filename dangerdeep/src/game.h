@@ -229,6 +229,7 @@ protected:
 
 	/// check objects collide with any other object
 	void check_collisions();
+	bool check_collision_bboxes(const ship& a, const ship& b);
 
 	game();	
 	game& operator= (const game& other);

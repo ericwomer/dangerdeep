@@ -1930,6 +1930,31 @@ vector<ship*> game::get_all_ships() const
 
 
 
+bool game::check_collision_bboxes(const ship& a, const ship& b)
+{
+	// compute bbox of actor and partner (inversed)
+	vector<polygon> bboxa = a.get_bounding_box(false);
+	vector<polygon> bboxb = b.get_bounding_box(true);
+	unsigned nrempty = 0;
+	for (unsigned k = 0; k < bboxa.size(); ++k) {
+		for (unsigned j = 0; j < bboxb.size(); ++j) {
+			bboxa[k] = bboxa[k].clip(bboxb[j].get_plane());
+		}
+		if (bboxa[k].empty()) ++nrempty;
+	}
+	if (nrempty == bboxa.size())
+		return false;
+	log_debug("bboxes overlap between objects "<<&a<<" and "<<&b);
+	// now find out bounding range of voxels of a (and b) of overlapping
+	// volume. To do that rotate the resulting points by a/b's orientation's
+	// conjugation and then find their minimum/maximum.
+	// Collect all vertices of all non-empty polygons as points.
+	log_debug("nrempty="<<nrempty);
+	return true;
+}
+
+
+
 void game::check_collisions()
 {
 	// torpedoes are special... check collision only for impact fuse?
@@ -1948,11 +1973,9 @@ void game::check_collisions()
 			double d2 = actor->get_pos().square_distance(partner->get_pos());
 			if (d2 <= rsum*rsum) {
 				log_debug("possible collision between objects "<<actor<<" and "<<partner);
-				// compute the 8 vertices of partner's bbox, same for actor.
-				// do it only here, as possible collisions are rare, so there is mostly
-				// only one collision, so no use to compute actor's bbox always.
-				// use the model min/max values, orientation and position to get the
-				// vertices. then create 4 polys from it
+				if (check_collision_bboxes(*actor, *partner)) {
+					// ...
+				}
 			}
 		}
 	}

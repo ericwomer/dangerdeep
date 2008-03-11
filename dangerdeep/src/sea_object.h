@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "matrix3.h"
 #include "angle.h"
 #include "quaternion.h"
+#include "polygon.h"
 #include "xml.h"
 #include "ai.h"
 #include "countrycodes.h"
@@ -386,6 +387,9 @@ public:
 
 	/// get reference to model of this object, throws error if no model
 	class model& get_model() const;
+
+	/// get bounding box of model (not axis aligned, handles orientation)
+	std::vector<polygon> get_bounding_box(bool inverse = false) const;
 
 	/// set random skin_name by given date, only to use for convoy creation
 	void set_random_skin_name(const date& d);
