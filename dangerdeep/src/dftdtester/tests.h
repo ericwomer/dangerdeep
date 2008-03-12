@@ -32,6 +32,7 @@ class tests
 		int do_gl_tests();
 		std::set<std::string> error_log;     // set of generate errors
 		std::set<std::string> warn_log;     // set of generate warnings
+		virtual ~tests() {}
 
 	protected:
 		void load_gl_info();
