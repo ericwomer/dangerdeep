@@ -2019,6 +2019,8 @@ bool game::check_collision_bboxes(const ship& a, const ship& b)
 								//at shallow angle, causes pa
 								//to be near stern of sub, not near
 								//bow, where collision is...
+								//point of collision should be mid between pa and pb, fixme
+								//but first fix pa's position
 								spawn_particle(new marker_particle(a.get_pos() + pa));
 								return true;
 							}
