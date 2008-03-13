@@ -1955,7 +1955,80 @@ bool game::check_collision_bboxes(const ship& a, const ship& b)
 	unsigned nvx_b = b.get_min_max_voxel_index_for_polyset(bboxa, vxmin_b, vxmax_b);
 	log_debug("voxel stuff nvx a="<<nvx_a<<" b="<<nvx_b<<" vxidx a="<<vxmin_a<<" to "<<vxmax_a
 		  <<" b="<<vxmin_b<<" to "<<vxmax_b);
-	return true;
+	// if either one object has no voxels covering that volume abort
+	// (should never be the case)
+	if (nvx_a * nvx_b == 0)
+		return false;
+	// now for every voxel of a with a check intersection with every voxel of b.
+	// if any voxels intersect we have the collision and also the contact point.
+	// we treat every voxel as sphere with a radius of 1/2 of its volume fill.
+	// that way voxels that are partly filled need more overlap for collision,
+	// a way to handle the fact that voxels collide but may not be fully covered
+	// by the model. sphere to sphere collision tests are faster as box to box.
+	// a box to box test for every voxel of a and b would be very costly and overkill.
+	// we need to transform b's voxel to a's voxel space to compare them.
+	// it is easier but not less efficient to transform a's and b's voxels to world
+	// space, so we do that instead. We need to handle also translation between
+	// a and b, so we add a's translation to b's matrix first.
+	// This is world space with object a at origin. The difference between a and b
+	// is numerically much smaller than a's position (or b's position), that's why we
+	// don't use real world space for comparing here.
+	const model& mdl_a = a.get_model();
+	const model& mdl_b = b.get_model();
+	const std::vector<model::voxel>& voxel_data_a = mdl_a.get_voxel_data();
+	const std::vector<model::voxel>& voxel_data_b = mdl_b.get_voxel_data();
+	const vector3i& vres_a = mdl_a.get_voxel_resolution();
+	const vector3i& vres_b = mdl_b.get_voxel_resolution();
+	const vector3f& voxel_size_a = mdl_a.get_voxel_size();
+	const vector3f& voxel_size_b = mdl_b.get_voxel_size();
+	float voxel_radius_a = mdl_a.get_voxel_radius();
+	float voxel_radius_b = mdl_b.get_voxel_radius();
+	matrix4f transmat_a = a.get_orientation().rotmat4()
+		* mdl_a.get_base_mesh_transformation()
+		* matrix4f::diagonal(voxel_size_a);
+	matrix4f transmat_b = matrix4f::trans(vector3f(b.get_pos() - a.get_pos()))
+		* b.get_orientation().rotmat4()
+		* mdl_b.get_base_mesh_transformation()
+		* matrix4f::diagonal(voxel_size_b);
+	for (int az = vxmin_a.z; az <= vxmax_a.z; ++az) {
+		for (int ay = vxmin_a.y; ay <= vxmax_a.y; ++ay) {
+			for (int ax = vxmin_a.x; ax <= vxmax_a.x; ++ax) {
+				// transform a's voxel position to real space (origin is a)
+				unsigned ka = (vres_a.y * az + ay) * vres_a.x + ax;
+				vector3f pa = transmat_a.mul4vec3xlat(voxel_data_a[ka].relative_position);
+				for (int bz = vxmin_b.z; bz <= vxmax_b.z; ++bz) {
+					for (int by = vxmin_b.y; by <= vxmax_b.y; ++by) {
+						for (int bx = vxmin_b.x; bx <= vxmax_b.x; ++bx) {
+							unsigned kb = (vres_b.y * bz + by) * vres_b.x + bx;
+							vector3f pb = transmat_b.mul4vec3xlat(voxel_data_b[kb].relative_position);
+							// spheres of voxels intersect when their distance
+							// is less than the sum of their radii
+							// or their square distance is less than
+							// the square of the sum of their radii
+							float sqd = pa.square_distance(pb);
+							float rs = voxel_radius_a * voxel_data_a[ka].part_of_volume
+								+ voxel_radius_b * voxel_data_b[kb].part_of_volume;
+							if (sqd <= rs * rs) {
+								log_debug("Voxel intersection found a="<<vector3f(ax,ay,az)<<" b="<<vector3f(bx,by,bz));
+								log_debug("position relative to a: " << pa);
+								// real world pos of intersection
+								// is now a.get_pos() + pa
+								//fixme: A is the sub in the tests.
+								//pa seems wrong sometimes?
+								//sub driving south hitting ship
+								//at shallow angle, causes pa
+								//to be near stern of sub, not near
+								//bow, where collision is...
+								spawn_particle(new marker_particle(a.get_pos() + pa));
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return false;
 }
 
 
