@@ -391,6 +391,10 @@ public:
 	/// get bounding box of model (not axis aligned, handles orientation)
 	std::vector<polygon> get_bounding_box(bool inverse = false) const;
 
+	/// get minimum and maximum voxel index covering a point (polygon) set
+	///@returns number of voxels covered
+	unsigned get_min_max_voxel_index_for_polyset(const std::vector<polygon>& polys, vector3i& vxmin, vector3i& vxmax) const;
+
 	/// set random skin_name by given date, only to use for convoy creation
 	void set_random_skin_name(const date& d);
 };

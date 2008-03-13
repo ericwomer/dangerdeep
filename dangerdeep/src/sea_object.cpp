@@ -887,3 +887,37 @@ std::vector<polygon> sea_object::get_bounding_box(bool inverse) const
 	}
 	return bbox;
 }
+
+
+
+unsigned sea_object::get_min_max_voxel_index_for_polyset(const std::vector<polygon>& polys,
+							 vector3i& vxmin, vector3i& vxmax) const
+{
+	quaternion cjq = orientation.conj();
+	matrix4f obj2voxel = get_model().get_base_mesh_transformation().inverse();
+	const vector3i& vres = get_model().get_voxel_resolution();
+	vector3i vidxmax = vres - vector3i(1, 1, 1);
+	vector3f voxel_pos_trans = vector3f(vres) * 0.5f;
+	vector3f voxel_size_rcp = get_model().get_voxel_size().rcp();
+	vxmin = vres;
+	vxmax = vector3i(-1, -1, -1);
+	for (unsigned i = 0; i < polys.size(); ++i) {
+		const polygon& p = polys[i];
+		if (!p.empty()) {
+			for (unsigned k = 0; k < p.points.size(); ++k) {
+				// transform point to voxel space
+				vector3f ptvx = obj2voxel * vector3f(cjq.rotate(p.points[k] - position));
+				// transform to voxel coordinate
+				vector3i v = vector3i(ptvx.coeff_mul(voxel_size_rcp) + voxel_pos_trans);
+				// clip v to valid range
+				v = v.max(vector3i(0,0,0)).min(vidxmax);
+				// adjust min/max accordingly
+				vxmin = vxmin.min(v);
+				vxmax = vxmax.max(v);
+			}
+		}
+	}
+	return	std::max(0, vxmax.x + 1 - vxmin.x) *
+		std::max(0, vxmax.y + 1 - vxmin.y) *
+		std::max(0, vxmax.z + 1 - vxmin.z);
+}

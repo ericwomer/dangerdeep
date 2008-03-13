@@ -1949,7 +1949,12 @@ bool game::check_collision_bboxes(const ship& a, const ship& b)
 	// volume. To do that rotate the resulting points by a/b's orientation's
 	// conjugation and then find their minimum/maximum.
 	// Collect all vertices of all non-empty polygons as points.
-	log_debug("nrempty="<<nrempty);
+	//log_debug("nrempty="<<nrempty);
+	vector3i vxmin_a, vxmax_a, vxmin_b, vxmax_b;
+	unsigned nvx_a = a.get_min_max_voxel_index_for_polyset(bboxa, vxmin_a, vxmax_a);
+	unsigned nvx_b = b.get_min_max_voxel_index_for_polyset(bboxa, vxmin_b, vxmax_b);
+	log_debug("voxel stuff nvx a="<<nvx_a<<" b="<<nvx_b<<" vxidx a="<<vxmin_a<<" to "<<vxmax_a
+		  <<" b="<<vxmin_b<<" to "<<vxmax_b);
 	return true;
 }
 
