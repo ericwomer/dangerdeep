@@ -318,6 +318,11 @@ public:
 		return matrixt<D, size>(x, n, n, n,  n, y, n, n,  n, n, z, n,  n, n, n, w);
 	}
 
+	static matrixt<D, size> diagonal(const vector3t<D>& v, const D& w = D(1.0)) {
+		D n = D(0.0);
+		return matrixt<D, size>(v.x, n, n, n,  n, v.y, n, n,  n, n, v.z, n,  n, n, n, w);
+	}
+
 	void clear_rot() {
 		values[0] = values[5] = values[10] = D(1.0);
 		values[1] = values[2] = values[4] = values[6] = values[8] = values[9] = D(0.0);

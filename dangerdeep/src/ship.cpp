@@ -841,7 +841,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	float voxel_vol = voxel_size.x * voxel_size.y * voxel_size.z;
 	double voxel_vol_force = voxel_vol * GRAVITY * 1000.0; // 1000kg per cubic meter
 	matrix4f transmat = orientation.rotmat4() * mymodel->get_base_mesh_transformation()
-		* matrix4f::diagonal(voxel_size.x, voxel_size.y, voxel_size.z);
+		* matrix4f::diagonal(voxel_size);
 	double vol_below_water=0;
 	double gravity_force = mass * -GRAVITY;
 	for (unsigned i = 0; i < voxel_data.size(); ++i) {
