@@ -223,6 +223,7 @@ void gun_shell::check_collision_voxel(ship& s, const vector3f& oldrelpos, const 
 	// if the voxel is filled.
 	vector3f voxel_size_rcp = s.get_model().get_voxel_size().rcp();
 	const vector3i& vres = s.get_model().get_voxel_resolution();
+	vector3i vidxmax = vres - vector3i(1, 1, 1);
 	vector3f voxel_pos_trans = vector3f(vres) * 0.5f;
 	int lastvn = -1;
 	log_debug("check collision voxel");
@@ -230,7 +231,7 @@ void gun_shell::check_collision_voxel(ship& s, const vector3f& oldrelpos, const 
 		float kf = k/10.0f;
 		vector3f voxpos = oldvoxpos + diffvoxpos * kf;
 		vector3i v = vector3i(voxpos.coeff_mul(voxel_size_rcp) + voxel_pos_trans);
-		v = v.max(vector3i(0,0,0)).min(vres);
+		v = v.max(vector3i(0,0,0)).min(vidxmax);
 		int vn = (v.z * vres.y + v.y)*vres.x + v.x;
 		if (vn != lastvn) {
 			lastvn = vn;
