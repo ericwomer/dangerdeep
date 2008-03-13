@@ -3020,7 +3020,7 @@ matrix4f model::get_base_mesh_transformation() const
 unsigned model::get_voxel_closest_to(const vector3f& pos)
 {
 	matrix4f transmat = get_base_mesh_transformation()
-		* matrix4f::diagonal(voxel_size.x, voxel_size.y, voxel_size.z);
+		* matrix4f::diagonal(voxel_size);
 	unsigned closestvoxel = 0;
 	double dist = 1e30;
 	for (unsigned i = 0; i < voxel_data.size(); ++i) {
@@ -3047,7 +3047,7 @@ unsigned model::get_voxel_closest_to(const vector3f& pos)
 std::vector<unsigned> model::get_voxels_within_sphere(const vector3f& pos, double radius)
 {
 	matrix4f transmat = get_base_mesh_transformation()
-		* matrix4f::diagonal(voxel_size.x, voxel_size.y, voxel_size.z);
+		* matrix4f::diagonal(voxel_size);
 	double rad2 = radius*radius;
 	std::vector<unsigned> result;
 	result.reserve(8); // should be typically enough
