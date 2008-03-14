@@ -1995,6 +1995,9 @@ bool game::check_collision_bboxes(const ship& a, const ship& b)
 			for (int ax = vxmin_a.x; ax <= vxmax_a.x; ++ax) {
 				// transform a's voxel position to real space (origin is a)
 				unsigned ka = (vres_a.y * az + ay) * vres_a.x + ax;
+				// skip empty and nearly-empty voxels.
+				if (voxel_data_a[ka].part_of_volume <= 0.001)
+					continue;
 				vector3f pa = transmat_a.mul4vec3xlat(voxel_data_a[ka].relative_position);
 				for (int bz = vxmin_b.z; bz <= vxmax_b.z; ++bz) {
 					for (int by = vxmin_b.y; by <= vxmax_b.y; ++by) {
@@ -2021,6 +2024,8 @@ bool game::check_collision_bboxes(const ship& a, const ship& b)
 								//bow, where collision is...
 								//point of collision should be mid between pa and pb, fixme
 								//but first fix pa's position
+								//it seems it is at wrong y pos relative to a,
+								//along a's length axis wrongly positioned, rest seems ok
 								spawn_particle(new marker_particle(a.get_pos() + pa));
 								return true;
 							}
