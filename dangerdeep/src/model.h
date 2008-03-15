@@ -366,6 +366,8 @@ protected:
 	float voxel_radius;
 	/// per voxel: relative 3d position and part of volume that is inside (0...1)
 	std::vector<voxel> voxel_data;
+	/// voxel for 3-space coordinate of it, -1 if not existing
+	std::vector<int> voxel_index_by_pos;
 	
 	void read_phys_file(const std::string& filename);
 	
@@ -496,6 +498,11 @@ public:
 	float get_voxel_radius() const { return voxel_radius; }
 	/// request voxel data
 	const std::vector<voxel>& get_voxel_data() const { return voxel_data; }
+	/// get voxel data by position, may return 0 for not existing voxels
+	const voxel* get_voxel_by_pos(const vector3i& v) const {
+		int i = voxel_index_by_pos[(v.z * voxel_resolution.y + v.y) * voxel_resolution.x + v.x];
+		return (i >= 0) ? &voxel_data[i] : (const voxel*)0;
+	}
 
 	/// get transformation of root node (object tree translation + mesh transformation)
 	matrix4f get_base_mesh_transformation() const;

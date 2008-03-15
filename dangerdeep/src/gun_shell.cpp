@@ -236,8 +236,8 @@ void gun_shell::check_collision_voxel(ship& s, const vector3f& oldrelpos, const 
 		if (vn != lastvn) {
 			lastvn = vn;
 			log_debug("voxel hit k="<<k<<" voxpos="<<voxpos<<" v="<<v<<" vn="<<vn);
-			const model::voxel& vox = s.get_model().get_voxel_data()[vn];
-			if (vox.part_of_volume > 0.001) {
+			const model::voxel* vox = s.get_model().get_voxel_by_pos(v);
+			if (vox) {
 				// we hit a part of the object!
 				log_debug("..... Object hit! .....");
 				// first compute exact real word position of impact

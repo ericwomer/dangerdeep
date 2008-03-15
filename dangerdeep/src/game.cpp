@@ -1975,10 +1975,6 @@ bool game::check_collision_bboxes(const ship& a, const ship& b)
 	// don't use real world space for comparing here.
 	const model& mdl_a = a.get_model();
 	const model& mdl_b = b.get_model();
-	const std::vector<model::voxel>& voxel_data_a = mdl_a.get_voxel_data();
-	const std::vector<model::voxel>& voxel_data_b = mdl_b.get_voxel_data();
-	const vector3i& vres_a = mdl_a.get_voxel_resolution();
-	const vector3i& vres_b = mdl_b.get_voxel_resolution();
 	const vector3f& voxel_size_a = mdl_a.get_voxel_size();
 	const vector3f& voxel_size_b = mdl_b.get_voxel_size();
 	float voxel_radius_a = mdl_a.get_voxel_radius();
@@ -1990,43 +1986,35 @@ bool game::check_collision_bboxes(const ship& a, const ship& b)
 		* b.get_orientation().rotmat4()
 		* mdl_b.get_base_mesh_transformation()
 		* matrix4f::diagonal(voxel_size_b);
+	matrix4f transmat_b2 = b.get_orientation().rotmat4()
+		* mdl_b.get_base_mesh_transformation()
+		* matrix4f::diagonal(voxel_size_b);
 	for (int az = vxmin_a.z; az <= vxmax_a.z; ++az) {
 		for (int ay = vxmin_a.y; ay <= vxmax_a.y; ++ay) {
 			for (int ax = vxmin_a.x; ax <= vxmax_a.x; ++ax) {
-				// transform a's voxel position to real space (origin is a)
-				unsigned ka = (vres_a.y * az + ay) * vres_a.x + ax;
-				// skip empty and nearly-empty voxels.
-				if (voxel_data_a[ka].part_of_volume <= 0.001)
-					continue;
-				vector3f pa = transmat_a.mul4vec3xlat(voxel_data_a[ka].relative_position);
+				const model::voxel* voxa = mdl_a.get_voxel_by_pos(vector3i(ax, ay, az));
+				if (!voxa) continue;
+				vector3f pa = transmat_a.mul4vec3xlat(voxa->relative_position);
 				for (int bz = vxmin_b.z; bz <= vxmax_b.z; ++bz) {
 					for (int by = vxmin_b.y; by <= vxmax_b.y; ++by) {
 						for (int bx = vxmin_b.x; bx <= vxmax_b.x; ++bx) {
-							unsigned kb = (vres_b.y * bz + by) * vres_b.x + bx;
-							vector3f pb = transmat_b.mul4vec3xlat(voxel_data_b[kb].relative_position);
+							const model::voxel* voxb = mdl_b.get_voxel_by_pos(vector3i(bx, by, bz));
+							if (!voxb) continue;
+							vector3f pb = transmat_b.mul4vec3xlat(voxb->relative_position);
 							// spheres of voxels intersect when their distance
 							// is less than the sum of their radii
 							// or their square distance is less than
 							// the square of the sum of their radii
 							float sqd = pa.square_distance(pb);
-							float rs = voxel_radius_a * voxel_data_a[ka].part_of_volume
-								+ voxel_radius_b * voxel_data_b[kb].part_of_volume;
+							float rs = voxel_radius_a * voxa->part_of_volume
+								+ voxel_radius_b * voxb->part_of_volume;
 							if (sqd <= rs * rs) {
 								log_debug("Voxel intersection found a="<<vector3f(ax,ay,az)<<" b="<<vector3f(bx,by,bz));
-								log_debug("position relative to a: " << pa);
+								//log_debug("relative voxel pos A="<<voxa->relative_position<<" B="<<voxb->relative_position);
 								// real world pos of intersection
-								// is now a.get_pos() + pa
-								//fixme: A is the sub in the tests.
-								//pa seems wrong sometimes?
-								//sub driving south hitting ship
-								//at shallow angle, causes pa
-								//to be near stern of sub, not near
-								//bow, where collision is...
-								//point of collision should be mid between pa and pb, fixme
-								//but first fix pa's position
-								//it seems it is at wrong y pos relative to a,
-								//along a's length axis wrongly positioned, rest seems ok
-								spawn_particle(new marker_particle(a.get_pos() + pa));
+								// is now a.get_pos() + (pa + pb) * 0.5
+								//log_debug("sub rel collis pos: "<<a.get_orientation().conj().rotate((pa+pb)*0.5));
+								spawn_particle(new marker_particle(a.get_pos() + (pa + pb) * 0.5));
 								return true;
 							}
 						}

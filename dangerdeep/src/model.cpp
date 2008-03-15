@@ -1830,7 +1830,7 @@ void model::read_phys_file(const string& filename)
 	unsigned ptr = 0;
 	float mass_part_sum = 0;
 	double volume_rcp = 1.0/m.volume;
-	vector<int> reverse_voxel_idx(voxel_resolution.x*voxel_resolution.y*voxel_resolution.z, -1);
+	voxel_index_by_pos.resize(voxel_resolution.x*voxel_resolution.y*voxel_resolution.z, -1);
 	for (int izz = 0; izz < voxel_resolution.z; ++izz) {
 		// quick test hack, linear distribution top->down 0->1
 		float mass_part = (voxel_resolution.z - izz)/float(voxel_resolution.z);
@@ -1838,7 +1838,7 @@ void model::read_phys_file(const string& filename)
 			for (int ixx = 0; ixx < voxel_resolution.x; ++ixx) {
 				float f = insidevol[ptr];
 				if (f >= 1.0f/255.0f) {
-					reverse_voxel_idx[ptr] = int(voxel_data.size());
+					voxel_index_by_pos[ptr] = int(voxel_data.size());
 					float m = f * mass_part;
 					if (!massdistri.empty())
 						m = massdistri[ptr];
@@ -1865,7 +1865,7 @@ void model::read_phys_file(const string& filename)
 	for (int izz = 0; izz < voxel_resolution.z; ++izz) {
 		for (int iyy = 0; iyy < voxel_resolution.y; ++iyy) {
 			for (int ixx = 0; ixx < voxel_resolution.x; ++ixx) {
-				int revvi = reverse_voxel_idx[ptr];
+				int revvi = voxel_index_by_pos[ptr];
 				if (revvi >= 0) {
 					// there is a voxel at that position
 					for (int k = 0; k < 6; ++k) {
@@ -1876,7 +1876,7 @@ void model::read_phys_file(const string& filename)
 						    nx < voxel_resolution.x &&
 						    ny < voxel_resolution.y &&
 						    nz < voxel_resolution.z) {
-							int ng = reverse_voxel_idx[(nz * voxel_resolution.y + ny) * voxel_resolution.x + nx];
+							int ng = voxel_index_by_pos[(nz * voxel_resolution.y + ny) * voxel_resolution.x + nx];
 							if (ng >= 0) {
 								voxel_data[revvi].neighbour_idx[k] = ng;
 								//DBGOUT8(ixx,iyy,izz,k,ng,nx,ny,nz);
