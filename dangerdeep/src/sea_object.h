@@ -397,6 +397,9 @@ public:
 
 	/// set random skin_name by given date, only to use for convoy creation
 	void set_random_skin_name(const date& d);
+
+	/// get linear velocity of any point when considered relative to object
+	vector3 compute_linear_velocity(const vector3& p) const;
 };
 
 #endif

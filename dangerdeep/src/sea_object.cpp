@@ -921,3 +921,12 @@ unsigned sea_object::get_min_max_voxel_index_for_polyset(const std::vector<polyg
 		std::max(0, vxmax.y + 1 - vxmin.y) *
 		std::max(0, vxmax.z + 1 - vxmin.z);
 }
+
+
+
+vector3 sea_object::compute_linear_velocity(const vector3& p) const
+{
+	// result is v(t) + w(t) x r(t)  (linear velocity + omega cross relative vector)
+	vector3 w = orientation.rotate(inertia_tensor_inv * orientation.conj().rotate(angular_momentum));
+	return velocity + w.cross(p - position);
+}
