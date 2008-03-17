@@ -229,7 +229,8 @@ protected:
 
 	/// check objects collide with any other object
 	void check_collisions();
-	bool check_collision_bboxes(const ship& a, const ship& b);
+	bool check_collision_bboxes(const sea_object& a, const sea_object& b);
+	void collision_response(const sea_object& a, const sea_object& b, const vector3& collision_pos);
 
 	game();	
 	game& operator= (const game& other);

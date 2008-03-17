@@ -1930,7 +1930,7 @@ vector<ship*> game::get_all_ships() const
 
 
 
-bool game::check_collision_bboxes(const ship& a, const ship& b)
+bool game::check_collision_bboxes(const sea_object& a, const sea_object& b)
 {
 	// compute bbox of actor and partner (inversed)
 	vector<polygon> bboxa = a.get_bounding_box(false);
@@ -2014,7 +2014,9 @@ bool game::check_collision_bboxes(const ship& a, const ship& b)
 								// real world pos of intersection
 								// is now a.get_pos() + (pa + pb) * 0.5
 								//log_debug("sub rel collis pos: "<<a.get_orientation().conj().rotate((pa+pb)*0.5));
-								spawn_particle(new marker_particle(a.get_pos() + (pa + pb) * 0.5));
+								//spawn_particle(new marker_particle(a.get_pos() + (pa + pb) * 0.5));
+								collision_response(a, b,
+										   a.get_pos() + (pa + pb) * 0.5);
 								return true;
 							}
 						}
@@ -2042,12 +2044,13 @@ void game::check_collisions()
 		const double actrad = actor->get_model().get_bounding_sphere_radius();
 		for (unsigned j = std::max(i+1, m); j < allships.size(); ++j) {
 			const ship* partner = allships[j];
+			// this check not limited to ships, would work with every sea_object
 			double rsum = actrad + partner->get_model().get_bounding_sphere_radius();
 			double d2 = actor->get_pos().square_distance(partner->get_pos());
 			if (d2 <= rsum*rsum) {
 				log_debug("possible collision between objects "<<actor<<" and "<<partner);
 				if (check_collision_bboxes(*actor, *partner)) {
-					// ...
+					// nothing special here yet
 				}
 			}
 		}
@@ -2090,6 +2093,38 @@ void game::check_collisions()
 	// fixme: collision checks between fast moving small objects and bigger objects
 	// (like shells vs. ships) should be done here too, and not only in gun_shell
 	// class. Later other objects may need that code too (machine cannons, guns etc).
+}
+
+
+
+void game::collision_response(const sea_object& a, const sea_object& b, const vector3& collision_pos)
+{
+	// compute directions to A, B to compute collision response direction
+	const vector3& A = a.get_pos();
+	const vector3& B = b.get_pos();
+	vector3 dA = (A - collision_pos).normal();
+	vector3 dB = (B - collision_pos).normal();
+	vector3 N;
+	if (dA * dB < 1e-4) {
+		N = dA;
+	} else {
+		N = dA.cross(dB).normal().cross((dA + dB).normal()).normal();
+	}
+	log_debug("collision response dir="<<N);
+
+	// compute speed of A and B at the collision point, compute opposing force and
+	// apply directly to A, B, modifying their speed
+	// we need to compute velocity at collision point of A, B.
+	// the scalar product with N gives collision speed, its negative value
+	// must be dampened and applied as force along N.
+	// clip speed so positive values along N are not used, i.e. when collision response
+	// has already been applied, and velocity vector points already along N, do not
+	// apply it again, even if objects still collide at next physics step.
+	// Speed at collision point is linear speed plus relative vector cross linear velocity
+	// add a function to sea_object to compute linear speed of any relative point.
+	//fixme
+	log_debug("linear velocity A=" << a.compute_linear_velocity(collision_pos)
+		  << "   B=" << b.compute_linear_velocity(collision_pos));
 }
 
 
