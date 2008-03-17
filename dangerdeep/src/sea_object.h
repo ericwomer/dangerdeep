@@ -328,9 +328,9 @@ public:
 
 	// command interface - no special commands for a generic sea_object
 
-	virtual vector3 get_pos() const { return position; }
-	virtual vector3 get_velocity() const { return velocity; }
-	virtual vector3 get_local_velocity() const { return local_velocity; }
+	virtual const vector3& get_pos() const { return position; }
+	virtual const vector3& get_velocity() const { return velocity; }
+	virtual const vector3& get_local_velocity() const { return local_velocity; }
 	virtual double get_speed() const { return get_local_velocity().y; }
 	virtual const quaternion& get_orientation() const { return orientation; }
 	virtual double get_turn_velocity() const { return turn_velocity; }

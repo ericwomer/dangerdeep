@@ -96,7 +96,7 @@ public:
 	static void init();
 	static void deinit();
 
-	virtual vector3 get_pos() const { return position; }
+	virtual const vector3& get_pos() const { return position; }
 	virtual void set_pos(const vector3& pos) { position = pos; }
 
 	// class game is given so that particles can spawn other particles (fire->smoke)
