@@ -981,13 +981,13 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	F = orientation.rotate(vector3(0, (acceleration + drag_factor) * mass, 0));
 
 	// new algo: compute drag directly from linear momentum
-	vector3 global_linear_momentum = orientation.rotate(linear_momentum.coeff_mul(vector3(1, 0, 1)));
+	vector3 linear_momentum_xz = orientation.rotate(orientation.conj().rotate(linear_momentum).coeff_mul(vector3(1, 0, 1)));
 	// maybe add some linear drag too, so low linear_momentum values give some noticeable
 	// drag too (just squaring gives too low drag)
 	// fixme: drag depends on cross section area, is lower in forward direction
 	// than sideward direction!
-	double lmfac = -global_linear_momentum.square_length() / (mass * mass);
-	F += global_linear_momentum * lmfac;
+	double lmfac = -linear_momentum_xz.square_length() / (mass * mass);
+	F += linear_momentum_xz * lmfac;
 
 	// Note! drag should be computed for all three dimensions, each with area,
 	// to limit sideward/downward movement as well. We need to know the area

@@ -48,12 +48,12 @@ gun_shell::gun_shell(game& gm_, const vector3& pos, angle direction, angle eleva
 	orientation = quaternion::rot(-direction.value(), 0, 0, 1);
 	mass = 20;
 	mass_inv = 1.0/mass;
-	linear_momentum = mass * vector3(0,
-					 elevation.cos() * initial_velocity,
-					 elevation.sin() * initial_velocity);
+	linear_momentum = mass * orientation.rotate(vector3(0,
+		elevation.cos() * initial_velocity,
+		elevation.sin() * initial_velocity));
 	// set off initial pos. like 0.1 seconds after firing, to avoid
 	// collision with parent
-	position = pos + orientation.rotate(linear_momentum * (mass_inv * 0.1));
+	position = pos + linear_momentum * (mass_inv * 0.1);
 	angular_momentum = vector3();
 	compute_helper_values();
 	oldpos = position;

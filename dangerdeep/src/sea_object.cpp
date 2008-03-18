@@ -84,8 +84,8 @@ void sea_object::compute_force_and_torque(vector3& F, vector3& T) const
 
 void sea_object::compute_helper_values()
 {
-	local_velocity = linear_momentum * mass_inv;
-	velocity = orientation.rotate(local_velocity);
+	velocity = linear_momentum * mass_inv;
+	local_velocity = orientation.conj().rotate(velocity);
 
 	heading = angle(orientation.rotate(0.0, 1.0, 0.0).xy());
 	// w is _old_ spin vector, but we need the new one...
@@ -594,11 +594,11 @@ void sea_object::simulate(double delta_time)
 	//DBGOUT6(position, orientation, linear_momentum, angular_momentum, force, torque);
 
 	// compute new position by integrating linear_momentum
-	// M^-1 * P = v, linear_momentum is in object space!
-	position += orientation.rotate(linear_momentum * mass_inv * delta_time);
+	// M^-1 * P = v, linear_momentum is in world space!
+	position += linear_momentum * mass_inv * delta_time;
 
-	// compute new linear_momentum by integrating force (force: world space, linear_momentum: object space)
-	linear_momentum += orientation.conj().rotate(delta_time * force);
+	// compute new linear_momentum by integrating force
+	linear_momentum += delta_time * force;
 
 	// compute new orientation by integrating angular momentum
 	// L = I * w = R * I_k * R^T * w =>
@@ -745,7 +745,7 @@ void sea_object::manipulate_position(const vector3& newpos)
 void sea_object::manipulate_speed(double localforwardspeed)
 {
 	local_velocity.y = localforwardspeed;
-	linear_momentum = local_velocity * mass;
+	linear_momentum = orientation.rotate(local_velocity * mass);
 	compute_helper_values();
 }
 
@@ -944,7 +944,7 @@ double sea_object::compute_collision_response_value(const vector3& collision_pos
 void sea_object::apply_collision_impulse(const vector3& collision_pos, const vector3& J)
 {
 	vector3 r = collision_pos - position;
-	linear_momentum += orientation.conj().rotate(J);
+	linear_momentum += J;
 	angular_momentum += r.cross(J);
 	compute_helper_values();
 }

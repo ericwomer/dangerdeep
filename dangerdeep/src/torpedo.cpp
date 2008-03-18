@@ -539,7 +539,7 @@ void torpedo::launch(const vector3& launchpos, angle parenthdg)
 	position = launchpos;
 	orientation = quaternion::rot(-parenthdg.value(), 0, 0, 1);
 	max_speed_forward = get_torp_speed();
-	linear_momentum = vector3(0, max_speed_forward * mass, 0); // fixme: get from parent
+	linear_momentum = orientation.rotate(vector3(0, max_speed_forward * mass, 0)); // fixme: get from parent
 	angular_momentum = vector3(); // fixme: get from parent
 	compute_helper_values();
 	max_angular_velocity = max_speed_forward * turn_rate;
