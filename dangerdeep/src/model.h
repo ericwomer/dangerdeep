@@ -265,6 +265,8 @@ public:
 		vector3f relative_position;
 		/// part of voxel that is filled with model volume (0...1)
 		float part_of_volume;
+		/// third root of part_of_volume, used for collision detection
+		float root3_part_of_volume;
 		/// relative mass of the voxel of total mass (0...1)
 		float relative_mass;
 		/// relative volume of the voxel of total volume (0...1)
@@ -274,7 +276,8 @@ public:
 		int neighbour_idx[6];
 		/// construct a voxel
 		voxel(const vector3f& rp, float pv, float m, float rv)
-			: relative_position(rp), part_of_volume(pv), relative_mass(m),
+			: relative_position(rp), part_of_volume(pv),
+			root3_part_of_volume(pow(pv, 1.0/3.0)), relative_mass(m),
 			relative_volume(rv)
 		{
 			for (int i = 0; i < 6; ++i) neighbour_idx[i] = -1;

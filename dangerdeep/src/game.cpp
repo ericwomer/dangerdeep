@@ -2006,8 +2006,8 @@ bool game::check_collision_bboxes(const sea_object& a, const sea_object& b, vect
 							// or their square distance is less than
 							// the square of the sum of their radii
 							float sqd = pa.square_distance(pb);
-							float rs = voxel_radius_a * voxa->part_of_volume
-								+ voxel_radius_b * voxb->part_of_volume;
+							float rs = voxel_radius_a * voxa->root3_part_of_volume
+								+ voxel_radius_b * voxb->root3_part_of_volume;
 							if (sqd <= rs * rs) {
 								log_debug("Voxel intersection found a="<<vector3f(ax,ay,az)<<" b="<<vector3f(bx,by,bz));
 								//log_debug("relative voxel pos A="<<voxa->relative_position<<" B="<<voxb->relative_position);
