@@ -930,3 +930,21 @@ vector3 sea_object::compute_linear_velocity(const vector3& p) const
 	vector3 w = orientation.rotate(inertia_tensor_inv * orientation.conj().rotate(angular_momentum));
 	return velocity + w.cross(p - position);
 }
+
+
+
+double sea_object::compute_collision_response_value(const vector3& collision_pos, const vector3& N) const
+{
+	vector3 r = collision_pos - position;
+	return mass_inv + N * orientation.rotate(inertia_tensor_inv * orientation.conj().rotate(r.cross(N))).cross(r);
+}
+
+
+
+void sea_object::apply_collision_impulse(const vector3& collision_pos, const vector3& J)
+{
+	vector3 r = collision_pos - position;
+	linear_momentum += orientation.conj().rotate(J);
+	angular_momentum += r.cross(J);
+	compute_helper_values();
+}

@@ -400,6 +400,12 @@ public:
 
 	/// get linear velocity of any point when considered relative to object
 	vector3 compute_linear_velocity(const vector3& p) const;
+
+	/// compute collision response impulse term
+	double compute_collision_response_value(const vector3& collision_pos, const vector3& N) const;
+
+	/// apply collision response impulse
+	void apply_collision_impulse(const vector3& collision_pos, const vector3& J);
 };
 
 #endif
