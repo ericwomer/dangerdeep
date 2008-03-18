@@ -1930,7 +1930,7 @@ vector<ship*> game::get_all_ships() const
 
 
 
-bool game::check_collision_bboxes(const sea_object& a, const sea_object& b)
+bool game::check_collision_bboxes(const sea_object& a, const sea_object& b, vector3& collision_pos)
 {
 	// compute bbox of actor and partner (inversed)
 	vector<polygon> bboxa = a.get_bounding_box(false);
@@ -2014,9 +2014,8 @@ bool game::check_collision_bboxes(const sea_object& a, const sea_object& b)
 								// real world pos of intersection
 								// is now a.get_pos() + (pa + pb) * 0.5
 								//log_debug("sub rel collis pos: "<<a.get_orientation().conj().rotate((pa+pb)*0.5));
-								//spawn_particle(new marker_particle(a.get_pos() + (pa + pb) * 0.5));
-								collision_response(a, b,
-										   a.get_pos() + (pa + pb) * 0.5);
+								collision_pos = a.get_pos() + (pa + pb) * 0.5;
+								//spawn_particle(new marker_particle(collision_pos));
 								return true;
 							}
 						}
@@ -2049,8 +2048,11 @@ void game::check_collisions()
 			double d2 = actor->get_pos().square_distance(partner->get_pos());
 			if (d2 <= rsum*rsum) {
 				log_debug("possible collision between objects "<<actor<<" and "<<partner);
-				if (check_collision_bboxes(*actor, *partner)) {
-					// nothing special here yet
+				vector3 collision_pos;
+				if (check_collision_bboxes(*actor, *partner, collision_pos)) {
+					// handle collision response here, because its logical
+					// and since actor/partner can be made non-const only here.
+					collision_response(*allships[i], *allships[j], collision_pos);
 				}
 			}
 		}
@@ -2097,7 +2099,7 @@ void game::check_collisions()
 
 
 
-void game::collision_response(const sea_object& a, const sea_object& b, const vector3& collision_pos)
+void game::collision_response(sea_object& a, sea_object& b, const vector3& collision_pos)
 {
 	// compute directions to A, B to compute collision response direction
 	const vector3& A = a.get_pos();
@@ -2123,8 +2125,22 @@ void game::collision_response(const sea_object& a, const sea_object& b, const ve
 	// Speed at collision point is linear speed plus relative vector cross linear velocity
 	// add a function to sea_object to compute linear speed of any relative point.
 	//fixme
-	log_debug("linear velocity A=" << a.compute_linear_velocity(collision_pos)
-		  << "   B=" << b.compute_linear_velocity(collision_pos));
+	vector3 vA = a.compute_linear_velocity(collision_pos);
+	vector3 vB = b.compute_linear_velocity(collision_pos);
+	double vrel = N * (vA - vB);
+	log_debug("linear velocity A=" << vA << "   B=" << vB << " vrel="<<vrel);
+	// if the contact points move away each other, do nothing
+	if (vrel > 0)
+		return;
+	const double epsilon = 0.5; // dampening of response force
+	double j = -(1.0 + epsilon) / (a.compute_collision_response_value(collision_pos, N) +
+				       b.compute_collision_response_value(collision_pos, N));
+	log_debug("j="<<j<<" force=" << (j*N));
+	j=-j;//fixme, seems better so, but why?!
+	//the value of j seems to be way too small too
+	j*=10;//with that it bounces really hard off, but only once
+	a.apply_collision_impulse(collision_pos,  j * N);
+	b.apply_collision_impulse(collision_pos, -j * N);
 }
 
 
