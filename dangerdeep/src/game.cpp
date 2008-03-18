@@ -2133,12 +2133,9 @@ void game::collision_response(sea_object& a, sea_object& b, const vector3& colli
 	if (vrel > 0)
 		return;
 	const double epsilon = 0.5; // dampening of response force
-	double j = -(1.0 + epsilon) / (a.compute_collision_response_value(collision_pos, N) +
-				       b.compute_collision_response_value(collision_pos, N));
+	double j = -(1.0 + epsilon) * vrel / (a.compute_collision_response_value(collision_pos, N) +
+					      b.compute_collision_response_value(collision_pos, N));
 	log_debug("j="<<j<<" force=" << (j*N));
-	j=-j;//fixme, seems better so, but why?!
-	//the value of j seems to be way too small too
-	//j*=10;//with that it bounces really hard off, but only once
 	a.apply_collision_impulse(collision_pos,  j * N);
 	b.apply_collision_impulse(collision_pos, -j * N);
 }
