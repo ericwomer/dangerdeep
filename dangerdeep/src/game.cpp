@@ -2138,7 +2138,7 @@ void game::collision_response(sea_object& a, sea_object& b, const vector3& colli
 	log_debug("j="<<j<<" force=" << (j*N));
 	j=-j;//fixme, seems better so, but why?!
 	//the value of j seems to be way too small too
-	j*=10;//with that it bounces really hard off, but only once
+	//j*=10;//with that it bounces really hard off, but only once
 	a.apply_collision_impulse(collision_pos,  j * N);
 	b.apply_collision_impulse(collision_pos, -j * N);
 }
