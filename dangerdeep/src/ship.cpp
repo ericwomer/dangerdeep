@@ -907,6 +907,10 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// can't explode. using factor smaller than 1.0 works here too.
 	// dr_torque is computed by multiplied angular_momentum again, so in
 	// fact its some kind of square and we had power of 3 before??
+	// yeah sure! correct formula would be:
+	// dr_torque += angular_momentum.normal() * amfac
+	// and amfac = am.square_length() / mass^2
+	// fixme: divide by mass^2 here or heavy ships can turn too fast!
 
 #else
 	// we need to add the force/torque generated from tide.
