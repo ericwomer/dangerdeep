@@ -891,9 +891,18 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// of it. We can then apply different drag torques for each axis.
 	// rotation around z axis has rather high drag, same as x. y-axis (rolling)
 	// has low drag.
-	double amfac = -0.25 * angular_momentum.square_length() / (mass * mass);
+////	double amfac = -0.25 * angular_momentum.square_length() / (mass * mass);
+	double amfac = -1.0 * angular_momentum.length() / mass;
 	dr_torque += angular_momentum * amfac;
 //	std::cout << "amdrag=" << angular_momentum * amfac << "\n";
+
+	//fixme: dr_torque is way too high, especially on collision response,
+	//seems near square of what is needed, leading to oscillations around zero,
+	//with exploding numbers like +1e11, -1e22, +1e50, -1e126, +inf, NaN *kaboom*
+	// the whole computation of drag is experimental, broken!
+	// here the momentum is squared and divided by mass^2, which is a constant.
+	// this squaring seems wrong...
+	// using non-square seems better, although turning radius is higher...
 
 #else
 	// we need to add the force/torque generated from tide.
@@ -1042,6 +1051,8 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	double L = size3d.y * 0.5;
 	double drag_torque = drag_coefficient * water_density * tvr2
 		* get_turn_drag_area() * L*L*L * 0.125;
+	//fixme: drag_torque is not used !!!
+//	DBGOUT2(angular_momentum, dr_torque);
 //	std::cout << "Turn drag torque=" << drag_torque << " Nm\n";
 	if (turn_velocity > 0) drag_torque = -drag_torque;
 
