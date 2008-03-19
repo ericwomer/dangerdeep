@@ -598,6 +598,17 @@ void sea_object::simulate(double delta_time)
 	position += linear_momentum * mass_inv * delta_time;
 
 	// compute new linear_momentum by integrating force
+	//fixme: linear_momentum was object_local, so direction of linear_momentum
+	//was changed automatically when orientation changed. This is no longer
+	//the case. Normal objects still are simulated correctly, but this is
+	//missing some physics laws? - a fast moving plane going into a curve
+	//will change its linear momentum for example, because direction is
+	//changed without new force (e.g. if motor is off, like sailing plane).
+	//test show that this still works with subs: accelerate to flank speed,
+	//then turn off engine, then turn rudder -> sub will turn!
+	//the drag may slow the sub down, but why it is moving forward in new
+	//direction?! drag should slow sub down and does so, but nothing
+	//accelerates it!!
 	linear_momentum += delta_time * force;
 
 	// compute new orientation by integrating angular momentum
