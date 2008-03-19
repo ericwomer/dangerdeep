@@ -1062,6 +1062,9 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// here we always turn around z-axis...
 	T = vector3(0, 0, rudder_torque) + dr_torque;
 //	DBGOUT2(hd,T);
+	//fixme: with collision response torque values explode, it seems drag torque
+	//is too low or too high, leading to fast exploding angular momentum values
+	//causing NaN in a few steps
 }
 
 
