@@ -892,7 +892,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// rotation around z axis has rather high drag, same as x. y-axis (rolling)
 	// has low drag.
 ////	double amfac = -0.25 * angular_momentum.square_length() / (mass * mass);
-	double amfac = -1.0 * angular_momentum.length() / mass;
+	double amfac = -0.5 * angular_momentum.length() / mass;
 	dr_torque += angular_momentum * amfac;
 //	std::cout << "amdrag=" << angular_momentum * amfac << "\n";
 
@@ -903,6 +903,10 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// here the momentum is squared and divided by mass^2, which is a constant.
 	// this squaring seems wrong...
 	// using non-square seems better, although turning radius is higher...
+	// squaring is needed so that drag rises faster than speed, so speed
+	// can't explode. using factor smaller than 1.0 works here too.
+	// dr_torque is computed by multiplied angular_momentum again, so in
+	// fact its some kind of square and we had power of 3 before??
 
 #else
 	// we need to add the force/torque generated from tide.
