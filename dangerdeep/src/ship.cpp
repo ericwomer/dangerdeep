@@ -832,18 +832,18 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// fixme: re-normalization of rotation quaterionions ("orientation")
 	//        should be done frequently...
 
-#if 1
 	double lift_force_sum = 0; // = -GRAVITY * mass;
 	vector3 dr_torque;
 	const std::vector<model::voxel>& voxel_data = mymodel->get_voxel_data();
 	const vector3f& voxel_size = mymodel->get_voxel_size();
-	float voxel_radius = mymodel->get_voxel_radius();
-	float voxel_vol = voxel_size.x * voxel_size.y * voxel_size.z;
-	double voxel_vol_force = voxel_vol * GRAVITY * 1000.0; // 1000kg per cubic meter
-	matrix4f transmat = orientation.rotmat4() * mymodel->get_base_mesh_transformation()
+	const float voxel_radius = mymodel->get_voxel_radius();
+	const float voxel_vol = voxel_size.x * voxel_size.y * voxel_size.z;
+	const double voxel_vol_force = voxel_vol * GRAVITY * 1000.0; // 1000kg per cubic meter
+	const matrix4f transmat = orientation.rotmat4() * mymodel->get_base_mesh_transformation()
 		* matrix4f::diagonal(voxel_size);
 	double vol_below_water=0;
-	double gravity_force = mass * -GRAVITY;
+	const double gravity_force = mass * -GRAVITY;
+	//fixme: split loop to two cores to speed up physics a tiny bit
 	for (unsigned i = 0; i < voxel_data.size(); ++i) {
 		// instead of a per-voxel matrix-vector multiplication we could
 		// transform all other vectors to mesh-vertex-space and skip
@@ -892,6 +892,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// rotation around z axis has rather high drag, same as x. y-axis (rolling)
 	// has low drag.
 ////	double amfac = -0.25 * angular_momentum.square_length() / (mass * mass);
+	//with that formula destroyes have extreme high turn radius, for sub it is ok
 	double amfac = -0.5 * angular_momentum.length() / mass;
 	dr_torque += angular_momentum * amfac;
 //	std::cout << "amdrag=" << angular_momentum * amfac << "\n";
@@ -912,61 +913,6 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// and amfac = am.square_length() / mass^2
 	// fixme: divide by mass^2 here or heavy ships can turn too fast!
 
-#else
-	// we need to add the force/torque generated from tide.
-	// for certain sample points around the hull we compute the draught
-	// and from that a lift force. It can be negative because of gravity
-	// or positive because of buoyancy.
-	// The sum of all these forces is total lift force,
-	// the sum of the cross products between these forces and their relative
-	// vectors where they act (the points around the hull) give the torque.
-	// this is rather easy to code.
-	// sample 5-10 points along length axis of ship, compute real world xy
-	// coordinate of it and then water height there, compute draught
-	// by comparing z-pos of that point (real world!) with water height.
-	// for rolling, we need to compute a 2d array of points, e.g. 2*5 or 3*5.
-	// costly, but needed for realism.
-	// To simulate this we need to "distribute" mass over the sample points
-	// and the ship's volume that is under water, too.
-	// This can be computed if we distribute ship's area (when seen from above),
-	// then draught and area give volume under water.
-	// We use an evenly distributed mass/volume as start.
-	// 5 points: center, bow, stern, port, starboard (outside points at 2/3 length/width).
-	const double buoyancy_factors[5] = { 0.25, 0.25, 0.25, 0.125, 0.125 };
-	const vector3 buoyancy_vec[5] = {
-		vector3(),
-		vector3(0, +size3d.y*(1/3.0), 0),
-		vector3(0, -size3d.y*(1/3.0), 0),
-		vector3(-size3d.x*(1/3.0), 0, 0),
-		vector3(+size3d.x*(1/3.0), 0, 0)
-	};
-	double lift_forces[5];
-	double lift_force_sum = 0;
-	const double dr_area = size3d.x * size3d.y;
-	vector3 dr_torque;
-	for (int i = 0; i < 5; ++i) {
-		vector3 realworldpos = orientation.rotate(buoyancy_vec[i]) + position;
-		double waterheight = gm.compute_water_height(realworldpos.xy());
-		double draught = waterheight - realworldpos.z;
-		double volume = dr_area * buoyancy_factors[i] * draught;
-		double dr_mass = mass * buoyancy_factors[i];
-		double f_gravity = dr_mass * GRAVITY;
-		double f_lift = volume * 1000.0 * GRAVITY; // 1000kg/m^3
-		lift_forces[i] = f_lift - f_gravity;
-		lift_force_sum += lift_forces[i];
-		vector3 lift_torque = buoyancy_vec[i].cross(vector3(0, 0, lift_forces[i]));
-		//DBGOUT3(i,lift_forces[i],lift_torque);
-		dr_torque += lift_torque;
-	}
-	// we need to use local angular velocities here.
- 	dr_torque.y += (roll_velocity < 0 ? 1.0 : -1.0) * roll_velocity*roll_velocity * 1000000.0; // damping
- 	dr_torque.x += (pitch_velocity < 0 ? 1.0 : -1.0) * pitch_velocity*pitch_velocity * 1000000.0; // damping
-	// fixme: velocity was considered local before, not its global!
-	//fixme: add drag when moving downwards (or both directions, maybe depending
-	//on direction) 
-	lift_force_sum += (velocity.z < 0 ? 1.0 : -1.0) * velocity.z*velocity.z * mass * 1.0;
-	//DBGOUT4(dr_torque,lift_force_sum,roll_velocity,pitch_velocity);
-#endif
 
 	// fixme: torpedoes MUST NOT be affected by tide.
 
