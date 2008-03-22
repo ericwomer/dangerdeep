@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-// user display: submarine's torpedo room
+// Object to display soldbook
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "system.h"
@@ -33,14 +33,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <fstream>
 using namespace std;
 
-
-
 sub_soldbuch_display::sub_soldbuch_display(user_interface& ui_) :
 	user_display(ui_)
 {
 }
-
-
 
 void sub_soldbuch_display::display(class game& gm) const
 {
@@ -116,53 +112,9 @@ void sub_soldbuch_display::display(class game& gm) const
 	sys().unprepare_2d_drawing();
 }
 
-
-
 void sub_soldbuch_display::process_input(class game& gm, const SDL_Event& event)
 {
-//	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
-
-	switch (event.type) {
-	case SDL_MOUSEBUTTONDOWN:
-#if 0
-		// check if there is a clickable area below the mouse and take some action
-		mx = event.button.x;
-		my = event.button.y;
-		if (event.button.button == SDL_BUTTON_LEFT) {
-			// fixme:
-		} else if (event.button.button == SDL_BUTTON_WHEELUP) {
-		} else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
-		}
-#endif
-		break;
-	case SDL_MOUSEBUTTONUP:
-#if 0
-		// check if there is a clickable area below the mouse and take some action
-		mx = event.button.x;
-		my = event.button.y;
-		if (event.button.button == SDL_BUTTON_LEFT) {
-			for (vector<clickable_area>::iterator it = clickable_areas.begin();
-			     it != clickable_areas.end(); ++it) {
-				if (it->is_mouse_over(mx, my)) {
-					it->do_action(*this);
-					break;
-				}
-			}
-		}
-#endif
-		break;
-	case SDL_MOUSEMOTION:
-#if 0
-		mx = event.motion.x;
-		my = event.motion.y;
-#endif
-		break;
-	default:
-		break;
-	}
 }
-
-
 
 void sub_soldbuch_display::enter(bool is_day)
 {
@@ -172,10 +124,10 @@ void sub_soldbuch_display::enter(bool is_day)
 	stamps.reset(new image(get_image_dir() + "stamp" + str(ui.get_game().get_date().get_value(date::year)) + ".png"));
 }
 
-
-
 void sub_soldbuch_display::leave()
 {
 	background.reset();
 	player_photo.reset();
+	stamps.reset();
+	primary_overlay.reset();
 }

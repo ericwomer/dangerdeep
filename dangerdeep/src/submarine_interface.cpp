@@ -67,6 +67,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "sub_bg_display.h"
 #include "sub_captainscabin_display.h"
 #include "sub_soldbuch_display.h"
+#include "sub_recogmanual_display.h"
 
 #include "torpedo_camera_display.h"
 
@@ -92,6 +93,7 @@ submarine_interface::submarine_interface(game& gm) :
 	displays.reset(display_mode_logbook, new logbook_display(*this));
 	displays.reset(display_mode_captainscabin, new sub_captainscabin_display(*this));
 	displays.reset(display_mode_successes, new sub_soldbuch_display(*this));
+	displays.reset(display_mode_recogmanual, new sub_recogmanual_display(*this));
 	switch (player->get_hearing_device_type()) {
 	case submarine::hearing_device_KDB:
 		displays.reset(display_mode_sonar, new sub_kdb_display(*this));
@@ -652,7 +654,10 @@ void submarine_interface::goto_torpedosettings()
 }
 
 
-
+void submarine_interface::goto_recogmanual()
+{
+	set_current_display(display_mode_recogmanual);
+}
 /*
 bool submarine_interface::object_visible(sea_object* so,
 	const vector2& dl, const vector2& dr) const //fixme buggy

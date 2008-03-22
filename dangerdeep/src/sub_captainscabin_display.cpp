@@ -41,21 +41,20 @@ void sub_captainscabin_display::goto_successes()
 	(dynamic_cast<submarine_interface&>(ui)).goto_successes();
 }
 
-
-
 void sub_captainscabin_display::goto_logbook()
 {
 	(dynamic_cast<submarine_interface&>(ui)).goto_logbook();
 }
-
-
 
 void sub_captainscabin_display::goto_torpedoes()
 {
 	(dynamic_cast<submarine_interface&>(ui)).goto_torpedomanagement();
 }
 
-
+void sub_captainscabin_display::goto_recogmanual()
+{
+	(dynamic_cast<submarine_interface&>(ui)).goto_recogmanual();
+}
 
 sub_captainscabin_display::clickable_area::clickable_area(const vector2i& tl, const vector2i& br,
 							  int descr,
@@ -65,32 +64,25 @@ sub_captainscabin_display::clickable_area::clickable_area(const vector2i& tl, co
 {
 }
 
-
-
 bool sub_captainscabin_display::clickable_area::is_mouse_over(int mx, int my) const
 {
 	return (mx >= topleft.x && mx <= bottomright.x &&
 		my >= topleft.y && my <= bottomright.y);
 }
 
-
-
 void sub_captainscabin_display::clickable_area::do_action(sub_captainscabin_display& obj)
 {
 	(obj.*action)();
 }
 
-
-
 sub_captainscabin_display::sub_captainscabin_display(user_interface& ui_) :
 	user_display(ui_), mx(0), my(0)
 {
 	clickable_areas.push_back(clickable_area(vector2i(0, 540), vector2i(292,705), 272, &sub_captainscabin_display::goto_successes, color(255, 224, 224)));
-	clickable_areas.push_back(clickable_area(vector2i(353, 392), vector2i(681, 535), 255, &sub_captainscabin_display::goto_logbook, color(224, 224, 255)));
+	clickable_areas.push_back(clickable_area(vector2i(415, 495), vector2i(486,520), 255, &sub_captainscabin_display::goto_logbook, color(224, 224, 255)));
 	clickable_areas.push_back(clickable_area(vector2i(713, 176), vector2i(862, 575), 253, &sub_captainscabin_display::goto_torpedoes, color(224, 255, 224)));
+	clickable_areas.push_back(clickable_area(vector2i(405, 430), vector2i(462,498), 273, &sub_captainscabin_display::goto_recogmanual, color(255, 224, 224)));
 }
-
-
 
 void sub_captainscabin_display::display(class game& gm) const
 {
@@ -116,8 +108,6 @@ void sub_captainscabin_display::display(class game& gm) const
 	ui.draw_infopanel();
 	sys().unprepare_2d_drawing();
 }
-
-
 
 void sub_captainscabin_display::process_input(class game& gm, const SDL_Event& event)
 {
@@ -157,15 +147,11 @@ void sub_captainscabin_display::process_input(class game& gm, const SDL_Event& e
 	}
 }
 
-
-
 void sub_captainscabin_display::enter(bool is_day)
 {
 	background.reset(new image(get_image_dir() + "captainscabin_main_"
 				   + (is_day ? "daylight" : "redlight") + ".jpg"));
 }
-
-
 
 void sub_captainscabin_display::leave()
 {

@@ -4,8 +4,9 @@
     <skin name="north_atlantic_royal_navy" regions="NA" countries="GB" from="1939/1/1" until="1945/12/31" />
     <skin name="mediteranean_sea_all_navies" regions="MS" countries="GB" from="1939/1/1" until="1945/12/31" />
     <skin name="canadian_northatlantic" regions="CE,NA" countries="CD" from="1942/1/1" until="1945/12/31" />
-	<skin name="canadian_coast_na" regions="CE,NA" countries="CD" from="1943/1/1" until="1945/12/31" />
+    <skin name="canadian_coast_na" regions="CE,NA" countries="CD" from="1943/1/1" until="1945/12/31" />
   </classification>
+  <shipmanual class="foo" displacement="foo" length="foo" countries="foo" weapons="foo"/>
   <description>
     <far lang="en">Convoy escort</far>
     <far lang="de">Geleitschiff</far>

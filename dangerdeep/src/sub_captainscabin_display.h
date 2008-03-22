@@ -60,6 +60,7 @@ class sub_captainscabin_display : public user_display
 	void goto_successes();
 	void goto_logbook();
 	void goto_torpedoes();
+	void goto_recogmanual();
 
 	int mx, my;
 

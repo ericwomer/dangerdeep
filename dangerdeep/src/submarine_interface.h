@@ -64,6 +64,7 @@ public:
 		display_mode_freeview,
 		display_mode_tdc,
 		display_mode_torpsetup,
+		display_mode_recogmanual,
 		nr_of_displays
 	};
 
@@ -101,6 +102,7 @@ public:
 	void goto_freeview();
 	void goto_TDC();
 	void goto_torpedosettings();
+	void goto_recogmanual();
 
 	void toggle_popup();
 
