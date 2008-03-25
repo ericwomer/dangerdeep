@@ -962,10 +962,9 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// w.xyz is turn velocity around xyz axis.
 	vector3 w = inertia_tensor_inv * orientation.conj().rotate(angular_momentum);
 	vector3 tvr(fabs(w.x), fabs(w.y), fabs(w.z));
-	const vector3 tvf(tvr.x < 0.1 ? 0.99 : 0.0,
-			  tvr.y < 0.1 ? 0.99 : 0.0,
-			  tvr.z < 0.1 ? 0.99 : 0.0);
-	vector3 tvr2 = tvr.coeff_mul(tvr) + tvr.coeff_mul(tvf);
+	const vector3 v3one(1.0, 1.0, 1.0);
+	const vector3 tvf = tvr.min(v3one);
+	vector3 tvr2 = tvr.coeff_mul(tvr).coeff_mul(tvf) + tvr.coeff_mul(v3one-tvf);
 	const vector3 L(size3d.y*0.5, size3d.x*0.5, size3d.y*0.5);
 	const vector3 area(size3d.x*size3d.y, size3d.x*size3d.y*0.5, get_turn_drag_area());
 	// local_torque is drag_torque plus rudder_torque
