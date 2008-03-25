@@ -875,45 +875,6 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 //	std::cout << "mass=" << mass << " lift_force_sum=" << lift_force_sum << " grav=" << -GRAVITY*mass << "\n";
 //	std::cout << "vol below water=" << vol_below_water << " of " << voxel_data.size() << "\n";
 
-	// for damping we could use a general drag that is just
-	// a torque in opposite direction of angular momentum
-	// so we could compute w from L, scale it according to its length
-	// or better the square of its length, then take the negative
-	// value and add this as drag torque.
-	// But if L already handles the mass we could just use L instead of w...
-
-//	std::cout << "L=" << angular_momentum << " lenL=" << angular_momentum.length() << "\n";
-	// fixme: depends rather on cross section area than on mass.
-	// maybe add some linear drag too, so low linear_momentum values give some noticeable
-	// drag too (just squaring gives too low drag)
-	// angular momentum is in world space, we would need to transform it to object
-	// space, then our velocities around local x,y,z-axes are simply the coefficients
-	// of it. We can then apply different drag torques for each axis.
-	// rotation around z axis has rather high drag, same as x. y-axis (rolling)
-	// has low drag.
-////	double amfac = -0.25 * angular_momentum.square_length() / (mass * mass);
-	//with that formula destroyes have extreme high turn radius, for sub it is ok
-	double amfac = -0.5 * angular_momentum.length() / mass;
-	dr_torque += angular_momentum * amfac;
-//	std::cout << "amdrag=" << angular_momentum * amfac << "\n";
-
-	//fixme: dr_torque is way too high, especially on collision response,
-	//seems near square of what is needed, leading to oscillations around zero,
-	//with exploding numbers like +1e11, -1e22, +1e50, -1e126, +inf, NaN *kaboom*
-	// the whole computation of drag is experimental, broken!
-	// here the momentum is squared and divided by mass^2, which is a constant.
-	// this squaring seems wrong...
-	// using non-square seems better, although turning radius is higher...
-	// squaring is needed so that drag rises faster than speed, so speed
-	// can't explode. using factor smaller than 1.0 works here too.
-	// dr_torque is computed by multiplied angular_momentum again, so in
-	// fact its some kind of square and we had power of 3 before??
-	// yeah sure! correct formula would be:
-	// dr_torque += angular_momentum.normal() * amfac
-	// and amfac = am.square_length() / mass^2
-	// fixme: divide by mass^2 here or heavy ships can turn too fast!
-
-
 	// fixme: torpedoes MUST NOT be affected by tide.
 
 	// fixme: for this we
@@ -983,53 +944,48 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// per second. Circle diameter is 2*Pi*r where r=z.
 	// Thus it moves 2*Pi*z * x/360 or 2*Pi*z * x/(2*Pi) = z * x m/s.
 	// Let's compute in radians, its easier.
-	// So velocity = z * tvr, where tvr is turn velocity in radians.
+	// So velocity = z * tvr / L, where tvr is turn velocity in radians.
 	// area per z is area/(2*L), this is needed for the integral.
-	// D_torque = Dcoeff * densitiy * velocity^2 * area / 2 * z
-	//          = Dcoeff * densitiy * z^2 * tvr^2 * area / 2 * z
-	//          = Int z=-L...L   Dcoeff * densitiy * z^3 * tvr^2 * area/(2*L) / 2
-	//          = Dcoeff * densitiy * tvr^2 * area / (4*L) * Int z=-L...L   z^3
-	//          = Dcoeff * densitiy * tvr^2 * area / (4*L) * (L^4/4 - (-L)^4/4)
+	// torque is taken by multiplying D with distance from center (z).
+	// and velocity(z) = z * tvr / L.
+	// D_torque(z) = Dcoeff * densitiy * velocity(z)^2 * area / (2*L) * z
+	// Int z=-L...L   D_torque(z) dz
 	// this would be 0, but drag for stern part of hull doesn't count negative, so:
-	//          = Dcoeff * densitiy * tvr^2 * area / (4*L) * 2*L^4/4
-	//          = Dcoeff * densitiy * tvr^2 * area * L^3 / 8
-	// which makes sense, because outmost velocity depends on L, drag depends
-	// on square of that (hence L^2) and torque also on L (hence L^3).
+	// = 2 * Int z=0...L  D_torque(z) dz
+	// = 2 * Int z=0...L  Dcoeff * densitiy * z^3 * tvr^2 * area/(2*L^3) dz
+	// = Dcoeff * density * tvr^2 * area / L^3 * Int z=0...L  z^3 dz
+	// = Dcoeff * density * tvr^2 * area / L^3 * L^4 / 4
+	// = Dcoeff * density * tvr^2 * area * L / 4
 	const double drag_coefficient = get_turn_drag_coeff();
 	const double water_density = 1000.0;
-	// we take absolute value because we don't need the sign but the absolute value later
-	double turn_velocity_rad = fabs(turn_velocity * (M_PI/180.0));
-	// modify turn velocity a bit to make sure turning really stops on low turn speeds.
-	const double tvf = (turn_velocity_rad < 0.1) ? 1.0 : 0.0;
-	double tvr2 = turn_velocity_rad * turn_velocity_rad + turn_velocity_rad * tvf;
-	double L = size3d.y * 0.5;
-	double drag_torque = drag_coefficient * water_density * tvr2
-		* get_turn_drag_area() * L*L*L * 0.125;
-	//fixme: drag_torque is not used !!!
-//	DBGOUT2(angular_momentum, dr_torque);
-//	std::cout << "Turn drag torque=" << drag_torque << " Nm\n";
-	if (turn_velocity > 0) drag_torque = -drag_torque;
+	// compute turn velocities around the 3 axes (local)
+	// w.xyz is turn velocity around xyz axis.
+	vector3 w = inertia_tensor_inv * orientation.conj().rotate(angular_momentum);
+	vector3 tvr(fabs(w.x), fabs(w.y), fabs(w.z));
+	const vector3 tvf(tvr.x < 0.1 ? 0.99 : 0.0,
+			  tvr.y < 0.1 ? 0.99 : 0.0,
+			  tvr.z < 0.1 ? 0.99 : 0.0);
+	vector3 tvr2 = tvr.coeff_mul(tvr) + tvr.coeff_mul(tvf);
+	const vector3 L(size3d.y*0.5, size3d.x*0.5, size3d.y*0.5);
+	const vector3 area(size3d.x*size3d.y, size3d.x*size3d.y*0.5, get_turn_drag_area());
+	// local_torque is drag_torque plus rudder_torque
+	vector3 local_torque = tvr2.coeff_mul(area).coeff_mul(L)
+		* (drag_coefficient * water_density * 0.25 *80);//fixme without that 80 drag is too low
+	if (w.x > 0.0) local_torque.x = -local_torque.x;
+	if (w.y > 0.0) local_torque.y = -local_torque.y;
+	if (w.z > 0.0) local_torque.z = -local_torque.z;
 
 	// negate rudder_pos here, because turning is mathematical, so rudder left means
 	// rudder_pos < 0 and this means ccw turning and this means turn velocity > 0!
-	double rudder_torque = L * get_turn_accel_factor() * speed * sin(-rudder_pos * M_PI / 180.0);
-//	rudder_torque *= 0.5;//fixme test
-//	std::cout << "turn torque=" << acceleration << " Nm, or " << acceleration*2.0/size3d.y << " N\n";
-// 	std::cout << "TURNING: accel " << acceleration << " drag " << drag_factor << " max_turn_accel " << max_turn_accel << " turn_velo " << turn_velocity << " heading " << heading.value() << " tv2 " << tv2 << "\n";
-// 	std::cout << "get_rot_accel for " << this << " rudder_pos " << rudder_pos << " sin " << sin(rudder_pos * M_PI / 180.0) << " max_turn_accel " << max_turn_accel << "\n";
-////	rudder_torque += drag_torque;
+	// fixme: store rudder pos in per-ship spec file.
+	double rudder_torque = (size3d.y*0.5) * get_turn_accel_factor() * speed * sin(-rudder_pos * M_PI / 180.0);
+	local_torque.z += rudder_torque;
 
-	// positive torque turns counter clockwise!
-	// torque is in world space!
-////	T = vector3(0, 0, rudder_torque) + orientation.rotate(dr_torque);
-	//fixme: with voxels we already have world space
-	//fixme: rudder torque points in rudder direction, which depends on orientation,
-	// here we always turn around z-axis...
-	T = vector3(0, 0, rudder_torque) + dr_torque;
-//	DBGOUT2(hd,T);
-	//fixme: with collision response torque values explode, it seems drag torque
-	//is too low or too high, leading to fast exploding angular momentum values
-	//causing NaN in a few steps
+	// positive torque turns counter clockwise! torque is in world space!
+	T = orientation.rotate(local_torque) + dr_torque;
+
+	//fixme: the AI uses turn radius to decide turning direction, that may give
+	//wrong values with new physics!
 }
 
 
