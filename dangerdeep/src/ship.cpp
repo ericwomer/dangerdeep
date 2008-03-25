@@ -954,7 +954,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// = 2 * Int z=0...L  Dcoeff * densitiy * z^3 * tvr^2 * area/(4*L) dz
 	// = Dcoeff * density * tvr^2 * area / (2*L) * Int z=0...L  z^3 dz
 	// = Dcoeff * density * tvr^2 * area / (2*L) * L^4 / 4
-	// = Dcoeff * density * tvr^2 * area * L^2 / 8
+	// = Dcoeff * density * tvr^2 * area * L^3 / 8
 	const double drag_coefficient = get_turn_drag_coeff();
 	const double water_density = 1000.0;
 	// compute turn velocities around the 3 axes (local)
@@ -967,11 +967,11 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	if (tvr.z < 1.0) tvr2.z = tvr.z;
 	const vector3 L(size3d.y*0.5, size3d.x*0.5, size3d.y*0.5);
 	//fixme: size3d.xyz is not always symmetric...
-	const vector3 area(size3d.x*size3d.y, size3d.x*size3d.y*0.5*20, get_turn_drag_area());
+	const vector3 area(size3d.x*size3d.y*0.25, size3d.x*size3d.y*1.0, get_turn_drag_area());
 	// local_torque is drag_torque plus rudder_torque
 	//fixme without that 80 drag is too low, not only turn drag,
 	//but also roll/yaw drag, ship capsizes without that!!
-	vector3 local_torque = tvr2.coeff_mul(area).coeff_mul(L.coeff_mul(L))
+	vector3 local_torque = tvr2.coeff_mul(area).coeff_mul(L.coeff_mul(L).coeff_mul(L))
 		* (drag_coefficient * water_density * 0.125);
 	if (w.x > 0.0) local_torque.x = -local_torque.x;
 	if (w.y > 0.0) local_torque.y = -local_torque.y;
@@ -982,8 +982,9 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// fixme: store rudder pos in per-ship spec file.
 	// fixme: rudder torque must have similar formula like above, depends on rudder area
 	// factor here is 20000, that would be 20m^2 area (with 1000kg/m^3 density)
-	// assume rudder area = 2% * turn drag area
-	double rudder_torque = (size3d.y*0.5) * get_turn_drag_area()*0.02 * water_density * speed * sin(-rudder_pos * M_PI / 180.0);
+	// assume rudder area = 4% * turn drag area
+	//fixme: in theory we need to use speed^2 here
+	double rudder_torque = (size3d.y*0.5) * get_turn_drag_area()*0.4 * water_density * speed * sin(-rudder_pos * M_PI / 180.0);
 	local_torque.z += rudder_torque;
 
 	// positive torque turns counter clockwise! torque is in world space!
