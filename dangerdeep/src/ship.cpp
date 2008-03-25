@@ -969,8 +969,10 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	const vector3 L(size3d.y*0.5, size3d.x*0.5, size3d.y*0.5);
 	const vector3 area(size3d.x*size3d.y, size3d.x*size3d.y*0.5, get_turn_drag_area());
 	// local_torque is drag_torque plus rudder_torque
+	//fixme without that 80 drag is too low, not only turn drag,
+	//but also roll/yaw drag, ship capsizes without that!!
 	vector3 local_torque = tvr2.coeff_mul(area).coeff_mul(L)
-		* (drag_coefficient * water_density * 0.25 *80);//fixme without that 80 drag is too low
+		* (drag_coefficient * water_density * 0.25 *80);
 	if (w.x > 0.0) local_torque.x = -local_torque.x;
 	if (w.y > 0.0) local_torque.y = -local_torque.y;
 	if (w.z > 0.0) local_torque.z = -local_torque.z;
@@ -978,6 +980,8 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// negate rudder_pos here, because turning is mathematical, so rudder left means
 	// rudder_pos < 0 and this means ccw turning and this means turn velocity > 0!
 	// fixme: store rudder pos in per-ship spec file.
+	// fixme: rudder torque must have similar formula like above, depends on rudder area
+	// factor here is 20000, that would be 20m^2 area (with 1000kg/m^3 density)
 	double rudder_torque = (size3d.y*0.5) * get_turn_accel_factor() * speed * sin(-rudder_pos * M_PI / 180.0);
 	local_torque.z += rudder_torque;
 
