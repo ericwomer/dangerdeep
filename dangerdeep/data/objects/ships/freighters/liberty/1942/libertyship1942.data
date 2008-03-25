@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
   <classification identifier="libertyship1942" modelname="libertyship1942.ddxml" type="merchant" country="US"/>
+  <shipmanual class="Liberty Ship EC2-S-C1" displacement=" 10212 BRT" length="135m" countries="US GB" weapons="2x40mm, 2x20mm"/>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>

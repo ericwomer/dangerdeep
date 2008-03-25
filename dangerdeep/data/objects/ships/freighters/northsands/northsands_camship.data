@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
   <classification identifier="northsands_camship" modelname="northsands_camship.ddxml" type="merchant" country="GB"/>
+  <shipmanual class="Fort ship Catapult Armed Merchantman" displacement=" 7098 BRT" length="132m" countries="GB CA" weapons="Hawker Sea Hurricane Mk.IIB"/>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>

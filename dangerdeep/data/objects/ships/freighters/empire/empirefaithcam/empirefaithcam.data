@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
   <classification identifier="empirefaithcam" modelname="empirefaithcam.ddxml" type="merchant" country="GB" />
+  <shipmanual class="Empire Faith CAM ship" displacement=" 7061 BRT" length="108m" countries="GB" weapons="Hawker Sea Hurricane Mk.IB"/>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>

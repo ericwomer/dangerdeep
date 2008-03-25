@@ -5,6 +5,7 @@
     <skin name="northatlanticwa_rn" regions="NA,WA,NW,NS,CH" countries="GB" from="1943/1/1" until="1945/12/31" />
     <skin name="northatlanticwa_bay" regions="NA,WA,BB,NW,NS,CH" countries="GB" from="1941/1/1" until="1945/12/31" />
   </classification>
+  <shipmanual class="Gladiolus (Flower, rev.) class corvette" displacement=" 980 BRT" length="62.48m" countries="GB CN" weapons="1x4'', 2x 40mm, 4x20mm."/>
   <description>
     <far lang="en">Convoy escort</far>
     <far lang="de">Geleitschiff</far>

@@ -5,6 +5,7 @@
     <skin name="northern" regions="UC,NA,NW,BS,BS,NS" countries="US" from="1943/1/1" until="1945/12/31"/>
     <skin name="latenorth" regions="UC,NA,NW,WA" countries="US" from="1943/6/1" until="1945/12/31"/>
   </classification>
+  <shipmanual class="Liberty Ship EC2-S-C1" displacement=" 10865 BRT" length="135m" countries="US GB" weapons="2x40mm, 2x20mm"/>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>

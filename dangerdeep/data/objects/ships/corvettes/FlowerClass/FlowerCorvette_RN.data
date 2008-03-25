@@ -6,7 +6,7 @@
     <skin name="canadian_northatlantic" regions="CE,NA" countries="CD" from="1942/1/1" until="1945/12/31" />
     <skin name="canadian_coast_na" regions="CE,NA" countries="CD" from="1943/1/1" until="1945/12/31" />
   </classification>
-  <shipmanual class="foo" displacement="foo" length="foo" countries="foo" weapons="foo"/>
+  <shipmanual class="Gladiolus (Flower) class corvette" displacement=" 925 BRT" length="62.48m" countries="GB CA DE" weapons="1x4'', 2x 12.7mm, 2x7.92mm."/>
   <description>
     <far lang="en">Convoy escort</far>
     <far lang="de">Geleitschiff</far>

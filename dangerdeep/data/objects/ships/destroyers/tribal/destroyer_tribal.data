@@ -7,6 +7,7 @@
     <skin name="mediterranean" regions="CA,MS,ES" from="1939/1/1" until="1945/12/31"/>
 	<skin name="northatlantic1939" regions="NA,WA,CA,SA" countries="GB" from="1939/1/1" until="1942/12/31"/>
   </classification>
+  <shipmanual class="Tribal class destroyer" displacement=" 2559 BRT" length="115m" countries="GB CA AU" weapons="6x119mm, 4x40mm, 8x12.7mm"/>
   <description>
     <far lang="en">Convoy escort</far>
     <far lang="de">Geleitschiff</far>

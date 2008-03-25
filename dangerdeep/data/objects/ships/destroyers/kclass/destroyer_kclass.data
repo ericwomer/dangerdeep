@@ -6,6 +6,7 @@
     <skin name="hmskimberley" regions="CA,NA,BB,WA,NW" countries="GB" from="1940/1/1" until="1944/12/31"/>
     <skin name="hmskimberley2" regions="BB,NA,WA,NW,NS,CE" countries="GB" from="1940/1/1" until="1945/12/31"/>
   </classification>
+  <shipmanual class="K class destroyer" displacement=" 1695 BRT" length="111m" countries="GB" weapons="6x119mm, 4x40mm, 8x12.7mm"/>
   <description>
     <far lang="en">Convoy escort</far>
     <far lang="de">Geleitschiff</far>

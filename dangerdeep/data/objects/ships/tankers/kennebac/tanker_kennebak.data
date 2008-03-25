@@ -4,6 +4,7 @@
     <skin name="north_atlantic_usnavy" regions="NA" countries="US" from="1939/1/1" until="1945/12/31" />
     <skin name="north_atlantic_civilian" regions="NA" countries="US" from="1939/1/1" until="1945/12/31" />
   </classification>
+  <shipmanual class="Kennebak tanker (T2)" displacement=" 9981 BRT" length="151m" countries="GB CA US" weapons="none"/>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>

@@ -4,6 +4,7 @@
     <skin name="empirebruce" regions="CA,SA,CS,IO,GM,ES,SC,MS" countries="CD,GB" from="1939/1/1" until="1945/12/31" />
 	<skin name="empirelancer" regions="NA,WA,NW,NS,BA,CA,BS,CE" countries="CD,GB" from="1940/1/1" until="1945/12/31"/>
   </classification>
+  <shipmanual class="Empire Protector, Lancer, freighter" displacement=" 6181 BRT" length="105m" countries="GB CA" weapons="none"/>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>

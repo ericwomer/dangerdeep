@@ -4,6 +4,7 @@
     <skin name="mediterranean_royalnavy" regions="MS,ES" countries="GB" from="1939/1/1" until="1945/12/31" />
     <skin name="canada_eastcoast_hmcs" regions="CE,NA" countries="CD" from="1939/1/1" until="1945/12/31" />
   </classification>
+  <shipmanual class="Gladiolus (Flower, rev.) class corvette" displacement=" 980 BRT" length="62.48m" countries="GB CN AU" weapons="1x4'', 2x 40mm, 6x20mm."/>
   <description>
     <far lang="en">Convoy escort</far>
     <far lang="de">Geleitschiff</far>

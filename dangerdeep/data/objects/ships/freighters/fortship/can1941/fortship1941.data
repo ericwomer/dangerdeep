@@ -6,6 +6,7 @@
     <skin name="northern" regions="NA,WA,NW,NS,BA,CA,BS,CE" countries="CD,GB" from="1942/1/1" until="1945/12/31" />
     <skin name="indic" regions="CA,SA,CS,IO,GM,ES,SC,MS" countries="GB" from="1942/1/1" until="1945/12/31" />
   </classification>
+  <shipmanual class="North Sands class freighter (Forts)" displacement=" 7133 BRT" length="133m" countries="GB CA" weapons="none"/>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>

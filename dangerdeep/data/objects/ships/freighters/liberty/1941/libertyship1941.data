@@ -4,6 +4,7 @@
     <skin name="earlywar1" regions="WA,NA,CA,NS,BS,UC,NW" countries="US" from="1941/1/1" until="1941/12/31" />
     <skin name="earlywar2" regions="WA,NA,CA" countries="US" from="1941/1/1" until="1942/12/31" />
   </classification>
+  <shipmanual class="Liberty Ship EC2-S-C1" displacement=" 10865 BRT" length="135m" countries="US GB" weapons="none"/>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>

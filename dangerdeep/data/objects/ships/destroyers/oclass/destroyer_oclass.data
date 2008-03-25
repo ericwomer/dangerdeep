@@ -9,6 +9,7 @@
 	<skin name="central_atlantic" regions="WA,CH,NA,BB,CA,SA,MS" from="1941/1/1" until="1945/12/31"/>
 	<skin name="barents_sea" regions="WA,CH,NS,BS,NW,BA" from="1942/1/1" until="1945/12/31"/>
   </classification>
+  <shipmanual class="O class destroyer" displacement=" 1540 BRT" length="105m" countries="GB TK PK" weapons="5x102mm, 4x40mm, 6x20mm"/>
   <description>
     <far lang="en">Convoy escort</far>
     <far lang="de">Geleitschiff</far>

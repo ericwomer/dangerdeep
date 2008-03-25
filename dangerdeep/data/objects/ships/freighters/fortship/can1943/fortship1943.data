@@ -5,6 +5,7 @@
 	<skin name="batterednorth" regions="NA,UC,WA,CA,CE" countries="CD,GB" from="1942/1/1" until="1945/12/31" />
 	<skin name="midnorth" regions="NA,CE,WA" countries="CD,GB" from="1943/1/1" until="1945/12/31" />
   </classification>
+  <shipmanual class="North Sands class freighter (Forts)" displacement=" 7202 BRT" length="134m" countries="GB CA" weapons="1x40mm, 2x20mm"/>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>

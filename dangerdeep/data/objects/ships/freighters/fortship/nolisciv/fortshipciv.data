@@ -4,6 +4,7 @@
     <skin name="americanexport" regions="WA,NA,CA,SA,CS,NP,CP,SP,GM,BB,UC,SC,CE,NW" from="1939/1/1" until="1945/12/31" />
 	<skin name="caribbean" regions="CS,CP,GM,UC,SC,SA,CA" from="1939/1/1" until="1944/12/31" />
   </classification>
+  <shipmanual class="North Sands class freighter (Forts)" displacement=" 7108 BRT" length="131m" countries="GB CA" weapons="none"/>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>

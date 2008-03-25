@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
   <classification identifier="empirelawrencecam" modelname="empirelawrencecam.ddxml" type="merchant" country="GB" />
+  <shipmanual class="Empire Lawrence CAM ship" displacement=" 7457 BRT" length="109m" countries="GB" weapons="Hawker Sea Hurricane Mk.IIC"/>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>

@@ -6,6 +6,7 @@
 	<skin name="jupiter1941" regions="NA,CA,SA,BB,WA" countries="GB" from="1941/1/1" until="1941/12/31"/>
 	<skin name="juno1942" regions="NA,CA,BB,CH,WA" countries="GB" from="1942/1/1" until="1945/12/31"/>
   </classification>
+  <shipmanual class="Javelin class destroyer" displacement=" 1690 BRT" length="111m" countries="GB" weapons="6x119mm, 4x40mm, 8x12.7mm"/>
   <description>
     <far lang="en">Convoy escort</far>
     <far lang="de">Geleitschiff</far>
