@@ -939,23 +939,22 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// We compute total drag torque with an integral over z.
 	// We can get the area from the cross section data.
 	// Density of water is 1000kg/m3 (1000) for ease of computation.
-	// If the hull turns with x angles/second, and a point on it is z meters away
-	// from center of turn, then it moves x/360 (or x/(2*Pi)) parts of a circle
-	// per second. Circle diameter is 2*Pi*r where r=z.
-	// Thus it moves 2*Pi*z * x/360 or 2*Pi*z * x/(2*Pi) = z * x m/s.
-	// Let's compute in radians, its easier.
-	// So velocity = z * tvr / L, where tvr is turn velocity in radians.
+	// linear velocity of a point is I^-1 * L cross r, where r is vector
+	// from object center to the point, L is angular momentum.
+	// When we compute it for r along y-axis (r = (0, ry, 0))
+	// we thus have I^-1 * L = w, and velocity = w.z * ry
+	// So velocity = z * tvr, where tvr is linear velocity of point that turns.
 	// area per z is area/(2*L), this is needed for the integral.
 	// torque is taken by multiplying D with distance from center (z).
-	// and velocity(z) = z * tvr / L.
-	// D_torque(z) = Dcoeff * densitiy * velocity(z)^2 * area / (2*L) * z
+	// and velocity(z) = z * tvr.
+	// D_torque(z) = Dcoeff * densitiy * velocity(z)^2 * area / (2*L) * z / 2
 	// Int z=-L...L   D_torque(z) dz
 	// this would be 0, but drag for stern part of hull doesn't count negative, so:
 	// = 2 * Int z=0...L  D_torque(z) dz
-	// = 2 * Int z=0...L  Dcoeff * densitiy * z^3 * tvr^2 * area/(2*L^3) dz
-	// = Dcoeff * density * tvr^2 * area / L^3 * Int z=0...L  z^3 dz
-	// = Dcoeff * density * tvr^2 * area / L^3 * L^4 / 4
-	// = Dcoeff * density * tvr^2 * area * L / 4
+	// = 2 * Int z=0...L  Dcoeff * densitiy * z^3 * tvr^2 * area/(4*L) dz
+	// = Dcoeff * density * tvr^2 * area / (2*L) * Int z=0...L  z^3 dz
+	// = Dcoeff * density * tvr^2 * area / (2*L) * L^4 / 4
+	// = Dcoeff * density * tvr^2 * area * L^2 / 8
 	const double drag_coefficient = get_turn_drag_coeff();
 	const double water_density = 1000.0;
 	// compute turn velocities around the 3 axes (local)
@@ -966,12 +965,13 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	const vector3 tvf = tvr.min(v3one);
 	vector3 tvr2 = tvr.coeff_mul(tvr).coeff_mul(tvf) + tvr.coeff_mul(v3one-tvf);
 	const vector3 L(size3d.y*0.5, size3d.x*0.5, size3d.y*0.5);
-	const vector3 area(size3d.x*size3d.y, size3d.x*size3d.y*0.5, get_turn_drag_area());
+	//fixme: size3d.xyz is not always symmetric...
+	const vector3 area(size3d.x*size3d.y, size3d.x*size3d.y*0.5*20, get_turn_drag_area());
 	// local_torque is drag_torque plus rudder_torque
 	//fixme without that 80 drag is too low, not only turn drag,
 	//but also roll/yaw drag, ship capsizes without that!!
-	vector3 local_torque = tvr2.coeff_mul(area).coeff_mul(L)
-		* (drag_coefficient * water_density * 0.25 *80);
+	vector3 local_torque = tvr2.coeff_mul(area).coeff_mul(L.coeff_mul(L))
+		* (drag_coefficient * water_density * 0.125);
 	if (w.x > 0.0) local_torque.x = -local_torque.x;
 	if (w.y > 0.0) local_torque.y = -local_torque.y;
 	if (w.z > 0.0) local_torque.z = -local_torque.z;
@@ -981,7 +981,8 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// fixme: store rudder pos in per-ship spec file.
 	// fixme: rudder torque must have similar formula like above, depends on rudder area
 	// factor here is 20000, that would be 20m^2 area (with 1000kg/m^3 density)
-	double rudder_torque = (size3d.y*0.5) * get_turn_accel_factor() * speed * sin(-rudder_pos * M_PI / 180.0);
+	// assume rudder area = 2% * turn drag area
+	double rudder_torque = (size3d.y*0.5) * get_turn_drag_area()*0.02 * water_density * speed * sin(-rudder_pos * M_PI / 180.0);
 	local_torque.z += rudder_torque;
 
 	// positive torque turns counter clockwise! torque is in world space!
