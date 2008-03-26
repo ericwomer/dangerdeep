@@ -50,7 +50,7 @@ inline double round(double d) { return floor(d + 0.5); }
 
 // fixme: replace this
 #ifdef DEBUG
-#define ASSERT(a,...) do{if(!(a)){char __tmp[256];vsprintf(tmp, __VA_ARGS__);throw error(tmp);}}while(0)
+#define ASSERT(a,...) do{if(!(a)){char __tmp[256];vsprintf(__tmp, __VA_ARGS__);throw error(__tmp);}}while(0)
 #else
 #define ASSERT(a,...)
 #endif
