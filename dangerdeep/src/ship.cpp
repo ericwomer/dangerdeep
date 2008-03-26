@@ -844,6 +844,12 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	double vol_below_water=0;
 	const double gravity_force = mass * -GRAVITY;
 	//fixme: split loop to two cores to speed up physics a tiny bit
+	//takes 21-23ms for 1000 times, so whole loop has ca.
+	//52500-57500 cycles. cpu usage is rather low, at
+	//30% at 60fps vsync, so total cpu time is
+	//750,000,000 cycles, and this loop 7/1000 per cent
+	//of full cpu time, so multicore wont help much here,
+	//most cpu time is spent elsewhere
 	for (unsigned i = 0; i < voxel_data.size(); ++i) {
 		// instead of a per-voxel matrix-vector multiplication we could
 		// transform all other vectors to mesh-vertex-space and skip
@@ -981,10 +987,10 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// rudder_pos < 0 and this means ccw turning and this means turn velocity > 0!
 	// fixme: store rudder pos in per-ship spec file.
 	// fixme: rudder torque must have similar formula like above, depends on rudder area
-	// factor here is 20000, that would be 20m^2 area (with 1000kg/m^3 density)
-	// assume rudder area = 4% * turn drag area
-	//fixme: in theory we need to use speed^2 here
-	double rudder_torque = (size3d.y*0.5) * get_turn_drag_area()*0.4 * water_density * speed * sin(-rudder_pos * M_PI / 180.0);
+	// assume rudder area = 2% * turn drag area
+	double rudder_torque = (size3d.y*0.5) * get_turn_drag_area()*0.02 * water_density * speed*speed * sin(-rudder_pos * M_PI / 180.0);
+	// add torque caused by forward force
+	rudder_torque += (size3d.y*0.5) * get_throttle_accel() * sin(-rudder_pos * M_PI / 180.0) * mass;
 	local_torque.z += rudder_torque;
 
 	// positive torque turns counter clockwise! torque is in world space!
