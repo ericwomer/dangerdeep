@@ -382,6 +382,9 @@ void particle::display_all(const vector<particle*>& pts, const vector3& viewpos,
 	//    must be able to handle that.
 	// fixme: measure this function to see if it is worth to get optimized.
 	// it uses less than 2ms even for medium sized convoys (10-20 ships in sight)
+	//idea: half vector to sort and sort two parts on two cores independently
+	//then do one final merge() on one core, could help a tiny bit to improve
+	//performance.
 	std::sort(pds.begin(), pds.end());
 
 	glDisable(GL_LIGHTING);
