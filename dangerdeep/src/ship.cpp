@@ -968,9 +968,13 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	vector3 w = inertia_tensor_inv * orientation.conj().rotate(angular_momentum);
 	vector3 tvr(fabs(w.x), fabs(w.y), fabs(w.z));
 	vector3 tvr2 = tvr.coeff_mul(tvr);
-	if (tvr.x < 1.0) tvr2.x = tvr.x;
-	if (tvr.y < 1.0) tvr2.y = tvr.y;
-	if (tvr.z < 1.0) tvr2.z = tvr.z;
+	/*	
+	static const double lmt = 1.0;
+	if (tvr.x < lmt) tvr2.x = tvr.x*lmt;
+	if (tvr.y < lmt) tvr2.y = tvr.y*lmt;
+	if (tvr.z < lmt) tvr2.z = tvr.z*lmt;
+	*/
+	tvr2 += tvr*0.2;
 	const vector3 L(size3d.y*0.5, size3d.x*0.5, size3d.y*0.5);
 	//fixme: size3d.xyz is not always symmetric...
 	const vector3 area(size3d.x*size3d.y*0.25, size3d.x*size3d.y*1.0, get_turn_drag_area());
@@ -988,7 +992,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// fixme: store rudder pos in per-ship spec file.
 	// fixme: rudder torque must have similar formula like above, depends on rudder area
 	// assume rudder area = 2% * turn drag area
-	double rudder_torque = (size3d.y*0.5) * get_turn_drag_area()*0.02 * water_density * speed*speed * sin(-rudder_pos * M_PI / 180.0);
+	double rudder_torque = (size3d.y*0.5) * get_turn_drag_area()*0.005 * water_density * speed*speed * sin(-rudder_pos * M_PI / 180.0);
 	// add torque caused by forward force
 	rudder_torque += (size3d.y*0.5) * get_throttle_accel() * sin(-rudder_pos * M_PI / 180.0) * mass;
 	local_torque.z += rudder_torque;
