@@ -272,10 +272,12 @@ void sub_torpedo_display::display(class game& gm) const
 						  get_time_string(torpedoes[tb].remaining_time), color(32,0,0));
 			}
 		}
-	} 
-	pointer_hours.draw(hours*30);
-	pointer_minutes.draw(minutes*6);
+	}
+	glColor4f(1,1,1,1);
 	pointer_seconds.draw(floor(seconds)*6);
+	pointer_minutes.draw(minutes*6);
+	pointer_hours.draw(hours*30);
+
 
 	// draw deck gun ammo remaining
 	if (true == sub->has_deck_gun())
