@@ -26,9 +26,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // a very "global" constant
 const double GRAVITY = 9.806;
 
-// computed with an earth radius of 40030.17359km
+// computed with an earth perimeter of 40030.17359km
 const double DEGREE_IN_METERS = 111194.9266388889;
 const double MINUTE_IN_METERS = 1853.248777315;
+const double SECONDS_IN_METERS = MINUTE_IN_METERS/60.0;
 
 // earth perimeter in meters
 const double EARTH_PERIMETER      = 40030173.59;

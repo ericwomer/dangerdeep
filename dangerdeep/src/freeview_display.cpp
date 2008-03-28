@@ -307,6 +307,7 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 		glPopMatrix();
 	}
 	glDepthMask(GL_TRUE);
+
 }
 
 
