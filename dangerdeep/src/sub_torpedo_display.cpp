@@ -184,6 +184,8 @@ void sub_torpedo_display::display(class game& gm) const
 {
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 
+	double hours = 0.0, minutes = 0.0, seconds = 0.0;
+
 	// draw display without display color.
 	glColor4f(1,1,1,1);
 	// draw background
@@ -255,13 +257,9 @@ void sub_torpedo_display::display(class game& gm) const
 			font_vtremington12->print_wrapped(100, 550, 570, 0, torpdesctext->str(torp_desc_line, 10), color(0,0,0));
 		}
 		if (torpedoes[tb].status == submarine::stored_torpedo::st_reloading || torpedoes[tb].status == submarine::stored_torpedo::st_unloading) {
-			double hours, minutes, seconds;
 			hours = torpedoes[tb].remaining_time/3600;
 			minutes = (torpedoes[tb].remaining_time - floor(hours)*3600)/60;
 			seconds = torpedoes[tb].remaining_time - floor(hours)*3600 - floor(minutes)*60;
-			pointer_seconds.draw(floor(seconds)*6);
-			pointer_minutes.draw(minutes*6);
-			pointer_hours.draw(hours*30);
 		}
 		if (mb & SDL_BUTTON_LMASK) {
 			// display remaining time if possible
@@ -274,7 +272,10 @@ void sub_torpedo_display::display(class game& gm) const
 						  get_time_string(torpedoes[tb].remaining_time), color(32,0,0));
 			}
 		}
-	}
+	} 
+	pointer_hours.draw(hours*30);
+	pointer_minutes.draw(minutes*6);
+	pointer_seconds.draw(floor(seconds)*6);
 
 	// draw deck gun ammo remaining
 	if (true == sub->has_deck_gun())
@@ -408,4 +409,9 @@ void sub_torpedo_display::leave()
 	torp6lut1.reset();
 	background.reset();
 	subtopsideview.reset();
+/*
+	pointer_seconds.reset();
+	pointer_minutes.reset();
+	pointer_seconds.reset();
+*/
 }
