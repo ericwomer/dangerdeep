@@ -74,6 +74,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "sub_control_popup.h"
 #include "sub_tdc_popup.h"
 #include "sub_ecard_popup.h"
+#include "sub_recogmanual_popup.h"
 
 using namespace std;
 
@@ -115,6 +116,7 @@ submarine_interface::submarine_interface(game& gm) :
 	popups.reset(popup_mode_control, new sub_control_popup(*this));
 	popups.reset(popup_mode_tdc, new sub_tdc_popup(*this));
 	popups.reset(popup_mode_ecard, new sub_ecard_popup(*this));
+	popups.reset(popup_mode_recogmanual, new sub_recogmanual_popup(*this));
 
 	// torpedo cam
 	torpedo_cam_view.reset(new torpedo_camera_display(*this));

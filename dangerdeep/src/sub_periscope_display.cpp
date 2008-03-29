@@ -273,7 +273,8 @@ unsigned sub_periscope_display::get_popup_allow_mask() const
 	return
 		(1 << submarine_interface::popup_mode_control) |
 		(1 << submarine_interface::popup_mode_tdc) |
-		(1 << submarine_interface::popup_mode_ecard);
+		(1 << submarine_interface::popup_mode_ecard) |		
+		(1 << submarine_interface::popup_mode_recogmanual);
 }
 
 

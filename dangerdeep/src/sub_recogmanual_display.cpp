@@ -125,14 +125,7 @@ void sub_recogmanual_display::enter(bool is_day)
 			weapons.push_back(auto_ptr<string>(new string(elem.attr("weapons"))));
 			countries.push_back(auto_ptr<string>(new string(elem.attr("countries"))));
 		}
-		catch (xml_error& xe) { //fixme: remove when all .data files are updated
-			displacements.push_back(auto_ptr<string>(new string("foo")));
-			lengths.push_back(auto_ptr<string>(new string("foo")));		
-			classes.push_back(auto_ptr<string>(new string("foo")));
-			weapons.push_back(auto_ptr<string>(new string("foo")));
-			countries.push_back(auto_ptr<string>(new string("foo")));		
-		}
-		catch (error& e) {} //fixme: remove when all silhouettes are in place
+		catch (error& e) {}
 	}
 }
 

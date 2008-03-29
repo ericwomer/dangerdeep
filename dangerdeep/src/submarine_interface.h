@@ -72,6 +72,7 @@ public:
 		popup_mode_control,
 		popup_mode_tdc,
 		popup_mode_ecard,
+		popup_mode_recogmanual,
 		nr_of_popups
 	};
 
