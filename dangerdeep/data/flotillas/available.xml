@@ -290,7 +290,7 @@
 
    <flotilla nr="24" type="training" sign="insignia_flotille24" base="Danzig" operationareas="NA CA NS">
          <timeperiod from="1939/11/1" until="1940/5/31">
-		      <subs type="IIb"></subs>
+		      <subs type="IIb">0</subs>
 		 </timeperiod>
 		 <timeperiod from="1940/6/1" until="1941/5/31" base="Memel">
 		      <subs type="IIb">8 9 14 18 19 121</subs>
