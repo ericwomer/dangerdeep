@@ -55,27 +55,18 @@ sub_recogmanual_popup::sub_recogmanual_popup(user_interface& ui_)
 	
 	std::list<string> ship_ids = data_file_handler::instance().get_ship_list();
 	for (list<string>::iterator it = ship_ids.begin(); it != ship_ids.end(); it++) {
-		try {
-			silhouettes.push_back(auto_ptr<image>(new image(data_file_handler::instance().get_path(*it) + (*it) + "_silhouette.png")));
+
+		silhouettes.push_back(auto_ptr<image>(new image(data_file_handler::instance().get_path(*it) + (*it) + "_silhouette.png")));
 			
-			xml_doc doc(data_file_handler::instance().get_filename(*it));
-			doc.load();
-			xml_elem elem = doc.child("dftd-ship"); // will this get destroyed on leaving function?
-			elem = elem.child("shipmanual");
-			displacements.push_back(elem.attr("displacement"));
-			lengths.push_back(elem.attr("length"));
-			classes.push_back(elem.attr("class"));
-			weapons.push_back(elem.attr("weapons"));
-			countries.push_back(elem.attr("countries"));
-		}
-		catch (error& e) {
-			// make sure all vectors have same size - maybe not the smartest way to handle an error...
-			displacements.resize(silhouettes.size(), "?");
-			lengths.resize(silhouettes.size(), "?");
-			classes.resize(silhouettes.size(), "?");
-			weapons.resize(silhouettes.size(), "?");
-			countries.resize(silhouettes.size(), "?");
-		}
+		xml_doc doc(data_file_handler::instance().get_filename(*it));
+		doc.load();
+		xml_elem elem = doc.child("dftd-ship");
+		elem = elem.child("shipmanual");
+		displacements.push_back(elem.attr("displacement"));
+		lengths.push_back(elem.attr("length"));
+		classes.push_back(elem.attr("class"));
+		weapons.push_back(elem.attr("weapons"));
+		countries.push_back(elem.attr("countries"));
 	}	
 }
 
