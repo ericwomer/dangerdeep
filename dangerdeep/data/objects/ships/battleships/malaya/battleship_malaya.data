@@ -10,6 +10,7 @@
     <near lang="de">Schlachtschiff Malaya-Klasse</near>
     <near lang="it">Corazzata di Classe Malaya</near>
   </description>
+  <shipmanual class="Battleship Malaya" displacement="000 BRT" length="00.00m" countries="FOO" weapons="Foo"/>
   <motion maxspeed="24" maxrevspeed="0" acceleration="0.1" turnrate="0.08"/>
   <tonnage min="33000" max="33000"/>
   <smoke type="1" x="0" y="0" z="21"/>
