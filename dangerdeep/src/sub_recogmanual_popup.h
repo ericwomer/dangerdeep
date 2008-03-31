@@ -49,21 +49,20 @@ protected:
 	std::auto_ptr<image> background_daylight;
 	std::auto_ptr<image> background_nightlight;
 	ptrvector<image> silhouettes;
-	ptrvector<std::string> classes;
-	ptrvector<std::string> lengths;
-	ptrvector<std::string> displacements;
-	ptrvector<std::string> weapons;
-	ptrvector<std::string> countries;
+	std::vector<std::string> classes;
+	std::vector<std::string> lengths;
+	std::vector<std::string> displacements;
+	std::vector<std::string> weapons;
+	std::vector<std::string> countries;
 	widget_button_next btn_left;
 	widget_button_next btn_right;	
 
 public:
 	sub_recogmanual_popup(class user_interface& ui_);
-	virtual ~sub_recogmanual_popup();
 
-	virtual void display(class game& gm) const;
+	void display(class game& gm) const;
 
-	virtual bool process_input(class game& gm, const SDL_Event& event);
+	bool process_input(class game& gm, const SDL_Event& event);
 };
 
 #endif /* SUB_RECOGMANUAL_POPUP_H */

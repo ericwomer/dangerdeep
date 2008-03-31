@@ -62,18 +62,21 @@ sub_recogmanual_popup::sub_recogmanual_popup(user_interface& ui_)
 			doc.load();
 			xml_elem elem = doc.child("dftd-ship"); // will this get destroyed on leaving function?
 			elem = elem.child("shipmanual");
-			displacements.push_back(auto_ptr<string>(new string(elem.attr("displacement"))));
-			lengths.push_back(auto_ptr<string>(new string(elem.attr("length"))));			
-			classes.push_back(auto_ptr<string>(new string(elem.attr("class"))));
-			weapons.push_back(auto_ptr<string>(new string(elem.attr("weapons"))));
-			countries.push_back(auto_ptr<string>(new string(elem.attr("countries"))));
+			displacements.push_back(elem.attr("displacement"));
+			lengths.push_back(elem.attr("length"));
+			classes.push_back(elem.attr("class"));
+			weapons.push_back(elem.attr("weapons"));
+			countries.push_back(elem.attr("countries"));
 		}
-		catch (error& e) {}
+		catch (error& e) {
+			// make sure all vectors have same size - maybe not the smartest way to handle an error...
+			displacements.resize(silhouettes.size(), "?");
+			lengths.resize(silhouettes.size(), "?");
+			classes.resize(silhouettes.size(), "?");
+			weapons.resize(silhouettes.size(), "?");
+			countries.resize(silhouettes.size(), "?");
+		}
 	}	
-}
-
-sub_recogmanual_popup::~sub_recogmanual_popup()
-{
 }
 
 bool sub_recogmanual_popup::process_input(class game& gm, const SDL_Event& event)
@@ -109,10 +112,10 @@ void sub_recogmanual_popup::display(class game& gm) const
 		glColor4f(1.0, 1.0, 1.0, 1.0);
 		
 		//fixme: change this after the authentic overlay is implemented
-		font_vtremington12->print(off_text_x, off_text_y+step_y*(i%3), classes[i]->c_str(), color(0, 0, 0));
-		font_vtremington12->print(off_text_x, off_text_y+15+step_y*(i%3), string("Length: ")+lengths[i]->c_str()+string("   Displacement:")+displacements[i]->c_str(), color(0, 0, 0));
-		font_vtremington12->print(off_text_x, off_text_y+30+step_y*(i%3), string("Countries: ")+countries[i]->c_str(), color(0, 0, 0));
-		font_vtremington12->print(off_text_x, off_text_y+45+step_y*(i%3), string("Weapons: ")+weapons[i]->c_str(), color(0, 0, 0));
+		font_vtremington12->print(off_text_x, off_text_y+step_y*(i%3), classes[i].c_str(), color(0, 0, 0));
+		font_vtremington12->print(off_text_x, off_text_y+15+step_y*(i%3), string("Length: ")+lengths[i].c_str()+string("   Displacement:")+displacements[i].c_str(), color(0, 0, 0));
+		font_vtremington12->print(off_text_x, off_text_y+30+step_y*(i%3), string("Countries: ")+countries[i].c_str(), color(0, 0, 0));
+		font_vtremington12->print(off_text_x, off_text_y+45+step_y*(i%3), string("Weapons: ")+weapons[i].c_str(), color(0, 0, 0));
 	}
 	
 	btn_left.draw();
