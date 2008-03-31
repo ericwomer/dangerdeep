@@ -113,7 +113,9 @@ void sub_recogmanual_display::enter(bool is_day)
 	std::list<string> ship_ids = data_file_handler::instance().get_ship_list();
 	for (list<string>::iterator it = ship_ids.begin(); it != ship_ids.end(); it++) {
 
-			silhouettes.push_back(auto_ptr<image>(new image(data_file_handler::instance().get_path(*it) + (*it) + "_silhouette.png")));
+		try {
+			auto_ptr<image> img(new image(data_file_handler::instance().get_path(*it) + (*it) + "_silhouette.png"));
+			silhouettes.push_back(img);
 			
 			xml_doc doc(data_file_handler::instance().get_filename(*it));
 			doc.load();
@@ -124,6 +126,7 @@ void sub_recogmanual_display::enter(bool is_day)
 			classes.push_back(auto_ptr<string>(new string(elem.attr("class"))));
 			weapons.push_back(auto_ptr<string>(new string(elem.attr("weapons"))));
 			countries.push_back(auto_ptr<string>(new string(elem.attr("countries"))));
+		} catch (exception& e) {} // no silhouette file was found
 	}
 }
 

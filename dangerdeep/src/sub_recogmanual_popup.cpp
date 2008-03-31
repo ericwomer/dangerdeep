@@ -56,17 +56,20 @@ sub_recogmanual_popup::sub_recogmanual_popup(user_interface& ui_)
 	std::list<string> ship_ids = data_file_handler::instance().get_ship_list();
 	for (list<string>::iterator it = ship_ids.begin(); it != ship_ids.end(); it++) {
 
-		silhouettes.push_back(auto_ptr<image>(new image(data_file_handler::instance().get_path(*it) + (*it) + "_silhouette.png")));
+		try {
+			auto_ptr<image> img(new image(data_file_handler::instance().get_path(*it) + (*it) + "_silhouette.png"));
+			silhouettes.push_back(auto_ptr<image>(img));
 			
-		xml_doc doc(data_file_handler::instance().get_filename(*it));
-		doc.load();
-		xml_elem elem = doc.child("dftd-ship");
-		elem = elem.child("shipmanual");
-		displacements.push_back(elem.attr("displacement"));
-		lengths.push_back(elem.attr("length"));
-		classes.push_back(elem.attr("class"));
-		weapons.push_back(elem.attr("weapons"));
-		countries.push_back(elem.attr("countries"));
+			xml_doc doc(data_file_handler::instance().get_filename(*it));
+			doc.load();
+			xml_elem elem = doc.child("dftd-ship");
+			elem = elem.child("shipmanual");
+			displacements.push_back(elem.attr("displacement"));
+			lengths.push_back(elem.attr("length"));
+			classes.push_back(elem.attr("class"));
+			weapons.push_back(elem.attr("weapons"));
+			countries.push_back(elem.attr("countries"));			
+		} catch (exception& e) {} // no silhouette file was found
 	}	
 }
 
