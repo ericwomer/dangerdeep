@@ -76,9 +76,7 @@ sub_recogmanual_popup::sub_recogmanual_popup(user_interface& ui_)
 			classes.resize(silhouettes.size());
 			weapons.resize(silhouettes.size());
 			countries.resize(silhouettes.size());
-		} catch (exception& e) { // no silhouette file was found
-		} 
-		
+		} catch (exception& e) {} // no silhouette file was found
 	}	
 }
 
