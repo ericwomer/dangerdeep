@@ -69,14 +69,14 @@ sub_recogmanual_popup::sub_recogmanual_popup(user_interface& ui_)
 			classes.push_back(elem.attr("class"));
 			weapons.push_back(elem.attr("weapons"));
 			countries.push_back(elem.attr("countries"));			
-		} catch (xml_error& xml_e) {
+		} catch (exception& e) { // fixme: remove the try..catch when all silhouette files are on place
 			silhouettes.resize(silhouettes.size()-1);
 			displacements.resize(silhouettes.size());
 			lengths.resize(silhouettes.size());
 			classes.resize(silhouettes.size());
 			weapons.resize(silhouettes.size());
 			countries.resize(silhouettes.size());
-		} catch (exception& e) {} // no silhouette file was found
+		}
 	}	
 }
 

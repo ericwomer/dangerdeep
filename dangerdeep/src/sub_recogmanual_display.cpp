@@ -126,14 +126,14 @@ void sub_recogmanual_display::enter(bool is_day)
 			classes.push_back(auto_ptr<string>(new string(elem.attr("class"))));
 			weapons.push_back(auto_ptr<string>(new string(elem.attr("weapons"))));
 			countries.push_back(auto_ptr<string>(new string(elem.attr("countries"))));
-		} catch (xml_error& xml_e) {
+		} catch (exception& e) { // fixme: remove the try..catch when all silhouette files are on place
 			silhouettes.resize(silhouettes.size()-1);
 			displacements.resize(silhouettes.size());
 			lengths.resize(silhouettes.size());
 			classes.resize(silhouettes.size());
 			weapons.resize(silhouettes.size());
 			countries.resize(silhouettes.size());
-		} catch (exception& e) {} // no silhouette file was found
+		}
 	}
 }
 
