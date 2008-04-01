@@ -77,7 +77,6 @@ ship_probability civilships[] = {
 	{ 0.1, "merchant_medium" },
 	{ 0.1, "merchant_small" },
 	{ 0.1, "freighter_large" },
-	{ 0.1, "freighter_medium" },
 	{ 0.1, "libertyship1941" },
 	{ 0.1, "libertyship1942" },
 	{ 0.1, "libertyship1943" },
@@ -87,6 +86,7 @@ ship_probability civilships[] = {
 	{ 0.1, "empireprotector" },
 	{ 0.1, "empirefaithcam" },
 	{ 0.1, "empirelawrencecam" },
+	{ 0.1, "empiredabchick" },
 	{ 0.0, 0 }
 };
 
