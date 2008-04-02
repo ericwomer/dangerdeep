@@ -55,7 +55,7 @@ sub_recogmanual_popup::sub_recogmanual_popup(user_interface& ui_)
 	
 	std::list<string> ship_ids = data_file_handler::instance().get_ship_list();
 	for (list<string>::iterator it = ship_ids.begin(); it != ship_ids.end(); it++) {
-
+		log_info("Attention!");
 		try {
 			auto_ptr<image> img(new image(data_file_handler::instance().get_path(*it) + (*it) + "_silhouette.png"));
 			silhouettes.push_back(auto_ptr<image>(img));
@@ -68,16 +68,11 @@ sub_recogmanual_popup::sub_recogmanual_popup(user_interface& ui_)
 			lengths.push_back(elem.attr("length"));
 			classes.push_back(elem.attr("class"));
 			weapons.push_back(elem.attr("weapons"));
-			countries.push_back(elem.attr("countries"));			
+			countries.push_back(elem.attr("countries"));	
+			log_info("good");
 		} catch (exception& e) { // fixme: remove the try..catch when all silhouette files are on place
-			silhouettes.resize(silhouettes.size()-1);
-			displacements.resize(silhouettes.size());
-			lengths.resize(silhouettes.size());
-			classes.resize(silhouettes.size());
-			weapons.resize(silhouettes.size());
-			countries.resize(silhouettes.size());
 		}
-	}	
+	}
 }
 
 bool sub_recogmanual_popup::process_input(class game& gm, const SDL_Event& event)
