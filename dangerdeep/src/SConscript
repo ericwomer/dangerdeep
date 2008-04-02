@@ -70,7 +70,8 @@ dftdsources = Split("""subsim.cpp
 	water.cpp
 	water_splash.cpp
 	dftdtester/tests.cpp
-	sub_recogmanual_popup.cpp""")
+	sub_recogmanual_popup.cpp
+	map.cpp""")
 
 dftdmediasources = Split("""
 	error.cpp

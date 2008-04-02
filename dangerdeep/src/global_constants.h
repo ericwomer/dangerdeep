@@ -29,7 +29,7 @@ const double GRAVITY = 9.806;
 // computed with an earth perimeter of 40030.17359km
 const double DEGREE_IN_METERS = 111194.9266388889;
 const double MINUTE_IN_METERS = 1853.248777315;
-const double SECONDS_IN_METERS = MINUTE_IN_METERS/60.0;
+const double SECOND_IN_METERS = MINUTE_IN_METERS/60.0;
 
 // earth perimeter in meters
 const double EARTH_PERIMETER      = 40030173.59;
