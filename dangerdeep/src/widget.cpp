@@ -136,7 +136,7 @@ std::auto_ptr<widget::theme> widget::replace_theme(std::auto_ptr<widget::theme> 
 widget::widget(int x, int y, int w, int h, const string& text_, widget* parent_, const std::string& backgrimg)
 	: pos(x, y), size(w, h), text(text_), parent(parent_), background_image_name(backgrimg),
 	  background(imagecache().ref(backgrimg)),
-	  background_tex(0), enabled(true), retval(-1), closeme(false)
+	  background_tex(0), enabled(true), retval(-1), closeme(false), redrawme(true)
 {
 	// note: when backgrimg is empty, the cache automatically returns a NULL pointer.
 }
@@ -524,7 +524,7 @@ widget* widget::create_dialogue_ok_cancel(widget* parent_, const string& title, 
 
 int widget::run(unsigned timeout, bool do_stacking, widget* focussed_at_begin)
 {
-	unsigned short inited = false; // draw first, then only draw when an event occurred
+	bool inited = false; // draw first, then only draw when an event occurred
 	glClearColor(0, 0, 0, 0);
 	widget* myparent = parent;	// store parent info and unlink chain to parent
 	parent = 0;
