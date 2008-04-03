@@ -106,19 +106,9 @@ void sub_recogmanual_popup::display(class game& gm) const
 		glColor4f(1.0, 1.0, 1.0, 1.0);
 		
 		//fixme: change this after the authentic overlay is implemented
-		log_debug("HERE WE START!!!<-------------------");
-		log_debug("silhouette index: "+i);
 		font_vtremington12->print(off_text_x, off_text_y+step_y*(i%3), classes[i], color(0, 0, 0));
-		log_debug("Length:");
-		log_debug(lengths[i]);
-		log_debug("Displacement:");
-		log_debug(displacements[i]);		
 		font_vtremington12->print(off_text_x, off_text_y+15+step_y*(i%3), string("Length: ")+lengths[i]+string("   Displacement:")+displacements[i], color(0, 0, 0));
-		log_debug("Countries:");
-		log_debug(countries[i]);		
 		font_vtremington12->print(off_text_x, off_text_y+30+step_y*(i%3), string("Countries: ")+countries[i], color(0, 0, 0));
-		log_debug("Weapons:");
-		log_debug(weapons[i]);			
 		font_vtremington12->print(off_text_x, off_text_y+45+step_y*(i%3), string("Weapons: ")+weapons[i], color(0, 0, 0));
 	}
 	
