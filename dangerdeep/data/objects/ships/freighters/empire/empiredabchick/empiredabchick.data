@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
-  <classification identifier="empiredabchick" modelname="empiredabchick.ddxml" type="merchant" country="GB" />
+  <classification identifier="empiredabchick" modelname="empiredabchick.ddxml" type="merchant" country="GB" >
+    <skin name="empirewhale" regions="MS,ES,BL,IO,SP,CP,CA,CS" countries="GB,US" from="1939/1/1" until="1941/12/31"/>
+	<skin name="empirethrush" regions="CE,NA,WA,NW,BA,BS,NS,CH,BB" countries="GB" from="1939/1/1" until="1942/12/31"/>
+	<skin name="empireredshank" regions="GM,CS,CA,SA,UC,SC" countries="GB,US,CA" from="1939/1/1" until="1945/5/31"/>
+	<skin name="empirelynx" regions="CE,NA,WA,CA,UC" countries="GB,US,CA" from="1939/1/1" until="1944/12/31"/>
+  </classification>
   <shipmanual class="Empire Dabchick, freighter" displacement=" 6089 BRT" length="124m" countries="GB CA" weapons="none"/>
   <description>
     <far lang="en">Steam ship</far>
