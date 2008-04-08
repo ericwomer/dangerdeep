@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define OCEAN_WAVE_GENERATOR
 
 #include "vector3.h"
-#include "fftw3.h"
+#include <fftw3.h>
 #include "global_constants.h"
 #include <complex>
 #include <vector>
