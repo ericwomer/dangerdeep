@@ -108,6 +108,7 @@ protected:
 
 	/// additional mass of submarine given by filled tanks (is added to "mass")
 	double mass_flooded_tanks;
+	double ballast_tank_capacity;
 
 	double max_submerged_speed;	// read from spec file
 

@@ -173,7 +173,8 @@ submarine::submarine(game& gm_, const xml_elem& parent)
 	  stern_to(0),
 	  bow_rudder(0),
 	  stern_rudder(0),
-	  mass_flooded_tanks(100 * 1000.0), // test 100tons
+	  mass_flooded_tanks(50000.0),
+	  ballast_tank_capacity(500000.0), // 100 tons
 	  scope_raise_level(0.0f),
 	  scope_raise_to_level(0.0f),
 	  electric_engine(false),
@@ -393,22 +394,33 @@ void submarine::simulate(double delta_time)
 	else if( bow_rudder < d_rudder_to )
 		++bow_rudder;
 
+	// fixme: when we manipulate mass, we need to manipulate the physical values depending
+	// on it too (linear + angular)
+	vector3 v = linear_momentum * mass_inv;
 	mass += mass_flooded_tanks;
+	mass_inv = 1.0/mass;
+	linear_momentum = v * mass;
 	ship::simulate(delta_time);
+	v = linear_momentum * mass_inv;
 	mass -= mass_flooded_tanks;
+	mass_inv = 1.0/mass;
+	linear_momentum = v * mass;
 
 #if 1 // test code to dive by flooding
 	const double kg_per_sec = 1000; // 100 liters per second can be flooded/blowed out
-	if (position.z < dive_to) {
+	double s1 = position.z - dive_to;
+	double s2 = linear_momentum.z * mass_inv;
+	double err = mysgn(s1)*s1*s1 + mysgn(s2)*s2*s2*2.0;
+	if (err < 1e-3) {
 		// we need to go up, so empty ballast tanks
 		double blow = std::min(kg_per_sec * delta_time, mass_flooded_tanks);
 		mass_flooded_tanks -= blow;
-	} else {
+	} else if (err > -1e-3) {
 		// we need to go down, so flood ballast tanks (max 600t flood)
-		double flood = std::min(kg_per_sec * delta_time, 600000 - mass_flooded_tanks);
+		double flood = std::min(kg_per_sec * delta_time, ballast_tank_capacity - mass_flooded_tanks);
 		mass_flooded_tanks += flood;
 	}
-	//DBGOUT2(mass_flooded_tanks,mass);
+	DBGOUT7(position.z,dive_to,mass_flooded_tanks,mass,s1,s2,err);
 #endif
 
 #if 0
