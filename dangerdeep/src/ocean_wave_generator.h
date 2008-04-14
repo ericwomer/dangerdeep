@@ -38,6 +38,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define FFT_CREATE_PLAN fftwf_plan_dft_c2r_2d
 #define FFT_DELETE_PLAN fftwf_destroy_plan
 #define FFT_EXECUTE_PLAN fftwf_execute
+#define FFT_ALLOC fftwf_malloc
+#define FFT_FREE fftwf_free
 #else
 #define FFT_COMPLEX_TYPE fftw_complex
 #define FFT_REAL_TYPE double
@@ -45,6 +47,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define FFT_CREATE_PLAN fftw_plan_dft_c2r_2d
 #define FFT_DELETE_PLAN fftw_destroy_plan
 #define FFT_EXECUTE_PLAN fftw_execute
+#define FFT_ALLOC fftw_malloc
+#define FFT_FREE fftw_free
 #endif
 
 #ifdef WIN32
@@ -78,6 +82,27 @@ class ocean_wave_generator
 	FFT_COMPLEX_TYPE *fft_in, *fft_in2;	// can't be a vector, since the type is an array
 	FFT_REAL_TYPE *fft_out, *fft_out2;	// for sake of uniformity
 	FFT_PLAN_TYPE plan, plan2, plan3;
+
+	void freemem() {
+		if (fft_in) FFT_FREE(fft_in);
+		if (fft_in2) FFT_FREE(fft_in2);
+		if (fft_out) FFT_FREE(fft_out);
+		if (fft_out2) FFT_FREE(fft_out2);
+	}
+	void allocmem() {
+		fft_in = 0;
+		fft_in2 = 0;
+		fft_out = 0;
+		fft_out2 = 0;
+		fft_in = (FFT_COMPLEX_TYPE*) FFT_ALLOC(sizeof(FFT_COMPLEX_TYPE) * (N*(N/2+1)));
+		if (!fft_in) { freemem(); throw std::bad_alloc(); }
+		fft_in2 = (FFT_COMPLEX_TYPE*) FFT_ALLOC(sizeof(FFT_COMPLEX_TYPE) * (N*(N/2+1)));
+		if (!fft_in2) { freemem(); throw std::bad_alloc(); }
+		fft_out = (FFT_REAL_TYPE*) FFT_ALLOC(sizeof(FFT_REAL_TYPE) * (N*N));
+		if (!fft_out) { freemem(); throw std::bad_alloc(); }
+		fft_out2 = (FFT_REAL_TYPE*) FFT_ALLOC(sizeof(FFT_REAL_TYPE) * (N*N));
+		if (!fft_out2) { freemem(); throw std::bad_alloc(); }
+	}
 	
 public:
 	ocean_wave_generator(
@@ -214,10 +239,7 @@ ocean_wave_generator<T>::ocean_wave_generator(
 	h0tilde.resize((N+1)*(N+1));
 	compute_h0tilde();
 	htilde.resize(N*(N/2+1));
-	fft_in = new FFT_COMPLEX_TYPE[N*(N/2+1)];
-	fft_in2 = new FFT_COMPLEX_TYPE[N*(N/2+1)];
-	fft_out = new FFT_REAL_TYPE[N*N];
-	fft_out2 = new FFT_REAL_TYPE[N*N];
+	allocmem();
 	plan = FFT_CREATE_PLAN(N, N, fft_in, fft_out, 0);
 	plan2 = FFT_CREATE_PLAN(N, N, fft_in2, fft_out2, 0);
 }
@@ -228,10 +250,7 @@ ocean_wave_generator<T>::ocean_wave_generator(const ocean_wave_generator<T>& owg
 {
 	// clear htilde, create new fftw plans.
 	htilde.resize(N*(N/2+1));
-	fft_in = new FFT_COMPLEX_TYPE[N*(N/2+1)];
-	fft_in2 = new FFT_COMPLEX_TYPE[N*(N/2+1)];
-	fft_out = new FFT_REAL_TYPE[N*N];
-	fft_out2 = new FFT_REAL_TYPE[N*N];
+	allocmem();
 	plan = FFT_CREATE_PLAN(N, N, fft_in, fft_out, 0);
 	plan2 = FFT_CREATE_PLAN(N, N, fft_in2, fft_out2, 0);
 }
@@ -276,10 +295,7 @@ ocean_wave_generator<T>::ocean_wave_generator(const ocean_wave_generator<T>& owg
 		}
 	}
 	htilde.resize(N*(N/2+1));
-	fft_in = new FFT_COMPLEX_TYPE[N*(N/2+1)];
-	fft_in2 = new FFT_COMPLEX_TYPE[N*(N/2+1)];
-	fft_out = new FFT_REAL_TYPE[N*N];
-	fft_out2 = new FFT_REAL_TYPE[N*N];
+	allocmem();
 	plan = FFT_CREATE_PLAN(N, N, fft_in, fft_out, 0);
 	plan2 = FFT_CREATE_PLAN(N, N, fft_in2, fft_out2, 0);
 }
@@ -289,10 +305,7 @@ ocean_wave_generator<T>::~ocean_wave_generator<T>()
 {
 	FFT_DELETE_PLAN(plan);
 	FFT_DELETE_PLAN(plan2);
-	delete[] fft_in;
-	delete[] fft_in2;
-	delete[] fft_out;
-	delete[] fft_out2;
+	freemem();
 }
 
 template <class T>
