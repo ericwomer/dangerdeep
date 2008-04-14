@@ -410,7 +410,8 @@ void submarine::simulate(double delta_time)
 	const double kg_per_sec = 1000; // 100 liters per second can be flooded/blowed out
 	double s1 = position.z - dive_to;
 	double s2 = linear_momentum.z * mass_inv;
-	double err = mysgn(s1)*s1*s1 + mysgn(s2)*s2*s2*2.0;
+	double s3 = (200000 - mass_flooded_tanks) * 0.01;
+	double err = mysgn(s1)*s1*s1 + mysgn(s2)*s2*s2*20.0 + mysgn(s3)*s3*s3*0.03;
 	if (err < 1e-3) {
 		// we need to go up, so empty ballast tanks
 		double blow = std::min(kg_per_sec * delta_time, mass_flooded_tanks);
@@ -420,7 +421,7 @@ void submarine::simulate(double delta_time)
 		double flood = std::min(kg_per_sec * delta_time, ballast_tank_capacity - mass_flooded_tanks);
 		mass_flooded_tanks += flood;
 	}
-	DBGOUT7(position.z,dive_to,mass_flooded_tanks,mass,s1,s2,err);
+	DBGOUT8(position.z,dive_to,mass_flooded_tanks,mass,s1,s2,s3,err);
 #endif
 
 #if 0
