@@ -411,12 +411,15 @@ void submarine::simulate(double delta_time)
 	double s1 = position.z - dive_to;
 	double s2 = linear_momentum.z * mass_inv;
 	double s3 = (200000 - mass_flooded_tanks) * 0.01;
-	double err = mysgn(s1)*s1*s1 + mysgn(s2)*s2*s2*20.0 + mysgn(s3)*s3*s3*0.03;
-	if (err < 1e-3) {
+//	double err = mysgn(s1)*s1*s1 + mysgn(s2)*s2*s2*20.0 + mysgn(s3)*s3*s3*0.03;
+	double err = 217000 + (s1 + s2*20.0)*1000.0;
+//	if (err < 1e-3) {
+	if (err < mass_flooded_tanks) {
 		// we need to go up, so empty ballast tanks
 		double blow = std::min(kg_per_sec * delta_time, mass_flooded_tanks);
 		mass_flooded_tanks -= blow;
-	} else if (err > -1e-3) {
+//	} else if (err > -1e-3) {
+	} else if (err > mass_flooded_tanks) {
 		// we need to go down, so flood ballast tanks (max 600t flood)
 		double flood = std::min(kg_per_sec * delta_time, ballast_tank_capacity - mass_flooded_tanks);
 		mass_flooded_tanks += flood;
