@@ -44,6 +44,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "faulthandler.h"
 #include "datadirs.h"
 #include "frustum.h"
+#include "shader.h"
 #include "log.h"
 #include "mymain.cpp"
 
@@ -58,6 +59,13 @@ void run();
 texture* metalbackgr;
 texture* woodbackgr;
 texture* terraintex;
+
+texture* reliefwall_diffuse;
+texture* reliefwall_bump;
+glsl_shader_setup* glsl_reliefmapping;
+int loc_tex_color;
+int loc_tex_normal;
+int vertex_attrib_index;
 
 #define LVL_X 13
 #define LVL_Y 13
@@ -167,7 +175,7 @@ int mymain(list<string>& args)
 	
 	log_info("Danger from the Deep");
 
-	GLfloat lambient[4] = {0.1,0.1,0.1,1};
+	GLfloat lambient[4] = {0.3,0.3,0.3,1};
 	GLfloat ldiffuse[4] = {1,1,1,1};
 	GLfloat lposition[4] = {0,0,1,0};
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lambient);
@@ -220,81 +228,134 @@ void sector::display(const frustum& f) const
 	visited = true;
 	if (!displayed) {
 		glColor3f(1,1,1);
-		terraintex->set_gl_texture();
+		glsl_reliefmapping->use();
+		glsl_reliefmapping->set_gl_texture(*reliefwall_diffuse, loc_tex_color, 0);
+		glsl_reliefmapping->set_gl_texture(*reliefwall_bump, loc_tex_normal, 1);
 		if (walls & 1) {
 			glBegin(GL_QUADS);
 			glTexCoord2f(0,1);
+			glNormal3f(0,-1,0);
+			glVertexAttrib3f(vertex_attrib_index, 1,0,0);
 			glVertex3f(basepos.x, basepos.y+1, basepos.z);
 			glTexCoord2f(1,1);
+			glNormal3f(0,-1,0);
+			glVertexAttrib3f(vertex_attrib_index, 1,0,0);
 			glVertex3f(basepos.x+1, basepos.y+1, basepos.z);
 			glTexCoord2f(1,0);
+			glNormal3f(0,-1,0);
+			glVertexAttrib3f(vertex_attrib_index, 1,0,0);
 			glVertex3f(basepos.x+1, basepos.y+1, basepos.z+1);
 			glTexCoord2f(0,0);
+			glNormal3f(0,-1,0);
+			glVertexAttrib3f(vertex_attrib_index, 1,0,0);
 			glVertex3f(basepos.x, basepos.y+1, basepos.z+1);
 			glEnd();
 		}
 		if (walls & 2) {
 			glBegin(GL_QUADS);
 			glTexCoord2f(0,1);
+			glNormal3f(0,1,0);
+			glVertexAttrib3f(vertex_attrib_index, -1,0,0);
 			glVertex3f(basepos.x+1, basepos.y, basepos.z);
 			glTexCoord2f(1,1);
+			glNormal3f(0,1,0);
+			glVertexAttrib3f(vertex_attrib_index, -1,0,0);
 			glVertex3f(basepos.x, basepos.y, basepos.z);
 			glTexCoord2f(1,0);
+			glNormal3f(0,1,0);
+			glVertexAttrib3f(vertex_attrib_index, -1,0,0);
 			glVertex3f(basepos.x, basepos.y, basepos.z+1);
 			glTexCoord2f(0,0);
+			glNormal3f(0,1,0);
+			glVertexAttrib3f(vertex_attrib_index, -1,0,0);
 			glVertex3f(basepos.x+1, basepos.y, basepos.z+1);
 			glEnd();
 		}
 		if (walls & 4) {
 			glBegin(GL_QUADS);
 			glTexCoord2f(0,1);
+			glNormal3f(1,0,0);
+			glVertexAttrib3f(vertex_attrib_index, 0,1,0);
 			glVertex3f(basepos.x, basepos.y, basepos.z);
 			glTexCoord2f(1,1);
+			glNormal3f(1,0,0);
+			glVertexAttrib3f(vertex_attrib_index, 0,1,0);
 			glVertex3f(basepos.x, basepos.y+1, basepos.z);
 			glTexCoord2f(1,0);
+			glNormal3f(1,0,0);
+			glVertexAttrib3f(vertex_attrib_index, 0,1,0);
 			glVertex3f(basepos.x, basepos.y+1, basepos.z+1);
 			glTexCoord2f(0,0);
+			glNormal3f(1,0,0);
+			glVertexAttrib3f(vertex_attrib_index, 0,1,0);
 			glVertex3f(basepos.x, basepos.y, basepos.z+1);
 			glEnd();
 		}
 		if (walls & 8) {
 			glBegin(GL_QUADS);
 			glTexCoord2f(0,1);
+			glNormal3f(-1,0,0);
+			glVertexAttrib3f(vertex_attrib_index, 0,-1,0);
 			glVertex3f(basepos.x+1, basepos.y+1, basepos.z);
 			glTexCoord2f(1,1);
+			glNormal3f(-1,0,0);
+			glVertexAttrib3f(vertex_attrib_index, 0,-1,0);
 			glVertex3f(basepos.x+1, basepos.y, basepos.z);
 			glTexCoord2f(1,0);
+			glNormal3f(-1,0,0);
+			glVertexAttrib3f(vertex_attrib_index, 0,-1,0);
 			glVertex3f(basepos.x+1, basepos.y, basepos.z+1);
 			glTexCoord2f(0,0);
+			glNormal3f(-1,0,0);
+			glVertexAttrib3f(vertex_attrib_index, 0,-1,0);
 			glVertex3f(basepos.x+1, basepos.y+1, basepos.z+1);
 			glEnd();
 		}
 		if (walls & 16) {
-			metalbackgr->set_gl_texture();
+			//metalbackgr->set_gl_texture();
 			glBegin(GL_QUADS);
 			glTexCoord2f(0,1);
+			glNormal3f(0,0,1);
+			glVertexAttrib3f(vertex_attrib_index, 1,0,0);
 			glVertex3f(basepos.x, basepos.y, basepos.z);
 			glTexCoord2f(1,1);
+			glNormal3f(0,0,1);
+			glVertexAttrib3f(vertex_attrib_index, 1,0,0);
 			glVertex3f(basepos.x+1, basepos.y, basepos.z);
 			glTexCoord2f(1,0);
+			glNormal3f(0,0,1);
+			glVertexAttrib3f(vertex_attrib_index, 1,0,0);
 			glVertex3f(basepos.x+1, basepos.y+1, basepos.z);
 			glTexCoord2f(0,0);
+			glNormal3f(0,0,1);
+			glVertexAttrib3f(vertex_attrib_index, 1,0,0);
 			glVertex3f(basepos.x, basepos.y+1, basepos.z);
 			glEnd();
 		}
 		if (walls & 32) {
-			woodbackgr->set_gl_texture();
+			//woodbackgr->set_gl_texture();
 			glBegin(GL_QUADS);
 			glTexCoord2f(0,1);
+			glNormal3f(0,0,-1);
+			glVertexAttrib3f(vertex_attrib_index, 1,0,0);
 			glVertex3f(basepos.x+1, basepos.y, basepos.z+1);
 			glTexCoord2f(1,1);
+			glNormal3f(0,0,-1);
+			glVertexAttrib3f(vertex_attrib_index, 1,0,0);
 			glVertex3f(basepos.x, basepos.y, basepos.z+1);
 			glTexCoord2f(1,0);
+			glNormal3f(0,0,-1);
+			glVertexAttrib3f(vertex_attrib_index, 1,0,0);
 			glVertex3f(basepos.x, basepos.y+1, basepos.z+1);
 			glTexCoord2f(0,0);
+			glNormal3f(0,0,-1);
+			glVertexAttrib3f(vertex_attrib_index, 1,0,0);
 			glVertex3f(basepos.x+1, basepos.y+1, basepos.z+1);
 			glEnd();
 		}
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		displayed = true;
 	}
@@ -390,6 +451,16 @@ void run()
 	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png", texture::LINEAR_MIPMAP_LINEAR);
 	terraintex = new texture(get_texture_dir() + "terrain.jpg", texture::LINEAR_MIPMAP_LINEAR);
 
+	reliefwall_diffuse = new texture(get_texture_dir() + "reliefwall_diffuse.jpg", texture::LINEAR_MIPMAP_LINEAR);
+	reliefwall_bump = new texture(get_texture_dir() + "reliefwall_bump.png", texture::LINEAR_MIPMAP_LINEAR);
+	glsl_reliefmapping = new glsl_shader_setup(get_shader_dir() + "reliefmapping.vshader",
+						   get_shader_dir() + "reliefmapping.fshader");
+	glsl_reliefmapping->use();
+	loc_tex_normal = glsl_reliefmapping->get_uniform_location("tex_normal");
+	loc_tex_color = glsl_reliefmapping->get_uniform_location("tex_color");
+	vertex_attrib_index = glsl_reliefmapping->get_vertex_attrib_index("tangentx");
+	glsl_shader_setup::use_fixed();
+
 	vector<sector> sectors(LVL_X * LVL_Y * LVL_Z);
 	for (int z = 0; z < LVL_Z; ++z) {
 		for (int y = 0; y < LVL_Y; ++y) {
@@ -461,6 +532,7 @@ void run()
 		glLoadIdentity();
 		// make camera look to pos. y-axis.
 		glRotatef(-90, 1, 0, 0);
+
 		glRotatef(-viewangles.x, 1, 0, 0);
 		glRotatef(-viewangles.y, 0, 1, 0);
 		glRotatef(-viewangles.z, 0, 0, 1);
@@ -480,10 +552,15 @@ void run()
 		polygon viewwindow(wbln, wbrn, wtrn, wtln);
 		frustum viewfrustum(viewwindow, pos, vd, 0.1 /* fixme: read from matrix! */);
 
+		// set light
+		GLfloat lposition[4] = {0,0,1,0};
+		glLightfv(GL_LIGHT0, GL_POSITION, lposition);
+
 		// render sectors.
 		for (unsigned i = 0; i < sectors.size(); ++i)
 			sectors[i].displayed = false;
 		currsector->display(viewfrustum);
+		glsl_shader_setup::use_fixed();
 
 		vector3 oldpos = pos;
 		const double movesc = 0.25;
@@ -553,6 +630,10 @@ void run()
 
 		mysys->swap_buffers();
 	}
+
+	delete glsl_reliefmapping;
+	delete reliefwall_bump;
+	delete reliefwall_diffuse;
 
 	delete metalbackgr;
 	delete woodbackgr;
