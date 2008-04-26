@@ -84,7 +84,7 @@ void main()
 
 	// final color of fragment
 	vec3 final_color = (diffuse_color + specular_color) * vec3(gl_LightSource[0].diffuse /*light_color*/);
-	//final_color = V * 0.5 + 0.5;//test
+	final_color = V * 0.5 + 0.5;//test
 
 	// add linear fog
 //	float fog_factor = clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0);
