@@ -84,7 +84,34 @@ void main()
 	vec3 diffuse_color = vec3(texture2D(tex_color, texcoord_new));
 
 	// handle ambient
-	diffuse_color = diffuse_color * mix(max(dot(L, N), 0.0), 1.0, gl_LightSource[0].ambient.r);
+	float NdotL = max(dot(L, N), 0.0);
+	if (NdotL > 0.0) {
+		// shadows
+		const int shadow_steps = int(mix(20.0, 5.0, L.z)); // not too many steps!
+		float step = 1.0 / float(shadow_steps);
+		vec2 d = L.xy * depth_factor / (float(shadow_steps) * L.z);
+		//fixme: need to invert heights - how strange!
+		float h = 1.0-texture2D(tex_normal, texcoord_new).a // fixme fetch above in one step
+			+ step * 0.1;
+		vec2 texc = texcoord_new;
+		float shadow_mult = 1.0;
+		while (h < 1.0) {
+			h += step;
+			texc += d;
+			float th = 1.0-texture2D(tex_normal, texc).a;
+			if (th >= h) {
+				shadow_mult = 0.0;
+				//uncomment this for soft shadows!
+				//shadow_mult = max(1.0 - (th - h) * 3.0, 0.0);
+				break;
+			}
+		}
+		//fixme: without binary search afterwards, there are visible edges
+		//diffuse_color *= shadow_mult; // or decrease NdotL?
+		NdotL *= shadow_mult;
+		//diffuse_color = vec3(0.5,0.0,1.0)*shadow_mult;
+	}
+	diffuse_color = diffuse_color * mix(NdotL, 1.0, gl_LightSource[0].ambient.r);
 
 	// final color of fragment
 	vec3 final_color = (diffuse_color + specular_color) * vec3(gl_LightSource[0].diffuse /*light_color*/);
