@@ -47,9 +47,10 @@ void main()
 #if 1
 	// compute new texcoord
 	vec3 V = normalize(viewerpos);
-	float a = V.z;
-	vec2 s = -V.xy;
+	float a = V.z;	// why not negate?!
+	vec2 s = V.xy;
 	s *= depth_factor / a;
+	s.x = -s.x;	// why that?!
 	vec2 ds = s;
 	vec2 dp = texcoord.xy;
 	float d = ray_intersect(dp, ds);
