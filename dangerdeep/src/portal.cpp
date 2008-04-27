@@ -62,6 +62,8 @@ texture* terraintex;
 
 texture* reliefwall_diffuse;
 texture* reliefwall_bump;
+texture* stonewall_diffuse;
+texture* stonewall_bump;
 glsl_shader_setup* glsl_reliefmapping;
 int loc_tex_color;
 int loc_tex_normal;
@@ -229,8 +231,8 @@ void sector::display(const frustum& f) const
 	if (!displayed) {
 		glColor3f(1,1,1);
 		glsl_reliefmapping->use();
-		glsl_reliefmapping->set_gl_texture(*reliefwall_diffuse, loc_tex_color, 0);
-		glsl_reliefmapping->set_gl_texture(*reliefwall_bump, loc_tex_normal, 1);
+		glsl_reliefmapping->set_gl_texture(*stonewall_diffuse, loc_tex_color, 0);
+		glsl_reliefmapping->set_gl_texture(*stonewall_bump, loc_tex_normal, 1);
 		if (walls & 1) {
 			glBegin(GL_QUADS);
 			glTexCoord2f(0,1);
@@ -251,6 +253,8 @@ void sector::display(const frustum& f) const
 			glVertex3f(basepos.x, basepos.y+1, basepos.z+1);
 			glEnd();
 		}
+		glsl_reliefmapping->set_gl_texture(*reliefwall_diffuse, loc_tex_color, 0);
+		glsl_reliefmapping->set_gl_texture(*reliefwall_bump, loc_tex_normal, 1);
 		if (walls & 2) {
 			glBegin(GL_QUADS);
 			glTexCoord2f(0,1);
@@ -451,6 +455,8 @@ void run()
 	woodbackgr = new texture(get_texture_dir() + "wooden_desk.png", texture::LINEAR_MIPMAP_LINEAR);
 	terraintex = new texture(get_texture_dir() + "terrain.jpg", texture::LINEAR_MIPMAP_LINEAR);
 
+	stonewall_diffuse = new texture(get_texture_dir() + "stonewall_diffuse.jpg", texture::LINEAR_MIPMAP_LINEAR);
+	stonewall_bump = new texture(get_texture_dir() + "stonewall_bump.png", texture::LINEAR_MIPMAP_LINEAR);
 	reliefwall_diffuse = new texture(get_texture_dir() + "reliefwall_diffuse.jpg", texture::LINEAR_MIPMAP_LINEAR);
 	reliefwall_bump = new texture(get_texture_dir() + "reliefwall_bump.png", texture::LINEAR_MIPMAP_LINEAR);
 	glsl_reliefmapping = new glsl_shader_setup(get_shader_dir() + "reliefmapping.vshader",
@@ -553,7 +559,9 @@ void run()
 		frustum viewfrustum(viewwindow, pos, vd, 0.1 /* fixme: read from matrix! */);
 
 		// set light
-		GLfloat lposition[4] = {0,0,1,0};
+		vector3 ld(cos((sys().millisec()%10000)*2*3.14159/10000), sin((sys().millisec()%10000)*2*3.14159/10000), 1.0);
+		ld.normalize();
+		GLfloat lposition[4] = {ld.x,ld.y,ld.z,0};
 		glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 
 		// render sectors.
@@ -634,6 +642,8 @@ void run()
 	delete glsl_reliefmapping;
 	delete reliefwall_bump;
 	delete reliefwall_diffuse;
+	delete stonewall_bump;
+	delete stonewall_diffuse;
 
 	delete metalbackgr;
 	delete woodbackgr;
