@@ -27,8 +27,8 @@ void main()
 	// compute direction to viewer (E) in object space (mvinv*(0,0,0,1) - inputpos)
 	vec3 viewerdir_obj = normalize(vec3(gl_ModelViewMatrixInverse[3]) - vec3(gl_Vertex));
 
-	// position of viewer (V) ???
-	vec3 V = viewerdir_obj;
+	// position of viewer (V), MUST NOT get normalized!
+	vec3 V = vec3(gl_ModelViewMatrixInverse[3]) - vec3(gl_Vertex);
 	viewerpos.x = dot(tangentx, V);
 	viewerpos.y = dot(tangenty, V);
 	viewerpos.z = dot(gl_Normal, V);

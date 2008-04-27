@@ -49,10 +49,7 @@ void main()
 	vec3 V = normalize(viewerpos);
 	float a = V.z;
 	vec2 s = V.xy;
-	s *= depth_factor / a;
-	s.x = -s.x;
-	// y needs to get negated too but texcoords are y-flipped
-	// because images are top-down, and gl is bottom-up
+	s *= -depth_factor / a;
 	vec2 ds = s;
 	vec2 dp = texcoord.xy;
 	float d = ray_intersect(dp, ds);
