@@ -87,6 +87,8 @@ void main()
 	float NdotL = max(dot(L, N), 0.0);
 	if (NdotL > 0.0) {
 		// shadows
+		//fixme: there is some strange white line when using soft shadows
+		//showing some shadow "slices"
 		const int shadow_steps = int(mix(20.0, 5.0, L.z)); // not too many steps!
 		float step = 1.0 / float(shadow_steps);
 		vec2 d = L.xy * depth_factor / (float(shadow_steps) * L.z);
@@ -95,18 +97,22 @@ void main()
 			+ step * 0.1;
 		vec2 texc = texcoord_new;
 		float shadow_mult = 1.0;
+		float maxh = 0.0;
 		while (h < 1.0) {
 			h += step;
 			texc += d;
 			float th = 1.0-texture2D(tex_normal, texc).a;
 			if (th >= h) {
-				shadow_mult = 0.0;
+				maxh = max(maxh, th - h);
+				//shadow_mult = 0.0;
 				//uncomment this for soft shadows!
-				//shadow_mult = max(1.0 - (th - h) * 3.0, 0.0);
-				break;
+				//shadow_mult = max(shadow_mult - clamp((th - h + 0.5) * 3.0, 0.0, 1.0), 0.0);
+				//break;
+				//if (shadow_mult <= 0.0) break;
 			}
 		}
 		//fixme: without binary search afterwards, there are visible edges
+		shadow_mult = 1.0 - clamp(maxh * 2.0, 0.0, 1.0);
 		//diffuse_color *= shadow_mult; // or decrease NdotL?
 		NdotL *= shadow_mult;
 		//diffuse_color = vec3(0.5,0.0,1.0)*shadow_mult;
