@@ -28,10 +28,7 @@ void main()
 	vec3 viewerdir_obj = normalize(vec3(gl_ModelViewMatrixInverse[3]) - vec3(gl_Vertex));
 
 	// position of viewer (V) ???
-	//vec3 V = vec3(gl_Vertex);
-	vec3 V = 
-		//normalize(vec3(gl_ModelViewMatrixInverse[3]) - vec3(gl_Vertex));
-		vec3(gl_ModelViewMatrixInverse[3]) - vec3(gl_Vertex);
+	vec3 V = viewerdir_obj;
 	viewerpos.x = dot(tangentx, V);
 	viewerpos.y = dot(tangenty, V);
 	viewerpos.z = dot(gl_Normal, V);
