@@ -6,6 +6,7 @@ uniform sampler2D tex_normal;	// normal map, RGBA
 varying vec2 texcoord;
 varying vec3 lightdir, halfangle;
 varying vec3 viewerpos;
+varying float zdist;
 
 const float depth_factor = 0.05;
 
@@ -53,6 +54,9 @@ void main()
 	vec2 ds = s;
 	vec2 dp = texcoord.xy;
 	float d = ray_intersect(dp, ds);
+	//fixme: if d-factor <= 0.0 do not call ray_intersect
+	//fixme: instead of zdist request gl-variables for depth
+	d*=max(1.0-zdist*0.2,0.0);
 	vec2 texcoord_new = dp + ds * d;
 #else
 	vec2 texcoord_new = texcoord.xy;
@@ -84,6 +88,7 @@ void main()
 
 	// final color of fragment
 	vec3 final_color = (diffuse_color + specular_color) * vec3(gl_LightSource[0].diffuse /*light_color*/);
+	//final_color = vec3(zdist,zdist,zdist)*0.2;
 
 	// add linear fog
 //	float fog_factor = clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0);
