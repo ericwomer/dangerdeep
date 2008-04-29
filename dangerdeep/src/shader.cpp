@@ -96,7 +96,8 @@ glsl_shader::glsl_shader(const string& filename, type stype, const glsl_shader::
 					"#pragma optionNV(fastprecision on)\n"
 					"#pragma optionNV(ifcvt all)\n"
 					"#pragma optionNV(inline all)\n"
-					"#pragma optionNV(unroll all)\n";
+					//"#pragma optionNV(unroll all)\n"  not faster on 7x00 hardware
+					;
 			}
 		}
 
