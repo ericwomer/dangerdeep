@@ -31,6 +31,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 using namespace std;
 
 
+/*
+Note!
+Linux/Nvidia, use:
+
+export __GL_WriteProgramObjectAssembly=1
+export __GL_WriteProgramObjectSource=1
+
+to get ASM source.
+*/
+
 int glsl_program::glsl_supported = -1;
 bool glsl_program::supported()
 {
