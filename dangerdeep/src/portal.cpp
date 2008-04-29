@@ -45,6 +45,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "datadirs.h"
 #include "frustum.h"
 #include "shader.h"
+#include "font.h"
+#include "fpsmeasure.h"
 #include "log.h"
 #include "mymain.cpp"
 
@@ -55,6 +57,7 @@ int res_x, res_y;
 
 void run();
 
+font* font_arial;
 
 texture* metalbackgr;
 texture* woodbackgr;
@@ -185,12 +188,12 @@ int mymain(list<string>& args)
 	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
 	glEnable(GL_LIGHT0);
 
-// 	font_arial = new font(get_font_dir() + "font_arial");
-// 	mysys->draw_console_with(font_arial, 0);
+ 	font_arial = new font(get_font_dir() + "font_arial");
+ 	mysys->draw_console_with(font_arial, 0);
 
 	run();
 
-// 	delete font_arial;
+ 	delete font_arial;
 	delete mysys;
 
 	return 0;
@@ -526,6 +529,8 @@ void run()
 	double tm0 = sys().millisec();
 	int mv_forward = 0, mv_upward = 0, mv_sideward = 0;
 
+	fpsmeasure fpsm(1.0f);
+
 	while (true) {
 		double tm1 = sys().millisec();
 		double delta_t = tm1 - tm0;
@@ -636,6 +641,14 @@ void run()
 			}
 		}
 
+		// record fps
+		float fps = fpsm.account_frame();
+
+		sys().prepare_2d_drawing();
+		std::ostringstream oss; oss << "FPS: " << fps << "\n(all time total " << fpsm.get_total_fps() << ")";
+		font_arial->print(0, 0, oss.str());
+		sys().unprepare_2d_drawing();
+		
 		mysys->swap_buffers();
 	}
 
