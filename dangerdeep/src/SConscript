@@ -77,6 +77,7 @@ dftdmediasources = Split("""
 	error.cpp
 	framebufferobject.cpp
 	font.cpp
+	fpsmeasure.cpp
 	image.cpp
 	make_mesh.cpp
 	model.cpp
