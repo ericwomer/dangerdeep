@@ -10,7 +10,7 @@
 varying vec2 texcoord;
 varying vec3 lightdir, halfangle;
 varying vec3 viewerpos;
-varying float zdist;
+varying float zd;
 attribute vec3 tangentx;
 
 void main()
@@ -51,7 +51,7 @@ void main()
 
 	// finally compute position
 	gl_Position = ftransform();
-	zdist = gl_Position.z;
+	zd = gl_Position.z;
 
 	// set fog coordinate
 	//gl_FogFragCoord = gl_Position.z;
