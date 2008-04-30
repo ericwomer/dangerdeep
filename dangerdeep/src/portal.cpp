@@ -71,6 +71,7 @@ glsl_shader_setup* glsl_reliefmapping;
 int loc_tex_color;
 int loc_tex_normal;
 int vertex_attrib_index;
+int loc_depth_factor;
 
 #define LVL_X 13
 #define LVL_Y 13
@@ -176,7 +177,7 @@ int mymain(list<string>& args)
 	// weather conditions and earth curvature allow 30km sight at maximum.
 	mysys = new class system(1.0, 30000.0+500.0, res_x, res_y, fullscreen);
 	mysys->set_res_2d(1024, 768);
-	mysys->set_max_fps(60);
+//	mysys->set_max_fps(60);
 	
 	log_info("Danger from the Deep");
 
@@ -236,6 +237,7 @@ void sector::display(const frustum& f) const
 		glsl_reliefmapping->use();
 		glsl_reliefmapping->set_gl_texture(*stonewall_diffuse, loc_tex_color, 0);
 		glsl_reliefmapping->set_gl_texture(*stonewall_bump, loc_tex_normal, 1);
+		glsl_reliefmapping->set_uniform(loc_depth_factor, float(0.015));
 		if (walls & 1) {
 			glBegin(GL_QUADS);
 			glTexCoord2f(0,0);
@@ -468,6 +470,7 @@ void run()
 	loc_tex_normal = glsl_reliefmapping->get_uniform_location("tex_normal");
 	loc_tex_color = glsl_reliefmapping->get_uniform_location("tex_color");
 	vertex_attrib_index = glsl_reliefmapping->get_vertex_attrib_index("tangentx");
+	loc_depth_factor = glsl_reliefmapping->get_uniform_location("depth_factor");
 	glsl_shader_setup::use_fixed();
 
 	vector<sector> sectors(LVL_X * LVL_Y * LVL_Z);
