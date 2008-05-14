@@ -410,11 +410,34 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 		// area crosses VBO border horizontally
 		// area 1 width gcm.resolution_vbo - bl.xy
 		// area 2 width tr.xy + 1
-				// area crosses VBO border horizontally
+#if 0
+		if (vboupdate.tr.y < vboupdate.bl.y) {
+			// area crosses VBO border horizontally and vertically
+			int szx = gcm.resolution_vbo - vboupdate.bl.x;
+			int szy = gcm.resolution_vbo - vboupdate.bl.y;
+			update_VBO_and_tex(vector2i(0, 0), sz.x, vector2i(szx, szy), vboupdate.bl);
+			update_VBO_and_tex(vector2i(szx, 0), sz.x, vector2i(vboupdate.tr.x + 1, szy),
+					   vector2i(gcm.mod(vboupdate.bl.x + szx), vboupdate.bl.y));
+			update_VBO_and_tex(vector2i(0, szy), sz.x, vector2i(szx, vboupdate.tr.y + 1),
+					   vector2i(vboupdate.bl.x, gcm.mod(vboupdate.bl.y + szy)));
+			update_VBO_and_tex(vector2i(szx, szy), sz.x, vector2i(vboupdate.tr.x + 1, vboupdate.tr.y + 1),
+					   vector2i(gcm.mod(vboupdate.bl.x + szx), gcm.mod(vboupdate.bl.y + szy)));
+		} else {
+#endif
+			// area crosses VBO border horizontally
 			int szx = gcm.resolution_vbo - vboupdate.bl.x;
 			update_VBO_and_tex(vector2i(0, 0), sz.x, vector2i(szx, sz.y), vboupdate.bl);
 			update_VBO_and_tex(vector2i(szx, 0), sz.x, vector2i(vboupdate.tr.x + 1, sz.y),
 					   vector2i(gcm.mod(vboupdate.bl.x + szx), vboupdate.bl.y));
+#if 0
+		}
+	} else if (vboupdate.tr.y < vboupdate.bl.y) {
+		// area crosses VBO border vertically
+		int szy = gcm.resolution_vbo - vboupdate.bl.y;
+		update_VBO_and_tex(vector2i(0, 0), sz.x, vector2i(sz.x, szy), vboupdate.bl);
+		update_VBO_and_tex(vector2i(0, szy), sz.x, vector2i(sz.x, vboupdate.tr.y + 1),
+				   vector2i(vboupdate.bl.x, gcm.mod(vboupdate.bl.y + szy)));
+#endif
 	} else {
 		// no border crossed
 		update_VBO_and_tex(vector2i(0, 0), sz.x, sz, vboupdate.bl);
@@ -546,7 +569,8 @@ unsigned geoclipmap::level::generate_indices(const frustum& f,
 	vector2i size2 = newsize;
 	// check again if patch is still valid
 	if (size2.x <= 1 || size2.y <= 1) return 0;
-	
+
+#if 1
 	const unsigned colw = 17;
 	unsigned cols = (size2.x + colw-2) / (colw-1);
 	unsigned coloff = 0;
@@ -559,6 +583,9 @@ unsigned geoclipmap::level::generate_indices(const frustum& f,
 		coloff += colw-1;
 	}
 	return result;
+#else
+	return generate_indices2(buffer, idxbase, size2, vbooff2);
+#endif
 }
 
 unsigned geoclipmap::level::generate_indices2(uint32_t* buffer, unsigned idxbase,
@@ -591,13 +618,22 @@ unsigned geoclipmap::level::generate_indices2(uint32_t* buffer, unsigned idxbase
 		int vbooffx0 = vbooff2.x & resolution_vbo_mod;
 		// store first index twice (line or patch transition)
 		*bufptr++ = vbooffy1_l + vbooffx0;
+#if 0
+		for (int x = 0; x < size2.x; ++x) {
+			//gcc does strange things with this line!
+			//it is indexing it via the loop counter etc., it cant be optimal
+ 			*bufptr++ = vbooffy1_l + vbooffx0;
+ 			*bufptr++ = vbooffy0_l + vbooffx0;
+			vbooffx0 = (vbooffx0 + 1) & resolution_vbo_mod;
+		}
+#else
 		// try a loop with pointers directly
 		for (uint32_t* limit = bufptr + size2.x*2; bufptr != limit; bufptr += 2) {
  			bufptr[0] = vbooffy1_l + vbooffx0;
  			bufptr[1] = vbooffy0_l + vbooffx0;
 			vbooffx0 = (vbooffx0 + 1) & resolution_vbo_mod;
 		}
-
+#endif
 		uint32_t lastidx = vbooffy0_l + ((vbooffx0 - 1) & resolution_vbo_mod);
 		// store last index twice (line or patch transition)
 		*bufptr++ = lastidx;
