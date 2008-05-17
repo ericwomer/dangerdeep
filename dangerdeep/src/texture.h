@@ -71,7 +71,7 @@ class sdl_image
 	SDL_Surface* operator->() const throw() { return img; }
 
 	/// transform values to plain vector
-	std::vector<uint8_t> get_plain_data(unsigned& w, unsigned& h, unsigned& byte_per_pixel) const;
+	std::vector<uint8_t> get_plain_data(unsigned& w, unsigned& h, unsigned& byte_per_pixel);
 
  protected:
 	SDL_Surface* img;

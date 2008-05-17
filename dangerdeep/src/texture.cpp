@@ -218,7 +218,7 @@ void sdl_image::unlock()
 
 
 
-std::vector<uint8_t> sdl_image::get_plain_data(unsigned& w, unsigned& h, unsigned& byte_per_pixel) const
+std::vector<uint8_t> sdl_image::get_plain_data(unsigned& w, unsigned& h, unsigned& byte_per_pixel)
 {
 	byte_per_pixel = img->format->BytesPerPixel;
 	w = img->w;
@@ -226,9 +226,10 @@ std::vector<uint8_t> sdl_image::get_plain_data(unsigned& w, unsigned& h, unsigne
 	std::vector<uint8_t> tmp(w * h * byte_per_pixel);
 	lock();
 	for (unsigned y = 0; y < h; ++y) {
-		memcpy(&tmp[y * w * byte_per_pixel], img->pixels + y * img->pitch, w * byte_per_pixel);
+		memcpy(&tmp[y * w * byte_per_pixel], (uint8_t*)img->pixels + y * img->pitch, w * byte_per_pixel);
 	}
 	unlock();
+	return tmp;
 }
 
 // --------------------------------------------------
