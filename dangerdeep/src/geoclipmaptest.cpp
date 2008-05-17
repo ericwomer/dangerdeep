@@ -346,9 +346,9 @@ public:
 		int yc = coord.y * int(1 << detail);
 		if (detail <= 6) {
 			float h = pn.value(xc, yc, 6-detail)/255.0f;
-			return 0 + h*h*h*0.5 * 256;
+			return -30 + h*h*h*0.5 * 256;
 		} else
-			return 0;
+			return -30;
 	}
 	float compute_height_extra(unsigned detail, const vector2i& coord) {
 		int xc = coord.x >> detail;
@@ -368,7 +368,7 @@ public:
 		n.y += extrah[(coord.y+32&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
 		return n.normal();
 	}
-	void get_min_max_height(double& minh, double& maxh) const { minh = 0.0; maxh = 128.0; }
+	void get_min_max_height(double& minh, double& maxh) const { minh = 0.0-30; maxh = 128.0-30; }
 };
 
 
@@ -473,6 +473,72 @@ public:
 };
 
 
+class height_generator_test6 : public height_generator_test2
+{
+	std::vector<uint8_t> c[8];
+	unsigned cw, ch;
+	/*
+	texture::ptr tex_grass[5];
+	texture::ptr tex_mud;
+	texture::ptr tex_stone[2];
+	*/
+public:
+	height_generator_test6()
+		//: tex_mud(new texture(get_texture_dir() + "tex_mud.jpg", texture::LINEAR_MIPMAP_LINEAR))
+	{
+		/*
+		tex_grass[0].reset(new texture(get_texture_dir() + "tex_grass.jpg", texture::LINEAR_MIPMAP_LINEAR));
+		tex_grass[1].reset(new texture(get_texture_dir() + "tex_grass2.jpg", texture::LINEAR_MIPMAP_LINEAR));
+		tex_grass[2].reset(new texture(get_texture_dir() + "tex_grass3.jpg", texture::LINEAR_MIPMAP_LINEAR));
+		tex_grass[3].reset(new texture(get_texture_dir() + "tex_grass4.jpg", texture::LINEAR_MIPMAP_LINEAR));
+		tex_grass[4].reset(new texture(get_texture_dir() + "tex_grass5.jpg", texture::LINEAR_MIPMAP_LINEAR));
+		tex_stone[0].reset(new texture(get_texture_dir() + "tex_stone.jpg", texture::LINEAR_MIPMAP_LINEAR));
+		tex_stone[1].reset(new texture(get_texture_dir() + "tex_sand.jpg", texture::LINEAR_MIPMAP_LINEAR));
+		*/
+		const char* texnames[8] = {
+			"tex_grass.jpg",
+			"tex_grass2.jpg",
+			"tex_grass3.jpg",
+			"tex_grass4.jpg",
+			"tex_grass5.jpg",
+			"tex_mud.jpg",
+			"tex_stone.jpg",
+			"tex_sand.jpg"
+		};
+		for (unsigned i = 0; i < 8; ++i) {
+		sdl_image tmp(get_texture_dir() + texnames[i]);
+		unsigned bpp = 0;
+		c[i] = tmp.get_plain_data(cw, ch, bpp);
+		if (bpp != 3) throw error("color bpp != 3");
+		}
+	}
+	color compute_color(unsigned detail, const vector2i& coord) {
+		unsigned xc = coord.x << (detail+1);
+		unsigned yc = coord.y << (detail+1);
+		float z = compute_height(detail, coord);
+		unsigned zi = std::max(std::min(int((z + 130) * 4 * 8 / 256), 8-1), 0);
+		if (zi <= 4) zi = ((xc/512)*(xc/512)*3+(yc/512)*(yc/512)*(yc/512)*2+(xc/512)*(yc/512)*7)%5;
+		unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
+		return color(c[zi][3*i], c[zi][3*i+1], c[zi][3*i+2]);
+	}
+	color compute_color_extra(unsigned detail, const vector2i& coord) {
+		unsigned xc = coord.x >> (detail-1);
+		unsigned yc = coord.y >> (detail-1);
+		float z = compute_height(0, vector2i(coord.x>>detail,coord.y>>detail));
+		unsigned zi = std::max(std::min(int((z + 130) * 4 * 8 / 256), 8-1), 0);
+		if (zi <= 4) zi = ((xc/512)*(xc/512)*3+(yc/512)*(yc/512)*(yc/512)*2+(xc/512)*(yc/512)*7)%5;
+		unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
+		return color(c[zi][3*i], c[zi][3*i+1], c[zi][3*i+2]);
+	}
+	float compute_height(unsigned detail, const vector2i& coord) {
+		return height_generator_test2::compute_height(detail, coord) - 100;
+	}
+	float compute_height_extra(unsigned detail, const vector2i& coord) {
+		return height_generator_test2::compute_height_extra(detail, coord) - 100;
+	}
+	void get_min_max_height(double& minh, double& maxh) const { height_generator_test2::get_min_max_height(minh,maxh);minh-=100;maxh-=100; }
+};
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // copied from credits.cpp, later move to own file(s)!
 
@@ -524,6 +590,7 @@ void run()
 {
 	//height_generator_test hgt;
 	//height_generator_test2 hgt;
+	height_generator_test6 hgt;
 #if 1
 	std::vector<Uint8> heights;
 	std::vector<Uint16> heights16;
@@ -591,7 +658,7 @@ void run()
 	}
 #endif
 	//height_generator_test3 hgt(heights, 12, hm, ha);
-	height_generator_test3 hgt(heights16, 10, 1.0/256, -64);
+	//height_generator_test3 hgt(heights16, 10, 1.0/256, -64);
 	heights.clear();
 #endif
 	//height_generator_test4 hgt;
@@ -717,7 +784,7 @@ void run()
 
 		float path_fac = myfrac((1.0/120) * (sys().millisec() - tm0)/1000);
 		vector3f campos = cam_path.value(path_fac);
-		vector3f camlookat = cam_path.value(myfrac(path_fac + 0.01)) - vector3f(0, 0, 10);
+		vector3f camlookat = cam_path.value(myfrac(path_fac + 0.01)) - vector3f(0, 0, 20);
 		//camera cm(viewpos2, viewpos2 + angle(zang).direction().xyz(-0.25));
 		camera cm(campos, camlookat);
 		zang = cm.look_direction().value();
@@ -818,6 +885,10 @@ int mymain(list<string>& args)
 	// weather conditions and earth curvature allow 30km sight at maximum.
 	std::auto_ptr<class system> mysys(new class system(1.0, 30000.0+500.0, res_x, res_y, fullscreen));
 	mysys->set_res_2d(1024, 768);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	sys().gl_perspective_fovx(70, 4.0/3.0, 1.0, 30000);
+	glMatrixMode(GL_MODELVIEW);
 //	mysys->set_max_fps(60);
 	
 	log_info("Danger from the Deep");
