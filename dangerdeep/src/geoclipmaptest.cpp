@@ -516,19 +516,33 @@ public:
 		unsigned xc = coord.x << (detail+1);
 		unsigned yc = coord.y << (detail+1);
 		float z = compute_height(detail, coord);
-		unsigned zi = std::max(std::min(int((z + 130) * 4 * 8 / 256), 8-1), 0);
-		if (zi <= 4) zi = ((xc/512)*(xc/512)*3+(yc/512)*(yc/512)*(yc/512)*2+(xc/512)*(yc/512)*7)%5;
+		float zif = (z + 130) * 4 * 8 / 256;
+		if (zif < 0.0) zif = 0.0;
+		if (zif >= 7.0) zif = 6.999;
+		unsigned zi = unsigned(zif);
+		zif = myfrac(zif);
+		//if (zi <= 4) zi = ((xc/512)*(xc/512)*3+(yc/512)*(yc/512)*(yc/512)*2+(xc/512)*(yc/512)*7)%5;
 		unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
-		return color(c[zi][3*i], c[zi][3*i+1], c[zi][3*i+2]);
+		float zif2 = 1.0-zif;
+		return color(uint8_t(c[zi][3*i]*zif2 + c[zi+1][3*i]*zif),
+			     uint8_t(c[zi][3*i+1]*zif2 + c[zi+1][3*i+1]*zif),
+			     uint8_t(c[zi][3*i+2]*zif2 + c[zi+1][3*i+2]*zif));
 	}
 	color compute_color_extra(unsigned detail, const vector2i& coord) {
 		unsigned xc = coord.x >> (detail-1);
 		unsigned yc = coord.y >> (detail-1);
 		float z = compute_height(0, vector2i(coord.x>>detail,coord.y>>detail));
-		unsigned zi = std::max(std::min(int((z + 130) * 4 * 8 / 256), 8-1), 0);
-		if (zi <= 4) zi = ((xc/512)*(xc/512)*3+(yc/512)*(yc/512)*(yc/512)*2+(xc/512)*(yc/512)*7)%5;
+		float zif = (z + 130) * 4 * 8 / 256;
+		if (zif < 0.0) zif = 0.0;
+		if (zif >= 7.0) zif = 6.999;
+		unsigned zi = unsigned(zif);
+		zif = myfrac(zif);
+		//if (zi <= 4) zi = ((xc/512)*(xc/512)*3+(yc/512)*(yc/512)*(yc/512)*2+(xc/512)*(yc/512)*7)%5;
 		unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
-		return color(c[zi][3*i], c[zi][3*i+1], c[zi][3*i+2]);
+		float zif2 = 1.0-zif;
+		return color(uint8_t(c[zi][3*i]*zif2 + c[zi+1][3*i]*zif),
+			     uint8_t(c[zi][3*i+1]*zif2 + c[zi+1][3*i+1]*zif),
+			     uint8_t(c[zi][3*i+2]*zif2 + c[zi+1][3*i+2]*zif));
 	}
 	float compute_height(unsigned detail, const vector2i& coord) {
 		return height_generator_test2::compute_height(detail, coord) - 100;
