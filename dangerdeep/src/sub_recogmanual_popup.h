@@ -30,8 +30,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "global_data.h"
 #include "log.h"
 
-using namespace std;
-
 class sub_recogmanual_popup : public user_popup
 {
 protected:

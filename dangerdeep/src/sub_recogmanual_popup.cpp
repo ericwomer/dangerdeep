@@ -19,6 +19,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "sub_recogmanual_popup.h"
 
+using namespace std;
+
 sub_recogmanual_popup::widget_button_next::widget_button_next(int x, int y, int w, int h, int dir, int& att_page, const std::string& text_,  const std::string& bg_image_, widget* parent_)
 	: widget_button(x, y, w, h, text_, parent_, bg_image_), direction(dir), page(att_page)
 {
