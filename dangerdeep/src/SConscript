@@ -30,7 +30,6 @@ dftdsources = Split("""subsim.cpp
 	music.cpp
 	parser.cpp
 	particle.cpp
-	perlinnoise.cpp
 	sea_object.cpp
 	sensors.cpp
 	ship.cpp
@@ -81,6 +80,7 @@ dftdmediasources = Split("""
 	image.cpp
 	make_mesh.cpp
 	model.cpp
+	perlinnoise.cpp
 	shader.cpp
 	system.cpp
 	texture.cpp
@@ -127,6 +127,9 @@ env.Default(test2)
 
 portal = env.Program('portal', ['portal.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
 env.Default(portal)
+
+geoclipmaptest = env.Program('geoclipmaptest', ['geoclipmaptest.cpp', 'geoclipmap.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
+env.Default(geoclipmaptest)
 
 ############ this allows to run "scons install" to install the binary
 install = env.Alias('install', env.Install(installbindir, binary))
