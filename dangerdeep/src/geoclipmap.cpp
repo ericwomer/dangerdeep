@@ -334,6 +334,22 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	}
 
 	// interpolate z_c, first fill in missing rows
+	/* fixme: this isn't always exactly the same as the video card renders, but it should be.
+	   This may be the cause for some terrain "popping" that can be seen on mountain tops,
+	   when watching them against the horizon/sky.
+	   Problem is that when a level is rendered like this:
+	   z0---z1
+	   |   /|
+	   |  / |
+	   | /  |
+	   |/   |
+	   z2---z3
+	   the z_c values of the next finer levels should be the same as the rendering,
+	   that is for the middle of that rectangle, z_c would be (z1+z2)/2 or if the
+	   triangulation is opposite it would be (z0+z3)/2.
+	   In fact this code computes it as (z0+z1+z2+z3)/4.
+	   The effect is hardly visible, but a bit ugly...
+	*/
 	ptr = ptr3 + (sz.x+2)*geoclipmap_fperv;
 	for (int y = 0; y < szc.y-1; ++y) {
 		unsigned ptr2 = ptr;
