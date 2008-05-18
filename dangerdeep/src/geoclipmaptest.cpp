@@ -361,19 +361,10 @@ public:
 		} else {
 			int xc = coord.x >> -detail;
 			int yc = coord.y >> -detail;
+			//fixme: too crude, need to bilinear sample height from 4 base values
 			float baseh = compute_height(0, vector2i(xc, yc));
-			baseh += extrah[(coord.y&63)*64+(coord.x&63)];
+			baseh += extrah[(coord.y&63)*64+(coord.x&63)] * 0.25;
 			return baseh;
-		}
-	}
-	vector3f compute_normal(int detail, const vector2i& coord) {
-		if (detail >= 0)
-			return height_generator::compute_normal(detail, coord);
-		else {
-			vector3f n = compute_normal(0, vector2i(coord.x >> -detail, coord.y >> -detail));
-			n.x += extrah[(coord.y&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
-			n.y += extrah[(coord.y+32&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
-			return n.normal();
 		}
 	}
 	void get_min_max_height(double& minh, double& maxh) const { minh = 0.0-30; maxh = 128.0-30; }
@@ -514,7 +505,7 @@ public:
 			if (zif >= 7.0) zif = 6.999;
 			unsigned zi = unsigned(zif);
 			zif = myfrac(zif);
-			//if (zi <= 4) zi = ((xc/512)*(xc/512)*3+(yc/512)*(yc/512)*(yc/512)*2+(xc/512)*(yc/512)*7)%5;
+			//if (zi <= 4) zi = ((xc/256)*(xc/256)*3+(yc/256)*(yc/256)*(yc/256)*2+(xc/256)*(yc/256)*7)%5;
 			unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
 			float zif2 = 1.0-zif;
 			return color(uint8_t(c[zi][3*i]*zif2 + c[zi+1][3*i]*zif),
@@ -529,7 +520,7 @@ public:
 			if (zif >= 7.0) zif = 6.999;
 			unsigned zi = unsigned(zif);
 			zif = myfrac(zif);
-			//if (zi <= 4) zi = ((xc/512)*(xc/512)*3+(yc/512)*(yc/512)*(yc/512)*2+(xc/512)*(yc/512)*7)%5;
+			//if (zi <= 4) zi = ((xc/256)*(xc/256)*3+(yc/256)*(yc/256)*(yc/256)*2+(xc/256)*(yc/256)*7)%5;
 			unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
 			float zif2 = 1.0-zif;
 			return color(uint8_t(c[zi][3*i]*zif2 + c[zi+1][3*i]*zif),
