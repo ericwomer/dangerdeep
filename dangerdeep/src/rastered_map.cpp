@@ -21,10 +21,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "rastered_map.h"
 
-template <class A, class B> 
-rastered_map<A,B>::rastered_map(const std::string& header_file, const std::string& data_file, long int _cache_dist, vector2l _center, long int _view_dist, unsigned num_levels) :
-				view_dist(_view_dist), cache_dist(_cache_dist), center(_center), min_height(-10800), max_height(8440)
+rastered_map::rastered_map(const std::string& header_file, const std::string& data_file, long int _cache_dist, vector2i _center, long int _view_dist, unsigned num_levels) :
+				view_dist(_view_dist), cache_dist(_cache_dist), min_height(-10800), max_height(8440)
 {
+	std::cout << "Creating Terrain" << std::endl;
+	std::cout << "Loading Header..." << std::endl;
 	// open header file
 	xml_doc doc(header_file);
 	doc.load();
@@ -39,28 +40,24 @@ rastered_map<A,B>::rastered_map(const std::string& header_file, const std::strin
 	elem = root.child("min");
 	min_lat = elem.attri("latitude");
 	min_lot = elem.attri("longitude");	
-
+	std::cout << "done" << std::endl;
+	std::cout << "Loading data..." << std::endl;
 	// open data file
 	data_stream.open(data_file.c_str(), std::ios::binary|std::ios::in);
 	if (!data_stream.is_open()) throw std::ios::failure("Could not open file: "+data_file);
-
-	levels.resize(num_levels);
-	load(levels[levels.size()-1]);
 	
-	for (int i=levels.size()-2; i>=0; i--) {
-		sample_up(levels[i+1], levels[i]);
-	}
+	levels.resize(num_levels);
+	update_center (_center);
 }
 
-template <class A, class B> 
-rastered_map<A,B>::~rastered_map() {
+rastered_map::~rastered_map() {
 	data_stream.close();
 }
 
-template <class A, class B>
-void rastered_map<A,B>::sample_up(unsigned newres, std::vector<B>& buf_in, std::vector<B>& buf_out)
+void rastered_map::sample_up(long int newres, std::vector<float>& buf_in, std::vector<float>& buf_out)
 // fixme: gap at right and bottom
 {
+	std::cout << "Sampling up from " << newres/2 << " to " << newres << std::endl;
 	buf_out.resize(newres*newres);
 	// copy
 	for (long int y = 0; y < newres/2; ++y) {
@@ -108,12 +105,11 @@ void rastered_map<A,B>::sample_up(unsigned newres, std::vector<B>& buf_in, std::
 	}	
 }
 
-template <class A, class B> 
-void rastered_map<A,B>::load(std::vector<B>& level)
+void rastered_map::load(std::vector<float>& level)
 {
 	data_stream.clear();
 
-	A buf[(int)((view_dist*2)/resolution)];
+	short signed int buf[(int)((view_dist*2)/resolution)];
 	char *c_buf = (char*)buf;
 	
 	long int start = (long int)((((max_lat*3600)-top_left.y)/resolution)*((max_lot*2*3600)/resolution)+(((max_lot*3600)+top_left.x)/resolution));
@@ -125,15 +121,15 @@ void rastered_map<A,B>::load(std::vector<B>& level)
 		data_stream.seekg(i*2);
 		data_stream.read(c_buf, (int)((view_dist*2)/resolution)*2);
 		for (int n=0; n < (view_dist*2)/resolution; n++) {
-			level.push_back(buf[n]);
+			level.push_back((float)buf[n]);
 		}
 	}
 }
 
-template <class A, class B> 
-void rastered_map<A,B>::update_center(vector2l _center)
+void rastered_map::update_center(vector2i _center)
 {
-	center = _center;
+	vector2l center(_center.x/SECOND_IN_METERS, _center.y/SECOND_IN_METERS);
+	
 	// check if view rect is outside of cache
 	if ((center.x-view_dist)<top_left.x || (center.x+view_dist)>bottom_right.x || 
 		(center.y+view_dist)>bottom_right.y || (center.y-view_dist)<top_left.y) 
@@ -145,80 +141,48 @@ void rastered_map<A,B>::update_center(vector2l _center)
 		bottom_right.y = center.y+cache_dist;		
 		
 		load(levels[levels.size()-1]);
-	
+		
+		long int newres = (cache_dist*2)/resolution;
 		for (int i=levels.size()-2; i>=0; i--) {
-			sample_up(levels[i+1], levels[i]);
+			std::cout << "Sampling up " << i << std::endl;
+			newres*=2;
+			sample_up(newres, levels[i+1], levels[i]);
 		}
 	}
 }
 
-template <class A, class B> 
-void rastered_map<A,B>::compute_height(unsigned detail, const height_generator::area region, std::vector<B>& target)
+float rastered_map::compute_height(int detail, const vector2i& _coord)
 {
-	long int start = (cache_dist/(resolution/(levels.size()+1-detail))) 
-					 *((cache_dist-region.tl.y-center.y)/(resolution/(levels.size()+1-detail))) 
-					 +((region.tl.x-center.x)/(resolution/(levels.size()+1-detail)));
-	long int step  = (cache_dist*2 - region.width())/(resolution/(levels.size()+1-detail));
-	long int end   = ((cache_dist+region.br.y-center.y)/(resolution/(levels.size()+1-detail))) 
-				     *(cache_dist/(resolution/(levels.size()+1-detail))) 
-				     +((cache_dist+region.br.x-center.x)/(resolution/(levels.size()+1-detail)));
-					 
-	
-	// resize first is faster  (
-	target.resize((region.width/(resolution/(levels.size()+1-detail)))*((region.height)/(resolution/(levels.size()+1-detail))));
-	
-	// copy values to buffer
-	for (long int i=start; i<end; i+=step) {
-		for (long int n=i; n<i+(region.width/(resolution/(levels.size()+1-detail))); n++) {
-			target.push_back(levels[detail][i+n]);
-		}
-	}
+	vector2l coord(_coord.x/SECOND_IN_METERS, _coord.y/SECOND_IN_METERS);
+	unsigned level_res = (resolution/(levels.size()+1-detail));
+	//std::cout << "Computing Height for (in seconds) " << coord.x << " " << coord.y << " level " << detail << std::endl;
+	if (detail>=0) {
+		long int pos = (((cache_dist*2*cache_dist)+cache_dist)-((coord.y-center.y)*cache_dist*2)+(coord.x-center.x))/level_res;
+		//std::cout << "pos=" << pos <<std::endl;
+		return levels[detail][pos];
+	} else return 0.0;
 }
 
-template <class A, class B> 
-void rastered_map<A,B>::compute_normal(unsigned detail, height_generator::area region, float zh, vector3t<B>& target)
+vector3f rastered_map::compute_normal(int detail, const vector2i& coord)
 {
-	// resize first is faster  (
-	target.resize((region.width/(resolution/(levels.size()+1-detail)))*((region.height)/(resolution/(levels.size()+1-detail))));
-	
-	region.tl.x+=(resolution/(levels.size()+1-detail));
-	region.tl.y-=(resolution/(levels.size()+1-detail));
-	region.br.x+=(resolution/(levels.size()+1-detail));
-	region.br.y-=(resolution/(levels.size()+1-detail));	
-	std::vector<B> height_buffer;
-	compute_height(detail, region, height_buffer);
-	
-	for (long int y=1; y<region.height/(resolution/(levels.size()+1-detail))-1; y++) {
-		for (long int x=1; x<region.width/(resolution/(levels.size()+1-detail))-1; x++) {
-			target[y*(region.width/(resolution/(levels.size()+1-detail))-2)+x] = vector3t<B> (
-				target[y*(region.width/(resolution/(levels.size()+1-detail))-2)+x+1] - target[y*(region.width/(resolution/(levels.size()+1-detail))-2)+x-1],
-				target[(y-1)*(region.width/(resolution/(levels.size()+1-detail))-2)+x] - target[(y+1)*(region.width/(resolution/(levels.size()+1-detail))-2)+x],
-				zh*2.0
-				).normal();
-		}
-	}
+	//std::cout << "Computing Normal for " << coord.x << " " << coord.y << std::endl;
+	if (detail >= 0) {
+		const float zh = sample_spacing * 0.5f * (detail >= 0 ? (1<<detail) : 1.0f/(1<<-detail));
+		float hr = compute_height(detail, coord + vector2i(1, 0));
+		float hu = compute_height(detail, coord + vector2i(0, 1));
+		float hl = compute_height(detail, coord + vector2i(-1, 0));
+		float hd = compute_height(detail, coord + vector2i(0, -1));
+		return vector3f(hl-hr, hd-hu, zh*2).normal();
+	} else return vector3f(0,0,1);
 }
 
-template <class A, class B> 
-void rastered_map<A,B>::compute_color(unsigned detail, height_generator::area region, std::vector<color>& target)
+color rastered_map::compute_color(int detail, const vector2i& coord)
 {
-	std::vector<B> height_buffer;
-	vector3t<B> normal_buffer;
-	
-	compute_height(detail, region, target);
-	compute_normal(detail, region, 1.0*(1<<detail), normal_buffer);
-	
-	for (long int y=0; y<region.height/(resolution/(levels.size()+1-detail)); y++) {
-		for (long int x=0; x<region.width/(resolution/(levels.size()+1-detail)); x++) {
-			target[y*region.height/(resolution/(levels.size()+1-detail))+x] 
-				= (normal_buffer[y*region.height/(resolution/(levels.size()+1-detail))+x].z > 0.9) 
-				? (height_buffer[y*region.height/(resolution/(levels.size()+1-detail))+x] > 20 
-				? color((Uint8)240, (Uint8)240, (Uint8)242) : color((Uint8)20,(Uint8)(75+50),(Uint8)20))
-				: color(
-						(Uint8)(64+height_buffer[y*region.height/(resolution/(levels.size()+1-detail))+x]*0.5+32), 
-						(Uint8)(64+height_buffer[y*region.height/(resolution/(levels.size()+1-detail))+x]*0.5+32), 
-						(Uint8)(64+height_buffer[y*region.height/(resolution/(levels.size()+1-detail))+x]*0.5+32)
-				);
-		}
-	}
+	//std::cout << "Computing Color for " << coord.x << " " << coord.y << std::endl;
+	if (detail>=0) {
+		float h = compute_height(detail, coord);
+		vector3f n = compute_normal(detail, coord);
+		return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,75+50,20))
+				: color(64+h*0.5+32, 64+h*0.5+32, 64+h*0.5+32);
+	} else return color(255, 255, 255);
 }
