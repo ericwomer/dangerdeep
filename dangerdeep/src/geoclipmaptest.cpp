@@ -304,12 +304,18 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class height_generator_test : public height_generator
 {
 public:
-	float compute_height(unsigned detail, const vector2i& coord) {
-		int xc = coord.x * int(1 << detail);
-		int yc = coord.y * int(1 << detail);
-		return sin(2*3.14159*xc*0.01) * sin(2*3.14159*yc*0.01) * 40.0;
+	float compute_height(int detail, const vector2i& coord) {
+		if (detail >= 0) {
+			int xc = coord.x * int(1 << detail);
+			int yc = coord.y * int(1 << detail);
+			return sin(2*3.14159*xc*0.01) * sin(2*3.14159*yc*0.01) * 20.0 - 20;
+		} else {
+			float xc = coord.x / float(1 << -detail);
+			float yc = coord.y / float(1 << -detail);
+			return sin(2*3.14159*xc*0.01) * sin(2*3.14159*yc*0.01) * 20.0 - 20;
+		}
 	}
-	void get_min_max_height(double& minh, double& maxh) const { minh = -40.0; maxh = 40.0; }
+	void get_min_max_height(double& minh, double& maxh) const { minh = -40.0; maxh = 0.0; }
 };
 
 
@@ -331,9 +337,9 @@ public:
 		  pn2(64, 2, 16)
 	{
 		/*
-		lookup_function<float, 256U> asin_lookup;
-		for (unsigned i = 0; i <= 256; ++i)
-			asin_lookup.set_value(i, asin(float(i)/256) / M_PI + 0.5);
+		  lookup_function<float, 256U> asin_lookup;
+		  for (unsigned i = 0; i <= 256; ++i)
+		  asin_lookup.set_value(i, asin(float(i)/256) / M_PI + 0.5);
 		*/
 		std::vector<Uint8> extrah2 = pn2.generate();
 		extrah.resize(64*64);
@@ -341,32 +347,33 @@ public:
 			for (unsigned x = 0; x < 64; ++x)
 				extrah[64*y+x] = rnd()-0.5;//extrah2[64*y+x]/256.0-0.5;
 	}
-	float compute_height(unsigned detail, const vector2i& coord) {
-		int xc = coord.x * int(1 << detail);
-		int yc = coord.y * int(1 << detail);
-		if (detail <= 6) {
-			float h = pn.value(xc, yc, 6-detail)/255.0f;
-			return -30 + h*h*h*0.5 * 256;
-		} else
-			return -30;
+	float compute_height(int detail, const vector2i& coord) {
+		if (detail >= 0) {
+			int xc = coord.x * int(1 << detail);
+			int yc = coord.y * int(1 << detail);
+			if (detail <= 6) {
+				float h = pn.value(xc, yc, 6-detail)/255.0f;
+				return -30 + h*h*h*0.5 * 256;
+			} else
+				return -30;
+		} else {
+			int xc = coord.x >> -detail;
+			int yc = coord.y >> -detail;
+			float baseh = compute_height(0, vector2i(xc, yc));
+			baseh += extrah[(coord.y&63)*64+(coord.x&63)];
+			return baseh;
+		}
 	}
-	float compute_height_extra(unsigned detail, const vector2i& coord) {
-		int xc = coord.x >> detail;
-		int yc = coord.y >> detail;
-		float baseh = compute_height(0, vector2i(xc, yc));
-		/*
-		xc = coord.x & ((1 << detail)-1);
-		yc = coord.y & ((1 << detail)-1);
-		*/
-		baseh += extrah[(coord.y&63)*64+(coord.x&63)];
-		return baseh;
-	}
-	vector3f compute_normal_extra(unsigned detail, const vector2i& coord, float zh) {
-		vector3f n = compute_normal(0, vector2i(coord.x >> detail, coord.y >> detail),
-					    zh * (1 << detail));
-		n.x += extrah[(coord.y&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
-		n.y += extrah[(coord.y+32&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
-		return n.normal();
+	vector3f compute_normal(int detail, const vector2i& coord, float zh) {
+		if (detail >= 0)
+			return height_generator::compute_normal(detail, coord, zh);
+		else {
+			vector3f n = compute_normal(0, vector2i(coord.x >> -detail, coord.y >> -detail),
+						    zh * (1 << -detail));
+			n.x += extrah[(coord.y&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
+			n.y += extrah[(coord.y+32&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
+			return n.normal();
+		}
 	}
 	void get_min_max_height(double& minh, double& maxh) const { minh = 0.0-30; maxh = 128.0-30; }
 };
@@ -413,67 +420,51 @@ public:
 				extrah[64*y+x] = //rnd()-0.5;
 					extrah2[64*y+x]/256.0-0.5;
 	}
-	float compute_height(unsigned detail, const vector2i& coord) {
-		const unsigned shift = (baseres >> detail);
-		const unsigned mask = shift - 1;
-		unsigned xc = unsigned(coord.x + shift/2) & mask;
-		unsigned yc = unsigned(coord.y + shift/2) & mask;
-		return heightdata[detail][yc * shift + xc] * heightmult + heightadd;
+	float compute_height(int detail, const vector2i& coord) {
+		if (detail >= 0) {
+			const unsigned shift = (baseres >> detail);
+			const unsigned mask = shift - 1;
+			unsigned xc = unsigned(coord.x + shift/2) & mask;
+			unsigned yc = unsigned(coord.y + shift/2) & mask;
+			return heightdata[detail][yc * shift + xc] * heightmult + heightadd;
+		} else {
+			return 0;
+		}
 	}
-	vector3f compute_normal_extra(unsigned detail, const vector2i& coord, float zh) {
-		vector3f n = compute_normal(0, vector2i(coord.x >> detail, coord.y >> detail),
-					    zh * (1 << detail));
-		n.x += extrah[(coord.y&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
-		n.y += extrah[(coord.y+32&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
-		return n.normal();
+	vector3f compute_normal(int detail, const vector2i& coord, float zh) {
+		if (detail >= 0)
+			return height_generator::compute_normal(detail, coord, zh);
+		else {
+			vector3f n = compute_normal(0, vector2i(coord.x >> -detail, coord.y >> -detail),
+						    zh * (1 << -detail));
+			n.x += extrah[(coord.y&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
+			n.y += extrah[(coord.y+32&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
+			return n.normal();
+		}
 	}
-	color compute_color(unsigned detail, const vector2i& coord) {
-		//int xc = coord.x * int(1 << detail);
-		//int yc = coord.y * int(1 << detail);
-		float h = compute_height(detail, coord);
-		vector3f n = compute_normal(detail, coord, 1.0*(1<<detail));//fixme hack, give zh here
-		float k = extrah[(coord.y&63)*64+(coord.x&63)];
-		return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,75+k*50,20))
-			: color(64+h*0.5+k*32, 64+h*0.5+k*32, 64+h*0.5+k*32);
-	}
-	color compute_color_extra(unsigned detail, const vector2i& coord) {
-		float h = compute_height(0, vector2i(coord.x>>detail, coord.y>>detail));
-		vector3f n = compute_normal_extra(detail, coord, 1.0/(1<<detail));//fixme hack, give zh here
-		float k = extrah[(coord.y&63)*64+(coord.x&63)];
-		return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,75+k*50,20))
-			: color(64+h*0.5+k*32, 64+h*0.5+k*32, 64+h*0.5+k*32);
+	color compute_color(int detail, const vector2i& coord) {
+		if (detail >= 0) {
+			//int xc = coord.x * int(1 << detail);
+			//int yc = coord.y * int(1 << detail);
+			float h = compute_height(detail, coord);
+			vector3f n = compute_normal(detail, coord, 1.0*(1<<detail));//fixme hack, give zh here
+			float k = extrah[(coord.y&63)*64+(coord.x&63)];
+			return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,75+k*50,20))
+				: color(64+h*0.5+k*32, 64+h*0.5+k*32, 64+h*0.5+k*32);
+		} else {
+			float h = compute_height(0, vector2i(coord.x>>-detail, coord.y>>-detail));
+			vector3f n = compute_normal(detail, coord, 1.0/(1<<-detail));//fixme hack, give zh here
+			float k = extrah[(coord.y&63)*64+(coord.x&63)];
+			return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,75+k*50,20))
+				: color(64+h*0.5+k*32, 64+h*0.5+k*32, 64+h*0.5+k*32);
+		}
 	}
 	void get_min_max_height(double& minh, double& maxh) const { minh = heightadd; maxh = heightadd + 65535*heightmult; }
 };
 
 
 
-class height_generator_test4 : public height_generator
-{
-public:
-	float compute_height(unsigned detail, const vector2i& coord) {
-		return detail * 20.0f;
-	}
-	void get_min_max_height(double& minh, double& maxh) const { minh = 0.0; maxh = 8*20.0; }
-};
-
-
-
-class height_generator_test5 : public height_generator
-{
-public:
-	float compute_height(unsigned detail, const vector2i& coord) {
-		if (coord.x == 0 || coord.y == 0 || coord.x==coord.y) {
-			return 40.0;
-		} else {
-			return 0.0;
-		}
-	}
-	void get_min_max_height(double& minh, double& maxh) const { minh = 0.0; maxh = 40.0; }
-};
-
-
-class height_generator_test6 : public height_generator_test2
+class height_generator_test4 : public height_generator_test2
 {
 	std::vector<uint8_t> c[8];
 	unsigned cw, ch;
@@ -483,7 +474,7 @@ class height_generator_test6 : public height_generator_test2
 	texture::ptr tex_stone[2];
 	*/
 public:
-	height_generator_test6()
+	height_generator_test4()
 		//: tex_mud(new texture(get_texture_dir() + "tex_mud.jpg", texture::LINEAR_MIPMAP_LINEAR))
 	{
 		/*
@@ -512,43 +503,41 @@ public:
 		if (bpp != 3) throw error("color bpp != 3");
 		}
 	}
-	color compute_color(unsigned detail, const vector2i& coord) {
-		unsigned xc = coord.x << (detail+1);
-		unsigned yc = coord.y << (detail+1);
-		float z = compute_height(detail, coord);
-		float zif = (z + 130) * 4 * 8 / 256;
-		if (zif < 0.0) zif = 0.0;
-		if (zif >= 7.0) zif = 6.999;
-		unsigned zi = unsigned(zif);
-		zif = myfrac(zif);
-		//if (zi <= 4) zi = ((xc/512)*(xc/512)*3+(yc/512)*(yc/512)*(yc/512)*2+(xc/512)*(yc/512)*7)%5;
-		unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
-		float zif2 = 1.0-zif;
-		return color(uint8_t(c[zi][3*i]*zif2 + c[zi+1][3*i]*zif),
-			     uint8_t(c[zi][3*i+1]*zif2 + c[zi+1][3*i+1]*zif),
-			     uint8_t(c[zi][3*i+2]*zif2 + c[zi+1][3*i+2]*zif));
+	color compute_color(int detail, const vector2i& coord) {
+		if (detail >= 0) {
+			unsigned xc = coord.x << (detail+1);
+			unsigned yc = coord.y << (detail+1);
+			float z = compute_height(detail, coord);
+			float zif = (z + 130) * 4 * 8 / 256;
+			if (zif < 0.0) zif = 0.0;
+			if (zif >= 7.0) zif = 6.999;
+			unsigned zi = unsigned(zif);
+			zif = myfrac(zif);
+			//if (zi <= 4) zi = ((xc/512)*(xc/512)*3+(yc/512)*(yc/512)*(yc/512)*2+(xc/512)*(yc/512)*7)%5;
+			unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
+			float zif2 = 1.0-zif;
+			return color(uint8_t(c[zi][3*i]*zif2 + c[zi+1][3*i]*zif),
+				     uint8_t(c[zi][3*i+1]*zif2 + c[zi+1][3*i+1]*zif),
+				     uint8_t(c[zi][3*i+2]*zif2 + c[zi+1][3*i+2]*zif));
+		} else {
+			unsigned xc = coord.x >> (-detail-1);
+			unsigned yc = coord.y >> (-detail-1);
+			float z = compute_height(0, vector2i(coord.x>>-detail,coord.y>>-detail));
+			float zif = (z + 130) * 4 * 8 / 256;
+			if (zif < 0.0) zif = 0.0;
+			if (zif >= 7.0) zif = 6.999;
+			unsigned zi = unsigned(zif);
+			zif = myfrac(zif);
+			//if (zi <= 4) zi = ((xc/512)*(xc/512)*3+(yc/512)*(yc/512)*(yc/512)*2+(xc/512)*(yc/512)*7)%5;
+			unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
+			float zif2 = 1.0-zif;
+			return color(uint8_t(c[zi][3*i]*zif2 + c[zi+1][3*i]*zif),
+				     uint8_t(c[zi][3*i+1]*zif2 + c[zi+1][3*i+1]*zif),
+				     uint8_t(c[zi][3*i+2]*zif2 + c[zi+1][3*i+2]*zif));
+		}
 	}
-	color compute_color_extra(unsigned detail, const vector2i& coord) {
-		unsigned xc = coord.x >> (detail-1);
-		unsigned yc = coord.y >> (detail-1);
-		float z = compute_height(0, vector2i(coord.x>>detail,coord.y>>detail));
-		float zif = (z + 130) * 4 * 8 / 256;
-		if (zif < 0.0) zif = 0.0;
-		if (zif >= 7.0) zif = 6.999;
-		unsigned zi = unsigned(zif);
-		zif = myfrac(zif);
-		//if (zi <= 4) zi = ((xc/512)*(xc/512)*3+(yc/512)*(yc/512)*(yc/512)*2+(xc/512)*(yc/512)*7)%5;
-		unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
-		float zif2 = 1.0-zif;
-		return color(uint8_t(c[zi][3*i]*zif2 + c[zi+1][3*i]*zif),
-			     uint8_t(c[zi][3*i+1]*zif2 + c[zi+1][3*i+1]*zif),
-			     uint8_t(c[zi][3*i+2]*zif2 + c[zi+1][3*i+2]*zif));
-	}
-	float compute_height(unsigned detail, const vector2i& coord) {
+	float compute_height(int detail, const vector2i& coord) {
 		return height_generator_test2::compute_height(detail, coord) - 100;
-	}
-	float compute_height_extra(unsigned detail, const vector2i& coord) {
-		return height_generator_test2::compute_height_extra(detail, coord) - 100;
 	}
 	void get_min_max_height(double& minh, double& maxh) const { height_generator_test2::get_min_max_height(minh,maxh);minh-=100;maxh-=100; }
 };
@@ -604,8 +593,8 @@ void run()
 {
 	//height_generator_test hgt;
 	//height_generator_test2 hgt;
-	height_generator_test6 hgt;
-#if 1
+	height_generator_test4 hgt;
+#if 0 // set to 1 to use height_generator_test3
 	std::vector<Uint8> heights;
 	std::vector<Uint16> heights16;
 #if 0
@@ -672,11 +661,9 @@ void run()
 	}
 #endif
 	//height_generator_test3 hgt(heights, 12, hm, ha);
-	//height_generator_test3 hgt(heights16, 10, 1.0/256, -64);
+	////height_generator_test3 hgt(heights16, 10, 1.0/256, -64);
 	heights.clear();
 #endif
-	//height_generator_test4 hgt;
-	//height_generator_test5 hgt;
 	// total area covered = 2^(levels-1) * L * N
 	// 8, 7, 1.0 gives 2^14m = 16384m
 	geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, 1.0, hgt);
@@ -875,6 +862,9 @@ int mymain(list<string>& args)
 			<< "--res n\t\tuse resolution n horizontal,\n\t\tn is 512,640,800,1024 (recommended) or 1280\n"
 			<< "--nofullscreen\tdon't use fullscreen\n"
 			<< "--debug\t\tdebug mode: no fullscreen, resolution 800\n"
+#if !(defined (WIN32) || (defined (__APPLE__) && defined (__MACH__)))
+			     << "--vsync\tsync to vertical retrace signal (for nvidia cards)\n"
+#endif
 			<< "--nosound\tdon't use sound\n";
 			return 0;
 		} else if (*it == "--nofullscreen") {
@@ -882,6 +872,12 @@ int mymain(list<string>& args)
 		} else if (*it == "--debug") {
 			fullscreen = false;
 			res_x = 800;
+#if !(defined (WIN32) || (defined (__APPLE__) && defined (__MACH__)))
+		} else if (*it == "--vsync") {
+			if (putenv((char*)"__GL_SYNC_TO_VBLANK=1") < 0)
+				cout << "ERROR: vsync setting failed.\n";
+			//maxfps = 0;
+#endif
 		} else if (*it == "--res") {
 			list<string>::iterator it2 = it; ++it2;
 			if (it2 != args.end()) {

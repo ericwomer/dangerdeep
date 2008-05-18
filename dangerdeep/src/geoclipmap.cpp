@@ -369,21 +369,10 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	/* fixme: maybe store normals in double res. (from next finer level) in texture
 	   with double res. as vertices -> more detail!
 	*/
-	if(index>0)
 	for (int y = 0; y < sz.y*2; ++y) {
 		for (int x = 0; x < sz.x*2; ++x) {
-			vector3f nm = gcm.height_gen.compute_normal(index-1, upar.bl*2 + vector2i(x, y), L_l*0.5);
-			nm = nm * 127;
-			gcm.texnormalscratchbuf[tptr+0] = Uint8(nm.x + 128);
-			gcm.texnormalscratchbuf[tptr+1] = Uint8(nm.y + 128);
-			gcm.texnormalscratchbuf[tptr+2] = Uint8(nm.z + 128);
-			tptr += 3;
-		}
-	}
-	else
-	for (int y = 0; y < sz.y*2; ++y) {
-		for (int x = 0; x < sz.x*2; ++x) {
-			vector3f nm = gcm.height_gen.compute_normal_extra(1, upar.bl*2 + vector2i(x, y), L_l*0.5);
+			//index-1 because normals have double resolution as geometry
+			vector3f nm = gcm.height_gen.compute_normal(int(index)-1, upar.bl*2 + vector2i(x, y), L_l*0.5);
 			nm = nm * 127;
 			gcm.texnormalscratchbuf[tptr+0] = Uint8(nm.x + 128);
 			gcm.texnormalscratchbuf[tptr+1] = Uint8(nm.y + 128);
@@ -394,20 +383,10 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 
 	// color update
 	tptr = 0;
-	if(index>0)
 	for (int y = 0; y < sz.y*2; ++y) {
 		for (int x = 0; x < sz.x*2; ++x) {
-			color c = gcm.height_gen.compute_color(index-1, upar.bl*2 + vector2i(x, y));
-			gcm.texcolorscratchbuf[tptr+0] = c.r;
-			gcm.texcolorscratchbuf[tptr+1] = c.g;
-			gcm.texcolorscratchbuf[tptr+2] = c.b;
-			tptr += 3;
-		}
-	}
-	else
-	for (int y = 0; y < sz.y*2; ++y) {
-		for (int x = 0; x < sz.x*2; ++x) {
-			color c = gcm.height_gen.compute_color_extra(1, upar.bl*2 + vector2i(x, y));
+			//index-1 because colors have double resolution as geometry
+			color c = gcm.height_gen.compute_color(int(index)-1, upar.bl*2 + vector2i(x, y));
 			gcm.texcolorscratchbuf[tptr+0] = c.r;
 			gcm.texcolorscratchbuf[tptr+1] = c.g;
 			gcm.texcolorscratchbuf[tptr+2] = c.b;
