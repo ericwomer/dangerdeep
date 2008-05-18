@@ -253,7 +253,6 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 
 void geoclipmap::level::update_region(const geoclipmap::area& upar)
 {
-	//log_debug("lvl="<<index<<" i="<<i<<" upar="<<upar.bl<<","<<upar.tr);
 	if (upar.empty()) throw error("update area empty?! BUG!");//continue; // can happen on initial update
 	vector2i sz = upar.size();
 	// height data coordinates upar.bl ... upar.tr need to be updated, but what VBO offset?
