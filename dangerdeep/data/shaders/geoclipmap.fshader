@@ -9,6 +9,8 @@ uniform sampler2D texcolor_c;
 uniform sampler2D texnormal;
 uniform sampler2D texnormal_c;
 
+const float ambient = 0.3;
+
 void main()
 {
 	vec3 L = normalize(lightdir);
@@ -20,7 +22,9 @@ void main()
 	vec3 col = mix(texture2D(texcolor, texcoordnormal).xyz,
 		       texture2D(texcolor_c, texcoordnormal_c).xyz,
 		       alpha);
-	vec3 final_color = col * max(dot(L, N), 0.0);
+	vec3 final_color = col * (max(dot(L, N), 0.0) * (1.0 - ambient) + ambient);
+//	final_color = mix(final_color, vec3(1.0, 1.0, 1.0), alpha);
+//	final_color.z = alpha;
 //	vec3 final_color = texture2D(texnormal, texcoordnormal).xyz;
 
 	// add linear fog
