@@ -304,6 +304,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class height_generator_test : public height_generator
 {
 public:
+	height_generator_test() : height_generator(1.0) {}
 	float compute_height(int detail, const vector2i& coord) {
 		if (detail >= 0) {
 			int xc = coord.x * int(1 << detail);
@@ -332,7 +333,8 @@ class height_generator_test2 : public height_generator
 	perlinnoise pn2;
 public:
 	height_generator_test2()
-		: pn(64, 4, 6, true), s2(256*16), height_segments(10),
+		: height_generator(1.0),
+		  pn(64, 4, 6, true), s2(256*16), height_segments(10),
 		  total_height(256.0), terrace_height(total_height/height_segments),
 		  pn2(64, 2, 16)
 	{
@@ -364,12 +366,11 @@ public:
 			return baseh;
 		}
 	}
-	vector3f compute_normal(int detail, const vector2i& coord, float zh) {
+	vector3f compute_normal(int detail, const vector2i& coord) {
 		if (detail >= 0)
-			return height_generator::compute_normal(detail, coord, zh);
+			return height_generator::compute_normal(detail, coord);
 		else {
-			vector3f n = compute_normal(0, vector2i(coord.x >> -detail, coord.y >> -detail),
-						    zh * (1 << -detail));
+			vector3f n = compute_normal(0, vector2i(coord.x >> -detail, coord.y >> -detail));
 			n.x += extrah[(coord.y&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
 			n.y += extrah[(coord.y+32&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
 			return n.normal();
@@ -406,7 +407,8 @@ class height_generator_test3 : public height_generator
 	perlinnoise pn2;
 public:
 	height_generator_test3(const std::vector<Uint16>& hg, unsigned baseres_log2, float hm = 0.75, float ha = -80.0f)
-		: heightdata(baseres_log2+1), baseres(1<<baseres_log2), heightmult(hm), heightadd(ha),
+		: height_generator(1.0),
+		  heightdata(baseres_log2+1), baseres(1<<baseres_log2), heightmult(hm), heightadd(ha),
 		  pn2(64, 2, 16)
 	{
 		heightdata[0] = hg;
@@ -431,12 +433,11 @@ public:
 			return 0;
 		}
 	}
-	vector3f compute_normal(int detail, const vector2i& coord, float zh) {
+	vector3f compute_normal(int detail, const vector2i& coord) {
 		if (detail >= 0)
-			return height_generator::compute_normal(detail, coord, zh);
+			return height_generator::compute_normal(detail, coord);
 		else {
-			vector3f n = compute_normal(0, vector2i(coord.x >> -detail, coord.y >> -detail),
-						    zh * (1 << -detail));
+			vector3f n = compute_normal(0, vector2i(coord.x >> -detail, coord.y >> -detail));
 			n.x += extrah[(coord.y&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
 			n.y += extrah[(coord.y+32&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
 			return n.normal();
@@ -447,13 +448,13 @@ public:
 			//int xc = coord.x * int(1 << detail);
 			//int yc = coord.y * int(1 << detail);
 			float h = compute_height(detail, coord);
-			vector3f n = compute_normal(detail, coord, 1.0*(1<<detail));//fixme hack, give zh here
+			vector3f n = compute_normal(detail, coord);
 			float k = extrah[(coord.y&63)*64+(coord.x&63)];
 			return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,75+k*50,20))
 				: color(64+h*0.5+k*32, 64+h*0.5+k*32, 64+h*0.5+k*32);
 		} else {
 			float h = compute_height(0, vector2i(coord.x>>-detail, coord.y>>-detail));
-			vector3f n = compute_normal(detail, coord, 1.0/(1<<-detail));//fixme hack, give zh here
+			vector3f n = compute_normal(detail, coord);
 			float k = extrah[(coord.y&63)*64+(coord.x&63)];
 			return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,75+k*50,20))
 				: color(64+h*0.5+k*32, 64+h*0.5+k*32, 64+h*0.5+k*32);
@@ -666,7 +667,7 @@ void run()
 #endif
 	// total area covered = 2^(levels-1) * L * N
 	// 8, 7, 1.0 gives 2^14m = 16384m
-	geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, 1.0, hgt);
+	geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, hgt);
 	//gcm.set_viewerpos(vector3(0, 0, 30.0));
 
 #if 0
@@ -767,10 +768,11 @@ void run()
 	while (!quit) {
 		list<SDL_Event> events = sys().poll_event_queue();
 		for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
-			/*if (it->type == SDL_KEYDOWN) {
+			if (it->type == SDL_KEYDOWN) {
 				quit = true;
-			} else */ if (it->type == SDL_MOUSEBUTTONUP) {
+/*			} else if (it->type == SDL_MOUSEBUTTONUP) {
 				quit = true;
+*/
 			}
 		}
 

@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /// interface class to generate heights, normals and texture data for the geoclipmap renderer
 class height_generator
 {
-public:
+ public:
 	/// destructor
 	virtual ~height_generator() {}
 
@@ -43,8 +43,8 @@ public:
 	///@note here is some reasonable implementation, normally it should be overloaded
 	///@param detail - detail level to be generated and also coordinate domain,
 	///@param coord - xy coordinates for the value to generate, scaled to match detail level
-	virtual vector3f compute_normal(int detail, const vector2i& coord, float zh) {
-		//const float zh = 1.0f;
+	virtual vector3f compute_normal(int detail, const vector2i& coord) {
+		const float zh = sample_spacing * 0.5f * (detail >= 0 ? (1<<detail) : 1.0f/(1<<-detail));
 		float hr = compute_height(detail, coord + vector2i(1, 0));
 		float hu = compute_height(detail, coord + vector2i(0, 1));
 		float hl = compute_height(detail, coord + vector2i(-1, 0));
@@ -64,6 +64,13 @@ public:
 	///@param minh - minimum height values of all levels and samples
 	///@param maxh - maximum height values of all levels and samples
 	virtual void get_min_max_height(double& minh, double& maxh) const = 0;
+
+	/// get sample spacing of detail level 0 (geometry)
+	double get_sample_spacing() const { return sample_spacing; }
+
+ protected:
+	height_generator(double L = 1.0) : sample_spacing(L) {}
+	const double sample_spacing;	// equal to "L" value of geoclipmap renderer
 };
 
 #endif

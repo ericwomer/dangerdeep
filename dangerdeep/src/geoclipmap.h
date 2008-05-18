@@ -148,9 +148,8 @@ public:
 	/// create geoclipmap data
 	///@param nr_levels - number of levels
 	///@param resolution_exp - power of two of resolution factor "N"
-	///@param L - distance between samples in real world space on finest level
 	///@param hg - instance of height generator object
-	geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L, height_generator& hg);
+	geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_generator& hg);
 
 	/// d'tor
 	~geoclipmap();

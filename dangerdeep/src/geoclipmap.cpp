@@ -19,11 +19,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "geoclipmap.h"
 
-geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, double L_, height_generator& hg)
+geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_generator& hg)
 	: resolution((1 << resolution_exp) - 2),
 	  resolution_vbo(1 << resolution_exp),
 	  resolution_vbo_mod(resolution_vbo-1),
-	  L(L_),
+	  L(hg.get_sample_spacing()),
 	  vboscratchbuf((resolution_vbo+2)*(resolution_vbo+2)*geoclipmap_fperv), // 4 floats per VBO sample (x,y,z,zc)
 	  // ^ extra space for normals
 	  texnormalscratchbuf(resolution_vbo*2*resolution_vbo*2*3),
@@ -372,7 +372,7 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	for (int y = 0; y < sz.y*2; ++y) {
 		for (int x = 0; x < sz.x*2; ++x) {
 			//index-1 because normals have double resolution as geometry
-			vector3f nm = gcm.height_gen.compute_normal(int(index)-1, upar.bl*2 + vector2i(x, y), L_l*0.5);
+			vector3f nm = gcm.height_gen.compute_normal(int(index)-1, upar.bl*2 + vector2i(x, y));
 			nm = nm * 127;
 			gcm.texnormalscratchbuf[tptr+0] = Uint8(nm.x + 128);
 			gcm.texnormalscratchbuf[tptr+1] = Uint8(nm.y + 128);
