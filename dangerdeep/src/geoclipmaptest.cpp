@@ -500,7 +500,15 @@ public:
 		if (detail >= -2) {
 			unsigned xc = coord.x << (detail+2);
 			unsigned yc = coord.y << (detail+2);
-			float z = compute_height(detail, coord);
+			unsigned xc2,yc2;
+			if (detail >= 0) {
+				xc2 = coord.x << detail;
+				yc2 = coord.y << detail;
+			} else {
+				xc2 = coord.x >> -detail;
+				yc2 = coord.y >> -detail;
+			}
+			float z = compute_height(0/*detail*/, vector2i(xc2,yc2));//coord);
 			float zif = (z + 130) * 4 * 8 / 256;
 			if (zif < 0.0) zif = 0.0;
 			if (zif >= 7.0) zif = 6.999;
