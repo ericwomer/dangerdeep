@@ -33,7 +33,23 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 class geoclipmap
 {
+ public:
+	/// create geoclipmap data
+	///@param nr_levels - number of levels
+	///@param resolution_exp - power of two of resolution factor "N"
+	///@param hg - instance of height generator object
+	geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_generator& hg);
 
+	/// d'tor
+	~geoclipmap();
+
+	/// set/change viewer position
+	void set_viewerpos(const vector3f& viewpos);
+
+	/// render the view (will only fetch the vertex/index data, no texture setup)
+	void display(const frustum& f) const;
+
+ protected:
 	// "N", must be power of two
 	const unsigned resolution;  // resolution of triangles in VBO buffer
 	const unsigned resolution_vbo; // resolution of VBO buffer
@@ -150,22 +166,8 @@ class geoclipmap
 	unsigned loc_texcshift;
 	texture::ptr horizon_normal;
 
-public:
-	bool wireframe;
-	/// create geoclipmap data
-	///@param nr_levels - number of levels
-	///@param resolution_exp - power of two of resolution factor "N"
-	///@param hg - instance of height generator object
-	geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_generator& hg);
-
-	/// d'tor
-	~geoclipmap();
-
-	/// set/change viewer position
-	void set_viewerpos(const vector3f& viewpos);
-
-	/// render the view (will only fetch the vertex/index data, no texture setup)
-	void display(const frustum& f) const;
+ public:
+	bool wireframe;	// for testing purposes only
 };
 
 #endif
