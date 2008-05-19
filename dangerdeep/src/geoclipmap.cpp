@@ -19,6 +19,23 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "geoclipmap.h"
 
+/*
+Note: the geoclipmap renderer code can't handle levels < 0 yet, so no
+extra geometry is rendered that is finer than the stored data and thus generated.
+However there is no difference between using level=0 for some value x=L or to use
+e.g. level=-y and L=x*2^-y. So the renderer doesn't care which levels are real
+existing data or generated.
+Thus we could change the height_generator interface again to use at least detail
+level 0 for geometry. For normals and colors this would be the same, except that some
+minimum levels are given (-1 for normals, and -1 or less for colors), or alternativly,
+detail level 0 for normals delivers 2x2 the number of normals than geometry and level
+0 is also minimum. Same for colors. The multiplicator of resolution geometry vs. normals
+or geometry vs. colors may be also runtime configurable for the geoclipmap renderer
+(request it from height generator). The factor would be a power of two.
+Thus requests for detail level 0 give 2^p*2^p normals or colors for each vertex, when
+p is the factor.
+*/
+
 geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_generator& hg)
 	: resolution((1 << resolution_exp) - 2),
 	  resolution_vbo(1 << resolution_exp),
