@@ -41,6 +41,10 @@ class geoclipmap
 	// distance between each vertex on finest level in real world space
 	const double L;
 
+	// resolution factor vertex to color
+	const unsigned color_res_fac;
+	const unsigned log2_color_res_fac;
+
 	// scratch buffer for VBO data, for transmission
 	std::vector<float> vboscratchbuf;
 
@@ -75,7 +79,10 @@ class geoclipmap
 	{
 		geoclipmap& gcm;
 		/// distance between samples of that level
-		double L_l;
+		const double L_l;
+		// resolution factor vertex to color
+		const unsigned color_res_fac;
+		const unsigned log2_color_res_fac;
 		/// level index
 		const unsigned index;
 		/// vertex data

@@ -68,9 +68,14 @@ class height_generator
 	/// get sample spacing of detail level 0 (geometry)
 	double get_sample_spacing() const { return sample_spacing; }
 
+	/// get color res factor (log2 of it)
+	unsigned get_log2_color_res_factor() const { return log2_color_res_factor; }
+
  protected:
-	height_generator(double L = 1.0) : sample_spacing(L) {}
+	height_generator(double L = 1.0, unsigned l2crf = 1)
+		: sample_spacing(L), log2_color_res_factor(l2crf) {}
 	const double sample_spacing;	// equal to "L" value of geoclipmap renderer
+	const unsigned log2_color_res_factor; // colors have 2^x more values as vertices
 };
 
 #endif
