@@ -332,8 +332,8 @@ class height_generator_test2 : public height_generator
 	std::vector<float> extrah;
 	perlinnoise pn2;
 public:
-	height_generator_test2()
-		: height_generator(1.0, 1),
+	height_generator_test2(double L = 1.0, unsigned l2crf = 1)
+		: height_generator(L, l2crf),
 		  pn(64, 4, 6, true), s2(256*16), height_segments(10),
 		  total_height(256.0), terrace_height(total_height/height_segments),
 		  pn2(64, 2, 16)
@@ -467,6 +467,7 @@ class height_generator_test4 : public height_generator_test2
 	*/
 public:
 	height_generator_test4()
+		: height_generator_test2(1.0, 2)
 		//: tex_mud(new texture(get_texture_dir() + "tex_mud.jpg", texture::LINEAR_MIPMAP_LINEAR))
 	{
 		/*
@@ -496,9 +497,9 @@ public:
 		}
 	}
 	color compute_color(int detail, const vector2i& coord) {
-		if (detail >= 0) {
-			unsigned xc = coord.x << (detail+1);
-			unsigned yc = coord.y << (detail+1);
+		if (detail >= -2) {
+			unsigned xc = coord.x << (detail+2);
+			unsigned yc = coord.y << (detail+2);
 			float z = compute_height(detail, coord);
 			float zif = (z + 130) * 4 * 8 / 256;
 			if (zif < 0.0) zif = 0.0;
@@ -512,8 +513,8 @@ public:
 				     uint8_t(c[zi][3*i+1]*zif2 + c[zi+1][3*i+1]*zif),
 				     uint8_t(c[zi][3*i+2]*zif2 + c[zi+1][3*i+2]*zif));
 		} else {
-			unsigned xc = coord.x >> (-(detail+1));
-			unsigned yc = coord.y >> (-(detail+1));
+			unsigned xc = coord.x >> (-(detail+2));
+			unsigned yc = coord.y >> (-(detail+2));
 			float z = compute_height(0, vector2i(coord.x>>-detail,coord.y>>-detail));
 			float zif = (z + 130) * 4 * 8 / 256;
 			if (zif < 0.0) zif = 0.0;
