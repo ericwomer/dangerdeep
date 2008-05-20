@@ -30,6 +30,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <SDL.h>
 #include <SDL_net.h>
 
+#include "datadirs.h"
+#include "rastered_map.h"
 #include "system.h"
 #include "vector3.h"
 #include "model.h"
@@ -332,8 +334,8 @@ class height_generator_test2 : public height_generator
 	std::vector<float> extrah;
 	perlinnoise pn2;
 public:
-	height_generator_test2(double L = 1.0, unsigned l2crf = 1)
-		: height_generator(L, l2crf),
+	height_generator_test2()
+		: height_generator(1.0),
 		  pn(64, 4, 6, true), s2(256*16), height_segments(10),
 		  total_height(256.0), terrace_height(total_height/height_segments),
 		  pn2(64, 2, 16)
@@ -361,10 +363,19 @@ public:
 		} else {
 			int xc = coord.x >> -detail;
 			int yc = coord.y >> -detail;
-			//fixme: too crude, need to bilinear sample height from 4 base values
 			float baseh = compute_height(0, vector2i(xc, yc));
-			baseh += extrah[(coord.y&63)*64+(coord.x&63)] * 0.25;
+			baseh += extrah[(coord.y&63)*64+(coord.x&63)];
 			return baseh;
+		}
+	}
+	vector3f compute_normal(int detail, const vector2i& coord) {
+		if (detail >= 0)
+			return height_generator::compute_normal(detail, coord);
+		else {
+			vector3f n = compute_normal(0, vector2i(coord.x >> -detail, coord.y >> -detail));
+			n.x += extrah[(coord.y&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
+			n.y += extrah[(coord.y+32&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
+			return n.normal();
 		}
 	}
 	void get_min_max_height(double& minh, double& maxh) const { minh = 0.0-30; maxh = 128.0-30; }
@@ -467,7 +478,6 @@ class height_generator_test4 : public height_generator_test2
 	*/
 public:
 	height_generator_test4()
-		: height_generator_test2(1.0, 2)
 		//: tex_mud(new texture(get_texture_dir() + "tex_mud.jpg", texture::LINEAR_MIPMAP_LINEAR))
 	{
 		/*
@@ -497,39 +507,31 @@ public:
 		}
 	}
 	color compute_color(int detail, const vector2i& coord) {
-		if (detail >= -2) {
-			unsigned xc = coord.x << (detail+2);
-			unsigned yc = coord.y << (detail+2);
-			unsigned xc2,yc2;
-			if (detail >= 0) {
-				xc2 = coord.x << detail;
-				yc2 = coord.y << detail;
-			} else {
-				xc2 = coord.x >> -detail;
-				yc2 = coord.y >> -detail;
-			}
-			float z = compute_height(0/*detail*/, vector2i(xc2,yc2));//coord);
+		if (detail >= 0) {
+			unsigned xc = coord.x << (detail+1);
+			unsigned yc = coord.y << (detail+1);
+			float z = compute_height(detail, coord);
 			float zif = (z + 130) * 4 * 8 / 256;
 			if (zif < 0.0) zif = 0.0;
 			if (zif >= 7.0) zif = 6.999;
 			unsigned zi = unsigned(zif);
 			zif = myfrac(zif);
-			//if (zi <= 4) zi = ((xc/256)*(xc/256)*3+(yc/256)*(yc/256)*(yc/256)*2+(xc/256)*(yc/256)*7)%5;
+			if (zi <= 4) zi = ((xc/512)*(xc/512)*3+(yc/512)*(yc/512)*(yc/512)*2+(xc/512)*(yc/512)*7)%5;
 			unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
 			float zif2 = 1.0-zif;
 			return color(uint8_t(c[zi][3*i]*zif2 + c[zi+1][3*i]*zif),
 				     uint8_t(c[zi][3*i+1]*zif2 + c[zi+1][3*i+1]*zif),
 				     uint8_t(c[zi][3*i+2]*zif2 + c[zi+1][3*i+2]*zif));
 		} else {
-			unsigned xc = coord.x >> (-(detail+2));
-			unsigned yc = coord.y >> (-(detail+2));
+			unsigned xc = coord.x >> (-detail-1);
+			unsigned yc = coord.y >> (-detail-1);
 			float z = compute_height(0, vector2i(coord.x>>-detail,coord.y>>-detail));
 			float zif = (z + 130) * 4 * 8 / 256;
 			if (zif < 0.0) zif = 0.0;
 			if (zif >= 7.0) zif = 6.999;
 			unsigned zi = unsigned(zif);
 			zif = myfrac(zif);
-			//if (zi <= 4) zi = ((xc/256)*(xc/256)*3+(yc/256)*(yc/256)*(yc/256)*2+(xc/256)*(yc/256)*7)%5;
+			if (zi <= 4) zi = ((xc/512)*(xc/512)*3+(yc/512)*(yc/512)*(yc/512)*2+(xc/512)*(yc/512)*7)%5;
 			unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
 			float zif2 = 1.0-zif;
 			return color(uint8_t(c[zi][3*i]*zif2 + c[zi+1][3*i]*zif),
@@ -540,6 +542,7 @@ public:
 	float compute_height(int detail, const vector2i& coord) {
 		return height_generator_test2::compute_height(detail, coord) - 100;
 	}
+	//vector3f compute_normal(int detail, const vector2i& coord) { return vector3f(0, 0, 1); }
 	void get_min_max_height(double& minh, double& maxh) const { height_generator_test2::get_min_max_height(minh,maxh);minh-=100;maxh-=100; }
 };
 
@@ -667,7 +670,11 @@ void run()
 #endif
 	// total area covered = 2^(levels-1) * L * N
 	// 8, 7, 1.0 gives 2^14m = 16384m
-	geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, hgt);
+	//geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, hgt);
+	
+	rastered_map terrain(get_map_dir()+"/ETOPO2v2c_i2_LSB.xml", get_map_dir()+"/ETOPO2v2c_i2_LSB.bin", vector2l(-16*60, 16*60), 32*60 , (unsigned)9);
+	geoclipmap gcm(8, 8, terrain);
+	
 	//gcm.set_viewerpos(vector3(0, 0, 30.0));
 
 #if 0
@@ -770,9 +777,9 @@ void run()
 		for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
 			if (it->type == SDL_KEYDOWN) {
 				quit = true;
-/*			} else if (it->type == SDL_MOUSEBUTTONUP) {
-				quit = true;
-*/
+		} else if (it->type == SDL_MOUSEBUTTONUP) {
+				gcm.wireframe = !gcm.wireframe;
+
 			}
 		}
 
@@ -789,6 +796,8 @@ void run()
 		vector3f campos = cam_path.value(path_fac);
 		vector3f camlookat = cam_path.value(myfrac(path_fac + 0.01)) - vector3f(0, 0, 20);
 		//camera cm(viewpos2, viewpos2 + angle(zang).direction().xyz(-0.25));
+		//campos.z-=4500;
+		//camlookat.z-=4500;
 		camera cm(campos, camlookat);
 		zang = cm.look_direction().value();
 		cm.set_gl_trans();
