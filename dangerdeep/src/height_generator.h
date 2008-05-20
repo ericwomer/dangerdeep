@@ -59,7 +59,7 @@ class height_generator
 //DEPRECATED!!!!!!!!!!!!!!!!!!
 	virtual float compute_height(int detail, const vector2i& coord) = 0;
 
-	/// compute height value of given detail and coordinate area (including given coordinates)
+	/// compute height values of given detail and coordinate area (including given coordinates)
 	///@param detail - detail level to be generated and also coordinate domain,
 	///                0 means a sample spacing of "L", the basic geometry clipmap spacing,
 	///                higher values mean coarser levels, values < 0 mean extra detail,
@@ -86,21 +86,7 @@ class height_generator
 		}
 	}
 
-	/// compute normal value of given detail and coordinates.
-	///@note here is some reasonable implementation, normally it should be overloaded
-	///@param detail - detail level to be generated and also coordinate domain,
-	///@param coord - xy coordinates for the value to generate, scaled to match detail level
-//DEPRECATED!!!!!!!!!!!!!!!!!!
-	virtual vector3f compute_normal(int detail, const vector2i& coord) {
-		const float zh = sample_spacing * 0.5f * (detail >= 0 ? (1<<detail) : 1.0f/(1<<-detail));
-		float hr = compute_height(detail, coord + vector2i(1, 0));
-		float hu = compute_height(detail, coord + vector2i(0, 1));
-		float hl = compute_height(detail, coord + vector2i(-1, 0));
-		float hd = compute_height(detail, coord + vector2i(0, -1));
-		return vector3f(hl-hr, hd-hu, zh*2).normal();
-	}
-
-	/// compute normal value of given detail and coordinate area (including given coordinates)
+	/// compute normal values of given detail and coordinate area (including given coordinates)
 	///@note here is some reasonable implementation, normally it should be overloaded, normals are always packed
 	///@param detail - detail level to be generated and also coordinate domain,
 	///@param coord_bl - xy coordinates for the value to generate, scaled to match detail level, bottem left inclusive
@@ -126,16 +112,7 @@ class height_generator
 		}
 	}
 
-	/// compute color value of given detail and coordinates.
-	///@note here is some test implementation, normally it should be overloaded
-	///@param detail - detail level to be generated and also coordinate domain,
-	///@param coord - xy coordinates for the value to generate, scaled to match detail level
-//DEPRECATED!!!!!!!!!!!!!!!!!!
-	virtual color compute_color(int detail, const vector2i& coord) {
-		return color((detail & 1) * 255, 128/*coord.x & 255*/, 128/*coord.y & 255*/);
-	}
-
-	/// compute color value of given detail and coordinate area (including given coordinates)
+	/// compute color values of given detail and coordinate area (including given coordinates)
 	///@note here is some reasonable implementation, normally it should be overloaded, colors are always packed
 	///@param detail - detail level to be generated and also coordinate domain,
 	///@param coord_bl - xy coordinates for the value to generate, scaled to match detail level, bottem left inclusive

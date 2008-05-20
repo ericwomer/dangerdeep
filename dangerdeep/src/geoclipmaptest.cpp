@@ -302,21 +302,34 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 
-class height_generator_test : public height_generator
+class height_generator_test1 : public height_generator
 {
 public:
-	height_generator_test() : height_generator(1.0) {}
-	float compute_height(int detail, const vector2i& coord) {
-		if (detail >= 0) {
-			int xc = coord.x * int(1 << detail);
-			int yc = coord.y * int(1 << detail);
-			return sin(2*3.14159*xc*0.01) * sin(2*3.14159*yc*0.01) * 20.0 - 20;
-		} else {
-			float xc = coord.x / float(1 << -detail);
-			float yc = coord.y / float(1 << -detail);
-			return sin(2*3.14159*xc*0.01) * sin(2*3.14159*yc*0.01) * 20.0 - 20;
+	height_generator_test1() : height_generator(1.0) {}
+	void compute_heights(int detail, const vector2i& coord_bl,
+			     const vector2i& coord_sz, float* dest, unsigned stride = 0,
+			     unsigned line_stride = 0) {
+		if (!stride) stride = 1;
+		if (!line_stride) line_stride = coord_sz.x * stride;
+		for (int y = 0; y < coord_sz.y; ++y) {
+			float* dest2 = dest;
+			for (int x = 0; x < coord_sz.x; ++x) {
+				vector2i coord = coord_bl + vector2i(x, y);
+				if (detail >= 0) {
+					int xc = coord.x * int(1 << detail);
+					int yc = coord.y * int(1 << detail);
+					*dest2 = sin(2*3.14159*xc*0.01) * sin(2*3.14159*yc*0.01) * 20.0 - 20;
+				} else {
+					float xc = coord.x / float(1 << -detail);
+					float yc = coord.y / float(1 << -detail);
+					*dest2 = sin(2*3.14159*xc*0.01) * sin(2*3.14159*yc*0.01) * 20.0 - 20;
+				}
+				dest2 += stride;
+			}
+			dest += line_stride;
 		}
 	}
+
 	void get_min_max_height(double& minh, double& maxh) const { minh = -40.0; maxh = 0.0; }
 };
 
@@ -332,9 +345,12 @@ class height_generator_test2 : public height_generator
 	const float terrace_height;
 	std::vector<float> extrah;
 	perlinnoise pn2;
+
+	std::vector<uint8_t> ct[8];
+	unsigned cw, ch;
 public:
-	height_generator_test2(double L = 1.0, unsigned l2crf = 1)
-		: height_generator(L, l2crf),
+	height_generator_test2()
+		: height_generator(1.0, 2),
 		  pn(64, 4, 6, true), s2(256*16), height_segments(10),
 		  total_height(256.0), terrace_height(total_height/height_segments),
 		  pn2(64, 2, 16)
@@ -349,16 +365,68 @@ public:
 		for (unsigned y = 0; y < 64; ++y)
 			for (unsigned x = 0; x < 64; ++x)
 				extrah[64*y+x] = rnd()-0.5;//extrah2[64*y+x]/256.0-0.5;
+		const char* texnames[8] = {
+			"tex_grass.jpg",
+			"tex_grass2.jpg",
+			"tex_grass3.jpg",
+			"tex_grass4.jpg",
+			"tex_grass5.jpg",
+			"tex_mud.jpg",
+			"tex_stone.jpg",
+			"tex_sand.jpg"
+		};
+		for (unsigned i = 0; i < 8; ++i) {
+			sdl_image tmp(get_texture_dir() + texnames[i]);
+			unsigned bpp = 0;
+			ct[i] = tmp.get_plain_data(cw, ch, bpp);
+			if (bpp != 3) throw error("color bpp != 3");
+		}
 	}
+	void compute_heights(int detail, const vector2i& coord_bl,
+			     const vector2i& coord_sz, float* dest, unsigned stride = 0,
+			     unsigned line_stride = 0) {
+		if (!stride) stride = 1;
+		if (!line_stride) line_stride = coord_sz.x * stride;
+		for (int y = 0; y < coord_sz.y; ++y) {
+			float* dest2 = dest;
+			for (int x = 0; x < coord_sz.x; ++x) {
+				vector2i coord = coord_bl + vector2i(x, y);
+				if (detail >= 0) {
+					int xc = coord.x * int(1 << detail);
+					int yc = coord.y * int(1 << detail);
+					if (detail <= 6) {
+						float h = pn.value(xc, yc, 6-detail)/255.0f;
+						*dest2 = -130 + h*h*h*0.5 * 256;
+					} else
+						*dest2 = -130;
+				} else {
+					int xc = coord.x >> -detail;
+					int yc = coord.y >> -detail;
+					//fixme: too crude, need to bilinear sample height from 4 base values
+					//fixme: replace compute_height!
+					//generate result for detail=0, and upscale it
+					//-detail times with bilinear sampling.
+					//probably needs more values in base level to
+					//upsample correctly.
+					float baseh = compute_height(0, vector2i(xc, yc));
+					baseh += extrah[(coord.y&63)*64+(coord.x&63)] * 0.25;
+					*dest2 = baseh;
+				}
+				dest2 += stride;
+			}
+			dest += line_stride;
+		}
+	}
+
 	float compute_height(int detail, const vector2i& coord) {
 		if (detail >= 0) {
 			int xc = coord.x * int(1 << detail);
 			int yc = coord.y * int(1 << detail);
 			if (detail <= 6) {
 				float h = pn.value(xc, yc, 6-detail)/255.0f;
-				return -30 + h*h*h*0.5 * 256;
+				return -130 + h*h*h*0.5 * 256;
 			} else
-				return -30;
+				return -130;
 		} else {
 			int xc = coord.x >> -detail;
 			int yc = coord.y >> -detail;
@@ -368,7 +436,61 @@ public:
 			return baseh;
 		}
 	}
-	void get_min_max_height(double& minh, double& maxh) const { minh = 0.0-30; maxh = 128.0-30; }
+	void compute_colors(int detail, const vector2i& coord_bl,
+			    const vector2i& coord_sz, Uint8* dest) {
+		for (int y = 0; y < coord_sz.y; ++y) {
+			for (int x = 0; x < coord_sz.x; ++x) {
+				vector2i coord = coord_bl + vector2i(x, y);
+				color c;
+				if (detail >= -2) {
+					unsigned xc = coord.x << (detail+2);
+					unsigned yc = coord.y << (detail+2);
+					unsigned xc2,yc2;
+					if (detail >= 0) {
+						xc2 = coord.x << detail;
+						yc2 = coord.y << detail;
+					} else {
+						xc2 = coord.x >> -detail;
+						yc2 = coord.y >> -detail;
+					}
+					//fixme: replace compute_height!
+					float z = compute_height(0/*detail*/, vector2i(xc2,yc2));//coord);
+					float zif = (z + 130) * 4 * 8 / 256;
+					if (zif < 0.0) zif = 0.0;
+					if (zif >= 7.0) zif = 6.999;
+					unsigned zi = unsigned(zif);
+					zif = myfrac(zif);
+					//if (zi <= 4) zi = ((xc/256)*(xc/256)*3+(yc/256)*(yc/256)*(yc/256)*2+(xc/256)*(yc/256)*7)%5;
+					unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
+					float zif2 = 1.0-zif;
+					c = color(uint8_t(ct[zi][3*i]*zif2 + ct[zi+1][3*i]*zif),
+						  uint8_t(ct[zi][3*i+1]*zif2 + ct[zi+1][3*i+1]*zif),
+						  uint8_t(ct[zi][3*i+2]*zif2 + ct[zi+1][3*i+2]*zif));
+				} else {
+					unsigned xc = coord.x >> (-(detail+2));
+					unsigned yc = coord.y >> (-(detail+2));
+					//fixme: replace compute_height!
+					float z = compute_height(0, vector2i(coord.x>>-detail,coord.y>>-detail));
+					float zif = (z + 130) * 4 * 8 / 256;
+					if (zif < 0.0) zif = 0.0;
+					if (zif >= 7.0) zif = 6.999;
+					unsigned zi = unsigned(zif);
+					zif = myfrac(zif);
+					//if (zi <= 4) zi = ((xc/256)*(xc/256)*3+(yc/256)*(yc/256)*(yc/256)*2+(xc/256)*(yc/256)*7)%5;
+					unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
+					float zif2 = 1.0-zif;
+					c = color(uint8_t(ct[zi][3*i]*zif2 + ct[zi+1][3*i]*zif),
+						  uint8_t(ct[zi][3*i+1]*zif2 + ct[zi+1][3*i+1]*zif),
+						  uint8_t(ct[zi][3*i+2]*zif2 + ct[zi+1][3*i+2]*zif));
+				}
+				dest[0] = c.r;
+				dest[1] = c.g;
+				dest[2] = c.b;
+				dest += 3;
+			}
+		}
+	}
+	void get_min_max_height(double& minh, double& maxh) const { minh = -130; maxh = 128.0-130; }
 };
 
 
@@ -388,173 +510,6 @@ std::vector<T> scaledown(const std::vector<T>& v, unsigned newres)
 }
 
 
-
-class height_generator_test3 : public height_generator
-{
-//	std::vector<std::vector<Uint8> > heightdata;
-	std::vector<std::vector<Uint16> > heightdata;
-	const unsigned baseres;
-	const float heightmult, heightadd;
-	std::vector<float> extrah;
-	perlinnoise pn2;
-public:
-	height_generator_test3(const std::vector<Uint16>& hg, unsigned baseres_log2, float hm = 0.75, float ha = -80.0f)
-		: height_generator(1.0),
-		  heightdata(baseres_log2+1), baseres(1<<baseres_log2), heightmult(hm), heightadd(ha),
-		  pn2(64, 2, 16)
-	{
-		heightdata[0] = hg;
-		for (unsigned i = 1; i + 1 < heightdata.size(); ++i)
-			heightdata[i] = scaledown<Uint16, Uint32>(heightdata[i-1], baseres >> i);
-		heightdata.back().resize(1, 0);
-		std::vector<Uint8> extrah2 = pn2.generate();
-		extrah.resize(64*64);
-		for (unsigned y = 0; y < 64; ++y)
-			for (unsigned x = 0; x < 64; ++x)
-				extrah[64*y+x] = //rnd()-0.5;
-					extrah2[64*y+x]/256.0-0.5;
-	}
-	float compute_height(int detail, const vector2i& coord) {
-		if (detail >= 0) {
-			const unsigned shift = (baseres >> detail);
-			const unsigned mask = shift - 1;
-			unsigned xc = unsigned(coord.x + shift/2) & mask;
-			unsigned yc = unsigned(coord.y + shift/2) & mask;
-			return heightdata[detail][yc * shift + xc] * heightmult + heightadd;
-		} else {
-			return 0;
-		}
-	}
-	vector3f compute_normal(int detail, const vector2i& coord) {
-		if (detail >= 0)
-			return height_generator::compute_normal(detail, coord);
-		else {
-			vector3f n = compute_normal(0, vector2i(coord.x >> -detail, coord.y >> -detail));
-			n.x += extrah[(coord.y&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
-			n.y += extrah[(coord.y+32&63)*64+(coord.x&63)] * 0.5; // / (1<<detail) ...
-			return n.normal();
-		}
-	}
-	color compute_color(int detail, const vector2i& coord) {
-		if (detail >= 0) {
-			//int xc = coord.x * int(1 << detail);
-			//int yc = coord.y * int(1 << detail);
-			float h = compute_height(detail, coord);
-			vector3f n = compute_normal(detail, coord);
-			float k = extrah[(coord.y&63)*64+(coord.x&63)];
-			return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,75+k*50,20))
-				: color(64+h*0.5+k*32, 64+h*0.5+k*32, 64+h*0.5+k*32);
-		} else {
-			float h = compute_height(0, vector2i(coord.x>>-detail, coord.y>>-detail));
-			vector3f n = compute_normal(detail, coord);
-			float k = extrah[(coord.y&63)*64+(coord.x&63)];
-			return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,75+k*50,20))
-				: color(64+h*0.5+k*32, 64+h*0.5+k*32, 64+h*0.5+k*32);
-		}
-	}
-	void get_min_max_height(double& minh, double& maxh) const { minh = heightadd; maxh = heightadd + 65535*heightmult; }
-};
-
-
-
-class height_generator_test4 : public height_generator_test2
-{
-	std::vector<uint8_t> c[8];
-	unsigned cw, ch;
-	/*
-	texture::ptr tex_grass[5];
-	texture::ptr tex_mud;
-	texture::ptr tex_stone[2];
-	*/
-public:
-	height_generator_test4()
-		: height_generator_test2(1.0, 2)
-		//: tex_mud(new texture(get_texture_dir() + "tex_mud.jpg", texture::LINEAR_MIPMAP_LINEAR))
-	{
-		/*
-		tex_grass[0].reset(new texture(get_texture_dir() + "tex_grass.jpg", texture::LINEAR_MIPMAP_LINEAR));
-		tex_grass[1].reset(new texture(get_texture_dir() + "tex_grass2.jpg", texture::LINEAR_MIPMAP_LINEAR));
-		tex_grass[2].reset(new texture(get_texture_dir() + "tex_grass3.jpg", texture::LINEAR_MIPMAP_LINEAR));
-		tex_grass[3].reset(new texture(get_texture_dir() + "tex_grass4.jpg", texture::LINEAR_MIPMAP_LINEAR));
-		tex_grass[4].reset(new texture(get_texture_dir() + "tex_grass5.jpg", texture::LINEAR_MIPMAP_LINEAR));
-		tex_stone[0].reset(new texture(get_texture_dir() + "tex_stone.jpg", texture::LINEAR_MIPMAP_LINEAR));
-		tex_stone[1].reset(new texture(get_texture_dir() + "tex_sand.jpg", texture::LINEAR_MIPMAP_LINEAR));
-		*/
-		const char* texnames[8] = {
-			"tex_grass.jpg",
-			"tex_grass2.jpg",
-			"tex_grass3.jpg",
-			"tex_grass4.jpg",
-			"tex_grass5.jpg",
-			"tex_mud.jpg",
-			"tex_stone.jpg",
-			"tex_sand.jpg"
-		};
-		for (unsigned i = 0; i < 8; ++i) {
-		sdl_image tmp(get_texture_dir() + texnames[i]);
-		unsigned bpp = 0;
-		c[i] = tmp.get_plain_data(cw, ch, bpp);
-		if (bpp != 3) throw error("color bpp != 3");
-		}
-	}
-	color compute_color(int detail, const vector2i& coord) {
-		if (detail >= -2) {
-			unsigned xc = coord.x << (detail+2);
-			unsigned yc = coord.y << (detail+2);
-			unsigned xc2,yc2;
-			if (detail >= 0) {
-				xc2 = coord.x << detail;
-				yc2 = coord.y << detail;
-			} else {
-				xc2 = coord.x >> -detail;
-				yc2 = coord.y >> -detail;
-			}
-			float z = compute_height(0/*detail*/, vector2i(xc2,yc2));//coord);
-			float zif = (z + 130) * 4 * 8 / 256;
-			if (zif < 0.0) zif = 0.0;
-			if (zif >= 7.0) zif = 6.999;
-			unsigned zi = unsigned(zif);
-			zif = myfrac(zif);
-			//if (zi <= 4) zi = ((xc/256)*(xc/256)*3+(yc/256)*(yc/256)*(yc/256)*2+(xc/256)*(yc/256)*7)%5;
-			unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
-			float zif2 = 1.0-zif;
-			return color(uint8_t(c[zi][3*i]*zif2 + c[zi+1][3*i]*zif),
-				     uint8_t(c[zi][3*i+1]*zif2 + c[zi+1][3*i+1]*zif),
-				     uint8_t(c[zi][3*i+2]*zif2 + c[zi+1][3*i+2]*zif));
-		} else {
-			unsigned xc = coord.x >> (-(detail+2));
-			unsigned yc = coord.y >> (-(detail+2));
-			float z = compute_height(0, vector2i(coord.x>>-detail,coord.y>>-detail));
-			float zif = (z + 130) * 4 * 8 / 256;
-			if (zif < 0.0) zif = 0.0;
-			if (zif >= 7.0) zif = 6.999;
-			unsigned zi = unsigned(zif);
-			zif = myfrac(zif);
-			//if (zi <= 4) zi = ((xc/256)*(xc/256)*3+(yc/256)*(yc/256)*(yc/256)*2+(xc/256)*(yc/256)*7)%5;
-			unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
-			float zif2 = 1.0-zif;
-			return color(uint8_t(c[zi][3*i]*zif2 + c[zi+1][3*i]*zif),
-				     uint8_t(c[zi][3*i+1]*zif2 + c[zi+1][3*i+1]*zif),
-				     uint8_t(c[zi][3*i+2]*zif2 + c[zi+1][3*i+2]*zif));
-		}
-	}
-	void compute_colors(int detail, const vector2i& coord_bl,
-			    const vector2i& coord_sz, Uint8* dest) {
-		for (int y = 0; y < coord_sz.y; ++y) {
-			for (int x = 0; x < coord_sz.x; ++x) {
-				color c = compute_color(detail, coord_bl + vector2i(x,y));
-				dest[0] = c.r;
-				dest[1] = c.g;
-				dest[2] = c.b;
-				dest += 3;
-			}
-		}
-	}
-	float compute_height(int detail, const vector2i& coord) {
-		return height_generator_test2::compute_height(detail, coord) - 100;
-	}
-	void get_min_max_height(double& minh, double& maxh) const { height_generator_test2::get_min_max_height(minh,maxh);minh-=100;maxh-=100; }
-};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // copied from credits.cpp, later move to own file(s)!
@@ -605,79 +560,8 @@ font* font_arial = 0;
 
 void run()
 {
-	//height_generator_test hgt;
-	//height_generator_test2 hgt;
-	height_generator_test4 hgt;
-#if 0 // set to 1 to use height_generator_test3
-	std::vector<Uint8> heights;
-	std::vector<Uint16> heights16;
-#if 0
-	float hm = 0.75, ha = -80.0f;
-	{
-		perlinnoise pn(64, 4, 6, true); // max. 8192
-		const unsigned s2 = 256*16;
-		heights = pn.values(0, 0, s2, s2, 6);
-#if 1
-		const unsigned height_segments = 10;
-		const float total_height = 128.0;
-		const float terrace_height = total_height / height_segments;
-		lookup_function<float, 256U> asin_lookup;
-		for (unsigned i = 0; i <= 256; ++i)
-			asin_lookup.set_value(i, asin(float(i)/256) / M_PI + 0.5);
-		for (unsigned y = 0; y < s2; ++y) {
-			for (unsigned x = 0; x < s2; ++x) {
-				float f = heights[y*s2+x];
-				unsigned t = unsigned(floor(f / terrace_height));
-				float f_frac = f / terrace_height - t;
-				float f2 = f_frac * 2.0 - 1.0; // be in -1...1 range
-				// skip this for softer hills (x^3 = more steep walls)
-				//f2 = f2 * f2 * f2;
-				f2 = asin_lookup.value(f2);
-				heights[y*s2+x] = Uint8((t + f2) * terrace_height);
-			}
-		}
-#endif		
-	}
-#else
-	//float hm = 0.2, ha = -40.0f;
-	{
-		// set heights from a file
-		unsigned s2 = 1024;
-#if 0
-		sdl_image si("./heights2.png");
-		if (si->w != s2 || si->h != s2)
-			throw error("invalid pic size");
-		si.lock();
-		Uint8* px = (Uint8*) si->pixels;
-		heights.resize(s2*s2);
-		for (unsigned y = 0; y < s2; ++y) {
-			for (unsigned x = 0; x < s2; ++x) {
-				heights[y*s2+x] = px[y*si->pitch+x];
-			}
-		}
-		si.unlock();
-#else
-		std::ifstream is("test.tif.raw");
- 		heights16.resize(s2*s2);
-		is.read((char*)&heights16[0], s2*s2*2);
-// 		sdl_image si("./heights2rg.png");
-// 		if (si->w != s2 || si->h != s2)
-// 			throw error("invalid pic size");
-// 		si.lock();
-// 		Uint8* px = (Uint8*) si->pixels;
-// 		for (unsigned y = 0; y < s2; ++y) {
-// 			for (unsigned x = 0; x < s2; ++x) {
-// 				heights16[y*s2+x] = Uint16(px[y*si->pitch+3*x])*256+px[y*si->pitch+3*x+1];
-// 			}
-// 		}
-// 		si.unlock();
-#endif
-	}
-#endif
-	//height_generator_test3 hgt(heights, 12, hm, ha);
-	////height_generator_test3 hgt(heights16, 10, 1.0/256, -64);
-	heights.clear();
-#endif
+	//height_generator_test1 hgt;
+	height_generator_test2 hgt;
 	// total area covered = 2^(levels-1) * L * N
 	// 8, 7, 1.0 gives 2^14m = 16384m
 	geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, hgt);
@@ -688,56 +572,6 @@ void run()
 #endif
 	
 	//gcm.set_viewerpos(vector3(0, 0, 30.0));
-
-#if 0
-	{
-		// 2^5 * 256 detail is enough = 8192
-		// with 1 value per meter -> repeat every 8192m, far enough
-		perlinnoise pn(64, 4, 6, true); // max. 8192
-		//const unsigned s = 256*256;
-		const unsigned s2 = 256*16;
-		//const unsigned s3 = 32;
-		const unsigned height_segments = 10;
-		const float total_height = 256.0;
-		const float terrace_height = total_height / height_segments;
-		std::vector<Uint8> heights = pn.values(0, 0, s2, s2, 6);
-		lookup_function<float, 256U> asin_lookup;
-		for (unsigned i = 0; i <= 256; ++i)
-			asin_lookup.set_value(i, asin(float(i)/256) / M_PI + 0.5);
-#if 1
-		for (unsigned y = 0; y < s2; ++y) {
-			for (unsigned x = 0; x < s2; ++x) {
-				float f = heights[y*s2+x];
-				unsigned t = unsigned(floor(f / terrace_height));
-				float f_frac = f / terrace_height - t;
-				float f2 = f_frac * 2.0 - 1.0; // be in -1...1 range
-				// skip this for softer hills (x^3 = more steep walls)
-				f2 = f2 * f2 * f2;
-				f2 = asin_lookup.value(f2);
-				heights[y*s2+x] = Uint8((t + f2) * terrace_height);
-			}
-		}
-#endif
-		save_pgm("pntest.pgm", s2, s2, &heights[0]);
-
-#if 0
-		heights = pn.values(0, 0, s2/2, s2/2, 5);
-		for (unsigned y = 0; y < s2/2; ++y) {
-			for (unsigned x = 0; x < s2/2; ++x) {
-				float f = heights[y*s2/2+x];
-				unsigned t = unsigned(floor(f / terrace_height));
-				float f_frac = f / terrace_height - t;
-				float f2 = f_frac * 2.0 - 1.0; // be in -1...1 range
-				// skip this for softer hills (x^3 = more steep walls)
-				f2 = f2 * f2 * f2;
-				f2 = asin_lookup.value(f2);
-				heights[y*s2/2+x] = Uint8((t + f2) * terrace_height);
-			}
-		}
-		save_pgm("pntest2.pgm", s2/2, s2/2, &heights[0]);
-#endif
-	}
-#endif
 
 	glClearColor(0.3,0.4,1.0,0.0);
 
