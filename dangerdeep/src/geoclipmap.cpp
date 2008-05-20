@@ -109,11 +109,15 @@ void geoclipmap::set_viewerpos(const vector3f& new_viewpos)
 	// L_l = L * 2^level
 	// that is if log2(new_viewpos.z / (0.4*resolution*L)) <= level
 	// so compute floor(log2(new_viewpos.z/(0.4*resolution*L))) as minimum level
-	//unsigned min_level = unsigned(std::max(floor(log2(new_viewpos.z/(0.4*resolution*L))), 0.0));
 	// fixme: later test to begin drawing at min_level
+#if 1
+	unsigned min_level = 0;
+#else
+	unsigned min_level = unsigned(std::max(floor(log2(new_viewpos.z/(0.4*resolution*L))), 0.0));
+#endif
 	//log_debug("min_level=" << min_level);
 
-	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
+	for (unsigned lvl = min_level; lvl < levels.size(); ++lvl) {
 		levelborder = levels[lvl]->set_viewerpos(new_viewpos, levelborder);
 		// next level has coordinates with half resolution
 		// let outer area of current level be inner area of next level
