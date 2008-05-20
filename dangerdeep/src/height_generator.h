@@ -24,6 +24,25 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "color.h"
 
+/* possible interface changes ahead:
+   normals have 2x resolution than vertices,
+   colors have individual factor (power of 2) related to vertices.
+   Finer values as vertex resolution is fetched by requesting smaller detail numbers,
+   i.e. normals for detail=k are requested with detail=k-1 to have twice resolution.
+   This means we can have detail<0, which cant be handled by the renderer for the
+   geometry yet.
+   It can be simplified alltogether by limiting detail at 0 (minimum 0),
+   and compute_normals/compute_colors generate more samples as vertices with the SAME
+   detail value, i.e. at detail=k twice the number of normals is returned than the
+   number of vertices. That factor shall be requested from the height generator
+   (already possible for colors).
+   see also the comment at head of geoclipmap.cpp
+   Normally it means detail<0 for vertices that vertex data is generated, and finer than
+   existing data. However the renderer doesn't care about the source, and there must
+   be a true lowest detail level that it can handle, it won't work to zoom in more and
+   more until microscopic space...
+*/
+
 /// interface class to generate heights, normals and texture data for the geoclipmap renderer
 class height_generator
 {
