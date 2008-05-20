@@ -735,9 +735,6 @@ unsigned geoclipmap::level::generate_indices_horizgap(uint32_t* buffer, unsigned
 
 void geoclipmap::level::display(const frustum& f) const
 {
-	//glColor4f(1,index/8.0,0,1);//fixme test
-	glColor4f(0,1,0,1);//fixme test
-
 	vector2i outszi = tmp_outer.size();
 	vector2f outsz = vector2f(outszi.x - 1, outszi.y - 1) * 0.5f;
 	gcm.myshader.set_uniform(gcm.loc_xysize2, outsz);
