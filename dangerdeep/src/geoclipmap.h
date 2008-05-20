@@ -65,6 +65,7 @@ class geoclipmap
 	std::vector<float> vboscratchbuf;
 
 	// scratch buffer for texture data, for transmission
+	std::vector<vector3f> texnormalscratchbuf_3f;
 	std::vector<Uint8> texnormalscratchbuf;
 
 	// scratch buffer for color texture data, for transmission

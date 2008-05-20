@@ -37,12 +37,41 @@ class height_generator
 	///                higher values mean coarser levels, values < 0 mean extra detail,
 	///                finer than basic resolution.
 	///@param coord - xy coordinates for the value to generate, scaled to match detail level
+//DEPRECATED!!!!!!!!!!!!!!!!!!
 	virtual float compute_height(int detail, const vector2i& coord) = 0;
+
+	/// compute height value of given detail and coordinate area (including given coordinates)
+	///@param detail - detail level to be generated and also coordinate domain,
+	///                0 means a sample spacing of "L", the basic geometry clipmap spacing,
+	///                higher values mean coarser levels, values < 0 mean extra detail,
+	///                finer than basic resolution.
+	///@param coord_bl - xy coordinates for the value to generate, scaled to match detail level, bottem left inclusive
+	///@param coord_sz - xy coordinate range for the value to generate, scaled to match detail level
+	///@param dest - destination where to write height values
+	///@param stride - distance between every value in floats, give 0 for packed values
+	///@param line_stride - distance between two lines in floats, give 0 for packed lines
+	virtual void compute_heights(int detail, const vector2i& coord_bl,
+				     const vector2i& coord_sz, float* dest, unsigned stride = 0,
+				     unsigned line_stride = 0) // = 0;
+	// dummy implementation for first test, will be removed when compute_height is removed
+	{
+		if (!stride) stride = 1;
+		if (!line_stride) line_stride = coord_sz.x * stride;
+		for (int y = 0; y < coord_sz.y; ++y) {
+			float* dest2 = dest;
+			for (int x = 0; x < coord_sz.x; ++x) {
+				*dest2 = compute_height(detail, coord_bl + vector2i(x, y));
+				dest2 += stride;
+			}
+			dest += line_stride;
+		}
+	}
 
 	/// compute normal value of given detail and coordinates.
 	///@note here is some reasonable implementation, normally it should be overloaded
 	///@param detail - detail level to be generated and also coordinate domain,
 	///@param coord - xy coordinates for the value to generate, scaled to match detail level
+//DEPRECATED!!!!!!!!!!!!!!!!!!
 	virtual vector3f compute_normal(int detail, const vector2i& coord) {
 		const float zh = sample_spacing * 0.5f * (detail >= 0 ? (1<<detail) : 1.0f/(1<<-detail));
 		float hr = compute_height(detail, coord + vector2i(1, 0));
@@ -52,12 +81,57 @@ class height_generator
 		return vector3f(hl-hr, hd-hu, zh*2).normal();
 	}
 
+	/// compute normal value of given detail and coordinate area (including given coordinates)
+	///@note here is some reasonable implementation, normally it should be overloaded, normals are always packed
+	///@param detail - detail level to be generated and also coordinate domain,
+	///@param coord_bl - xy coordinates for the value to generate, scaled to match detail level, bottem left inclusive
+	///@param coord_sz - xy coordinate range for the value to generate, scaled to match detail level
+	///@param dest - destination where to write normal values
+	virtual void compute_normals(int detail, const vector2i& coord_bl,
+				     const vector2i& coord_sz, vector3f* dest) {
+		const float zh = sample_spacing * 0.5f * (detail >= 0 ? (1<<detail) : 1.0f/(1<<-detail));
+		// compute heights to generate normals, we need one height value more in
+		// every direction
+		vector2i s2 = coord_sz + vector2i(2, 2);
+		std::vector<float> h(s2.x * s2.y);
+		compute_heights(detail, coord_bl - vector2i(1,1), s2, &h[0], 0, 0);
+		unsigned hli = s2.x + 1;
+		for (int y = 0; y < coord_sz.y; ++y) {
+			for (int x = 0; x < coord_sz.x; ++x) {
+				*dest++ = vector3f(h[hli-1] - h[hli+1],
+						   h[hli-s2.x] - h[hli+s2.x],
+						   zh*2).normal();
+				++hli;
+			}
+			hli += 2;
+		}
+	}
+
 	/// compute color value of given detail and coordinates.
 	///@note here is some test implementation, normally it should be overloaded
 	///@param detail - detail level to be generated and also coordinate domain,
 	///@param coord - xy coordinates for the value to generate, scaled to match detail level
+//DEPRECATED!!!!!!!!!!!!!!!!!!
 	virtual color compute_color(int detail, const vector2i& coord) {
 		return color((detail & 1) * 255, 128/*coord.x & 255*/, 128/*coord.y & 255*/);
+	}
+
+	/// compute color value of given detail and coordinate area (including given coordinates)
+	///@note here is some reasonable implementation, normally it should be overloaded, colors are always packed
+	///@param detail - detail level to be generated and also coordinate domain,
+	///@param coord_bl - xy coordinates for the value to generate, scaled to match detail level, bottem left inclusive
+	///@param coord_sz - xy coordinate range for the value to generate, scaled to match detail level
+	///@param dest - destination where to write color values (R,G,B)
+	virtual void compute_colors(int detail, const vector2i& coord_bl,
+				    const vector2i& coord_sz, Uint8* dest) {
+		for (int y = 0; y < coord_sz.y; ++y) {
+			for (int x = 0; x < coord_sz.x; ++x) {
+				dest[0] = (detail & 1) * 255;
+				dest[1] = 128;
+				dest[2] = coord_bl.x & 255;
+				dest += 3;
+			}
+		}
 	}
 
 	/// get absolute minimum and maximum height of all levels, used for clipping

@@ -45,6 +45,7 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 	  log2_color_res_fac(hg.get_log2_color_res_factor()),
 	  vboscratchbuf((resolution_vbo+2)*(resolution_vbo+2)*geoclipmap_fperv), // 4 floats per VBO sample (x,y,z,zc)
 	  // ^ extra space for normals
+	  texnormalscratchbuf_3f(resolution_vbo*2*resolution_vbo*2*3),
 	  texnormalscratchbuf(resolution_vbo*2*resolution_vbo*2*3),
 	  texcolorscratchbuf(resolution_vbo*color_res_fac * resolution_vbo*color_res_fac * 3),
 	  idxscratchbuf((resolution_vbo+2)*resolution_vbo*2 + 256),
@@ -132,7 +133,6 @@ void geoclipmap::set_viewerpos(const vector3f& new_viewpos)
 void geoclipmap::display(const frustum& f) const
 {
 	if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	// display levels from inside to outside
 	//unsigned min_level = unsigned(std::max(floor(log2(new_viewpos.z/(0.4*resolution*L))), 0.0));
 	glActiveTexture(GL_TEXTURE1);
@@ -162,6 +162,7 @@ void geoclipmap::display(const frustum& f) const
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glActiveTexture(GL_TEXTURE0);
 	myshader.use_fixed();
+	if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 
@@ -308,13 +309,15 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	// note! do not call "x / 2" for int x, its more efficient to use "x >> 1"!
 	// It is even WRONG to call x / 2 sometimes, as -1 / 2 gives 0 and not -1 as the shift method does,
 	// when we want to round down...
+	gcm.height_gen.compute_heights(index, upcrd, sz + vector2i(2,2),
+				       &gcm.vboscratchbuf[2], geoclipmap_fperv,
+				       geoclipmap_fperv*(sz.x+2));
 	unsigned ptr = 0;
 	for (int y = 0; y < sz.y + 2; ++y) {
 		vector2i upcrd2 = upcrd;
 		for (int x = 0; x < sz.x + 2; ++x) {
 			gcm.vboscratchbuf[ptr+0] = upcrd2.x * L_l; // fixme: maybe subtract viewerpos here later.
 			gcm.vboscratchbuf[ptr+1] = upcrd2.y * L_l;
-			gcm.vboscratchbuf[ptr+2] = gcm.height_gen.compute_height(index, upcrd2);
 			ptr += geoclipmap_fperv;
 			++upcrd2.x;
 		}
@@ -326,22 +329,13 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	upcrd.x = upar.bl.x >> 1; // need to shift here because values could be negative!
 	upcrd.y = upar.bl.y >> 1;
 	// sz.xy can be odd, so we must compute size with rounding up tr...
-	const vector2 szc(((upar.tr.x+1)>>1) - upcrd.x + 1, ((upar.tr.y+1)>>1) - upcrd.y + 1);
+	const vector2i szc(((upar.tr.x+1)>>1) - upcrd.x + 1, ((upar.tr.y+1)>>1) - upcrd.y + 1);
 	unsigned ptr3 = ptr = ((sz.x+2)*(1-(upar.bl.y & 1)) + (1-(upar.bl.x & 1)))*geoclipmap_fperv;
-	for (int y = 0; y < szc.y; ++y) {
-		vector2i upcrd2 = upcrd;
-		unsigned ptr2 = ptr;
-		for (int x = 0; x < szc.x; ++x) {
-			gcm.vboscratchbuf[ptr2+3] = gcm.height_gen.compute_height(index+1, upcrd2);
-			ptr2 += 2*geoclipmap_fperv;
-			++upcrd2.x;
-		}
-		++upcrd.y;
-		ptr += 2*(sz.x+2)*geoclipmap_fperv;
-	}
+	gcm.height_gen.compute_heights(index+1, upcrd, szc,
+				       &gcm.vboscratchbuf[ptr+3], 2*geoclipmap_fperv,
+				       geoclipmap_fperv*(sz.x+2)*2);
 
 	// interpolate z_c, first fill in missing columns on even rows
-	ptr = ptr3;
 	for (int y = 0; y < szc.y; ++y) {
 		unsigned ptr2 = ptr;
 		for (int x = 0; x < szc.x-1; ++x) {
@@ -383,36 +377,26 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	}
 
 	// compute normals
-	unsigned tptr = 0;
+	unsigned tptr = 0, tptr2 = 0;
 	//log_debug("tex scratch sz="<<sz);
-	/* fixme: maybe let height generator let deliver normals directly */
-	/* fixme: maybe store normals in double res. (from next finer level) in texture
-	   with double res. as vertices -> more detail!
-	*/
+	// first retrieve vector3f normals, then transform them to RGB normals
+	// index-1 because normals have double resolution as geometry
+	gcm.height_gen.compute_normals(int(index)-1, upar.bl*2, sz*2, &gcm.texnormalscratchbuf_3f[0]);
 	for (int y = 0; y < sz.y*2; ++y) {
 		for (int x = 0; x < sz.x*2; ++x) {
-			//index-1 because normals have double resolution as geometry
-			vector3f nm = gcm.height_gen.compute_normal(int(index)-1, upar.bl*2 + vector2i(x, y));
-			nm = nm * 127;
-			gcm.texnormalscratchbuf[tptr+0] = Uint8(nm.x + 128);
-			gcm.texnormalscratchbuf[tptr+1] = Uint8(nm.y + 128);
-			gcm.texnormalscratchbuf[tptr+2] = Uint8(nm.z + 128);
+			const vector3f& nm = gcm.texnormalscratchbuf_3f[tptr2++];
+			gcm.texnormalscratchbuf[tptr+0] = Uint8(nm.x * 127 + 128);
+			gcm.texnormalscratchbuf[tptr+1] = Uint8(nm.y * 127 + 128);
+			gcm.texnormalscratchbuf[tptr+2] = Uint8(nm.z * 127 + 128);
 			tptr += 3;
 		}
 	}
 
 	// color update
-	tptr = 0;
-	for (int y = 0; y < sz.y*int(color_res_fac); ++y) {
-		for (int x = 0; x < sz.x*int(color_res_fac); ++x) {
-			//index-log2_color_res_fac because colors may have more resolution as geometry
-			color c = gcm.height_gen.compute_color(int(index)-int(log2_color_res_fac), upar.bl*color_res_fac + vector2i(x, y));
-			gcm.texcolorscratchbuf[tptr+0] = c.r;
-			gcm.texcolorscratchbuf[tptr+1] = c.g;
-			gcm.texcolorscratchbuf[tptr+2] = c.b;
-			tptr += 3;
-		}
-	}
+	gcm.height_gen.compute_colors(int(index)-int(log2_color_res_fac),
+				      upar.bl*color_res_fac,
+				      sz*color_res_fac,
+				      &gcm.texcolorscratchbuf[0]);
 
 	ptr = 0;
 	geoclipmap::area vboupdate(gcm.clamp(upar.bl - vboarea.bl + dataoffset),
