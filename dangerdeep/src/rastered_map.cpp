@@ -21,11 +21,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "rastered_map.h"
 
-rastered_map::rastered_map(const std::string& header_file, const std::string& data_file, long int _cache_dist, vector2i _center, long int _view_dist, unsigned num_levels) :
-				view_dist(_view_dist), cache_dist(_cache_dist), min_height(-10800), max_height(8440)
+rastered_map::rastered_map(const std::string& header_file, const std::string& data_file, vector2l _cache_tl, long int _square_size, unsigned num_levels) :
+				min_height(-10800), max_height(8440), square_size(_square_size), cache_tl(_cache_tl)
 {
-	std::cout << "Creating Terrain" << std::endl;
-	std::cout << "Loading Header..." << std::endl;
 	// open header file
 	xml_doc doc(header_file);
 	doc.load();
@@ -40,149 +38,296 @@ rastered_map::rastered_map(const std::string& header_file, const std::string& da
 	elem = root.child("min");
 	min_lat = elem.attri("latitude");
 	min_lot = elem.attri("longitude");	
-	std::cout << "done" << std::endl;
-	std::cout << "Loading data..." << std::endl;
 	// open data file
 	data_stream.open(data_file.c_str(), std::ios::binary|std::ios::in);
 	if (!data_stream.is_open()) throw std::ios::failure("Could not open file: "+data_file);
 	
 	levels.resize(num_levels);
-	update_center (_center);
+	load(levels[levels.size()-1]);
+		
+	long int newres = square_size/resolution;
+	for (int i=levels.size()-2; i>=0; i--) {
+		newres*=2;
+		sample_up(newres, 0.5, 7035463734, levels[i+1], levels[i]);
+	}
+/*	
+	for (int y=0; y<64; y++) {
+		for (int x=0; x<64; x++) {
+			std::cout << levels[6][y*64+x] << " ";
+		}
+		std::cout << std::endl;
+	}	
+*/	
 }
 
 rastered_map::~rastered_map() {
 	data_stream.close();
 }
 
-void rastered_map::sample_up(long int newres, std::vector<float>& buf_in, std::vector<float>& buf_out)
-// fixme: gap at right and bottom
-{
-	std::cout << "Sampling up from " << newres/2 << " to " << newres << std::endl;
-	buf_out.resize(newres*newres);
-	// copy
-	for (long int y = 0; y < newres/2; ++y) {
-		for (long int x = 0; x < newres/2; ++x) {
-			buf_out[y*2*newres+x*2] = buf_in[y*(newres/2)+x];
-		}
-	}
-	//first the centers
-	for (long int y=1; y<newres;y+=2) {
-		for (long int x=1;x<newres;x+=2) {
-			buf_out[y*newres+x] = (buf_out[(y-1)*newres+x-1]+buf_out[(y-1)*newres+x+1]+buf_out[(y+1)*newres+x-1]+buf_out[(y+1)*newres+x+1])/4;
-		}
-	}
-	//top edge
-	long int y=0;
-	for (long int x=1;x<newres;x+=2) {
-		buf_out[y*newres+x] = (buf_out[y*newres+x-1]+buf_out[y*newres+x+1]+buf_out[(y+1)*newres+x])/3;
-	}
-	//bottom edge
-	y=newres-1;
-	for (long int x=1;x<newres;x+=2) {
-		buf_out[y*newres+x] = (buf_out[y*newres+x-1]+buf_out[y*newres+x+1]+buf_out[(y-1)*newres+x])/3;
-	}
-	//left edge
-	long int x=0;
-	for (long int y=1;y<newres;y+=2) {
-		buf_out[y*newres+x] = (buf_out[(y-1)*newres+x]+buf_out[y*newres+x+1]+buf_out[(y+1)*newres+x])/3;
-	}
-	//right edge
-	x=newres-1;
-	for (long int y=1;y<newres;y+=2) {
-		buf_out[y*newres+x] = (buf_out[(y-1)*newres+x]+buf_out[y*newres+x-1]+buf_out[(y+1)*newres+x])/3;
-	}
-	//horizontal edges
-	for (long int y=1; y<newres;y+=2) {
-		for (long int x=2;x<newres;x+=2) {
-			buf_out[y*newres+x] = (buf_out[(y-1)*newres+x]+buf_out[(y+1)*newres+x]+buf_out[y*newres+x-1]+buf_out[y*newres+x+1])/4;
-		}
-	}
-	//vertical edges
-	for (long int y=2; y<newres;y+=2) {
-		for (long int x=1;x<newres;x+=2) {
-			buf_out[y*newres+x] = (buf_out[(y-1)*newres+x]+buf_out[(y+1)*newres+x]+buf_out[y*newres+x-1]+buf_out[y*newres+x+1])/4;
-		}
-	}	
-}
-
 void rastered_map::load(std::vector<float>& level)
 {
 	data_stream.clear();
 
-	short signed int buf[(int)((view_dist*2)/resolution)];
+	short signed int buf[(int)((square_size/resolution)*(square_size/resolution))];
 	char *c_buf = (char*)buf;
 	
-	long int start = (long int)((((max_lat*3600)-top_left.y)/resolution)*((max_lot*2*3600)/resolution)+(((max_lot*3600)+top_left.x)/resolution));
-	long int end = (long int)((((max_lat*2*3600)-bottom_right.y)/resolution)*((max_lot*2*3600)/resolution) + ((max_lot*3600)+bottom_right.x)/resolution); 
-	long int step = (long int)((max_lot*2*3600)/resolution);
-
-	for (long int i= start; i < end; i+=step) 
+	long int file_width = ((max_lot+abs(min_lot))*3600)/resolution;
+	long int file_center = (long int)((max_lat*3600/resolution)*file_width+(abs(min_lot)*3600/resolution));
+	
+	long int start = (long int)(file_center-(cache_tl.y/resolution)*file_width+cache_tl.x/resolution);
+	long int end =   start+(file_width*((square_size-1)/resolution)+(square_size/resolution));
+/*	
+	int lines = 0;
+	for (long int i=start; i<end; i+=file_width) 
 	{
+		lines++;
 		data_stream.seekg(i*2);
-		data_stream.read(c_buf, (int)((view_dist*2)/resolution)*2);
-		for (int n=0; n < (view_dist*2)/resolution; n++) {
+		data_stream.read(c_buf, (int)(square_size/resolution)*2);
+		for (int n=0; n < (int)(square_size/resolution); n++) {
 			level.push_back((float)buf[n]);
+		}
+	}
+	
+*/
+	level.resize(16*16);
+	for (int y=0; y<16; y++) {
+		for (int x=0; x<16; x++) {
+			level[y*16+x] = -5000.0;
+		}
+	}
+
+	level[7*16+7] = -2500.0;
+}
+
+void rastered_map::sample_up(long int newres, float scale, long seed, std::vector<float>& buf_in, std::vector<float>& buf_out)
+// fixme: gap at right and bottom
+{
+	std::vector<float> result((newres+1) * (newres+1));
+	
+	
+	// copy level-1 heights
+	for (long int y = 0; y < newres/2; ++y) {
+		for (long int x = 0; x < newres/2; ++x) {
+			result[y*2*(newres+1)+x*2] = buf_in[y*(newres/2)+x];
+		}
+	}
+	// copy col 0 and row 0 to right and bottom border to avoid a gap of 0-values
+	// fixme: real values for gap
+	result[(newres+1)*(newres+1)-1] = result[0];
+	for (long int x=0; x<newres; x++) {
+		result[newres*(newres+1)+x] = result[x];
+	}
+	for (long int y=0; y<newres+1; y++) {
+		result[y*(newres+1)+newres] = result[y*(newres+1)];
+	}
+
+	std::cout << "Compute Square..." << std::endl;
+	compute_square(result, vector2i(0,0), newres+1, newres+1, 1, (unsigned)(log(newres)/log(2)), scale, seed);
+/*
+	// first row
+	for (long int x=0; x<1; x++) {
+		for (long int y=1; y<newres; y+=2) {
+				result[y*(newres+1)+x] = (result[(y-1)*(newres+1)+x]+result[(y+1)*(newres+1)+x+1]+result[y*(newres+1)+x+1])/3;
+		}
+	}
+	// last row
+	for (long int x=newres; x<newres+1; x++) {
+		for (long int y=1; y<newres; y+=2) {
+				result[y*(newres+1)+x] = (result[(y-1)*(newres+1)+x]+result[(y+1)*(newres+1)+x+1]+result[y*(newres+1)+x-1])/3;
+		}
+	}
+	
+	// first col
+	for (long int x=1; x<1; x+=2) {
+		for (long int y=0; y<1; y++) {
+				result[y*(newres+1)+x] = (result[y*(newres+1)+x-1]+result[y*(newres+1)+x+1]+result[(y+1)*(newres+1)+x])/3;
+		}
+	}
+	// last col
+	for (long int x=1; x<1; x+=2) {
+		for (long int y=newres; y<newres+1; y++) {
+				result[y*(newres+1)+x] = (result[y*(newres+1)+x-1]+result[y*(newres+1)+x+1]+result[(y-1)*(newres+1)+x])/3;
+		}
+	}
+	
+	//centers
+	for (long int x=1; x<newres; x+=2) {
+		for (long int y=1; y<newres; y+=2) {
+				result[y*(newres+1)+x] = (result[(y-1)*(newres+1)+x-1]+result[(y-1)*(newres+1)+x+1]+result[(y+1)*(newres+1)+x-1]+result[(y+1)*(newres+1)+x+1])/4;
+		}
+	}
+	
+	// horizontal edges
+	for (long int x=2; x<newres+1; x+=2) {
+		for (long int y=1; y<newres+1; y+=2) {
+				result[y*(newres+1)+x] = (result[y*(newres+1)+x-1]+result[y*(newres+1)+x+1]+result[(y+1)*(newres+1)+x]+result[(y-1)*(newres+1)+x])/4;
+		}
+	}
+	
+	// vertical edges
+	for (long int x=1; x<newres+1; x+=2) {
+		for (long int y=2; y<newres+1; y+=2) {
+				result[y*(newres+1)+x] = (result[y*(newres+1)+x-1]+result[y*(newres+1)+x+1]+result[(y+1)*(newres+1)+x]+result[(y-1)*(newres+1)+x])/4;
+		}
+	}		
+*/	
+	buf_out.resize(newres*newres);
+	for (long int y = 0; y < newres; ++y) {
+		for (long int x = 0; x < newres; ++x) {
+			buf_out[y*newres+x] = result[y*(newres+1)+x];
 		}
 	}
 }
 
-void rastered_map::update_center(vector2i _center)
+void rastered_map::compute_square(std::vector<float>& v, vector2i top_left, unsigned long overall_res, unsigned long square_res, unsigned int iter, unsigned max_iter, float scale, long seed)
 {
-	vector2l center(_center.x/SECOND_IN_METERS, _center.y/SECOND_IN_METERS);
+	unsigned long tl = top_left.y*overall_res+top_left.x;
+	unsigned long te = (unsigned long)(tl + floor(square_res/2));
+	unsigned long tr = tl+square_res-1;
+	unsigned long le = (unsigned long)(tl+floor(square_res/2)*overall_res);
+	unsigned long mid = (unsigned long)(le+floor(square_res/2));
+	unsigned long re = le+square_res-1;
+	unsigned long bl = (unsigned long)(le+floor(square_res/2)*overall_res);
+	unsigned long be = (unsigned long)(floor(square_res/2)*overall_res);
+	unsigned long br = bl+square_res-1;
+	unsigned long ln = le-square_res;
+	unsigned long un = te-(square_res-1)*overall_res;
+	unsigned long rn = re+square_res;
+	unsigned long bn = be+(square_res-1)*overall_res;
 	
-	// check if view rect is outside of cache
-	if ((center.x-view_dist)<top_left.x || (center.x+view_dist)>bottom_right.x || 
-		(center.y+view_dist)>bottom_right.y || (center.y-view_dist)<top_left.y) 
-	{
-		// set new bounds and reload cache
-		top_left.x = center.x-cache_dist;
-		top_left.y = center.y-cache_dist;
-		bottom_right.x = center.x+cache_dist;
-		bottom_right.y = center.y+cache_dist;		
-		
-		load(levels[levels.size()-1]);
-		
-		long int newres = (cache_dist*2)/resolution;
-		for (int i=levels.size()-2; i>=0; i--) {
-			std::cout << "Sampling up " << i << std::endl;
-			newres*=2;
-			sample_up(newres, levels[i+1], levels[i]);
-		}
+	//std::cout << "overall: "<<overall_res << " square: "<<square_res << " " <<top_left.x << "," << top_left.y <<" tl: " << tl << std::endl;
+
+if (iter == max_iter) {
+	//center
+	v[mid] = (v[tl]+v[tr]+v[bl]+v[br])/4;
+	// left edge
+	if (top_left.x <= 0) 
+		v[le] = (v[tl]+v[bl]+v[mid])/3;
+	else v[le] = (v[tl]+v[ln]+v[bl]+v[mid])/4;
+	
+	// right edge
+	if (top_left.x+square_res>=overall_res) // 3 neighbours
+		v[re] = (v[tr]+v[mid]+v[br])/3;
+	else
+		v[re] = (v[tr]+v[mid]+v[br]+v[rn])/4;	
+	
+	// top edge
+	if (top_left.y <= 0) // 3 neighbours
+		v[te] = (v[tl]+v[tr]+v[mid])/3;
+	else
+		v[te] = (v[tl]+v[tr]+v[un]+v[mid])/4;
+	
+	// bottom edge
+	if (top_left.y+square_res>=overall_res) // 3 neighbours
+		v[be] = (v[bl]+v[br]+v[mid])/3;
+	else
+		v[be] = (v[bl]+v[br]+v[mid]+v[bn])/4;	
+} else {
+	
+	v[tl] = v[tl];
+	v[te] = v[te];
+	v[tr] = v[tr];
+	v[le] = v[le];
+	v[mid] = v[mid];
+	v[re] = v[re];
+	v[bl] = v[bl];
+	v[be] = v[be];
+	v[br] = v[br];
+}
+	if (iter<max_iter) {
+		compute_square(v, top_left, overall_res, (unsigned)(ceil(square_res/2)+1), iter+1, max_iter, scale, seed);
+		compute_square(v, top_left+vector2i((unsigned int)(floor(square_res/2)), 0), overall_res, (unsigned)ceil(square_res/2)+1, iter+1, max_iter, scale, seed);
+		compute_square(v, top_left+vector2i(0,(unsigned int)(floor(square_res/2))), overall_res, (unsigned)ceil(square_res/2)+1, iter+1, max_iter, scale, seed);
+		compute_square(v, top_left+vector2i((unsigned int)(floor(square_res/2)), (unsigned int)(floor(square_res/2))), overall_res, (unsigned)ceil(square_res/2)+1, iter+1, max_iter, scale, seed);
 	}
 }
 
 float rastered_map::compute_height(int detail, const vector2i& _coord)
 {
+	if (detail<0) detail=0;
 	vector2l coord(_coord.x/SECOND_IN_METERS, _coord.y/SECOND_IN_METERS);
-	unsigned level_res = (resolution/(levels.size()+1-detail));
-	//std::cout << "Computing Height for (in seconds) " << coord.x << " " << coord.y << " level " << detail << std::endl;
-	if (detail>=0) {
-		long int pos = (((cache_dist*2*cache_dist)+cache_dist)-((coord.y-center.y)*cache_dist*2)+(coord.x-center.x))/level_res;
-		//std::cout << "pos=" << pos <<std::endl;
-		return levels[detail][pos];
-	} else return 0.0;
+
+	float level_res = (resolution/pow(2, levels.size()-1-detail));
+	long int level_width = square_size/level_res;
+	long int pos = (((cache_tl.y/level_res)-(coord.y/level_res))*level_width)+((coord.x/level_res)-(cache_tl.x/level_res));
+	return levels[detail][pos];
 }
 
-vector3f rastered_map::compute_normal(int detail, const vector2i& coord)
-{
-	//std::cout << "Computing Normal for " << coord.x << " " << coord.y << std::endl;
-	if (detail >= 0) {
-		const float zh = sample_spacing * 0.5f * (detail >= 0 ? (1<<detail) : 1.0f/(1<<-detail));
-		float hr = compute_height(detail, coord + vector2i(1, 0));
-		float hu = compute_height(detail, coord + vector2i(0, 1));
-		float hl = compute_height(detail, coord + vector2i(-1, 0));
-		float hd = compute_height(detail, coord + vector2i(0, -1));
-		return vector3f(hl-hr, hd-hu, zh*2).normal();
-	} else return vector3f(0,0,1);
-}
+
 
 color rastered_map::compute_color(int detail, const vector2i& coord)
 {
-	//std::cout << "Computing Color for " << coord.x << " " << coord.y << std::endl;
-	if (detail>=0) {
+	if (detail<0) detail=0;
 		float h = compute_height(detail, coord);
 		vector3f n = compute_normal(detail, coord);
-		return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,75+50,20))
+		return (n.z > 0.9) ? (h > -5000 ? color(240, 240, 242) : color(20,75+50,20))
 				: color(64+h*0.5+32, 64+h*0.5+32, 64+h*0.5+32);
-	} else return color(255, 255, 255);
 }
+
+#define IA 16807
+#define IM 2147483647
+#define IQ 127773
+#define IR 2836
+#define NTAB 32
+#define EPS (1.2E-07)
+#define MAX(a,b) (a>b)?a:b
+#define MIN(a,b) (a<b)?a:b
+
+double rastered_map::ran1(long *idum)
+{
+	int j,k;
+	static int iv[NTAB],iy=0;
+	void nrerror();
+	static double NDIV = 1.0/(1.0+(IM-1.0)/NTAB);
+	static double RNMX = (1.0-EPS);
+	static double AM = (1.0/IM);
+
+	if ((*idum <= 0) || (iy == 0)) {
+		*idum = MAX(-*idum,*idum);
+                for(j=NTAB+7;j>=0;j--) {
+			k = *idum/IQ;
+			*idum = IA*(*idum-k*IQ)-IR*k;
+			if(*idum < 0) *idum += IM;
+			if(j < NTAB) iv[j] = *idum;
+		}
+		iy = iv[0];
+	}
+	k = *idum/IQ;
+	*idum = IA*(*idum-k*IQ)-IR*k;
+	if(*idum<0) *idum += IM;
+	j = (int)(iy*NDIV);
+	iy = iv[j];
+	iv[j] = *idum;
+	return MIN(AM*iy,RNMX);
+}
+#undef IA 
+#undef IM 
+#undef IQ
+#undef IR
+#undef NTAB
+#undef EPS 
+#undef MAX
+#undef MIN
+
+int iset=0;
+float gset;
+double rastered_map::gauss(long *idum)
+{
+	float fac,rsq,v1,v2;
+
+	if (iset == 0) {
+    	do {
+        	v1=2.0*ran1(idum)-1.0;
+        	v2=2.0*ran1(idum)-1.0;
+        	rsq=v1*v1+v2*v2;
+    	} while	(rsq >= 1.0 || rsq == 0.0);
+    	fac=sqrt(-2.0*log(rsq)/rsq);
+    	gset=v1*fac;
+    	iset=1;
+    	return v2*fac;
+	} else {
+    	iset=0;
+	    return gset;
+	}
+}
+
