@@ -29,7 +29,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "xml.h"
 #include "color.h"
 #include "height_generator.h"
-#include "log.h"
 
 class rastered_map : public height_generator
 {
@@ -61,17 +60,24 @@ protected: // map
 	double gauss(long*);
 	double ran1(long*);
 	void load(std::vector<float>&);
-	void compute_square(std::vector<float>&, vector2i, unsigned long, unsigned long, unsigned int, unsigned, float, long);
 	void sample_up(long int, float, long int, std::vector<float>&, std::vector<float>&);
+	void sample_down(std::vector<float>&, std::vector<float>&, unsigned);
+		
+	int iset;
+	float gset;
 	
 public: // map
 
 	rastered_map(const std::string&, const std::string&, vector2l, long int, unsigned);
 	~rastered_map();
 	
-	color compute_color(int detail, const vector2i& coord);
 	double get_sample_spacing() const { return 14.453125; }
-	float compute_height(int detail, const vector2i& coord);
+	vector3f compute_normal(unsigned, const vector2i&, float);
+	vector3f compute_normal_extra(unsigned detail, const vector2i& coord, float zh) { return compute_normal(0,coord, zh); }
+	float compute_height(unsigned detail, const vector2i& coord);
+	float compute_height_extra(unsigned detail, const vector2i& coord) { return compute_height (0, coord); }
+	color compute_color(unsigned detail, const vector2i& coord);
+	color compute_color_extra(unsigned , const vector2i&);
 	void get_min_max_height(double& minh, double& maxh) const
 	{
 		minh = (double)min_height;
