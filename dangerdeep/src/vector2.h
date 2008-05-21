@@ -39,28 +39,28 @@ template <class D2> class vector3t;
 template <class D>
 class vector2t
 {
-	public:
+ public:
 	D x, y;
 
-	vector2t() : x(0), y(0) {};
-	vector2t(const D &x_, const D &y_) : x(x_), y(y_) {};
-	vector2t<D> normal() const { D len = D(1.0)/length(); return vector2t(x * len, y * len); };
-	void normalize() { D len = D(1.0)/length(); x *= len; y *= len; };
-	vector2t<D> orthogonal() const { return vector2t(-y, x); };
-	vector2t<D> operator* (const D &scalar) const { return vector2t(x * scalar, y * scalar); };
-	vector2t<D> operator+ (const vector2t<D>& other) const { return vector2t(x + other.x, y + other.y); };
-	vector2t<D> operator- (const vector2t<D>& other) const { return vector2t(x - other.x, y - other.y); };
-	vector2t<D> operator- () const { return vector2t(-x, -y); };
-	vector2t<D>& operator+= (const vector2t<D>& other) { x += other.x; y += other.y; return *this; };
-	vector2t<D>& operator-= (const vector2t<D>& other) { x -= other.x; y -= other.y; return *this; };
-	vector2t<D> min(const vector2t<D>& other) const { return vector2t(x < other.x ? x : other.x, y < other.y ? y : other.y); };
-	vector2t<D> max(const vector2t<D>& other) const { return vector2t(x > other.x ? x : other.x, y > other.y ? y : other.y); };
-	bool operator== (const vector2t<D>& other) const { return x == other.x && y == other.y; };
-	D square_length() const { return x * x + y * y; };
-	D length() const { return D(sqrt(square_length())); };
-	D square_distance(const vector2t<D>& other) const { vector2t<D> n = *this - other; return n.square_length(); };
-	D distance(const vector2t<D>& other) const { vector2t<D> n = *this - other; return n.length(); };
-	D operator* (const vector2t<D>& other) const { return x * other.x + y * other.y; };
+	vector2t() : x(0), y(0) {}
+	vector2t(const D &x_, const D &y_) : x(x_), y(y_) {}
+	vector2t<D> normal() const { D len = D(1.0)/length(); return vector2t(x * len, y * len); }
+	void normalize() { D len = D(1.0)/length(); x *= len; y *= len; }
+	vector2t<D> orthogonal() const { return vector2t(-y, x); }
+	vector2t<D> operator* (const D &scalar) const { return vector2t(x * scalar, y * scalar); }
+	vector2t<D> operator+ (const vector2t<D>& other) const { return vector2t(x + other.x, y + other.y); }
+	vector2t<D> operator- (const vector2t<D>& other) const { return vector2t(x - other.x, y - other.y); }
+	vector2t<D> operator- () const { return vector2t(-x, -y); }
+	vector2t<D>& operator+= (const vector2t<D>& other) { x += other.x; y += other.y; return *this; }
+	vector2t<D>& operator-= (const vector2t<D>& other) { x -= other.x; y -= other.y; return *this; }
+	vector2t<D> min(const vector2t<D>& other) const { return vector2t(x < other.x ? x : other.x, y < other.y ? y : other.y); }
+	vector2t<D> max(const vector2t<D>& other) const { return vector2t(x > other.x ? x : other.x, y > other.y ? y : other.y); }
+	bool operator== (const vector2t<D>& other) const { return x == other.x && y == other.y; }
+	D square_length() const { return x * x + y * y; }
+	D length() const { return D(sqrt(square_length())); }
+	D square_distance(const vector2t<D>& other) const { vector2t<D> n = *this - other; return n.square_length(); }
+	D distance(const vector2t<D>& other) const { vector2t<D> n = *this - other; return n.length(); }
+	D operator* (const vector2t<D>& other) const { return x * other.x + y * other.y; }
 	bool solve(const vector2t<D>& o1, const vector2t<D>& o2, D& s1, D& s2) const;
 	// multiplies 2x2 matrix (given in columns c0-c1) with *this.
 	vector2t<D> matrixmul(const vector2t<D>& c0, const vector2t<D>& c1) const;
