@@ -47,7 +47,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "height_generator.h"
 #include "perlinnoise.h"
 #include "global_data.h"
-//#include "sky.h"
+#include "bivector.h"
 #include "geoclipmap.h"
 #include "fpsmeasure.h"
 #include "bspline.h"
