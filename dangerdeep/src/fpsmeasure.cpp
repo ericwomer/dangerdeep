@@ -26,14 +26,22 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 fpsmeasure::fpsmeasure(float mi)
 	: measure_interval(unsigned(1000 * mi + 0.5f)),
-	  tm0(0), tm_lastmeasure(0), nr_frames(0), frames_lastmeasure(0), curfps(0)
+	  tm0(0), tm_lastframe(0), tm_lastmeasure(0), nr_frames(0), frames_lastmeasure(0), curfps(0),
+	  slowest_frame(0), fastest_frame(0)
 {
 }
 
 float fpsmeasure::account_frame()
 {
 	unsigned tm = sys().millisec();
-	if (nr_frames == 0) tm0 = tm;
+	if (nr_frames == 0) {
+		tm0 = tm;
+		tm_lastframe = tm;
+	} else {
+		slowest_frame = std::max(slowest_frame, tm - tm_lastframe);
+		fastest_frame = std::max(fastest_frame, tm - tm_lastframe);
+		tm_lastframe = tm;
+	}
 	++nr_frames;
 	if (tm >= tm_lastmeasure + measure_interval) {
 		// measure
