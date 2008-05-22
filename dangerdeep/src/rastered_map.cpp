@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 rastered_map::rastered_map(const std::string& header_file, const std::string& data_file, vector2l _cache_tl, long int _square_size, unsigned num_levels) :
 				min_height(-10800), max_height(8440), square_size(_square_size), cache_tl(_cache_tl), iset(0)
 {
-	sdl_image tmp(get_texture_dir() + "tex_grass3.jpg");
+	sdl_image tmp(get_texture_dir() + "tex_stone.jpg");
 	unsigned bpp = 0;
 	texture = tmp.get_plain_data(cw, ch, bpp);
 	if (bpp != 3) throw error("color bpp != 3");
