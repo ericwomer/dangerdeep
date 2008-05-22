@@ -122,8 +122,10 @@ env.Default(tool2)
 
 test1 = env.Program('oceantest', ['oceantest.cpp'], LIBS = alllibs)
 test2 = env.Program('bsplinetest', ['bspline_test.cpp'])
+test3 = env.Program('bivectortest', ['bivectortest.cpp'])
 env.Default(test1)
 env.Default(test2)
+env.Default(test3)
 
 portal = env.Program('portal', ['portal.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
 env.Default(portal)

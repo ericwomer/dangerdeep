@@ -55,8 +55,8 @@ class bivector
 	}
 
 	// get pointer to storage, be very careful with that!
-	float* data_ptr() { return &data[0]; }
-	const float* data_ptr() const { return &data[0]; }
+	T* data_ptr() { return &data[0]; }
+	const T* data_ptr() const { return &data[0]; }
 
 	// special operations
 	bivector<T> upsampled(bool wrap = false) const;
