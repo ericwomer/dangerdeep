@@ -49,6 +49,15 @@ class bivector
 	bivector<T> shifted(const vector2i& offset) const;
 	bivector<T> transposed() const;
 
+	void swap(bivector<T>& other) {
+		data.swap(other.data);
+		std::swap(datasize, other.datasize);
+	}
+
+	// get pointer to storage, be very careful with that!
+	float* data_ptr() { return &data[0]; }
+	const float* data_ptr() const { return &data[0]; }
+
 	// special operations
 	bivector<T> upsampled(bool wrap = false) const;
 	bivector<T> downsampled(bool force_even_size = false) const;
@@ -149,19 +158,73 @@ bivector<T> bivector<T>::transposed() const
 template <class T>
 bivector<T> bivector<T>::upsampled(bool wrap) const
 {
-	//fixme
-	bivector<T> result(vector2i(datasize.x*2, datasize.y*2));
+	/* upsampling generates 3 new values out of the 4 surrounding
+	   values like this: (x - surrounding values, numbers: generated)
+	   x1x
+	   23-
+	   x-x
+	   So 1x1 pixels are upsampled to 2x2 using the neighbourhood.
+	   This means we can't generate samples beyond the last column/row,
+	   thus 2n+1 samples generate 4n+1 resulting samples.
+	   If we have 2n samples we could either get one more sample with
+	   wrap to generate 4n samples, or we need to skip sampling the
+	   last value (clamping would give 4n+1 samples where the last
+	   3 ones are identical) and thus get 4n-1 samples.
+	   So we have:
+	   2n+1 -> 4n+1                   (2n interpolated values, 1 copy)
+	   2n   -> 4n    with wrapping    (2n interpolated values, 2n-1 without wrap-code)
+	   2n   -> 4n-1  without wrapping (2n-2 interpolated values, 1 copy)
+	*/
+	vector2i scalsize(datasize.x & ~1, datasize.y & ~1);
+	vector2i resultsize = scalsize * 2;
+	if (datasize.x & 1) {
+		++resultsize.x;
+	} else if (wrap) {
+		--scalsize.x;
+	} else {
+		--resultsize.x;
+		--scalsize.x;
+	}
+	if (datasize.y & 1) {
+		++resultsize.y;
+	} else if (wrap) {
+		--scalsize.y;
+	} else {
+		--resultsize.y;
+		--scalsize.y;
+	}
+	bivector<T> result(resultsize);
 	// copy values that are kept and interpolate missing values on even rows
-	for (int y=0; y < datasize.y; ++y) {
-		for (int x=0; x < datasize.x; ++x) {
+	for (int y=0; y <= scalsize.y; ++y) {
+		for (int x=0; x < scalsize.x; ++x) {
 			result.at(2*x, 2*y) = at(x, y);
 			result.at(2*x+1, 2*y) = T((at(x, y) + at(x+1, y)) * 0.5);
 		}
 	}
+	// handle special cases on last column
+	if ((datasize.x & 1) || !wrap) {
+		// copy last column
+		for (int y=0; y <= scalsize.y; ++y) {
+			result.at(2*scalsize.x, 2*y) = at(scalsize.x, y);
+		}
+	} else {
+		// copy/interpolate with wrap
+		for (int y=0; y <= scalsize.y; ++y) {
+			result.at(2*scalsize.x, 2*y) = at(scalsize.x, y);
+			result.at(2*scalsize.x+1, 2*y) = T((at(scalsize.x, y) + at(0, y)) * 0.5);
+		}
+	}
 	// interpolate missing values on odd rows
-	for (int y=0; y < datasize.y; ++y) {
-		for (int x=0; x < datasize.x*2; ++x) {
+	for (int y=0; y < scalsize.y; ++y) {
+		for (int x=0; x < resultsize.x; ++x) {
 			result.at(x, 2*y+1) = T((result.at(x, 2*y) + result.at(x, 2*y+2)) * 0.5);
+		}
+	}
+	// handle special cases on last row
+	if ((datasize.y & 1) == 0 && wrap) {
+		// interpolate last row with first and second-to-last
+		for (int x=0; x < resultsize.x; ++x) {
+			result.at(x, resultsize.y-1) = T((result.at(x, resultsize.y-2) + result.at(x, 0)) * 0.5);
 		}
 	}
 	return result;
@@ -170,6 +233,17 @@ bivector<T> bivector<T>::upsampled(bool wrap) const
 template <class T>
 bivector<T> bivector<T>::downsampled(bool force_even_size) const
 {
+	/* downsampling builds the average of 2x2 pixels.
+	   if "force_even_size" is false:
+	   If the width/height is odd the last column/row is
+	   handled specially, here 1x2 or 2x1 pixels are averaged.
+	   If width and height are odd, the last pixel is kept,
+	   it can't be averaged.
+	   We could add wrapping for the odd case here though...
+	   if "force_even_size" is true:
+	   If the width/height is odd the last column/row is
+	   skipped and the remaining data averaged.
+	*/
 	vector2i newsize(datasize.x >> 1, datasize.y >> 1);
 	vector2i resultsize = newsize;
 	if (!force_even_size) {
