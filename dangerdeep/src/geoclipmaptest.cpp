@@ -387,11 +387,11 @@ public:
 			     unsigned line_stride = 0) {
 		if (!stride) stride = 1;
 		if (!line_stride) line_stride = coord_sz.x * stride;
-		for (int y = 0; y < coord_sz.y; ++y) {
-			float* dest2 = dest;
-			for (int x = 0; x < coord_sz.x; ++x) {
-				vector2i coord = coord_bl + vector2i(x, y);
-				if (detail >= 0) {
+		if (detail >= 0) {
+			for (int y = 0; y < coord_sz.y; ++y) {
+				float* dest2 = dest;
+				for (int x = 0; x < coord_sz.x; ++x) {
+					vector2i coord = coord_bl + vector2i(x, y);
 					int xc = coord.x * int(1 << detail);
 					int yc = coord.y * int(1 << detail);
 					if (detail <= 6) {
@@ -399,43 +399,32 @@ public:
 						*dest2 = -130 + h*h*h*0.5 * 256;
 					} else
 						*dest2 = -130;
-				} else {
-					int xc = coord.x >> -detail;
-					int yc = coord.y >> -detail;
-					//fixme: too crude, need to bilinear sample height from 4 base values
-					//fixme: replace compute_height!
-					//generate result for detail=0, and upscale it
-					//-detail times with bilinear sampling.
-					//probably needs more values in base level to
-					//upsample correctly.
-					float baseh = compute_height(0, vector2i(xc, yc));
+					dest2 += stride;
+				}
+				dest += line_stride;
+			}
+		} else {
+			bivector<float> d0h(vector2i(coord_sz.x>>-detail, coord_sz.y>>-detail));
+			compute_heights(0, vector2i(coord_bl.x>>-detail, coord_bl.y>>-detail),
+					d0h.size(), d0h.data_ptr());
+			for (int z = detail; z < 0; ++z) {
+				bivector<float> tmp = d0h.upsampled(false);
+				tmp.swap(d0h);
+			}
+			for (int y = 0; y < coord_sz.y; ++y) {
+				float* dest2 = dest;
+				for (int x = 0; x < coord_sz.x; ++x) {
+					vector2i coord = coord_bl + vector2i(x, y);
+					float baseh = d0h[vector2i(x,y)];
 					baseh += extrah[(coord.y&63)*64+(coord.x&63)] * 0.25;
 					*dest2 = baseh;
+					dest2 += stride;
 				}
-				dest2 += stride;
+				dest += line_stride;
 			}
-			dest += line_stride;
 		}
 	}
 
-	float compute_height(int detail, const vector2i& coord) {
-		if (detail >= 0) {
-			int xc = coord.x * int(1 << detail);
-			int yc = coord.y * int(1 << detail);
-			if (detail <= 6) {
-				float h = pn.value(xc, yc, 6-detail)/255.0f;
-				return -130 + h*h*h*0.5 * 256;
-			} else
-				return -130;
-		} else {
-			int xc = coord.x >> -detail;
-			int yc = coord.y >> -detail;
-			//fixme: too crude, need to bilinear sample height from 4 base values
-			float baseh = compute_height(0, vector2i(xc, yc));
-			baseh += extrah[(coord.y&63)*64+(coord.x&63)] * 0.25;
-			return baseh;
-		}
-	}
 	void compute_colors(int detail, const vector2i& coord_bl,
 			    const vector2i& coord_sz, Uint8* dest) {
 		for (int y = 0; y < coord_sz.y; ++y) {
@@ -453,8 +442,11 @@ public:
 						xc2 = coord.x >> -detail;
 						yc2 = coord.y >> -detail;
 					}
-					//fixme: replace compute_height!
-					float z = compute_height(0/*detail*/, vector2i(xc2,yc2));//coord);
+					float z = -130;
+					if (detail <= 6) {
+						float h = pn.value(xc2, yc2, 6)/255.0f;
+						z = -130 + h*h*h*0.5 * 256;
+					}
 					float zif = (z + 130) * 4 * 8 / 256;
 					if (zif < 0.0) zif = 0.0;
 					if (zif >= 7.0) zif = 6.999;
@@ -469,8 +461,11 @@ public:
 				} else {
 					unsigned xc = coord.x >> (-(detail+2));
 					unsigned yc = coord.y >> (-(detail+2));
-					//fixme: replace compute_height!
-					float z = compute_height(0, vector2i(coord.x>>-detail,coord.y>>-detail));
+					float z = -130;
+					if (detail <= 6) {
+						float h = pn.value(xc, yc, 6)/255.0f;
+						z = -130 + h*h*h*0.5 * 256;
+					}
 					float zif = (z + 130) * 4 * 8 / 256;
 					if (zif < 0.0) zif = 0.0;
 					if (zif >= 7.0) zif = 6.999;
@@ -692,7 +687,10 @@ void run()
 
 		sys().swap_buffers();
 	}
-	
+
+	log_info("slowest frame " << fpsm.get_slowest_frame_time_ms() << "ms, fps total " <<
+		 fpsm.get_total_fps());
+
 	glClearColor(0, 0, 1, 0);
 }
 

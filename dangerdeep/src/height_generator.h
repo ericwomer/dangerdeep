@@ -50,15 +50,6 @@ class height_generator
 	/// destructor
 	virtual ~height_generator() {}
 
-	/// compute height value of given detail and coordinates.
-	///@param detail - detail level to be generated and also coordinate domain,
-	///                0 means a sample spacing of "L", the basic geometry clipmap spacing,
-	///                higher values mean coarser levels, values < 0 mean extra detail,
-	///                finer than basic resolution.
-	///@param coord - xy coordinates for the value to generate, scaled to match detail level
-//DEPRECATED!!!!!!!!!!!!!!!!!!
-	virtual float compute_height(int detail, const vector2i& coord) = 0;
-
 	/// compute height values of given detail and coordinate area (including given coordinates)
 	///@param detail - detail level to be generated and also coordinate domain,
 	///                0 means a sample spacing of "L", the basic geometry clipmap spacing,
@@ -71,20 +62,21 @@ class height_generator
 	///@param line_stride - distance between two lines in floats, give 0 for packed lines
 	virtual void compute_heights(int detail, const vector2i& coord_bl,
 				     const vector2i& coord_sz, float* dest, unsigned stride = 0,
-				     unsigned line_stride = 0) // = 0;
-	// dummy implementation for first test, will be removed when compute_height is removed
+				     unsigned line_stride = 0) = 0;
+	/* example implementation:
 	{
 		if (!stride) stride = 1;
 		if (!line_stride) line_stride = coord_sz.x * stride;
 		for (int y = 0; y < coord_sz.y; ++y) {
 			float* dest2 = dest;
 			for (int x = 0; x < coord_sz.x; ++x) {
-				*dest2 = compute_height(detail, coord_bl + vector2i(x, y));
+				*dest2 = FUNC(detail, coord_bl + vector2i(x, y));
 				dest2 += stride;
 			}
 			dest += line_stride;
 		}
 	}
+	*/
 
 	/// compute normal values of given detail and coordinate area (including given coordinates)
 	///@note here is some reasonable implementation, normally it should be overloaded, normals are always packed
