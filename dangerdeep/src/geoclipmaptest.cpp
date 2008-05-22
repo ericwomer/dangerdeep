@@ -559,11 +559,11 @@ void run()
 	height_generator_test2 hgt;
 	// total area covered = 2^(levels-1) * L * N
 	// 8, 7, 1.0 gives 2^14m = 16384m
+#if 1
 	geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, hgt);
-	
-#if 0
-	rastered_map terrain(get_map_dir()+"/ETOPO2v2c_i2_LSB.xml", get_map_dir()+"/ETOPO2v2c_i2_LSB.bin", vector2l(-16*60, 16*60), 32*60 , (unsigned)9);
-	geoclipmap gcm(8, 8, terrain);
+#else	
+	rastered_map terrain(get_map_dir()+"/ETOPO2v2c_i2_LSB.xml", get_map_dir()+"/ETOPO2v2c_i2_LSB.bin", vector2l(-2*60, 2*60), 4*60 , (unsigned)12);
+	geoclipmap gcm(11, 8, terrain);
 #endif
 	
 	//gcm.set_viewerpos(vector3(0, 0, 30.0));
@@ -613,15 +613,27 @@ void run()
 	unsigned tm = sys().millisec();
 	unsigned tm0 = tm;
 	fpsmeasure fpsm(1.0f);
+	float camadd=-4000;
 	while (!quit) {
 		list<SDL_Event> events = sys().poll_event_queue();
 		for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
 			if (it->type == SDL_KEYDOWN) {
-				quit = true;
-		} else if (it->type == SDL_MOUSEBUTTONUP) {
-				gcm.wireframe = !gcm.wireframe;
-
+				switch((*it).key.keysym.sym) {
+					case SDLK_ESCAPE: 
+						quit = true; 
+					break;
+					case SDLK_PAGEUP: 
+						camadd += 5;
+					break;
+					case SDLK_PAGEDOWN: 
+						camadd -= 5;
+					break;	
+					default: 
+					break;
+				}
+				//gcm.set_viewerpos(campos);
 			}
+			if (it->type == SDL_MOUSEBUTTONDOWN) {gcm.wireframe = !gcm.wireframe;}
 		}
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -637,6 +649,8 @@ void run()
 		vector3f campos = cam_path.value(path_fac);
 		vector3f camlookat = cam_path.value(myfrac(path_fac + 0.01)) - vector3f(0, 0, 20);
 		//camera cm(viewpos2, viewpos2 + angle(zang).direction().xyz(-0.25));
+		campos.z+=camadd;
+		camlookat.z+=camadd;
 		camera cm(campos, camlookat);
 		zang = cm.look_direction().value();
 		cm.set_gl_trans();
