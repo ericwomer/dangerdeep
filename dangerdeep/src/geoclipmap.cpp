@@ -48,7 +48,9 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 	  texnormalscratchbuf_3f(resolution_vbo*2*resolution_vbo*2*3),
 	  texnormalscratchbuf(resolution_vbo*2*resolution_vbo*2*3),
 	  texcolorscratchbuf(resolution_vbo*color_res_fac * resolution_vbo*color_res_fac * 3),
-	  idxscratchbuf((resolution_vbo+2)*resolution_vbo*2 + 256),
+	  idxscratchbuf(resolution_vbo*resolution_vbo*2 + // patch triangles
+			resolution_vbo*2*4 + // T-junction triangles
+			resolution_vbo*8), // outmost tri-fan
 	  levels(nr_levels),
 	  height_gen(hg),
 	  myshader(get_shader_dir() + "geoclipmap.vshader",
