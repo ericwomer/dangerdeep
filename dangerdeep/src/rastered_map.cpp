@@ -24,6 +24,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 rastered_map::rastered_map(const std::string& header_file, const std::string& data_file, vector2l _cache_tl, long int _square_size, unsigned num_levels) :
 				min_height(-10800), max_height(8440), square_size(_square_size), cache_tl(_cache_tl), iset(0)
 {
+	sdl_image tmp(get_texture_dir() + "tex_grass3.jpg");
+	unsigned bpp = 0;
+	texture = tmp.get_plain_data(cw, ch, bpp);
+	if (bpp != 3) throw error("color bpp != 3");
+	
 	// open header file
 	xml_doc doc(header_file);
 	doc.load();
@@ -46,8 +51,8 @@ rastered_map::rastered_map(const std::string& header_file, const std::string& da
 	load(levels[levels.size()-1]);
 	
 	long seed = 12234578;
-	float scale = 50.0;
-	float ratio = (float)pow(2.f, -0.85f);
+	float scale = 200.0;
+	float ratio = (float)pow(2.f, -0.80f);
 	long int newres = square_size/resolution;
 	for (int i=levels.size()-2; i>=0; i--) {
 		newres*=2;
@@ -82,10 +87,8 @@ void rastered_map::load(std::vector<float>& level)
 		data_stream.read(c_buf, (int)(square_size/resolution)*2);
 		for (int n=0; n < (int)(square_size/resolution); n++) {
 			level.push_back((float)buf[n]);
-			//level.push_back(0.0);
 		}
 	}
-	//level[1*4+1] = 1000.0;
 
 	std::cout << lines << " lines loaded." << std::endl;
 }
@@ -98,7 +101,7 @@ void rastered_map::sample_up(long int newres, float scale, long seed, std::vecto
 	// copy level-1 heights
 	for (long int y = 0; y < newres/2; ++y) {
 		for (long int x = 0; x < newres/2; ++x) {
-			result[y*2*(newres+1)+x*2] = buf_in[y*(newres/2)+x];
+			result[y*2*(newres+1)+x*2] = buf_in[y*(newres/2)+x]+gauss(&seed)*scale;
 		}
 	}
 	// copy col 0 and row 0 to right and bottom border to avoid a gap of 0-values
@@ -116,14 +119,14 @@ void rastered_map::sample_up(long int newres, float scale, long seed, std::vecto
 	for (long int x=0; x<1; x++) {
 		for (long int y=1; y<newres; y+=2) {
 				pos = y*(newres+1)+x;
-				result[y*(newres+1)+x] = ((result[(y-1)*(newres+1)+x]+result[(y+1)*(newres+1)+x+1]+result[y*(newres+1)+x+1])/3)+gauss(&seed)*scale;
+				result[y*(newres+1)+x] = ((result[(y-1)*(newres+1)+x]+result[(y+1)*(newres+1)+x+1]+result[y*(newres+1)+x+1])/3)+gauss(&pos)*scale;
 		}
 	}
 	// last row
 	for (long int x=newres; x<newres+1; x++) {
 		for (long int y=1; y<newres; y+=2) {
 			pos = y*(newres+1)+x;
-				result[y*(newres+1)+x] = ((result[(y-1)*(newres+1)+x]+result[(y+1)*(newres+1)+x+1]+result[y*(newres+1)+x-1])/3)+gauss(&seed)*scale;
+			result[y*(newres+1)+x] = ((result[(y-1)*(newres+1)+x]+result[(y+1)*(newres+1)+x+1]+result[y*(newres+1)+x-1])/3)+gauss(&pos)*scale;
 		}
 	}
 	
@@ -131,14 +134,14 @@ void rastered_map::sample_up(long int newres, float scale, long seed, std::vecto
 	for (long int x=1; x<1; x+=2) {
 		for (long int y=0; y<1; y++) {
 			pos = y*(newres+1)+x;
-				result[y*(newres+1)+x] = ((result[y*(newres+1)+x-1]+result[y*(newres+1)+x+1]+result[(y+1)*(newres+1)+x])/3)+gauss(&seed)*scale;
+			result[y*(newres+1)+x] = ((result[y*(newres+1)+x-1]+result[y*(newres+1)+x+1]+result[(y+1)*(newres+1)+x])/3)+gauss(&pos)*scale;
 		}
 	}
 	// last col
 	for (long int x=1; x<1; x+=2) {
 		for (long int y=newres; y<newres+1; y++) {
 			pos = y*(newres+1)+x;
-				result[y*(newres+1)+x] = ((result[y*(newres+1)+x-1]+result[y*(newres+1)+x+1]+result[(y-1)*(newres+1)+x])/3)+gauss(&seed)*scale;
+			result[y*(newres+1)+x] = ((result[y*(newres+1)+x-1]+result[y*(newres+1)+x+1]+result[(y-1)*(newres+1)+x])/3)+gauss(&pos)*scale;
 		}
 	}
 	
@@ -146,7 +149,7 @@ void rastered_map::sample_up(long int newres, float scale, long seed, std::vecto
 	for (long int x=1; x<newres; x+=2) {
 		for (long int y=1; y<newres; y+=2) {
 			pos = y*(newres+1)+x;
-				result[y*(newres+1)+x] = ((result[(y-1)*(newres+1)+x-1]+result[(y-1)*(newres+1)+x+1]+result[(y+1)*(newres+1)+x-1]+result[(y+1)*(newres+1)+x+1])/4)+gauss(&seed)*scale;
+			result[y*(newres+1)+x] = ((result[(y-1)*(newres+1)+x-1]+result[(y-1)*(newres+1)+x+1]+result[(y+1)*(newres+1)+x-1]+result[(y+1)*(newres+1)+x+1])/4)+gauss(&pos)*scale;
 		}
 	}
 	
@@ -154,7 +157,7 @@ void rastered_map::sample_up(long int newres, float scale, long seed, std::vecto
 	for (long int x=2; x<newres+1; x+=2) {
 		for (long int y=1; y<newres+1; y+=2) {
 			pos = y*(newres+1)+x;
-				result[y*(newres+1)+x] = ((result[y*(newres+1)+x-1]+result[y*(newres+1)+x+1]+result[(y+1)*(newres+1)+x]+result[(y-1)*(newres+1)+x])/4)+gauss(&seed)*scale;
+			result[y*(newres+1)+x] = ((result[y*(newres+1)+x-1]+result[y*(newres+1)+x+1]+result[(y+1)*(newres+1)+x]+result[(y-1)*(newres+1)+x])/4)+gauss(&pos)*scale;
 		}
 	}
 	
@@ -162,7 +165,7 @@ void rastered_map::sample_up(long int newres, float scale, long seed, std::vecto
 	for (long int x=1; x<newres+1; x+=2) {
 		for (long int y=2; y<newres+1; y+=2) {
 			pos = y*(newres+1)+x;
-				result[y*(newres+1)+x] = ((result[y*(newres+1)+x-1]+result[y*(newres+1)+x+1]+result[(y+1)*(newres+1)+x]+result[(y-1)*(newres+1)+x])/4)+gauss(&seed)*scale;
+			result[y*(newres+1)+x] = ((result[y*(newres+1)+x-1]+result[y*(newres+1)+x+1]+result[(y+1)*(newres+1)+x]+result[(y-1)*(newres+1)+x])/4)+gauss(&pos)*scale;
 		}
 	}		
 	buf_out.resize(newres*newres);
@@ -234,6 +237,23 @@ void rastered_map::sample_down(std::vector<float>& buf_in, std::vector<float>& b
 	}
 }
 
+float rastered_map::compute_height(int detail, const vector2i& _coord) 
+{
+/*	
+	if (detail<0) detail=0;
+	float level_res = (resolution/pow(2, levels.size()-1-detail));
+	long int level_width = square_size/level_res;
+	
+	vector2f coord = vector2f((_coord.x/SECOND_IN_METERS)/level_res, (_coord.y/SECOND_IN_METERS)/level_res);
+	(coord.x<0)?coord.x=floor(coord.x):coord.x=ceil(coord.x);
+	(coord.y<0)?coord.y=floor(coord.y):coord.y=ceil(coord.y);
+	
+	//std::cout << ((cache_tl.y/level_res)-coord.y)*level_width+coord.x-(cache_tl.x/level_res) << std::endl;
+	return levels[detail][((cache_tl.y/level_res)-coord.y)*level_width+coord.x-(cache_tl.x/level_res)];
+*/
+	return 0.0;
+}
+
 void rastered_map::compute_heights(int detail, const vector2i& _coord_bl, const vector2i& coord_sz, 
 								   float* dest, unsigned stride, unsigned line_stride)
 {
@@ -243,7 +263,7 @@ void rastered_map::compute_heights(int detail, const vector2i& _coord_bl, const 
 	
 	vector2f coord_bl;
 	vector2i __coord_bl;
-
+	
 	if (!stride) stride = 1;
 	if (!line_stride) line_stride = coord_sz.x * stride;
 	for (int y = 0; y < coord_sz.y; ++y) {
@@ -252,13 +272,75 @@ void rastered_map::compute_heights(int detail, const vector2i& _coord_bl, const 
 			__coord_bl = _coord_bl+vector2i(x,y);
 			coord_bl = vector2f((__coord_bl.x/SECOND_IN_METERS)/level_res, (__coord_bl.y/SECOND_IN_METERS)/level_res);
 			(coord_bl.x<0)?coord_bl.x=floor(coord_bl.x):coord_bl.x=ceil(coord_bl.x);
-			(coord_bl.y<0)?coord_bl.y=floor(coord_bl.y):coord_bl.y=ceil(coord_bl.y);			
+			(coord_bl.y<0)?coord_bl.y=floor(coord_bl.y):coord_bl.y=ceil(coord_bl.y);
+
 			*dest2 = levels[detail][((cache_tl.y/level_res)-coord_bl.y)*level_width+coord_bl.x-(cache_tl.x/level_res)];
 			dest2 += stride;
 		}
 		dest += line_stride;
 	}	
 }
+
+void rastered_map::compute_colors(int detail, const vector2i& coord_bl,const vector2i& coord_sz, Uint8* dest) 
+{
+	std::vector<float> heights(1);
+	
+	for (int y = 0; y < coord_sz.y; ++y) {
+		for (int x = 0; x < coord_sz.x; ++x) {
+			vector2i coord = coord_bl + vector2i(x, y);
+			color c;
+			if (detail >= -2) {
+				unsigned xc = coord.x << (detail+2);
+				unsigned yc = coord.y << (detail+2);
+				unsigned xc2,yc2;
+				if (detail >= 0) {
+					xc2 = coord.x << detail;
+					yc2 = coord.y << detail;
+				} else {
+					xc2 = coord.x >> -detail;
+					yc2 = coord.y >> -detail;
+				}
+				//fixme: replace compute_height!
+				//float z = compute_height(0/*detail*/, vector2i(xc2,yc2));//coord);
+				compute_heights (detail, vector2i(xc2, yc2), vector2i(1,1), &heights[0], 0, 0);
+				float z = heights[0];
+				float zif = (z + 130) * 4 * 8 / 256;
+				if (zif < 0.0) zif = 0.0;
+				if (zif >= 7.0) zif = 6.999;
+				unsigned zi = unsigned(zif);
+				zif = myfrac(zif);
+				unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
+				float zif2 = 1.0-zif;
+				c = color(uint8_t(texture[3*i]*zif2 + texture[3*i]*zif),
+					  uint8_t(texture[3*i+1]*zif2 + texture[3*i+1]*zif),
+					  uint8_t(texture[3*i+2]*zif2 + texture[3*i+2]*zif));
+			} else {
+					unsigned xc = coord.x >> (-(detail+2));
+					unsigned yc = coord.y >> (-(detail+2));
+					//fixme: replace compute_height!
+compute_heights (detail, vector2i(coord.x>>-detail,coord.y>>-detail), vector2i(1,1), &heights[0], 0, 0);
+				float z = heights[0];				
+					//float z = compute_height(0, vector2i(coord.x>>-detail,coord.y>>-detail));
+					float zif = (z + 130) * 4 * 8 / 256;
+					if (zif < 0.0) zif = 0.0;
+					if (zif >= 7.0) zif = 6.999;
+					unsigned zi = unsigned(zif);
+					zif = myfrac(zif);
+					//if (zi <= 4) zi = ((xc/256)*(xc/256)*3+(yc/256)*(yc/256)*(yc/256)*2+(xc/256)*(yc/256)*7)%5;
+					unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
+					float zif2 = 1.0-zif;
+					c = color(uint8_t(texture[3*i]*zif2 + texture[3*i]*zif),
+						  uint8_t(texture[3*i+1]*zif2 + texture[3*i+1]*zif),
+						  uint8_t(texture[3*i+2]*zif2 + texture[3*i+2]*zif));				
+			}
+			dest[0] = c.r;
+			dest[1] = c.g;
+			dest[2] = c.b;
+			dest += 3;
+		}
+	}
+}
+
 
 /*
 

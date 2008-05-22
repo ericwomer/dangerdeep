@@ -29,6 +29,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "xml.h"
 #include "color.h"
 #include "height_generator.h"
+#include "image.h"
+#include "datadirs.h"
+#include "global_data.h"
 
 class rastered_map : public height_generator
 {
@@ -55,6 +58,9 @@ protected: // map
 	vector2l cache_tl;
 	std::vector<std::vector<float> > levels;
 	
+	std::vector<uint8_t> texture;
+	unsigned cw, ch;
+	
 	rastered_map();
 	
 	double gauss(long*);
@@ -70,9 +76,10 @@ public: // map
 
 	rastered_map(const std::string&, const std::string&, vector2l, long int, unsigned);
 	~rastered_map();
-	float compute_height(int detail, const vector2i& coord) {return 0.0; }
-	double get_sample_spacing() const { return 1.806640625; }
+	float compute_height(int detail, const vector2i& coord);
+	double get_sample_spacing() const { return (SECOND_IN_METERS*resolution)/pow(2, levels.size()-1); }
 	void compute_heights(int, const vector2i&, const vector2i&, float*, unsigned = 0, unsigned = 0);
+	void compute_colors(int, const vector2i&, const vector2i&, Uint8*);
 	unsigned get_log2_color_res_factor() const { return 1; }
 	void get_min_max_height(double& minh, double& maxh) const
 	{
