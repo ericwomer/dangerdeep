@@ -47,7 +47,7 @@ rastered_map::rastered_map(const std::string& header_file, const std::string& da
 	
 	long seed = 12234578;
 	float scale = 50.0;
-	float ratio = (float)pow(2.f, -0.65f);
+	float ratio = (float)pow(2.f, -0.85f);
 	long int newres = square_size/resolution;
 	for (int i=levels.size()-2; i>=0; i--) {
 		newres*=2;
@@ -172,44 +172,6 @@ void rastered_map::sample_up(long int newres, float scale, long seed, std::vecto
 		}
 	}
 }
-float rastered_map::compute_height(unsigned detail, const vector2i& _coord)
-{
-	if (detail<0) detail=0;
-	float level_res = (resolution/pow(2, levels.size()-1-detail));
-	long int level_width = square_size/level_res;	
-	
-	vector2f coord((_coord.x/SECOND_IN_METERS)/level_res, (_coord.y/SECOND_IN_METERS)/level_res);
-	(coord.x<0)?coord.x=floor(coord.x):coord.x=ceil(coord.x);
-	(coord.y<0)?coord.y=floor(coord.y):coord.y=ceil(coord.y);
-	//std::cout << "coord: " << coord.x<< " " <<coord.y << std::endl;
-	long int pos = ((cache_tl.y/level_res)-coord.y)*level_width+coord.x-(cache_tl.x/level_res);
-		
-	//std::cout << "cache_tl: " << cache_tl.x/level_res<< " " << cache_tl.y/level_res << std::endl;
-	//std::cout << "pos: " << pos<< std::endl;
-	return levels[detail][pos];
-}
-
-
-
-color rastered_map::compute_color(unsigned detail, const vector2i& coord)
-{
-	if (detail<0) detail=0;
-		float h = compute_height(detail, coord);
-		vector3f n = compute_normal(detail, coord, 1.0);
-		return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,75+50,20))
-				: color(64+h*0.5+32, 64+h*0.5+32, 64+h*0.5+32);
-}
-color rastered_map::compute_color_extra(unsigned detail, const vector2i& coord) 
-{ 
-	return compute_color(0, coord);
-}
-vector3f rastered_map::compute_normal(unsigned detail, const vector2i& coord, float zh) {
-		float hr = compute_height(detail, coord + vector2i(1, 0));
-		float hu = compute_height(detail, coord + vector2i(0, 1));
-		float hl = compute_height(detail, coord + vector2i(-1, 0));
-		float hd = compute_height(detail, coord + vector2i(0, -1));
-		return vector3f(hl-hr, hd-hu, zh*2).normal();
-	}
 
 double rastered_map::ran1(long *idum)
 {
@@ -271,3 +233,53 @@ void rastered_map::sample_down(std::vector<float>& buf_in, std::vector<float>& b
 		}
 	}
 }
+
+void rastered_map::compute_heights(int detail, const vector2i& _coord_bl, const vector2i& coord_sz, 
+								   float* dest, unsigned stride, unsigned line_stride)
+{
+	if (detail<0) detail=0;
+	float level_res = (resolution/pow(2, levels.size()-1-detail));
+	long int level_width = square_size/level_res;	
+	
+	vector2f coord_bl;
+	vector2i __coord_bl;
+
+	if (!stride) stride = 1;
+	if (!line_stride) line_stride = coord_sz.x * stride;
+	for (int y = 0; y < coord_sz.y; ++y) {
+		float* dest2 = dest;
+		for (int x = 0; x < coord_sz.x; ++x) {
+			__coord_bl = _coord_bl+vector2i(x,y);
+			coord_bl = vector2f((__coord_bl.x/SECOND_IN_METERS)/level_res, (__coord_bl.y/SECOND_IN_METERS)/level_res);
+			(coord_bl.x<0)?coord_bl.x=floor(coord_bl.x):coord_bl.x=ceil(coord_bl.x);
+			(coord_bl.y<0)?coord_bl.y=floor(coord_bl.y):coord_bl.y=ceil(coord_bl.y);			
+			*dest2 = levels[detail][((cache_tl.y/level_res)-coord_bl.y)*level_width+coord_bl.x-(cache_tl.x/level_res)];
+			dest2 += stride;
+		}
+		dest += line_stride;
+	}	
+}
+
+/*
+
+color rastered_map::compute_color(unsigned detail, const vector2i& coord)
+{
+	if (detail<0) detail=0;
+		float h = compute_height(detail, coord);
+		vector3f n = compute_normal(detail, coord, 1.0);
+		return (n.z > 0.9) ? (h > 20 ? color(240, 240, 242) : color(20,75+50,20))
+				: color(64+h*0.5+32, 64+h*0.5+32, 64+h*0.5+32);
+}
+color rastered_map::compute_color_extra(unsigned detail, const vector2i& coord) 
+{ 
+	return compute_color(0, coord);
+}
+vector3f rastered_map::compute_normal(unsigned detail, const vector2i& coord, float zh) {
+		float hr = compute_height(detail, coord + vector2i(1, 0));
+		float hu = compute_height(detail, coord + vector2i(0, 1));
+		float hl = compute_height(detail, coord + vector2i(-1, 0));
+		float hd = compute_height(detail, coord + vector2i(0, -1));
+		return vector3f(hl-hr, hd-hu, zh*2).normal();
+	}
+
+*/

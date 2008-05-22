@@ -70,14 +70,10 @@ public: // map
 
 	rastered_map(const std::string&, const std::string&, vector2l, long int, unsigned);
 	~rastered_map();
-	
-	double get_sample_spacing() const { return 14.453125; }
-	vector3f compute_normal(unsigned, const vector2i&, float);
-	vector3f compute_normal_extra(unsigned detail, const vector2i& coord, float zh) { return compute_normal(0,coord, zh); }
-	float compute_height(unsigned detail, const vector2i& coord);
-	float compute_height_extra(unsigned detail, const vector2i& coord) { return compute_height (0, coord); }
-	color compute_color(unsigned detail, const vector2i& coord);
-	color compute_color_extra(unsigned , const vector2i&);
+	float compute_height(int detail, const vector2i& coord) {return 0.0; }
+	double get_sample_spacing() const { return 1.806640625; }
+	void compute_heights(int, const vector2i&, const vector2i&, float*, unsigned = 0, unsigned = 0);
+	unsigned get_log2_color_res_factor() const { return 1; }
 	void get_min_max_height(double& minh, double& maxh) const
 	{
 		minh = (double)min_height;
