@@ -82,11 +82,9 @@ class geoclipmap
 
 		area() : bl(0, 0), tr(-1, -1) {}
 		area(const vector2i& a, const vector2i& b) : bl(a), tr(b) {}
-		/*
-		  area clip(const area& other) const {
-		  return area(bl.max(other.bl), tr.min(other.tr));
-		  }
-		*/
+		area intersection(const area& other) const {
+			return area(bl.max(other.bl), tr.min(other.tr));
+		}
 		vector2i size() const { return vector2i(tr.x - bl.x + 1, tr.y - bl.y + 1); }
 		bool empty() const { vector2i sz = size(); return sz.x*sz.y <= 0; }
 	};

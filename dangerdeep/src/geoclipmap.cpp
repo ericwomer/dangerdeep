@@ -226,7 +226,7 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 	// compute part of "outer" that is NOT covered by old outer area,
 	// this gives a rectangular or L-shaped form, but this can not be expressed
 	// as area, only with at least 2 areas...
-	if (vboarea.empty()) {
+	if (vboarea.empty() || vboarea.intersection(outer).empty()) {
 		vboarea = outer;	// set this to make the update work correctly
 		dataoffset = gcm.clamp(outer.bl);
 		update_region(outer);
