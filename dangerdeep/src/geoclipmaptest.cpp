@@ -404,7 +404,8 @@ public:
 				dest += line_stride;
 			}
 		} else {
-			bivector<float> d0h(vector2i(coord_sz.x>>-detail, coord_sz.y>>-detail));
+			// we need one value more to correctly upsample it
+			bivector<float> d0h(vector2i((coord_sz.x>>-detail)+1, (coord_sz.y>>-detail)+1));
 			compute_heights(0, vector2i(coord_bl.x>>-detail, coord_bl.y>>-detail),
 					d0h.size(), d0h.data_ptr());
 			for (int z = detail; z < 0; ++z) {
@@ -560,8 +561,10 @@ void run()
 	// total area covered = 2^(levels-1) * L * N
 	// 8, 7, 1.0 gives 2^14m = 16384m
 #if 1
+	float camadd=0;
 	geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, hgt);
 #else	
+	float camadd=-4000;
 	rastered_map terrain(get_map_dir()+"/ETOPO2v2c_i2_LSB.xml", get_map_dir()+"/ETOPO2v2c_i2_LSB.bin", vector2l(-2*60, 2*60), 4*60 , (unsigned)12);
 	geoclipmap gcm(11, 8, terrain);
 #endif
@@ -613,7 +616,6 @@ void run()
 	unsigned tm = sys().millisec();
 	unsigned tm0 = tm;
 	fpsmeasure fpsm(1.0f);
-	float camadd=-4000;
 	while (!quit) {
 		list<SDL_Event> events = sys().poll_event_queue();
 		for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
