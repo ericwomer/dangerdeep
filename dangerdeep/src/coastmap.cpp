@@ -50,9 +50,10 @@ inline double round(double d) { return floor(d + 0.5); }
 
 // fixme: replace this
 #ifdef DEBUG
-#define ASSERT(a,...) do{if(!(a)){char __tmp[256];vsprintf(__tmp, __VA_ARGS__);throw error(__tmp);}}while(0)
+//#define ASSERT(a,fmt,...) do{if(!(a)){char __tmp[256];vsprintf(__tmp, fmt, __VA_ARGS__);throw error(__tmp);}}while(0)
+#define ASSERT(a,fmt,...)
 #else
-#define ASSERT(a,...)
+#define ASSERT(a,fmt,...)
 #endif
 
 const unsigned BSPLINE_SMOOTH_FACTOR = 16;//3;//16;	// should be 3...16
@@ -353,7 +354,7 @@ void coastsegment::generate_point_cache(const class coastmap& cm, int x, int y, 
 //				cout << "segpos: x " << x << " y " << y << "\n";
 //				cout << "current is : " << current << "\n";
 			//	segcls[current].print();
-				ASSERT(!cl_handled[current], "illegal .next values!");
+				ASSERT(!cl_handled[current], "illegal .next values!",0);
 
 				const segcl& cl = segcls[current];
 				ce.points.reserve(ce.points.size() + cl.points.size());
