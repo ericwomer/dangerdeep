@@ -1,0 +1,5 @@
+<dftd-map>
+	<resolution value="120"/>
+	<max latitude="90" longitude="180"/>
+	<min latitude="-90" longitude="-180"/>
+</dftd-map>
