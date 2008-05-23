@@ -200,7 +200,14 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx, bool outmost_level)
 	std::vector<Uint8> pxl(3*gcm.resolution_vbo*gcm.resolution_vbo*2*2);
 	normals.reset(new texture(pxl, gcm.resolution_vbo*2,
 				  gcm.resolution_vbo*2, GL_RGB, texture::LINEAR, texture::REPEAT));
-	memset(&pxl[0], index*30, gcm.resolution_vbo*gcm.resolution_vbo*2*2*3);
+	if (color_res_fac == 2) {
+		// reuse pxl
+		memset(&pxl[0], index*30, pxl.size());
+	} else {
+		pxl.clear();
+		pxl.resize(color_res_fac*gcm.resolution_vbo * color_res_fac*gcm.resolution_vbo * 3,
+			   index*30);
+	}
 	colors.reset(new texture(pxl, gcm.resolution_vbo*color_res_fac,
 				 gcm.resolution_vbo*color_res_fac, GL_RGB, texture::LINEAR, texture::REPEAT));
 }
