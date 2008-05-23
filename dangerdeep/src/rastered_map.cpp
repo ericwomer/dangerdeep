@@ -44,8 +44,8 @@ rastered_map::rastered_map(const std::string& header_file, const std::string& da
 	min_lat = elem.attri("latitude");
 	min_lot = elem.attri("longitude");	
 	// open data file
-	data_stream.open(data_file.c_str(), std::ios::binary|std::ios::in);
-	if (!data_stream.is_open()) throw std::ios::failure("Could not open file: "+data_file);
+	//data_stream.open(data_file.c_str(), std::ios::binary|std::ios::in);
+	//if (!data_stream.is_open()) throw std::ios::failure("Could not open file: "+data_file);
 	
 	levels.resize(num_levels);
 	load(levels[levels.size()-1]);
@@ -83,10 +83,11 @@ void rastered_map::load(std::vector<float>& level)
 	for (long int i=start; i<end; i+=file_width) 
 	{
 		lines++;
-		data_stream.seekg(i*2);
-		data_stream.read(c_buf, (int)(square_size/resolution)*2);
+		//data_stream.seekg(i*2);
+		//data_stream.read(c_buf, (int)(square_size/resolution)*2);
 		for (int n=0; n < (int)(square_size/resolution); n++) {
-			level.push_back((float)buf[n]);
+			//level.push_back((float)buf[n]);
+			level.push_back(-4500.0);
 		}
 	}
 

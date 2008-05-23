@@ -77,7 +77,7 @@ public: // map
 	rastered_map(const std::string&, const std::string&, vector2l, long int, unsigned);
 	~rastered_map();
 	float compute_height(int detail, const vector2i& coord);
-	double get_sample_spacing() const { return (SECOND_IN_METERS*resolution)/pow(2, levels.size()-1); }
+		double get_sample_spacing() const { std::cout << "blubb" << std::endl; return (SECOND_IN_METERS*resolution)/pow(2, levels.size()-1); }
 	void compute_heights(int, const vector2i&, const vector2i&, float*, unsigned = 0, unsigned = 0);
 	void compute_colors(int, const vector2i&, const vector2i&, Uint8*);
 	unsigned get_log2_color_res_factor() const { return 1; }
