@@ -48,9 +48,9 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 	  texnormalscratchbuf_3f(resolution_vbo*2*resolution_vbo*2*3),
 	  texnormalscratchbuf(resolution_vbo*2*resolution_vbo*2*3),
 	  texcolorscratchbuf(resolution_vbo*color_res_fac * resolution_vbo*color_res_fac * 3),
-	  idxscratchbuf(resolution_vbo*resolution_vbo*2 + // patch triangles
-			resolution_vbo*2*4 + // T-junction triangles
-			resolution_vbo*8), // outmost tri-fan
+	  idxscratchbuf(2*(resolution_vbo+4)*(resolution_vbo+4) // patch triangles
+			+ 2*4*resolution_vbo // T-junction triangles
+			+ 4*2*resolution_vbo), // outmost tri-fan
 	  levels(nr_levels),
 	  height_gen(hg),
 	  myshader(get_shader_dir() + "geoclipmap.vshader",
@@ -190,8 +190,11 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx, bool outmost_level)
 	// size of T-junction triangles: 4 indices per triangle (3 + 2 degen. - 1), 4*N/2 triangles
 	// max. size for normal triangles + T-junc.: 2*N^2 - 4*N + 8*N - 16 = 2*N^2 + 4*N - 16
 	// size for multiple columns: 2 per new column, at most N columns, mostly less.
-	indices.init_data(2*gcm.resolution_vbo*gcm.resolution_vbo*4 + 4*gcm.resolution*4
-			  + (outmost ? 4*2*gcm.resolution_vbo*4 : 0),
+	// however because of post-TL cache usage and line-to-line degenerated triangles
+	// we need much more indices. Precise numbers are hard to compute, so we take a value
+	// slightly larger than what we need.
+	indices.init_data((2*(gcm.resolution_vbo+4)*(gcm.resolution_vbo+4) + 2*4*gcm.resolution
+			   + (outmost ? 4*2*gcm.resolution_vbo : 0)) * 4/*GLuint*/,
 			  0, GL_STATIC_DRAW);
 	// create space for normal texture
 	std::vector<Uint8> pxl(3*gcm.resolution_vbo*gcm.resolution_vbo*2*2);
