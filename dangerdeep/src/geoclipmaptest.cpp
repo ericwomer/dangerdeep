@@ -560,7 +560,7 @@ void run()
 	height_generator_test2 hgt;
 	// total area covered = 2^(levels-1) * L * N
 	// 8, 7, 1.0 gives 2^14m = 16384m
-#if 1
+#if 0
 	float camadd=0;
 	geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, hgt);
 #else	
