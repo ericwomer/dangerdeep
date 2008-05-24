@@ -301,12 +301,6 @@ bivector<T> bivector<T>::smooth_upsampled(bool wrap) const
 	   So we have:
 	   n+3  -> 2n+1
 	   n    -> 2n    with wrapping
-	   fixme: with wrap avoid value shift left/up by 1!
-	   fixme: in y dir we need one row more at top/bottom to interpolate,
-	   so we should clamp in general and generate n+1->2n+1 always!
-	   we would need to generate n+3 rows but only do n+1.
-	   to generate n+3 we need clamp on border. then we could do that for x too,
-	   and again get n+1->2n+1 as usual (w/o wrap)
 	*/
 	if (datasize.x < 3 || datasize.y < 3) throw std::invalid_argument("bivector::smooth_upsampled base size invalid");
 	vector2i resultsize = wrap ? datasize*2 : datasize*2 - vector2i(1,1);
@@ -326,7 +320,18 @@ bivector<T> bivector<T>::smooth_upsampled(bool wrap) const
 	}
 	if (wrap) {
 		for (int y=0; y < datasize.y; ++y) {
-			// fixme
+			result.at(1, 2*y) = T(at(datasize.x-1, y) * c1[0] +
+					      at(0, y) * c1[1] +
+					      at(1, y) * c1[2] +
+					      at(2, y) * c1[3]);
+			result.at(2*datasize.x-3, 2*y) = T(at(datasize.x-3, y) * c1[0] +
+							   at(datasize.x-2, y) * c1[1] +
+							   at(datasize.x-1, y) * c1[2] +
+							   at(           0, y) * c1[3]);
+			result.at(2*datasize.x-1, 2*y) = T(at(datasize.x-2, y) * c1[0] +
+							   at(datasize.x-1, y) * c1[1] +
+							   at(           0, y) * c1[2] +
+							   at(           1, y) * c1[3]);
 		}
 	} else {
 		for (int y=0; y < datasize.y; ++y) {
@@ -351,22 +356,31 @@ bivector<T> bivector<T>::smooth_upsampled(bool wrap) const
 	}
 	// handle special cases on last row
 	if (wrap) {
-		/*
-		// interpolate last row with first and second-to-last
+		// interpolate 3 missing rows
 		for (int x=0; x < resultsize.x; ++x) {
-			result.at(x, resultsize.y-1) = T((result.at(x, resultsize.y-2) + result.at(x, 0)) * 0.5);
+			result.at(x, 1) = T(result.at(x, 2*datasize.y-2) * c1[0] +
+					    result.at(x,              0) * c1[1] +
+					    result.at(x,              2) * c1[2] +
+					    result.at(x,              4) * c1[3]);
+			result.at(x, 2*datasize.y-3) = T(result.at(x, 2*datasize.y-6) * c1[0] +
+							 result.at(x, 2*datasize.y-4) * c1[1] +
+							 result.at(x, 2*datasize.y-2) * c1[2] +
+							 result.at(x,              0) * c1[3]);
+			result.at(x, 2*datasize.y-1) = T(result.at(x, 2*datasize.y-4) * c1[0] +
+							 result.at(x, 2*datasize.y-2) * c1[1] +
+							 result.at(x,              0) * c1[2] +
+							 result.at(x,              2) * c1[3]);
 		}
-		*/
 	} else {
 		for (int x=0; x < resultsize.x; ++x) {
-			result.at(x, 1) = T(at(x, 0) * c1[0] +
-					    at(x, 0) * c1[1] +
-					    at(x, 1) * c1[2] +
-					    at(x, 2) * c1[3]);
-			result.at(x, 2*datasize.y-3) = T(at(x, datasize.y-3) * c1[0] +
-							 at(x, datasize.y-2) * c1[1] +
-							 at(x, datasize.y-1) * c1[2] +
-							 at(x, datasize.y-1) * c1[3]);
+			result.at(x, 1) = T(result.at(x, 0) * c1[0] +
+					    result.at(x, 0) * c1[1] +
+					    result.at(x, 2) * c1[2] +
+					    result.at(x, 4) * c1[3]);
+			result.at(x, 2*datasize.y-3) = T(result.at(x, 2*datasize.y-6) * c1[0] +
+							 result.at(x, 2*datasize.y-4) * c1[1] +
+							 result.at(x, 2*datasize.y-2) * c1[2] +
+							 result.at(x, 2*datasize.y-2) * c1[3]);
 		}
 	}
 	return result;

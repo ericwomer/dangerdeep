@@ -52,5 +52,9 @@ int main(int, char**)
 	save(load("test.pgm").convert<float>().smooth_upsampled().convert<uint8_t>(0,255), "test3s.pgm");
 	save(load("test.pgm").convert<float>().smooth_upsampled().smooth_upsampled().convert<uint8_t>(0,255), "test4s.pgm");
 	save(load("test.pgm").convert<float>().smooth_upsampled().smooth_upsampled().smooth_upsampled().convert<uint8_t>(0,255), "test5s.pgm");
+
+	save(load("test.pgm").convert<float>().smooth_upsampled(true).convert<uint8_t>(0,255), "test3sw.pgm");
+	save(load("test.pgm").convert<float>().smooth_upsampled(true).smooth_upsampled(true).convert<uint8_t>(0,255), "test4sw.pgm");
+	save(load("test.pgm").convert<float>().smooth_upsampled(true).smooth_upsampled(true).smooth_upsampled(true).convert<uint8_t>(0,255), "test5sw.pgm");
 	return 0;
 }
