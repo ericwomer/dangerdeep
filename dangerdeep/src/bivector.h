@@ -54,6 +54,9 @@ class bivector
 		std::swap(datasize, other.datasize);
 	}
 
+	template<class U> bivector<U> convert() const;
+	template<class U> bivector<U> convert(const T& minv, const T& maxv) const;
+
 	// get pointer to storage, be very careful with that!
 	T* data_ptr() { return &data[0]; }
 	const T* data_ptr() const { return &data[0]; }
@@ -65,6 +68,7 @@ class bivector
 	T get_max() const;
 	bivector<T>& operator*= (const T& s);
 	bivector<T>& operator+= (const T& v);
+	bivector<T> smooth_upsampled(bool wrap = false) const;
 
 	// algebraic operations, omponent-wise add, sub, multiply (of same datasize)
 	// sum of square of differences etc.
@@ -72,6 +76,8 @@ class bivector
  protected:
 	vector2i datasize;
 	std::vector<T> data;
+
+	template<class U> friend class bivector;
 };
 
 template <class T>
@@ -99,7 +105,7 @@ void bivector<T>::resize(const vector2i& newsz, const T& v)
 template <class T>
 T bivector<T>::get_min() const
 {
-	if (data.empty()) throw std::invalid_argument();
+	if (data.empty()) throw std::invalid_argument("bivector::get_min data empty");
 	T m = data[0];
 	bivector_FOREACH(m = std::min(m, data[z]))
 }
@@ -107,7 +113,7 @@ T bivector<T>::get_min() const
 template <class T>
 T bivector<T>::get_max() const
 {
-	if (data.empty()) throw std::invalid_argument();
+	if (data.empty()) throw std::invalid_argument("bivector::get_max data empty");
 	T m = data[0];
 	bivector_FOREACH(m = std::max(m, data[z]))
 }
@@ -129,8 +135,8 @@ bivector<T>& bivector<T>::operator+= (const T& v)
 template <class T>
 bivector<T> bivector<T>::sub_area(const vector2i& offset, const vector2i& sz) const
 {
-	if (offset.y + sz.y >= datasize.y) throw std::invalid_argument();
-	if (offset.x + sz.x >= datasize.x) throw std::invalid_argument();
+	if (offset.y + sz.y >= datasize.y) throw std::invalid_argument("bivector::sub_area, offset.y invalid");
+	if (offset.x + sz.x >= datasize.x) throw std::invalid_argument("bivector::sub_area, offset.x invalid");
 	bivector<T> result(sz);
 	for (int y=0; y < result.datasize.y; ++y)
 		for (int x=0; x < result.datasize.x; ++x)
@@ -155,6 +161,24 @@ bivector<T> bivector<T>::transposed() const
 	return result;
 }
 
+template<class T>
+template<class U>
+bivector<U> bivector<T>::convert() const
+{
+	bivector<U> result(datasize);
+	bivector_FOREACH(result.data[z] = U(data[z]))
+	return result;
+}
+
+template<class T>
+template<class U>
+bivector<U> bivector<T>::convert(const T& minv, const T& maxv) const
+{
+	bivector<U> result(datasize);
+	bivector_FOREACH(result.data[z] = U(std::max(minv, std::min(maxv, data[z]))))
+	return result;
+}
+
 template <class T>
 bivector<T> bivector<T>::upsampled(bool wrap) const
 {
@@ -165,63 +189,43 @@ bivector<T> bivector<T>::upsampled(bool wrap) const
 	   x-x
 	   So 1x1 pixels are upsampled to 2x2 using the neighbourhood.
 	   This means we can't generate samples beyond the last column/row,
-	   thus 2n+1 samples generate 4n+1 resulting samples.
-	   If we have 2n samples we could either get one more sample with
-	   wrap to generate 4n samples, or we need to skip sampling the
-	   last value (clamping would give 4n+1 samples where the last
-	   3 ones are identical) and thus get 4n-1 samples.
+	   thus n+1 samples generate 2n+1 resulting samples.
+	   With wrapping we can compute one more sample.
 	   So we have:
-	   2n+1 -> 4n+1                   (2n interpolated values, 1 copy)
-	   2n   -> 4n    with wrapping    (2n interpolated values, 2n-1 without wrap-code)
-	   2n   -> 4n-1  without wrapping (2n-2 interpolated values, 1 copy)
+	   n+1 -> 2n+1
+	   n   -> 2n    with wrapping
 	*/
-	vector2i scalsize(datasize.x & ~1, datasize.y & ~1);
-	vector2i resultsize = scalsize * 2;
-	if (datasize.x & 1) {
-		++resultsize.x;
-	} else if (wrap) {
-		--scalsize.x;
-	} else {
-		--resultsize.x;
-		--scalsize.x;
-	}
-	if (datasize.y & 1) {
-		++resultsize.y;
-	} else if (wrap) {
-		--scalsize.y;
-	} else {
-		--resultsize.y;
-		--scalsize.y;
-	}
+	if (datasize.x < 1 || datasize.y < 1) throw std::invalid_argument("bivector::upsampled base size invalid");
+	vector2i resultsize = wrap ? datasize*2 : datasize*2 - vector2i(1,1);
 	bivector<T> result(resultsize);
 	// copy values that are kept and interpolate missing values on even rows
-	for (int y=0; y <= scalsize.y; ++y) {
-		for (int x=0; x < scalsize.x; ++x) {
-			result.at(2*x, 2*y) = at(x, y);
+	for (int y=0; y < datasize.y; ++y) {
+		for (int x=0; x < datasize.x-1; ++x) {
+			result.at(2*x  , 2*y) = at(x, y);
 			result.at(2*x+1, 2*y) = T((at(x, y) + at(x+1, y)) * 0.5);
 		}
 	}
 	// handle special cases on last column
-	if ((datasize.x & 1) || !wrap) {
-		// copy last column
-		for (int y=0; y <= scalsize.y; ++y) {
-			result.at(2*scalsize.x, 2*y) = at(scalsize.x, y);
+	if (wrap) {
+		// copy/interpolate with wrap
+		for (int y=0; y < datasize.y; ++y) {
+			result.at(2*datasize.x-2, 2*y) = at(datasize.x-1, y);
+			result.at(2*datasize.x-1, 2*y) = T((at(datasize.x-1, y) + at(0, y)) * 0.5);
 		}
 	} else {
-		// copy/interpolate with wrap
-		for (int y=0; y <= scalsize.y; ++y) {
-			result.at(2*scalsize.x, 2*y) = at(scalsize.x, y);
-			result.at(2*scalsize.x+1, 2*y) = T((at(scalsize.x, y) + at(0, y)) * 0.5);
+		// copy last column
+		for (int y=0; y < datasize.y; ++y) {
+			result.at(2*datasize.x-2, 2*y) = at(datasize.x-1, y);
 		}
 	}
 	// interpolate missing values on odd rows
-	for (int y=0; y < scalsize.y; ++y) {
+	for (int y=0; y < datasize.y-1; ++y) {
 		for (int x=0; x < resultsize.x; ++x) {
 			result.at(x, 2*y+1) = T((result.at(x, 2*y) + result.at(x, 2*y+2)) * 0.5);
 		}
 	}
 	// handle special cases on last row
-	if ((datasize.y & 1) == 0 && wrap) {
+	if (wrap) {
 		// interpolate last row with first and second-to-last
 		for (int x=0; x < resultsize.x; ++x) {
 			result.at(x, resultsize.y-1) = T((result.at(x, resultsize.y-2) + result.at(x, 0)) * 0.5);
@@ -267,6 +271,102 @@ bivector<T> bivector<T>::downsampled(bool force_even_size) const
 		if ((datasize.x & datasize.y) & 1) {
 			// copy corner, hasn't been handled yet
 			result.at(newsize.x, newsize.y) = at(datasize.x-1, datasize.y-1);
+		}
+	}
+	return result;
+}
+
+template <class T>
+bivector<T> bivector<T>::smooth_upsampled(bool wrap) const
+{
+	/* interpolate one new value out of four neighbours,
+	   or out of 4x4 neighbours with a coefficient matrix:
+	   -1/16 9/16 9/16 -1/16 along one axis,
+	*/
+	static const float c1[4] = { -1.0f/16, 9.0f/16, 9.0f/16, -1.0f/16 };
+	/* upsampling generates 3 new values out of the 16 surrounding
+	   values like this: (x - surrounding values, numbers: generated)
+	   x-x-x-x
+	   -------
+	   x-x1x-x
+	   --23---
+	   x-x-x-x
+	   -------
+	   x-x-x-x
+	   So 1x1 pixels are upsampled to 2x2 using the neighbourhood.
+	   This means we can't generate samples beyond the last two columns/rows,
+	   and before the second column/row.
+	   thus n+3 samples generate 2n+1 resulting samples (4->3, 5->5, 6->7, 7->9, ...)
+	   With wrap we can get 2n samples out of n.
+	   So we have:
+	   n+3  -> 2n+1
+	   n    -> 2n    with wrapping
+	   fixme: with wrap avoid value shift left/up by 1!
+	   fixme: in y dir we need one row more at top/bottom to interpolate,
+	   so we should clamp in general and generate n+1->2n+1 always!
+	   we would need to generate n+3 rows but only do n+1.
+	   to generate n+3 we need clamp on border. then we could do that for x too,
+	   and again get n+1->2n+1 as usual (w/o wrap)
+	*/
+	if (datasize.x < 3 || datasize.y < 3) throw std::invalid_argument("bivector::smooth_upsampled base size invalid");
+	vector2i resultsize = wrap ? datasize*2 : datasize*2 - vector2i(1,1);
+	bivector<T> result(resultsize);
+	// copy values that are kept and interpolate missing values on even rows
+	for (int y=0; y < datasize.y; ++y) {
+		result.at(0, 2*y) = at(0, y);
+		for (int x=1; x < datasize.x-2; ++x) {
+			result.at(2*x  , 2*y) = at(x, y);
+			result.at(2*x+1, 2*y) = T(at(x-1, y) * c1[0] +
+						  at(x  , y) * c1[1] +
+						  at(x+1, y) * c1[2] +
+						  at(x+2, y) * c1[3]);
+		}
+		result.at(2*datasize.x-4, 2*y) = at(datasize.x-2, y);
+		result.at(2*datasize.x-2, 2*y) = at(datasize.x-1, y);
+	}
+	if (wrap) {
+		for (int y=0; y < datasize.y; ++y) {
+			// fixme
+		}
+	} else {
+		for (int y=0; y < datasize.y; ++y) {
+			result.at(1, 2*y) = T(at(0, y) * c1[0] +
+					      at(0, y) * c1[1] +
+					      at(1, y) * c1[2] +
+					      at(2, y) * c1[3]);
+			result.at(2*datasize.x-3, 2*y) = T(at(datasize.x-3, y) * c1[0] +
+							   at(datasize.x-2, y) * c1[1] +
+							   at(datasize.x-1, y) * c1[2] +
+							   at(datasize.x-1, y) * c1[3]);
+		}
+	}
+	// interpolate missing values on odd rows
+	for (int y=1; y < datasize.y-2; ++y) {
+		for (int x=0; x < resultsize.x; ++x) {
+			result.at(x, 2*y+1) = T(result.at(x, 2*y-2) * c1[0] +
+						result.at(x, 2*y  ) * c1[1] + 
+						result.at(x, 2*y+2) * c1[2] + 
+						result.at(x, 2*y+4) * c1[3]);
+		}
+	}
+	// handle special cases on last row
+	if (wrap) {
+		/*
+		// interpolate last row with first and second-to-last
+		for (int x=0; x < resultsize.x; ++x) {
+			result.at(x, resultsize.y-1) = T((result.at(x, resultsize.y-2) + result.at(x, 0)) * 0.5);
+		}
+		*/
+	} else {
+		for (int x=0; x < resultsize.x; ++x) {
+			result.at(x, 1) = T(at(x, 0) * c1[0] +
+					    at(x, 0) * c1[1] +
+					    at(x, 1) * c1[2] +
+					    at(x, 2) * c1[3]);
+			result.at(x, 2*datasize.y-3) = T(at(x, datasize.y-3) * c1[0] +
+							 at(x, datasize.y-2) * c1[1] +
+							 at(x, datasize.y-1) * c1[2] +
+							 at(x, datasize.y-1) * c1[3]);
 		}
 	}
 	return result;

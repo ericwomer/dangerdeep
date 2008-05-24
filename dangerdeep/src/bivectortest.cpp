@@ -34,6 +34,9 @@ int main(int, char**)
 	save(load("test.pgm").downsampled(), "test6.pgm");
 	save(load("test.pgm").downsampled().downsampled(), "test7.pgm");
 	save(load("test.pgm").downsampled().downsampled().downsampled(), "test8.pgm");
+	save(load("test.pgm").upsampled(true), "test3w.pgm");
+	save(load("test.pgm").upsampled(true).upsampled(true), "test4w.pgm");
+	save(load("test.pgm").upsampled(true).upsampled(true).upsampled(true), "test5w.pgm");
 
 	save(load("testb.pgm"), "test2b.pgm");
 	save(load("testb.pgm").upsampled(), "test3b.pgm");
@@ -45,5 +48,9 @@ int main(int, char**)
 	save(load("testb.pgm").upsampled(true), "test3bw.pgm");
 	save(load("testb.pgm").upsampled(true).upsampled(true), "test4bw.pgm");
 	save(load("testb.pgm").upsampled(true).upsampled(true).upsampled(true), "test5bw.pgm");
+
+	save(load("test.pgm").convert<float>().smooth_upsampled().convert<uint8_t>(0,255), "test3s.pgm");
+	save(load("test.pgm").convert<float>().smooth_upsampled().smooth_upsampled().convert<uint8_t>(0,255), "test4s.pgm");
+	save(load("test.pgm").convert<float>().smooth_upsampled().smooth_upsampled().smooth_upsampled().convert<uint8_t>(0,255), "test5s.pgm");
 	return 0;
 }
