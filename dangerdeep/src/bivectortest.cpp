@@ -56,5 +56,31 @@ int main(int, char**)
 	save(load("test.pgm").convert<float>().smooth_upsampled(true).convert<uint8_t>(0,255), "test3sw.pgm");
 	save(load("test.pgm").convert<float>().smooth_upsampled(true).smooth_upsampled(true).convert<uint8_t>(0,255), "test4sw.pgm");
 	save(load("test.pgm").convert<float>().smooth_upsampled(true).smooth_upsampled(true).smooth_upsampled(true).convert<uint8_t>(0,255), "test5sw.pgm");
+
+	bivector<float> y(vector2i(256,256));
+	y.add_gauss_noise(1.0);
+	y *= 128;
+	y += 128;
+	save(y.convert<uint8_t>(0, 255), "testgauss.pgm");
+	bivector<float> x(vector2i(16,16));
+	x.add_gauss_noise(1.0);
+	x = x.smooth_upsampled(true);
+	x.add_gauss_noise(0.5);
+	x = x.smooth_upsampled(true);
+	x.add_gauss_noise(0.25);
+	x = x.smooth_upsampled(true);
+	x.add_gauss_noise(0.125);
+	x = x.smooth_upsampled(true);
+	x.add_gauss_noise(0.0625);
+	x = x.smooth_upsampled(true);
+	x.add_gauss_noise(1.0/32);
+	x = x.smooth_upsampled(true);
+	x.add_gauss_noise(1.0/64);
+	x = x.smooth_upsampled(true);
+	x.add_gauss_noise(1.0/128);
+	// saving
+	x *= 128;
+	x += 128;
+	save(x.convert<uint8_t>(0, 255), "testgauss2.pgm");
 	return 0;
 }

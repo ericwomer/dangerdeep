@@ -73,6 +73,8 @@ class bivector
 	// algebraic operations, omponent-wise add, sub, multiply (of same datasize)
 	// sum of square of differences etc.
 
+	bivector<T>& add_gauss_noise(const T& scal);
+
  protected:
 	vector2i datasize;
 	std::vector<T> data;
@@ -385,6 +387,17 @@ bivector<T> bivector<T>::smooth_upsampled(bool wrap) const
 	}
 	return result;
 }
+
+template <class T>
+bivector<T>& bivector<T>::add_gauss_noise(const T& scal)
+{
+	// fixme: gauss noise isn't fully correct, curve is centered around 100, not 128...
+	//bivector_FOREACH(data[z] += T((std::min(1.0, sqrt(-2.0*log(double(rand())/RAND_MAX))/3.14159)*2.0-1.0) * scal))
+	bivector_FOREACH(double r=double(rand())/RAND_MAX*2.0-1.0; data[z] += T(r*r*r * scal))
+	//bivector_FOREACH(data[z] += T(((double(rand())/RAND_MAX)*2.0-1.0) * scal))
+	return *this;
+}
+
 
 #undef bivector_FOREACH
 #undef bivector_FOREACH_XY
