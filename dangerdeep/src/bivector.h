@@ -74,6 +74,7 @@ class bivector
 	// sum of square of differences etc.
 
 	bivector<T>& add_gauss_noise(const T& scal);
+	bivector<T>& add_tiled(const bivector<T>& other, const T& scal);
 
  protected:
 	vector2i datasize;
@@ -388,16 +389,33 @@ bivector<T> bivector<T>::smooth_upsampled(bool wrap) const
 	return result;
 }
 
+#ifndef M_PI
+#define M_PI 3.1415927
+#endif
+
 template <class T>
 bivector<T>& bivector<T>::add_gauss_noise(const T& scal)
 {
-	// fixme: gauss noise isn't fully correct, curve is centered around 100, not 128...
-	//bivector_FOREACH(data[z] += T((std::min(1.0, sqrt(-2.0*log(double(rand())/RAND_MAX))/3.14159)*2.0-1.0) * scal))
-	bivector_FOREACH(double r=double(rand())/RAND_MAX*2.0-1.0; data[z] += T(r*r*r * scal))
+	for (int z=0; z < int(data.size()); ++z) {
+		double r, q, s;
+		do {
+			r=(double(rand())/RAND_MAX)*2-1;
+			s=r*M_PI;
+			s=exp(-0.5*s*s);
+			q=double(rand())/RAND_MAX;
+		} while (q > s);
+		data[z] += T(r * scal);
+	}
 	//bivector_FOREACH(data[z] += T(((double(rand())/RAND_MAX)*2.0-1.0) * scal))
 	return *this;
 }
 
+template <class T>
+bivector<T>& bivector<T>::add_tiled(const bivector<T>& other, const T& scal)
+{
+	bivector_FOREACH_XY(at(x,y) += other.at(x % other.datasize.x, y % other.datasize.y) * scal;)
+	return *this;
+}
 
 #undef bivector_FOREACH
 #undef bivector_FOREACH_XY
