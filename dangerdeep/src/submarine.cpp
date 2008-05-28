@@ -161,6 +161,36 @@ void submarine::stored_torpedo::save(xml_elem& parent) const
 
 
 
+submarine::tank::tank(xml_elem e)
+	: type(ballast),
+	  volume(e.attrf("volume")),
+	  fillrate(e.attrf("fillrate")),
+	  pos(e.attrf("posx"), e.attrf("posy"), e.attrf("posz")),
+	  fill(0)
+{
+	if (e.attr("type") == "trim")
+		type = trim;
+	else if (e.attr("type") == "ballast")
+		type = ballast;
+	else throw error(std::string("invalid tank type in file ") + e.doc_name());
+}
+
+
+
+void submarine::tank::load(game& gm, const xml_elem& parent)
+{
+	//fixme
+}
+
+
+
+void submarine::tank::save(xml_elem& parent) const
+{
+	//fixme
+}
+
+
+
 submarine::submarine(game& gm_, const xml_elem& parent)
 	: ship(gm_, parent),
 	  dive_speed(0),
@@ -239,6 +269,13 @@ submarine::submarine(game& gm_, const xml_elem& parent)
 	bridge_camera_pos = br.child("camera").attrv3();
 	bridge_uzo_pos = br.child("uzo").attrv3();
 	bridge_freeview_pos = br.child("freeview").attrv3();
+
+	if (parent.has_child("tanks")) { // fixme: later all subs should have it!!
+	xml_elem etanks = parent.child("tanks");
+	for (xml_elem::iterator it = etanks.iterate("tank"); !it.end(); it.next()) {
+		tanks.push_back(tank(it.elem()));
+	}
+	}
 }
 
 
@@ -291,6 +328,8 @@ void submarine::load(const xml_elem& parent)
 	}
 #endif
 
+	// fixme: load tank filling values here
+
 	TDC.load(parent);
 	sonarman.load(parent);
 }
@@ -333,6 +372,8 @@ void submarine::save(xml_elem& parent) const
 		//save a part node for each entry
 		//it->save(out);
 	//}
+
+	// fixme: save tank fillings here
 
 	TDC.save(parent);
 	sonarman.save(parent);

@@ -186,6 +186,31 @@ protected:
 	vector3 bridge_uzo_pos;
 	vector3 bridge_freeview_pos;
 
+	// tanks/diving
+	class tank
+	{
+	public:
+		enum types { trim, ballast };
+		tank(xml_elem e);
+		void load(game& gm, const xml_elem& parent);
+		void save(xml_elem& parent) const;
+
+	protected:
+		// values read from spec file, constant at runtime
+		types type;
+		double volume;
+		double fillrate;
+		vector3 pos;
+
+		// runtime-changable, stored in savegame
+		double fill; // cubic meters
+
+	private:
+		tank();
+	};
+
+	std::vector<tank> tanks;
+
 public:
 	// there were more types, I, X (mine layer), XIV (milk cow), VIIf, (and VIId)
 	// and some experimental types. (VIIc42, XVIIa/b)
