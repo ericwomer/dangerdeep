@@ -107,8 +107,8 @@ protected:
 	double stern_rudder;
 
 	/// additional mass of submarine given by filled tanks (is added to "mass")
-	double mass_flooded_tanks; // deprecated
-	double ballast_tank_capacity; // deprecated
+	double mass_flooded_tanks; // recomputed from tanks-vector every simulate() round
+	double ballast_tank_capacity; // computed from tanks-vector
 
 	double max_submerged_speed;	// read from spec file
 
