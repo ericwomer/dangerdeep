@@ -107,8 +107,8 @@ protected:
 	double stern_rudder;
 
 	/// additional mass of submarine given by filled tanks (is added to "mass")
-	double mass_flooded_tanks;
-	double ballast_tank_capacity;
+	double mass_flooded_tanks; // deprecated
+	double ballast_tank_capacity; // deprecated
 
 	double max_submerged_speed;	// read from spec file
 
@@ -171,6 +171,13 @@ protected:
 	/// used to simulate diving
 	void compute_force_and_torque(vector3& F, vector3& T) const;
 
+	/// open ballast tank valves
+	void flood_ballast_tanks();
+	/// push air to all ballast tanks
+	///@param amount_cbm - amount of air to push in m^3
+	///@returns rest air that did not fit to any tank in m^3
+	double push_air_to_ballast_tanks(double amount_cbm);
+
 	// in-hull temperature, depends on weather/latitude etc.
 	// torpedo-temperature is set from this value for stored torpedoes (not in tubes)
 	//double temperature;//maybe store for each torpedo and not here...
@@ -192,18 +199,31 @@ protected:
 	public:
 		enum types { trim, ballast };
 		tank(xml_elem e);
-		void load(game& gm, const xml_elem& parent);
+		void load(const xml_elem& parent);
 		void save(xml_elem& parent) const;
+		void simulate(double delta_time);
+		void set_flood_valve(bool flood = true);
+		/// put some air into the tank
+		///@note handle pressure later
+		///@param amount_cbm - air to be pushed into the tank in m^3
+		///@returns rest air that did not fit to tank in m^3
+		double push_air_inside(double amount_cbm);
+
+		types get_type() const { return type; }
+		double get_volume() const { return volume; }
+		const vector3& get_pos() const { return pos; }
+		double get_fill() const { return fill; }
 
 	protected:
 		// values read from spec file, constant at runtime
 		types type;
-		double volume;
-		double fillrate;
+		double volume; // m^3
+		double fillrate; // m^3/s
 		vector3 pos;
 
 		// runtime-changable, stored in savegame
-		double fill; // cubic meters
+		double fill; // m^3
+		bool flood_valve_open; // can water enter tank?
 
 	private:
 		tank();
