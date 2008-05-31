@@ -34,4 +34,7 @@ const double SECOND_IN_METERS = MINUTE_IN_METERS/60.0;
 // earth perimeter in meters
 const double EARTH_PERIMETER      = 40030173.59;
 
+// Brutto register ton in cubic meters (100 cubic feet, 1 feet = 30.48cm)
+const double BRT_VOLUME = 2.8316846592;
+
 #endif
