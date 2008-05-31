@@ -224,7 +224,6 @@ void submarine::tank::save(xml_elem& parent) const
 
 submarine::submarine(game& gm_, const xml_elem& parent)
 	: ship(gm_, parent),
-	  dive_speed(0),
 	  max_depth(0),
 	  dive_to(0),
 	  permanent_dive(false),
@@ -324,7 +323,6 @@ void submarine::load(const xml_elem& parent)
 {
 	ship::load(parent);
 	xml_elem dv = parent.child("diving");
-	dive_speed = dv.attrf("dive_speed");
 	max_depth = dv.attrf("max_depth");
 	dive_to = dv.attrf("dive_to");
 	permanent_dive = dv.attrb("permanent_dive");
@@ -378,7 +376,6 @@ void submarine::save(xml_elem& parent) const
 {
 	ship::save(parent);
 	xml_elem dv = parent.add_child("diving");
-	dv.set_attr(dive_speed, "dive_speed");
 	dv.set_attr(max_depth, "max_depth");
 	dv.set_attr(dive_to, "dive_to");
 	dv.set_attr(permanent_dive, "permanent_dive");
@@ -478,25 +475,25 @@ void submarine::simulate(double delta_time)
 	else if( bow_rudder < d_rudder_to )
 		++bow_rudder;
 
-	// try: now compute_force_and_torque handles tanks
-	// fixme: when we manipulate mass, we need to manipulate the physical values depending
-	// on it too (linear + angular)
-	//vector3 v = linear_momentum * mass_inv;
-	//mass += mass_flooded_tanks;
-	//mass_inv = 1.0/mass;
-	//linear_momentum = v * mass;
-	ship::simulate(delta_time);
-	//v = linear_momentum * mass_inv;
-	//mass -= mass_flooded_tanks;
-	//mass_inv = 1.0/mass;
-	//linear_momentum = v * mass;
-
 	// simulate all tanks (flooding) and recompute mass_flooded_tanks here
 	mass_flooded_tanks = 0;
 	for (std::vector<tank>::iterator it = tanks.begin(); it != tanks.end(); ++it) {
 		it->simulate(delta_time);
-		mass_flooded_tanks += it->get_fill();
+		mass_flooded_tanks += it->get_fill() * 1000.0 /* water density */;
 	}
+
+	// now simulate the submarine as usual, but modify mass to handle
+	// the extra mass of the ballast (and trim) tanks.
+	// Do not manipulate linear_momentum or angular momentum here,
+	// which means velocity is lower when tanks have more mass,
+	// because velocity = linear_momentum / mass and mass is greater
+	// Thus flooding tanks will make sub slower, which is in fact realistic.
+	double mass_orig = mass;
+	mass += mass_flooded_tanks;
+	mass_inv = 1.0/mass;
+	ship::simulate(delta_time);
+	mass = mass_orig;
+	mass_inv = 1.0/mass;
 
 #if 1 // test code to dive by flooding
 	//const double kg_per_sec = 1000; // 100 liters per second can be flooded/blowed out
@@ -521,26 +518,11 @@ void submarine::simulate(double delta_time)
 		//double flood = std::min(kg_per_sec * delta_time, ballast_tank_capacity - mass_flooded_tanks);
 		//mass_flooded_tanks += flood;
 	}
-	DBGOUT8(position.z,dive_to,mass_flooded_tanks,mass,s1,s2,s3,err);
+	//DBGOUT8(position.z,dive_to,mass_flooded_tanks,mass,s1,s2,s3,err);
 #endif
 
-#if 0
-	vector3 sub_velocity = get_local_velocity();
-
-	// acceleration constant (acceleration should not be constant here though)
-	dive_acceleration = 1.0;
-
-	vector3 dive_accel(0,0,dive_acceleration*fabs(sub_velocity.y));
-	//dive_accel += sub_velocity;
-
-	// front rudder comes as -90 : 90 [a * sin( (rudder/3)*(PI/180) ) * delta_time]
-	dive_speed = dive_accel.z * sin( (bow_rudder*0.3333)*M_PI*0.005555 ) * delta_time;
-
-	// still use the same variable to prevent breaking the code
-	double delta_depth = dive_speed;
-#else
+	// old code, to be replaced
 	double delta_depth = 0;
-#endif
 
 	// Activate or deactivate electric engines.
 	// fixme: make it snorkel depth
@@ -557,42 +539,6 @@ void submarine::simulate(double delta_time)
 		electric_engine = false;
 	}
 
-#if 0
-	if (dive_speed != 0) {
-		if (permanent_dive) {
-			position.z += delta_depth;
-		} else {
-			double fac = (dive_to - position.z)/delta_depth;
-			if (1 <= fac && fac <= 3) {
-				bow_to = (dive_to < position.z) ? rudder_down_10 : rudder_up_10;
-				//position.z += delta_depth;
-			} else if (0 <= fac && fac <= 1) {
-				position.z = dive_to;
-				planes_middle();
-				bow_to = rudder_center;
-				permanent_dive=true;
-			} else {
-				position.z += delta_depth;
-			}
-		}
-	}
-	if (position.z > 0) {
-		position.z = 0;
-		dive_speed = 0;
-		bow_to = rudder_center;
-	}
-#endif
-
-	// fixme: the faster the sub goes, the faster it can dive.
-
-	// fixme: this is simple and not realistic. and the values are just guessed		
-//	double water_resistance = -dive_speed * 0.5;
-//	dive_speed += delta_time * (2*dive_acceleration + water_resistance);
-//	if (dive_speed > max_dive_speed)
-//		dive_speed = max_dive_speed;
-//	if (dive_speed < -max_dive_speed)
-//		dive_speed = -max_dive_speed;
-		
 	if (-position.z > max_depth)
 		kill();
 
@@ -1021,8 +967,6 @@ void submarine::planes_up(double amount)
 	if( bow_to > rudder_up_30 )
 		bow_to = rudder_up_30;
 
-//	dive_acceleration = -1;
-//	dive_speed = max_dive_speed;
 	permanent_dive = true;
 }
 
@@ -1041,8 +985,6 @@ void submarine::planes_down(double amount)
 		if( bow_to < rudder_down_30 )
 			bow_to = rudder_down_30;
 
-	//	dive_acceleration = 1;
-	//	dive_speed = -max_dive_speed;
 		permanent_dive = true;
 	}
 }
@@ -1051,8 +993,6 @@ void submarine::planes_down(double amount)
 
 void submarine::planes_middle()
 {
-//	dive_acceleration = 0;
-	dive_speed = 0;
 	permanent_dive = false;
 	dive_to = position.z;
 }
@@ -1078,7 +1018,6 @@ void submarine::dive_to_depth(unsigned meters)
 		} else {
 			bow_to = (dive_to - position.z > 2) ? rudder_up_30 : rudder_up_10;
 		}
-		//		dive_speed = (dive_to < position.z) ? -max_dive_speed : max_dive_speed;
 	}
 }
 
@@ -1321,20 +1260,19 @@ void submarine::gun_manning_changed(bool is_gun_manned)
 
 void submarine::compute_force_and_torque(vector3& F, vector3& T) const
 {
-	// fixme: add static buoyancy from dive tanks...
+	// static buoyancy from ballast tanks is inherently handled
+	// because if the tanks are empty, they do not account to
+	// total mass of submarine.
 	ship::compute_force_and_torque(F, T);
 
 	// add vertical force and torque generated by the dive planes.
 	//fixme: store,load,save,simulate dive planes!
 	//F.z -= 9.81 * mass; // dive test
 
-	// fixme: add masses of flooded tanks here?
-	// sum of all masses add gravity force
-	// if we do that, we must not add anything to mass in simulate()
-	// relative position cross mass force add torque
+	// add torque caused from tanks here, force is computed by modifying mass
+	// in simulate()
 	for (std::vector<tank>::const_iterator it = tanks.begin(); it != tanks.end(); ++it) {
 		double grav_force = it->get_fill() * 1000.0 /* water_density */ * -GRAVITY;
-		F.z += grav_force;
 		T += orientation.rotate(it->get_pos().cross(vector3(0, 0, grav_force)));
 	}
 }

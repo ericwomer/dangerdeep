@@ -94,6 +94,7 @@ void ship::fill_dist_angle_relation_map(const double initial_velocity)
 
 ship::ship(game& gm_, const xml_elem& parent)
 	: sea_object(gm_, parent),
+	  tonnage(0),
 	  throttle(0),
 	  rudder_pos(0),
 	  rudder_to(0),
@@ -833,11 +834,22 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	//        should be done frequently...
 
 	double lift_force_sum = 0; // = -GRAVITY * mass;
+	//double debug_liftforcesum=0,debug_gravityforcesum=0;
 	vector3 dr_torque;
 	const std::vector<model::voxel>& voxel_data = mymodel->get_voxel_data();
 	const vector3f& voxel_size = mymodel->get_voxel_size();
 	const float voxel_radius = mymodel->get_voxel_radius();
-	const float voxel_vol = voxel_size.x * voxel_size.y * voxel_size.z;
+	// Note! voxel_vol is volume of voxel measure from model file. However this
+	// may not be the exact volume of the model (with historical accuary),
+	// thus we use the stored tonnage from the spec file as the volume,
+	// and for that we need to rescale voxel_vol by historical_volume / model_volume
+	// Tonnage is stored in BRT!
+	// Alternative: use the stored volume of the .phys file - this option is used here
+	const double spec_volume = mymodel->get_base_mesh().volume; // tonnage * BRT_VOLUME;
+	const double model_volume = mymodel->get_total_volume_by_voxels();
+	const double volume_scale = /*(tonnage == 0) ? 1.0 :*/ spec_volume / model_volume;
+	const float voxel_vol = voxel_size.x * voxel_size.y * voxel_size.z
+		* volume_scale;
 	const double voxel_vol_force = voxel_vol * GRAVITY * 1000.0; // 1000kg per cubic meter
 	const matrix4f transmat = orientation.rotmat4() * mymodel->get_base_mesh_transformation()
 		* matrix4f::diagonal(voxel_size);
@@ -868,6 +880,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 			double lift_force = voxel_data[i].part_of_volume * voxel_vol_force * submerged_part;
 			vol_below_water += voxel_data[i].part_of_volume * submerged_part;
 			lift_force_sum += lift_force;
+			//debug_liftforcesum+=lift_force;
 			vector3 lift_torque = p.cross(vector3(0, 0, lift_force));
 			dr_torque += lift_torque;
 			//std::cout << "i=" << i << " subm=" << submerged_part << " vdw=" << voxel_data[i].part_of_volume << " lift_force=" << lift_force << " lift_torque=" << lift_torque << "\n";
@@ -876,10 +889,12 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 		// add part because of flooding
 		relative_gravity_force += flooded_mass[i] * -GRAVITY;
 		lift_force_sum += relative_gravity_force;
+		//debug_gravityforcesum+=relative_gravity_force;
 		dr_torque += p.cross(vector3(0, 0, relative_gravity_force));
 	}
 //	std::cout << "mass=" << mass << " lift_force_sum=" << lift_force_sum << " grav=" << -GRAVITY*mass << "\n";
 //	std::cout << "vol below water=" << vol_below_water << " of " << voxel_data.size() << "\n";
+	//DBGOUT3(debug_liftforcesum,debug_gravityforcesum,mass);
 
 	// fixme: torpedoes MUST NOT be affected by tide.
 

@@ -81,9 +81,6 @@ class submarine : public ship
 	};
 
 protected:
-	double dive_speed;
-	double dive_acceleration;	// read from spec file
-	double max_dive_speed;		// read from spec file
 	double max_depth;		// created with some randomness after spec file, must get stored!
 
 	/// variables for dive-helmsman simulation
@@ -222,7 +219,7 @@ protected:
 		vector3 pos;
 
 		// runtime-changable, stored in savegame
-		double fill; // m^3
+		double fill; // m^3, maybe later kg? water density isn't handled yet!
 		bool flood_valve_open; // can water enter tank?
 
 	private:
