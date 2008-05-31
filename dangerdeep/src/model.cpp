@@ -1826,6 +1826,7 @@ void model::read_phys_file(const string& filename)
 			      bsize.y / voxel_resolution.y,
 			      bsize.z / voxel_resolution.z);
 	double voxel_volume = voxel_size.x * voxel_size.y * voxel_size.z;
+	total_volume_by_voxels = ve.attrf("invol") * voxel_volume;
 	voxel_radius = pow(voxel_volume * 3.0 / (4.0 * M_PI), 1.0/3); // sphere of same volume
 	unsigned ptr = 0;
 	float mass_part_sum = 0;

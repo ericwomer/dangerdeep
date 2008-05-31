@@ -367,6 +367,8 @@ protected:
 	vector3f voxel_size;
 	/// "radius" of a voxel in 3-space
 	float voxel_radius;
+	/// total volume of model defined by voxels
+	double total_volume_by_voxels;
 	/// per voxel: relative 3d position and part of volume that is inside (0...1)
 	std::vector<voxel> voxel_data;
 	/// voxel for 3-space coordinate of it, -1 if not existing
@@ -499,6 +501,8 @@ public:
 	const vector3f& get_voxel_size() const { return voxel_size; }
 	/// request voxel "radius"
 	float get_voxel_radius() const { return voxel_radius; }
+	/// request total volume by voxels
+	float get_total_volume_by_voxels() const { return total_volume_by_voxels; }
 	/// request voxel data
 	const std::vector<voxel>& get_voxel_data() const { return voxel_data; }
 	/// get voxel data by position, may return 0 for not existing voxels
