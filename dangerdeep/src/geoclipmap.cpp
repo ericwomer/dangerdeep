@@ -36,6 +36,8 @@ Thus requests for detail level 0 give 2^p*2^p normals or colors for each vertex,
 p is the factor.
 */
 
+#undef DEBUG_INDEX_USAGE
+
 geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_generator& hg)
 	: resolution((1 << resolution_exp) - 2),
 	  resolution_vbo(1 << resolution_exp),
@@ -50,7 +52,12 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 	  texcolorscratchbuf(resolution_vbo*color_res_fac * resolution_vbo*color_res_fac * 3),
 	  idxscratchbuf(2*(resolution_vbo+4)*(resolution_vbo+4) // patch triangles
 			+ 2*4*resolution_vbo // T-junction triangles
-			+ 4*2*resolution_vbo), // outmost tri-fan
+			+ 4*2*resolution_vbo // outmost tri-fan
+			+ 32*resolution_vbo // some extra rest for striping etc.
+#ifdef DEBUG_INDEX_USAGE
+	                + 100000
+#endif
+			),
 	  levels(nr_levels),
 	  height_gen(hg),
 	  myshader(get_shader_dir() + "geoclipmap.vshader",
@@ -194,7 +201,11 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx, bool outmost_level)
 	// we need much more indices. Precise numbers are hard to compute, so we take a value
 	// slightly larger than what we need.
 	indices.init_data((2*(gcm.resolution_vbo+4)*(gcm.resolution_vbo+4) + 2*4*gcm.resolution
-			   + (outmost ? 4*2*gcm.resolution_vbo : 0)) * 4/*GLuint*/,
+			   + (outmost ? 4*2*gcm.resolution_vbo : 0) + 32*gcm.resolution_vbo
+#ifdef DEBUG_INDEX_USAGE
+			   + 100000
+#endif
+			   ) * 4/*GLuint*/,
 			  0, GL_STATIC_DRAW);
 	// create space for normal texture
 	std::vector<Uint8> pxl(3*gcm.resolution_vbo*gcm.resolution_vbo*2*2);
@@ -757,6 +768,9 @@ void geoclipmap::level::display(const frustum& f) const
 	gcm.myshader.set_uniform(gcm.loc_L_l_rcp, 1.0f/L_l);
 
 	uint32_t* indexvbo = &gcm.idxscratchbuf[0];
+#ifdef DEBUG_INDEX_USAGE
+	for (unsigned i=0;i<gcm.idxscratchbuf.size();++i)gcm.idxscratchbuf[i]=0xdeadbeef;
+#endif
 
 	// we need to compute up to four rectangular areas made up of tri-strips.
 	// they need to get clipped to the viewing frustum later.
@@ -832,4 +846,16 @@ void geoclipmap::level::display(const frustum& f) const
 	glDisableVertexAttribArray(gcm.myshader_vattr_z_c_index);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
+
+#ifdef DEBUG_INDEX_USAGE
+	unsigned s=gcm.idxscratchbuf.size();
+	unsigned e=0;
+	for (unsigned i=s-1;i>0;--i)
+		if (gcm.idxscratchbuf[i]!=0xdeadbeef) {
+			e=i;
+			break;
+		}
+	printf("first index end %u of %u\n",e,s);
+	if (e + 100000 > s) printf("ERROR %u\n",e+100000-s);
+#endif
 }
