@@ -26,7 +26,7 @@
   <motion maxspeed="17.7" maxrevspeed="5" acceleration="0.6" turnrate="0.2">
     <submerged maxspeed="7.6" safedepth="220" maxdepth="240"/>
   </motion>
-  <tonnage min="308" />
+  <tonnage value="308" />
   <mass value="773000" />
   <smoke type="0" x="0" y="0" z="0"/>
   <sensors>
@@ -55,7 +55,7 @@
     <!-- volume in cubic meters, fillrate in cubic meters per second -->
     <tank type="trim" volume="10" fillrate="0.1" posx="0" posy="30" posz="0" />
     <tank type="trim" volume="10" fillrate="0.1" posx="0" posy="-30" posz="0" />
-    <tank type="ballast" volume="100" fillrate="2.0" posx="0" posy="0" posz="0" />
+    <tank type="ballast" volume="150" fillrate="4.0" posx="0" posy="0" posz="0" />
   </tanks>
 </dftd-submarine>
 
