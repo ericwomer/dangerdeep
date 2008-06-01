@@ -36,7 +36,8 @@ Thus requests for detail level 0 give 2^p*2^p normals or colors for each vertex,
 p is the factor.
 */
 
-#undef DEBUG_INDEX_USAGE
+#undef  DEBUG_INDEX_USAGE
+#define DEBUG_INDEX_EXTRA 1000
 
 geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_generator& hg)
 	: resolution((1 << resolution_exp) - 2),
@@ -55,7 +56,7 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 			+ 4*2*resolution_vbo // outmost tri-fan
 			+ 32*resolution_vbo // some extra rest for striping etc.
 #ifdef DEBUG_INDEX_USAGE
-	                + 100000
+	                + DEBUG_INDEX_EXTRA
 #endif
 			),
 	  levels(nr_levels),
@@ -203,7 +204,7 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx, bool outmost_level)
 	indices.init_data((2*(gcm.resolution_vbo+4)*(gcm.resolution_vbo+4) + 2*4*gcm.resolution
 			   + (outmost ? 4*2*gcm.resolution_vbo : 0) + 32*gcm.resolution_vbo
 #ifdef DEBUG_INDEX_USAGE
-			   + 100000
+			   + DEBUG_INDEX_EXTRA
 #endif
 			   ) * 4/*GLuint*/,
 			  0, GL_STATIC_DRAW);
@@ -769,7 +770,7 @@ void geoclipmap::level::display(const frustum& f) const
 
 	uint32_t* indexvbo = &gcm.idxscratchbuf[0];
 #ifdef DEBUG_INDEX_USAGE
-	for (unsigned i=0;i<gcm.idxscratchbuf.size();++i)gcm.idxscratchbuf[i]=0xdeadbeef;
+	for (unsigned i=gcm.idxscratchbuf.size()-DEBUG_INDEX_EXTRA;i<gcm.idxscratchbuf.size();++i)gcm.idxscratchbuf[i]=0xdeadbeef;
 #endif
 
 	// we need to compute up to four rectangular areas made up of tri-strips.
@@ -855,7 +856,7 @@ void geoclipmap::level::display(const frustum& f) const
 			e=i;
 			break;
 		}
-	printf("first index end %u of %u\n",e,s);
-	if (e + 100000 > s) printf("ERROR %u\n",e+100000-s);
+	//printf("first index end %u of %u\n",e,s);
+	if (e + DEBUG_INDEX_EXTRA >= s) printf("ERROR %u\n",e+DEBUG_INDEX_EXTRA-s);
 #endif
 }
