@@ -136,8 +136,8 @@ class height_generator
  protected:
 	height_generator(double L = 1.0, unsigned l2crf = 1)
 		: sample_spacing(L), log2_color_res_factor(l2crf) {}
-	const double sample_spacing;	// equal to "L" value of geoclipmap renderer
-	const unsigned log2_color_res_factor; // colors have 2^x more values as vertices
+	double sample_spacing;	// equal to "L" value of geoclipmap renderer
+	unsigned log2_color_res_factor; // colors have 2^x more values as vertices
 };
 
 #endif
