@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <math.h>
 #include "vector2.h"
@@ -32,6 +33,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "image.h"
 #include "datadirs.h"
 #include "global_data.h"
+#include "bivector.h"
+#include "perlinnoise.h"
 
 class rastered_map : public height_generator
 {
@@ -52,32 +55,26 @@ public:
 		}
 	};	
 protected: // map
-	
 	std::ifstream data_stream;
 	long int max_lat, min_lat, max_lot, min_lot, resolution, min_height, max_height, square_size;
 	vector2l cache_tl;
-	std::vector<std::vector<float> > levels;
+	std::vector<bivector<float> > levels;
 	
 	std::vector<uint8_t> texture;
 	unsigned cw, ch;
 	
 	rastered_map();
-	
-	double gauss(long*);
-	double ran1(long*);
-	void load(std::vector<float>&);
-	void sample_up(long int, float, long int, std::vector<float>&, std::vector<float>&);
-	void sample_down(std::vector<float>&, std::vector<float>&, unsigned);
+
+	void load(bivector<float>&);
 		
-	int iset;
-	float gset;
-	
+	perlinnoise pn, pn2;
+	std::vector<Uint8> extrah;
+
 public: // map
 
 	rastered_map(const std::string&, const std::string&, vector2l, long int, unsigned);
 	~rastered_map();
 	float compute_height(int detail, const vector2i& coord);
-		double get_sample_spacing() const { std::cout << "blubb" << std::endl; return (SECOND_IN_METERS*resolution)/pow(2, levels.size()-1); }
 	void compute_heights(int, const vector2i&, const vector2i&, float*, unsigned = 0, unsigned = 0);
 	void compute_colors(int, const vector2i&, const vector2i&, Uint8*);
 	unsigned get_log2_color_res_factor() const { return 1; }
