@@ -62,7 +62,7 @@ class height_generator
 	///@param line_stride - distance between two lines in floats, give 0 for packed lines
 	virtual void compute_heights(int detail, const vector2i& coord_bl,
 				     const vector2i& coord_sz, float* dest, unsigned stride = 0,
-				     unsigned line_stride = 0) = 0;
+				     unsigned line_stride = 0, bool noise = true) = 0;
 	/* example implementation:
 	{
 		if (!stride) stride = 1;

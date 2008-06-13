@@ -384,7 +384,7 @@ public:
 	}
 	void compute_heights(int detail, const vector2i& coord_bl,
 			     const vector2i& coord_sz, float* dest, unsigned stride = 0,
-			     unsigned line_stride = 0) {
+			     unsigned line_stride = 0, bool = true) {
 		if (!stride) stride = 1;
 		if (!line_stride) line_stride = coord_sz.x * stride;
 		if (detail >= 0) {
@@ -560,13 +560,13 @@ void run()
 	height_generator_test2 hgt;
 	// total area covered = 2^(levels-1) * L * N
 	// 8, 7, 1.0 gives 2^14m = 16384m
-#if 0
+#if 1
 	float camadd=0;
 	geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, hgt);
 #else	
-	float camadd=-4000;
-	rastered_map terrain(get_map_dir()+"/ETOPO2v2c_i2_LSB.xml", get_map_dir()+"/ETOPO2v2c_i2_LSB.bin", vector2l(-2*60, 2*60), 4*60 , (unsigned)12);
-	geoclipmap gcm(11, 8, terrain);
+	float camadd=-4500.0;
+	rastered_map terrain(get_map_dir()+"/ETOPO2v2c_i2_LSB.xml", get_map_dir()+"/ETOPO2v2c_i2_LSB.bin", vector2l(-4*60, 4*60), 8*60 , 11, 1);
+	geoclipmap gcm(10, 8, terrain);
 #endif
 	
 	//gcm.set_viewerpos(vector3(0, 0, 30.0));
@@ -611,7 +611,7 @@ void run()
 
 	auto_ptr<texture> bkg;
 	auto_ptr<glsl_shader_setup> glss;
-
+	float cammove=0;
 	bool quit = false;
 	unsigned tm = sys().millisec();
 	unsigned tm0 = tm;
@@ -652,6 +652,8 @@ void run()
 		vector3f camlookat = cam_path.value(myfrac(path_fac + 0.01)) - vector3f(0, 0, 20);
 		//camera cm(viewpos2, viewpos2 + angle(zang).direction().xyz(-0.25));
 		campos.z+=camadd;
+		cammove+=200;
+//		campos.x-=cammove;
 		camlookat.z+=camadd;
 		camera cm(campos, camlookat);
 		zang = cm.look_direction().value();
