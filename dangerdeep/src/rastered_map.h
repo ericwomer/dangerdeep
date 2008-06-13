@@ -39,45 +39,31 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class rastered_map : public height_generator
 {
 public: 
-	struct area
-	{
-		vector2l tl, br;
 
-		area(const vector2l& a, const vector2l& b) : tl(a), br(b) {}
-
-		long int width() { return br.x-tl.x; }
-		long int height() { return tl.y-br.y; }
-		void move(vector2l m) {
-			tl.x+=m.x;
-			tl.y+=m.y;
-			br.x+=m.x;
-			br.y+=m.y;
-		}
-	};	
 protected: // map
 	std::ifstream data_stream;
+	int num_levels, cache_levels;
 	long int max_lat, min_lat, max_lot, min_lot, resolution, min_height, max_height, square_size;
 	vector2l cache_tl;
 	std::vector<bivector<float> > levels;
 	
-	std::vector<uint8_t> texture;
-	unsigned cw, ch;
-	
 	rastered_map();
 
 	void load(bivector<float>&);
-		
+	
+	std::vector<uint8_t> texture;
+	unsigned cw, ch;		
 	perlinnoise pn, pn2;
-	std::vector<Uint8> extrah;
+	std::vector<uint8_t> ct[8];
+	std::vector<float> extrah;
+	
 
 public: // map
 
-	rastered_map(const std::string&, const std::string&, vector2l, long int, unsigned);
+	rastered_map(const std::string&, const std::string&, vector2l, long int, unsigned, unsigned);
 	~rastered_map();
-	float compute_height(int detail, const vector2i& coord);
-	void compute_heights(int, const vector2i&, const vector2i&, float*, unsigned = 0, unsigned = 0);
+	void compute_heights(int, const vector2i&, const vector2i&, float*, unsigned = 0, unsigned = 0, bool = true);
 	void compute_colors(int, const vector2i&, const vector2i&, Uint8*);
-	unsigned get_log2_color_res_factor() const { return 1; }
 	void get_min_max_height(double& minh, double& maxh) const
 	{
 		minh = (double)min_height;
