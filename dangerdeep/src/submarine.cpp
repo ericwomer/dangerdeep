@@ -493,8 +493,11 @@ void submarine::simulate(double delta_time)
 
 #if 1 // test code to dive by flooding
 	//const double kg_per_sec = 1000; // 100 liters per second can be flooded/blowed out
-	double s1 = position.z - dive_to;
-	double s2 = linear_momentum.z * mass_inv;
+	// neutral code: flood as much water into the tanks so the sub floats
+	// should be done only when not surfaced, though...
+	double s1 = mymodel->get_base_mesh().volume * 1000.0/*water_density*/ - mass, s2 = 0;
+//	double s1 = position.z - dive_to;
+//	double s2 = linear_momentum.z * mass_inv;
 //	double s3 = (200000 - mass_flooded_tanks) * 0.01;
 //	double err = mysgn(s1)*s1*s1 + mysgn(s2)*s2*s2*20.0 + mysgn(s3)*s3*s3*0.03;
 	double err = (s1 + s2*20.0)*1000.0;
