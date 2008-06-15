@@ -1023,7 +1023,6 @@ void submarine::depth_steering_logic()
 	   tuning of a, b, c. Their values depend on maximum turn speed.
 	   The following (experimentally gained) formulas give good results.
 	*/
-	//fixme: check for correct signs here and there, also display!
 	double depthdiff = position.z - dive_to;
 	double error0 = depthdiff;
 	double error1 = (bow_depth_rudder.max_angle/bow_depth_rudder.max_turn_speed +
@@ -1296,7 +1295,6 @@ void submarine::compute_force_and_torque(vector3& F, vector3& T) const
 		* (1.0 - stern_depth_rudder.flow_factor()) * mass;
 	planes_force.y = -stern_depth_rudder_drag;
 	// up/down force by rudders
-	//fixme: check for correct signs here and there, also display!
 	double bow_force = bow_depth_rudder.pos.y * bow_depth_rudder.area * water_density * speed*speed * bow_depth_rudder.deflect_factor();
 	double stern_force = stern_depth_rudder.pos.y * stern_depth_rudder.area * water_density * speed*speed * stern_depth_rudder.deflect_factor();
 	stern_force += stern_depth_rudder.pos.y * get_throttle_accel() * rudder.deflect_factor()
