@@ -681,34 +681,6 @@ void user_interface::add_message(const string& s)
 
 
 
-void user_interface::add_rudder_message()
-{
-	// this whole function should be replaced...seems ugly
-	ship* s = dynamic_cast<ship*>(mygame->get_player());
-	if (!s) return;	// ugly hack to allow compilation
-	switch (s->get_rudder_to())
-		{
-		case ship::rudderfullleft:
-			add_message(texts::get(35));
-			break;
-		case ship::rudderleft:
-			add_message(texts::get(33));
-			break;
-		case ship::ruddermidships:
-			add_message(texts::get(42));
-			break;
-		case ship::rudderright:
-			add_message(texts::get(34));
-			break;
-		case ship::rudderfullright:
-			add_message(texts::get(36));
-			break;
-		}
-
-}
-
-
-
 void user_interface::play_sound_effect(const string &se,
 				       const vector3& noise_source /*, bool loop*/) const
 {	

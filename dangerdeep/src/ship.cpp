@@ -48,6 +48,60 @@ map<double, map<double, double> > ship::dist_angle_relation;
 #define ANGLE_GAP 0.1
 #define GUN_RELOAD_TIME 5.0
 
+
+void ship::generic_rudder::simulate(double delta_time)
+{
+	double max_turn_dist = max_turn_speed * delta_time;
+	double d = to_angle - angle;
+	if (fabs(d) <= max_turn_dist) {	// if d is 0, nothing happens.
+		angle = to_angle;
+	} else {
+		if (d < 0) {
+			angle -= max_turn_dist;
+		} else {
+			angle += max_turn_dist;
+		}
+	}
+}
+
+
+
+void ship::generic_rudder::load(const xml_elem& parent)
+{
+	angle = parent.attrf("angle");
+	to_angle = parent.attrf("to_angle");
+}
+
+
+
+void ship::generic_rudder::save(xml_elem& parent) const
+{
+	parent.set_attr(angle, "angle");
+	parent.set_attr(to_angle, "to_angle");
+}
+
+
+
+//void ship::generic_rudder::compute_force_and_torque(vector3& F, vector3& T) const
+//{
+//}
+
+
+
+double ship::generic_rudder::deflect_factor() const
+{
+	return -sin(angle * M_PI / 180);
+}
+
+
+
+double ship::generic_rudder::flow_factor() const
+{
+	return cos(angle * M_PI / 180);
+}
+
+
+
 //fixme: redefine display, call base display
 
 void ship::fill_dist_angle_relation_map(const double initial_velocity)
@@ -96,10 +150,7 @@ ship::ship(game& gm_, const xml_elem& parent)
 	: sea_object(gm_, parent),
 	  tonnage(0),
 	  throttle(0),
-	  rudder_pos(0),
-	  rudder_to(0),
-	  max_rudder_angle(40),
-	  max_rudder_turn_speed(10),
+	  rudder(vector3(0,-30,0 /*not used yet*/), 0, 40, 4/*area*/, 10),//read consts from spec file, fixme
 	  max_angular_velocity(2),
 	  head_to_fixed(false),
 	  max_accel_forward(1),
@@ -235,54 +286,12 @@ void ship::ignite()
 
 
 
-void ship::change_rudder(int to)
+void ship::set_rudder(int to)
 {
 	if (to >= rudderfullleft && to <= rudderfullright)
-		rudder_to = to;
+		rudder.set_to(to);
 	else
-		rudder_to = ruddermidships;
-	head_to_fixed = false;
-}
-
-
-
-void ship::rudder_left()
-{
-	if (rudder_to > rudderfullleft)
-		--rudder_to;
-	head_to_fixed = false;
-}
-
-
-
-void ship::rudder_right()
-{
-	if (rudder_to < rudderfullright)
-		++rudder_to;
-	head_to_fixed = false;
-}
-
-
-
-void ship::rudder_hard_left()
-{
-	rudder_to = rudderfullleft;
-	head_to_fixed = false;
-}
-
-
-
-void ship::rudder_hard_right()
-{
-	rudder_to = rudderfullright;
-	head_to_fixed = false;
-}
-
-
-
-void ship::rudder_midships()
-{
-	rudder_to = ruddermidships;
+		rudder.midships();
 	head_to_fixed = false;
 }
 
@@ -386,8 +395,7 @@ void ship::load(const xml_elem& parent)
 	tonnage = parent.child("tonnage").attru();
 	xml_elem st = parent.child("steering");
 	throttle = throttle_status(st.attri("throttle"));
-	rudder_pos = st.attrf("rudder_pos");
-	rudder_to = st.attri("rudder_to");
+	rudder.load(st.child("rudder"));
 	head_to_fixed = st.attrb("head_to_fixed");
 	head_to = angle(st.attrf("head_to"));
 	xml_elem dm = parent.child("damage");
@@ -462,8 +470,8 @@ void ship::save(xml_elem& parent) const
 	parent.add_child("tonnage").set_attr(tonnage);
 	xml_elem st = parent.add_child("steering");
 	st.set_attr(int(throttle), "throttle");
-	st.set_attr(rudder_pos, "rudder_pos");
-	st.set_attr(rudder_to, "rudder_to");
+	xml_elem er = st.add_child("rudder");
+	rudder.save(er);
 	st.set_attr(head_to_fixed, "head_to_fixed");
 	st.set_attr(head_to.value(), "head_to");
 	xml_elem dm = parent.add_child("damage");
@@ -638,20 +646,7 @@ void ship::simulate(double delta_time)
 	}
 	
 	// Adjust rudder
-	// rudder_to with max_rudder_angle gives set rudder angle.
-	double rudder_angle_set = max_rudder_angle * rudder_to / 2;
-	// current angle is rudder_pos. rudder moves with constant speed to set pos (or 0).
-	double max_rudder_turn_dist = max_rudder_turn_speed * delta_time;
-	double rudder_d = rudder_angle_set - rudder_pos;
-	if (fabs(rudder_d) <= max_rudder_turn_dist) {	// if rudder_d is 0, nothing happens.
-		rudder_pos = rudder_angle_set;
-	} else {
-		if (rudder_d < 0) {
-			rudder_pos -= max_rudder_turn_dist;
-		} else {
-			rudder_pos += max_rudder_turn_dist;
-		}
-	}
+	rudder.simulate(delta_time);
 	
 	// gun turrets
 	gun_turret_itr gun_turret = gun_turrets.begin();	
@@ -700,20 +695,16 @@ void ship::steering_logic()
 	*/
 	double anglediff = (head_to - heading).value_pm180();
 	double error0 = anglediff;
-	double error1 = (max_rudder_angle/max_rudder_turn_speed) * turn_velocity * 1.0;
+	double error1 = (rudder.max_angle/rudder.max_turn_speed) * turn_velocity * 1.0;
 	double error2 = 0;//-rudder_pos/max_rudder_turn_speed * turn_velocity;
 	double error = error0 + error1 + error2;
 	//DBGOUT7(anglediff, turn_velocity, rudder_pos, error0, error1, error2, error);
-	int rd = 0;
-	// in reality we can chose finer rudder positions, would give better results.
-	// range is -2...2
-	if (fabs(error) > 5) rd = 2;
-	else if (fabs(error) > 0.25) rd = 1;
-	rudder_to = (error < 0 ? -1 : 1) * rd;
+	double rd = fabs(error) > 5.0 ? (error < 0 ? -5.0 : 5.0) : error;
+	rudder.to_angle = rudder.max_angle * rd / 5.0;
 	// when error below a certain limit, set head_to_fixed=false, rudder_to=ruddermidships
-	if (fabs(anglediff) <= 0.25 && fabs(rudder_pos) < 1.0) {
+	if (fabs(anglediff) <= 0.25 && fabs(rudder.angle) < 1.0) {
 		head_to_fixed = false;
-		rudder_to = ruddermidships;
+		rudder.midships();
 		//std::cout << "reached course, diff=" << anglediff << " tv=" << turn_velocity << "\n";
 	}
 }
@@ -726,7 +717,7 @@ void ship::head_to_ang(const angle& a, bool left_or_right)	// true == left
 	//cout << "head to ang: " << a.value() << " left? " << left_or_right << "\n";
 	//fixme: very crude... or use rudderleft/rudderright here (not full rudder?)
 	//not crude with steering logic somewhere else... in simulate
-	rudder_to = (left_or_right) ? rudderfullleft : rudderfullright;
+	rudder.set_to(left_or_right ? rudderfullleft : rudderfullright);
 	//cout << "rudder_to=" << rudder_to << "\n";
 	head_to_fixed = true;
 }
@@ -920,7 +911,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	double speed2 = speed*speed;
 	if (fabs(speed) < 1.0) speed2 = fabs(speed)*max_speed_forward;
 	double drag_factor = (speed2) * max_accel_forward / (max_speed_forward*max_speed_forward);
-	double acceleration = get_throttle_accel() * cos(rudder_pos * M_PI / 180.0);
+	double acceleration = get_throttle_accel() * rudder.flow_factor();
 	if (speed > 0) drag_factor = -drag_factor;
 	// force is in world space
 	F = orientation.rotate(vector3(0, (acceleration + drag_factor) * mass, 0));
@@ -1007,9 +998,11 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// fixme: store rudder pos in per-ship spec file.
 	// fixme: rudder torque must have similar formula like above, depends on rudder area
 	// assume rudder area = 2% * turn drag area
-	double rudder_torque = (size3d.y*0.5) * get_turn_drag_area()*0.005 * water_density * speed*speed * sin(-rudder_pos * M_PI / 180.0);
+	double rdf = rudder.deflect_factor();
+	//fixme: later use rudder.area here!
+	double rudder_torque = (size3d.y*0.5) * get_turn_drag_area()*0.005 * water_density * speed*speed * rdf;
 	// add torque caused by forward force
-	rudder_torque += (size3d.y*0.5) * get_throttle_accel() * sin(-rudder_pos * M_PI / 180.0) * mass;
+	rudder_torque += (size3d.y*0.5) * get_throttle_accel() * rdf * mass;
 	local_torque.z += rudder_torque;
 
 	// positive torque turns counter clockwise! torque is in world space!

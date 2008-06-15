@@ -77,15 +77,37 @@ class ship : public sea_object
 
 	int throttle;		// if < 0: throttle_state, if > 0: knots
 
-	// in degrees, do not use class angle here, we need explicit positive and negative values.
-	// negative means rudder is left, so ship heads left.
-	double rudder_pos;
-	// symbolic pos (full left, left, mid, right, full right), fixme: should be angle too...
-	// or better part of full angle.
-	int rudder_to;
+	/// rudder related stuff grouped as class
+	struct generic_rudder
+	{
+		// read from spec file, run-time constants
+		vector3 pos;	// 3d pos of rudder
+		int axis;	// axis (0-z, 1-x)
+		double max_angle;	// max. angle of rudder (+-)
+		double area;	// area of rudder in m^2
+		double max_turn_speed;	// max turn speed in angles/sec
 
-	double max_rudder_angle;// maximum turn, e.g. 30 degr.
-	double max_rudder_turn_speed;
+		double angle;	// current rudder angle in degrees, do not use class angle here, we need explicit positive and negative values.
+		double to_angle;// angle that rudder should move to
+
+		generic_rudder(const vector3& p, int a, double ma, double ar, double mts)
+			: pos(p), axis(a), max_angle(ma), area(ar), max_turn_speed(mts),
+			  angle(0), to_angle(0) {}
+		void simulate(double delta_time);
+		void load(const xml_elem& parent);
+		void save(xml_elem& parent) const;
+		void set_to(int p, unsigned mp = 2) { to_angle = max_angle * p/mp; } // -2 ... 2
+		void set_to(double p) { to_angle = max_angle * p; } // -1 ... 1
+		void midships() { to_angle = 0; }
+		double deflect_factor() const; // sin(angle)
+		double flow_factor() const; // cos(angle)
+		//later add this: give speed + forward force of parent to it,
+		//it can redude forward force of parent!
+		//void compute_force_and_torque(vector3& F, vector3& T) const;
+	};
+
+	generic_rudder rudder;
+
 	double max_angular_velocity;	// depends on turn rate.
 	bool head_to_fixed;	// if true, change rudder_to so that heading moves to head_to
 	angle head_to;
@@ -249,13 +271,7 @@ public:
 	// command interface
 	virtual gun_status fire_shell_at(const vector2& pos);
 	virtual void head_to_ang(const angle& a, bool left_or_right);	// true == left
-	virtual void change_rudder(int to);	// give -2..2, fixme not yet used as command
-	//virtual void set_rudder(angle ang);	// move rudder to this angle
-	virtual void rudder_left();
-	virtual void rudder_right();
-	virtual void rudder_hard_left();
-	virtual void rudder_hard_right();
-	virtual void rudder_midships();
+	virtual void set_rudder(int to);	// give -2..2
 	virtual void set_throttle(int thr);
 
 	virtual void remember_position(double t);
@@ -275,8 +291,7 @@ public:
 	virtual double get_throttle_speed() const;
 	virtual double get_throttle_accel() const;	// returns acceleration caused by current throttle
 	virtual bool screw_cavitation() const;	// returns true if screw causes cavitation
-	virtual double get_rudder_pos() const { return rudder_pos; }
-	virtual int get_rudder_to () const { return rudder_to; }
+	virtual double get_rudder_pos() const { return rudder.angle; }
 	virtual double get_noise_factor () const;
 	virtual gun_status fire_shell_at(const sea_object& s);
 

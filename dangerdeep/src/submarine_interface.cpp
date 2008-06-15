@@ -298,17 +298,17 @@ void submarine_interface::process_input(const SDL_Event& event)
 			
 		// MOVEMENT
 		} else if (mycfg.getkey(KEY_RUDDER_LEFT).equal(event.key.keysym)) {
-			player->rudder_left();
-			add_rudder_message();
+			player->set_rudder(ship::rudderleft);
+			add_message(texts::get(33));
 		} else if (mycfg.getkey(KEY_RUDDER_HARD_LEFT).equal(event.key.keysym)) {
-			player->rudder_hard_left();
-			add_rudder_message();
+			player->set_rudder(ship::rudderfullleft);
+			add_message(texts::get(35));
 		} else if (mycfg.getkey(KEY_RUDDER_RIGHT).equal(event.key.keysym)) {
-			player->rudder_right();
-			add_rudder_message();
+			player->set_rudder(ship::rudderright);
+			add_message(texts::get(34));
 		} else if (mycfg.getkey(KEY_RUDDER_HARD_RIGHT).equal(event.key.keysym)) {
-			player->rudder_hard_right();
-			add_rudder_message();
+			player->set_rudder(ship::rudderfullright);
+			add_message(texts::get(36));
 		} else if (mycfg.getkey(KEY_RUDDER_UP).equal(event.key.keysym)) {
 			player->planes_up(1);
 			add_message(texts::get(37));
@@ -322,7 +322,7 @@ void submarine_interface::process_input(const SDL_Event& event)
 			add_message(texts::get(38));
 			player->planes_down(2);
 		} else if (mycfg.getkey(KEY_CENTER_RUDDERS).equal(event.key.keysym)) {
-			player->rudder_midships();
+			player->set_rudder(ship::ruddermidships);
 			player->planes_middle();
 			add_message(texts::get(42));
 			

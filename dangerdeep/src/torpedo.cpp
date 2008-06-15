@@ -276,9 +276,9 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	xml_elem epower = parent.child("power");
 
 	// ------------ set ship turning values, fixme: read from files, more a hack...
-	max_rudder_angle = 40;
+	rudder.max_angle = 40;
 	// do not let the rudder simulation turn rudder, set it directly in steering logic (kind of hack)
-	max_rudder_turn_speed = 0.0001;//80;
+	rudder.max_turn_speed = 0.0001;//80;
 	// set turn rate here. With 0.6 a torpedo takes roughly 10 seconds to turn 90 degrees.
 	// With that value the torpedo turn radius is ~98m. Maybe a bit too much.
 	turn_rate = 0.6;
@@ -378,8 +378,8 @@ torpedo::torpedo(game& gm_, sea_object* parent, torpedo::types type_, bool usebo
 	throttle = aheadflank;
 
 	// set ship turning values
-	max_rudder_angle = 40;
-	max_rudder_turn_speed = 200;//20;	// with smaller values torpedo course oscillates. damping too high?! steering to crude?! fixme
+	rudder.max_angle = 40;
+	rudder.max_turn_speed = 200;//20;	// with smaller values torpedo course oscillates. damping too high?! steering to crude?! fixme
 	max_angular_velocity = 18;	// ~ 5 seconds for 90 degree turn (50m radius circle with 30 knots)
 	turn_rate = 1; // ? is this needed somewhere?!
 	max_accel_forward = 1;
@@ -517,10 +517,10 @@ void torpedo::steering_logic()
 	// for a realistic simulation.
 	if (error < -5.0) error = -5.0;
 	if (error >  5.0) error =  5.0;
-	rudder_pos = max_rudder_angle * error / 5.0;
+	rudder.angle = rudder.max_angle * error / 5.0;
 	if (fabs(anglediff) < 0.1 && fabs(turn_velocity) < 0.05) {
 		head_to_fixed = false;
-		rudder_pos = 0;
+		rudder.angle = 0;
 	}
 }
 
