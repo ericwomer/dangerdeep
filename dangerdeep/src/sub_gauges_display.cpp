@@ -53,7 +53,8 @@ bool sub_gauges_display::indicator::is_over(int mx, int my) const
 
 angle sub_gauges_display::indicator::get_angle(int mx, int my) const
 {
-	return angle(vector2(mx - int(x + w/2), my - int(y + h/2)));
+	// need to negate y, because onscreen y is down
+	return angle(vector2(mx - int(x + w/2), int(y + h/2) - my));
 }
 
 
@@ -79,7 +80,7 @@ void sub_gauges_display::display(class game& gm) const
 //	indicator_compressor->display(0);
 //	indicator_diesel->display(0);
 	indicator_bow_depth_rudder->display(player->get_bow_rudder()*2.0);
-	indicator_stern_depth_rudder->display(player->get_stern_rudder()*2.0);
+	indicator_stern_depth_rudder->display(-player->get_stern_rudder()*2.0);
 	indicator_depth->display(player->get_depth()*1.36-136.0);
 	indicator_knots->display(fabs(player->get_speed())*22.33512-131);
 	indicator_main_rudder->display(player->get_rudder_pos()*2.25);
@@ -115,40 +116,42 @@ void sub_gauges_display::process_input(class game& gm, const SDL_Event& event)
 		my = event.button.y;
 		//if mouse is over control c, compute angle a, set matching command, fixme
 		if (indicator_compass->is_over(mx, my)) {
-			angle mang = angle(180)-indicator_compass->get_angle(mx, my);
+			angle mang = indicator_compass->get_angle(mx, my);
 			sub->head_to_ang(mang, mang.is_cw_nearer(sub->get_heading()));
 		} else if (indicator_depth->is_over(mx, my)) {
-            angle mang = angle(-136) - indicator_depth->get_angle(mx, my);
-			if (mang.value() < 270) {
-				sub->dive_to_depth(unsigned(mang.value()));
+			angle mang = indicator_depth->get_angle(mx, my) - angle(225);
+			// 135° are 100m
+			if (mang.value()/1.35 < 270) {
+				sub->dive_to_depth(unsigned(mang.value()/1.35));
 			}
 		} else if( indicator_bow_depth_rudder->is_over(mx,my)){
-			angle mang( indicator_bow_depth_rudder->get_angle(mx,my)-angle(90) );
-			double pos = myclamp((180 - mang.value()) / 90.0, -1.0, 1.0);
+			angle mang(indicator_bow_depth_rudder->get_angle(mx,my)-angle(270));
+			double pos = myclamp(mang.value_pm180() / 60.0, -1.0, 1.0);
 			sub->set_bow_depth_rudder(pos);
 		} else if( indicator_stern_depth_rudder->is_over(mx,my)){
-			angle mang( indicator_stern_depth_rudder->get_angle(mx,my)-angle(90) );
-			double pos = myclamp(mang.value() / 90.0, -1.0, 1.0);
+			angle mang(indicator_stern_depth_rudder->get_angle(mx,my)-angle(90));
+			double pos = myclamp(mang.value_pm180() / 60.0, -1.0, 1.0);
 			sub->set_stern_depth_rudder(pos);
 		} else if (indicator_mt->is_over(mx, my)) {
-			unsigned opt = unsigned( ((indicator_mt->get_angle(mx, my) - angle(210)).value()) * 0.05 );
+			// 270° in 15 steps, 45°-315°, so 18° per step.
+			unsigned opt = unsigned( ((indicator_mt->get_angle(mx, my) - angle(45)).value()) / 18.0);
 			if (opt >= 15) opt = 14;
 			switch (opt) {
-			case 0: sub->set_throttle(ship::aheadflank); break;
-			case 1: sub->set_throttle(ship::aheadfull); break;
-			case 2: sub->set_throttle(ship::aheadhalf); break;
-			case 3: sub->set_throttle(ship::aheadslow); break;
-			case 4: sub->set_throttle(ship::aheadlisten); break;
+			case 0: sub->set_throttle(ship::reversefull); break;
+			case 1: sub->set_throttle(ship::reversehalf); break;
+			case 2: sub->set_throttle(ship::reverse); break;
 			case 7: sub->set_throttle(ship::stop); break;
-			case 11: sub->set_throttle(ship::reversefull); break;//fixme: various reverse speeds!
-			case 12: sub->set_throttle(ship::reversehalf); break;
-			case 13: sub->set_throttle(ship::reverse); break;
-			case 14: // reverse slow ?
-			case 5: // diesel engines
-			case 6: // attention
-			case 8: // electric engines
-			case 9: // surface
-			case 10:// dive
+			case 10: sub->set_throttle(ship::aheadlisten); break;
+			case 11: sub->set_throttle(ship::aheadslow); break;
+			case 12: sub->set_throttle(ship::aheadhalf); break;
+			case 13: sub->set_throttle(ship::aheadfull); break;
+			case 14: sub->set_throttle(ship::aheadflank); break;
+			case 3: // reverse small ?
+			case 4: // loading (battery)
+			case 5: // both machines 10 rpm less (?)
+			case 6: // use electric engines
+			case 8: // attention
+			case 9: // diesel engines
 				break;
 			}
 		}
