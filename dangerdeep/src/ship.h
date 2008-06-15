@@ -96,7 +96,6 @@ class ship : public sea_object
 		void simulate(double delta_time);
 		void load(const xml_elem& parent);
 		void save(xml_elem& parent) const;
-		void set_to(int p, unsigned mp = 2) { to_angle = max_angle * p/mp; } // -2 ... 2
 		void set_to(double p) { to_angle = max_angle * p; } // -1 ... 1
 		void midships() { to_angle = 0; }
 		double deflect_factor() const; // sin(angle)
@@ -271,7 +270,7 @@ public:
 	// command interface
 	virtual gun_status fire_shell_at(const vector2& pos);
 	virtual void head_to_ang(const angle& a, bool left_or_right);	// true == left
-	virtual void set_rudder(int to);	// give -2..2
+	virtual void set_rudder(double to); // -2...2
 	virtual void set_throttle(int thr);
 
 	virtual void remember_position(double t);

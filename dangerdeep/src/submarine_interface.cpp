@@ -310,20 +310,20 @@ void submarine_interface::process_input(const SDL_Event& event)
 			player->set_rudder(ship::rudderfullright);
 			add_message(texts::get(36));
 		} else if (mycfg.getkey(KEY_RUDDER_UP).equal(event.key.keysym)) {
-			player->planes_up(1);
+			player->set_planes_to(-0.5);
 			add_message(texts::get(37));
 		} else if (mycfg.getkey(KEY_RUDDER_HARD_UP).equal(event.key.keysym)) {
-			player->planes_up(2);
+			player->set_planes_to(-1.0);
 			add_message(texts::get(37));
 		} else if (mycfg.getkey(KEY_RUDDER_DOWN).equal(event.key.keysym)) {			
 			add_message(texts::get(38));
-			player->planes_down(1);
+			player->set_planes_to(0.5);
 		} else if (mycfg.getkey(KEY_RUDDER_HARD_DOWN).equal(event.key.keysym)) {			
 			add_message(texts::get(38));
-			player->planes_down(2);
+			player->set_planes_to(1.0);
 		} else if (mycfg.getkey(KEY_CENTER_RUDDERS).equal(event.key.keysym)) {
 			player->set_rudder(ship::ruddermidships);
-			player->planes_middle();
+			player->set_planes_to(0);
 			add_message(texts::get(42));
 			
 		// THROTTLE

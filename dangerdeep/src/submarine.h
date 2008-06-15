@@ -64,16 +64,6 @@ class submarine : public ship
 		void save(xml_elem& parent) const;
 	};
 
-	enum front_rudder_status {
-		rudder_down_30 = -3,
-		rudder_down_20,
-		rudder_down_10,
-		rudder_center,
-		rudder_up_10,
-		rudder_up_20,
-		rudder_up_30
-	};
-
 	enum hearing_device_type {
 		hearing_device_KDB,
 		hearing_device_GHG,
@@ -91,17 +81,8 @@ protected:
 	unsigned int delayed_dive_to_depth;
 	double delayed_planes_down;
 
-	/// rudder position that should be set (like horizontal rudder)
-	int bow_to;
-
-	/// rudder position that should be set (like horizontal rudder)
-	int stern_to;
-
-	/// position of bow rudder (degrees)
-	double bow_rudder;
-
-	/// position of stern rudder (degrees)
-	double stern_rudder;
+	/// bow and stern depth rudders
+	generic_rudder bow_depth_rudder, stern_depth_rudder;
 
 	/// additional mass of submarine given by filled tanks (is added to "mass")
 	double mass_flooded_tanks; // recomputed from tanks-vector every simulate() round
@@ -330,10 +311,9 @@ public:
 	virtual bool set_snorkel_up ( bool snorkel_up );	// fixme get rid of this
 	virtual void snorkel_up() { set_snorkel_up(true); }
 	virtual void snorkel_down() { set_snorkel_up(false); }
-	virtual void planes_up(double amount);		// fixme: functions for both dive planes needed?
-	virtual void planes_down(double amount);
-	virtual void planes_middle();
+	virtual void set_planes_to(double amount); // -2...2 // fixme: functions for both dive planes needed?
 	virtual void dive_to_depth(unsigned meters);
+	virtual void depth_steering_logic();
 	virtual void transfer_torpedo(unsigned from, unsigned to);
 
 	// give tubenr -1 for any loaded tube, or else 0-5, returns true on success
@@ -347,10 +327,10 @@ public:
 	//virtual sonar_operator& get_sonarman() { return sonarman; } // not needed. dangerous, sonarman could get manipulated.
 	virtual const sonar_operator& get_sonarman() const { return sonarman; }
 
-	virtual double get_bow_rudder() const { return bow_rudder; }
-	virtual double get_stern_rudder() const { return bow_rudder; } // stern is the same so far
-	virtual void bow_pos(int state){ bow_to = state; permanent_dive = true; }
-	virtual void stern_pos(int state){ bow_to = state; permanent_dive = true; } // stern is the same so far
+	virtual double get_bow_rudder() const { return bow_depth_rudder.angle; }
+	virtual double get_stern_rudder() const { return stern_depth_rudder.angle; }
+	virtual void set_bow_depth_rudder(double to){ bow_depth_rudder.set_to(to); permanent_dive = true; }
+	virtual void set_stern_depth_rudder(double to){ stern_depth_rudder.set_to(to); permanent_dive = true; }
 
 	const std::string& get_torpedomanage_img_name() const { return torpedomanage_sidetopimg; }
 

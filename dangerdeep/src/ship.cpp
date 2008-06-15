@@ -286,12 +286,10 @@ void ship::ignite()
 
 
 
-void ship::set_rudder(int to)
+void ship::set_rudder(double to)
 {
-	if (to >= rudderfullleft && to <= rudderfullright)
-		rudder.set_to(to);
-	else
-		rudder.midships();
+	to = myclamp(to*0.5, -1.0, 1.0);
+	rudder.set_to(to);
 	head_to_fixed = false;
 }
 
@@ -998,11 +996,14 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// fixme: store rudder pos in per-ship spec file.
 	// fixme: rudder torque must have similar formula like above, depends on rudder area
 	// assume rudder area = 2% * turn drag area
+	// fixme: rudder gives also sidewards force, not only torque, but it is negligible...
 	double rdf = rudder.deflect_factor();
 	//fixme: later use rudder.area here!
+	//fixme: size3d.y*0.5 is rudder.pos coded implicitly, later use ruder.pos!
 	double rudder_torque = (size3d.y*0.5) * get_turn_drag_area()*0.005 * water_density * speed*speed * rdf;
 	// add torque caused by forward force
 	rudder_torque += (size3d.y*0.5) * get_throttle_accel() * rdf * mass;
+	// this depends on rudder axis, so maybe compute torque as method of generic_rudder, fixme
 	local_torque.z += rudder_torque;
 
 	// positive torque turns counter clockwise! torque is in world space!

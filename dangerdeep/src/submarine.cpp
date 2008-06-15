@@ -229,10 +229,8 @@ submarine::submarine(game& gm_, const xml_elem& parent)
 	  permanent_dive(false),
 	  delayed_dive_to_depth(0),
 	  delayed_planes_down(0),
-	  bow_to(0),
-	  stern_to(0),
-	  bow_rudder(0),
-	  stern_rudder(0),
+	  bow_depth_rudder(vector3(0,30,0 /*not used yet*/), 1, 30, 4/*area*/, 10),//read consts from spec file, fixme
+	  stern_depth_rudder(vector3(0,-30,0 /*not used yet*/), 1, 30, 4/*area*/, 10),//read consts from spec file, fixme
 	  mass_flooded_tanks(0),
 	  ballast_tank_capacity(0), // read from spec file later
 	  scope_raise_level(0.0f),
@@ -328,10 +326,8 @@ void submarine::load(const xml_elem& parent)
 	permanent_dive = dv.attrb("permanent_dive");
 	delayed_dive_to_depth = dv.attru("delayed_dive_to_depth");
 	delayed_planes_down = dv.attrf("delayed_planes_down");
-	bow_to = dv.attri("bow_to");
-	stern_to = dv.attri("stern_to");
-	bow_rudder = dv.attrf("bow_rudder");
-	stern_rudder = dv.attrf("stern_rudder");
+	bow_depth_rudder.load(dv.child("bow_depth_rudder"));
+	stern_depth_rudder.load(dv.child("stern_depth_rudder"));
 
 	xml_elem tp = parent.child("stored_torpedoes");
 	torpedoes.clear();
@@ -381,10 +377,10 @@ void submarine::save(xml_elem& parent) const
 	dv.set_attr(permanent_dive, "permanent_dive");
 	dv.set_attr(delayed_dive_to_depth, "delayed_dive_to_depth");
 	dv.set_attr(delayed_planes_down, "delayed_planes_down");
-	dv.set_attr(bow_to, "bow_to");
-	dv.set_attr(stern_to, "stern_to");
-	dv.set_attr(bow_rudder, "bow_rudder");
-	dv.set_attr(stern_rudder, "stern_rudder");
+	xml_elem ebdr = dv.add_child("bow_depth_rudder");
+	bow_depth_rudder.save(ebdr);
+	xml_elem esdr = dv.add_child("stern_depth_rudder");
+	stern_depth_rudder.save(esdr);
 
 	xml_elem tp = parent.add_child("stored_torpedoes");
 	tp.set_attr(unsigned(torpedoes.size()), "nr");
@@ -467,14 +463,6 @@ int submarine::find_stored_torpedo(bool usebow)
 
 void submarine::simulate(double delta_time)
 {
-	// get goal state for the front rudder (back rudder is negative front_rudder for now
-	//TJ: wtf is this for a mess, call ship::simulate first anyway
-	double d_rudder_to = static_cast<double>(bow_to)*30;
-	if( bow_rudder > d_rudder_to )
-		--bow_rudder;
-	else if( bow_rudder < d_rudder_to )
-		++bow_rudder;
-
 	// simulate all tanks (flooding) and recompute mass_flooded_tanks here
 	mass_flooded_tanks = 0;
 	for (std::vector<tank>::iterator it = tanks.begin(); it != tanks.end(); ++it) {
@@ -494,6 +482,14 @@ void submarine::simulate(double delta_time)
 	ship::simulate(delta_time);
 	mass = mass_orig;
 	mass_inv = 1.0/mass;
+
+	if (!permanent_dive) {
+		depth_steering_logic();
+	}
+	
+
+	bow_depth_rudder.simulate(delta_time);
+	stern_depth_rudder.simulate(delta_time);
 
 #if 1 // test code to dive by flooding
 	//const double kg_per_sec = 1000; // 100 liters per second can be flooded/blowed out
@@ -961,46 +957,35 @@ void submarine::scope_to_level(float f)
 
 
 
-void submarine::planes_up(double amount)
+void submarine::set_planes_to(double amount)
 {
-	bow_to += int(amount);
-	if( bow_to > rudder_up_30 )
-		bow_to = rudder_up_30;
-
+	amount = myclamp(amount, -1.0, 1.0);
+	if (amount < 0) {
+		// diving - fixme misplaced here...
+		if (has_deck_gun() && is_gun_manned()) {
+			gm.add_event(new event_preparing_to_dive());
+			delayed_planes_down = amount;
+			delayed_dive_to_depth = 0;
+			unman_guns();
+			gm.add_event(new event_unmanning_gun());
+			return;
+		}
+	} else if (fabs(amount) < 0.001) {
+		// planes at midships, stop depth change
+		permanent_dive = false;
+		dive_to = position.z;
+	}		
+	
+	bow_depth_rudder.set_to(amount);
+	stern_depth_rudder.set_to(amount);
 	permanent_dive = true;
-}
-
-
-
-void submarine::planes_down(double amount)
-{
-	if (has_deck_gun() && is_gun_manned()) {
-		gm.add_event(new event_preparing_to_dive());
-		delayed_planes_down = amount;
-		delayed_dive_to_depth = 0;
-		unman_guns();
-		gm.add_event(new event_unmanning_gun());
-	} else {
-		bow_to -= int(amount);
-		if( bow_to < rudder_down_30 )
-			bow_to = rudder_down_30;
-
-		permanent_dive = true;
-	}
-}
-
-
-
-void submarine::planes_middle()
-{
-	permanent_dive = false;
-	dive_to = position.z;
 }
 
 
 
 void submarine::dive_to_depth(unsigned meters)
 {
+	// fixme misplaced here...
 	if (has_deck_gun() && is_gun_manned()) {
 		if (!gun_manning_is_changing) {
 			gm.add_event(new event_preparing_to_dive());
@@ -1012,12 +997,46 @@ void submarine::dive_to_depth(unsigned meters)
 	} else {
 		dive_to = -int(meters);
 		permanent_dive = false;
-		// When reaching the target, slow down the rudder
-		if (dive_to < position.z) {
-			bow_to = (position.z - dive_to > 2) ? rudder_down_30 : rudder_down_10;
-		} else {
-			bow_to = (dive_to - position.z > 2) ? rudder_up_30 : rudder_up_10;
-		}
+	}
+}
+
+
+
+//#include "global_data.h"
+// later useful for torpedoes too...
+void submarine::depth_steering_logic()
+{
+	/* New helmsman simulation.
+	   We have the formula
+	   error = a * x + b * y + c * z
+	   where x = depth difference between dive_to and position.z
+	         y = vertical velocity (with sign)
+		 z = dive_rudder_pos
+	   and a, b, c are some control factors (constants).
+	   c should be much smaller than a and b, normally a > b > c.
+	   the error has a sign, according to sign and magnitude of it
+	   the rudder_to is set.
+	   This system should find the correct course, it only needs
+	   tuning of a, b, c. Their values depend on maximum turn speed.
+	   The following (experimentally gained) formulas give good results.
+	*/
+	//fixme: check for correct signs here and there, also display!
+	double depthdiff = position.z - dive_to;
+	double error0 = depthdiff;
+	double error1 = (bow_depth_rudder.max_angle/bow_depth_rudder.max_turn_speed +
+			 stern_depth_rudder.max_angle/stern_depth_rudder.max_turn_speed) * local_velocity.z * 1.0;
+	double error2 = 0;//-rudder_pos/max_rudder_turn_speed * turn_velocity;
+	double error = error0 + error1 + error2;
+	//DBGOUT7(anglediff, turn_velocity, rudder_pos, error0, error1, error2, error);
+	double rd = fabs(error) > 5.0 ? (error < 0 ? -5.0 : 5.0) : error;
+	bow_depth_rudder.to_angle = bow_depth_rudder.max_angle * rd / 5.0;
+	stern_depth_rudder.to_angle = stern_depth_rudder.max_angle * rd / 5.0;
+	// when error below a certain limit, set head_to_fixed=false, rudder_to=ruddermidships
+	if (fabs(depthdiff) <= 0.25 && fabs(bow_depth_rudder.angle) < 1.0) {
+		permanent_dive = true;
+		bow_depth_rudder.midships();
+		stern_depth_rudder.midships();
+		//std::cout << "reached course, diff=" << anglediff << " tv=" << turn_velocity << "\n";
 	}
 }
 
@@ -1246,7 +1265,7 @@ void submarine::gun_manning_changed(bool is_gun_manned)
 		gm.add_event(new event_gun_unmanned());
 
 	if (0.0 != delayed_planes_down) {
-		planes_down(delayed_planes_down);
+		set_planes_to(delayed_planes_down);
 		delayed_planes_down = 0.0;
 		gm.add_event(new event_diving());
 	} else if (0 != delayed_dive_to_depth) {
@@ -1266,8 +1285,23 @@ void submarine::compute_force_and_torque(vector3& F, vector3& T) const
 	ship::compute_force_and_torque(F, T);
 
 	// add vertical force and torque generated by the dive planes.
-	//fixme: store,load,save,simulate dive planes!
-	//F.z -= 9.81 * mass; // dive test
+	vector3 planes_force, planes_torque;
+	// drag by stern dive rudder
+	const double water_density = 1000.0;
+	double speed = get_speed();
+	double stern_depth_rudder_drag = get_throttle_accel()
+		* (1.0 - stern_depth_rudder.flow_factor()) * mass;
+	planes_force.y = -stern_depth_rudder_drag;
+	// up/down force by rudders
+	//fixme: check for correct signs here and there, also display!
+	double bow_force = bow_depth_rudder.pos.y * bow_depth_rudder.area * water_density * speed*speed * bow_depth_rudder.deflect_factor();
+	double stern_force = stern_depth_rudder.pos.y * stern_depth_rudder.area * water_density * speed*speed * stern_depth_rudder.deflect_factor();
+	stern_force += stern_depth_rudder.pos.y * get_throttle_accel() * rudder.deflect_factor()
+		* stern_depth_rudder.deflect_factor() * mass;
+	planes_force.z = bow_force - stern_force;
+	planes_torque.x = bow_force + stern_force; // depends on axis, should be computed by generic_rudder itself...
+	F += orientation.rotate(planes_force);
+	T += orientation.rotate(planes_torque);
 
 	// add torque caused from tanks here, force is computed by modifying mass
 	// in simulate()

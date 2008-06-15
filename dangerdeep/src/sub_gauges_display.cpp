@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "submarine.h"
 #include "sub_gauges_display.h"
 #include "user_interface.h"
+#include "global_data.h"
 
 sub_gauges_display::indicator::indicator(const sdl_image& s, unsigned x_, unsigned y_, unsigned w_, unsigned h_)
 	: mytex(s, x_, y_, w_, h_, texture::LINEAR, texture::CLAMP_TO_EDGE),
@@ -77,8 +78,8 @@ void sub_gauges_display::display(class game& gm) const
 //	indicator_battery->display(0);
 //	indicator_compressor->display(0);
 //	indicator_diesel->display(0);
-	indicator_bow_depth_rudder->display(player->get_bow_rudder()*.666);
-	indicator_stern_depth_rudder->display(player->get_stern_rudder()*-.666);
+	indicator_bow_depth_rudder->display(player->get_bow_rudder()*2.0);
+	indicator_stern_depth_rudder->display(player->get_stern_rudder()*2.0);
 	indicator_depth->display(player->get_depth()*1.36-136.0);
 	indicator_knots->display(fabs(player->get_speed())*22.33512-131);
 	indicator_main_rudder->display(player->get_rudder_pos()*2.25);
@@ -123,17 +124,12 @@ void sub_gauges_display::process_input(class game& gm, const SDL_Event& event)
 			}
 		} else if( indicator_bow_depth_rudder->is_over(mx,my)){
 			angle mang( indicator_bow_depth_rudder->get_angle(mx,my)-angle(90) );
-			double click_pos = 180 - mang.value();
-			int status = int(round(click_pos*0.033333));
-			if( status>=submarine::rudder_down_30 && status<=submarine::rudder_up_30)
-				sub->bow_pos(status);
+			double pos = myclamp((180 - mang.value()) / 90.0, -1.0, 1.0);
+			sub->set_bow_depth_rudder(pos);
 		} else if( indicator_stern_depth_rudder->is_over(mx,my)){
 			angle mang( indicator_stern_depth_rudder->get_angle(mx,my)-angle(90) );
-			double click_pos = mang.value();
-			if( click_pos> 105 ) click_pos = -(360-click_pos);
-			int status = int(round(click_pos*0.033333));
-			if( status>=submarine::rudder_down_30 && status<=submarine::rudder_up_30 )
-				sub->bow_pos(-status);
+			double pos = myclamp(mang.value() / 90.0, -1.0, 1.0);
+			sub->set_stern_depth_rudder(pos);
 		} else if (indicator_mt->is_over(mx, my)) {
 			unsigned opt = unsigned( ((indicator_mt->get_angle(mx, my) - angle(210)).value()) * 0.05 );
 			if (opt >= 15) opt = 14;
