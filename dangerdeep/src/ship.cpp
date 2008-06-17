@@ -814,11 +814,11 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	   of forces, and add the relative voxel position cross lift force
 	   to global torque.
 	   Finally add global gravity force to sum of forces.
-	   fixme: if the voxel is near the water surface, within +- voxel_height
+	   if the voxel is near the water surface, within +- voxel_height
 	   we could account parts of its lift force. we have to use a medium
 	   voxel "radius" here, because the voxel can be arbitrarily oriented.
 	   The voxel radius is the half diameter of a voxel cube.
-	   fixme: we need to know per-voxel-lift force. That is voxel volume in
+	   we need to know per-voxel-lift force. That is voxel volume in
 	   cubic meters by 1000kg by 9,81m/s^2, as each cubic meter of water gives
 	   9,81kN lift force.
 	   It would be much more efficient to store the relative position of the
@@ -828,11 +828,6 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	   delta vectors by relative position to get real word position.
 	*/
 
-	// fixme: check that max speed and turn radius is still sensible
-	// fixme: if every voxel would have a mass we could simulate
-	//    non-uniform distribution of mass easily
-	//    and fake changes by modifying the voxels (they would need
-	//    to be per vessel then, not per model)
 	// fixme: add linear drag with small factor, to hinder small
 	//        movement effectivly (older code capped, if speed < 1.0 then
 	//        use linear drag, else square drag). with that we can
@@ -926,6 +921,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	//SubVIIc: ~3500kW, rad=0.5m, rpm=2 (?), mass=750000kg -> acc=4,666. a bit much...
 	double speed = get_speed();
 	double speed2 = speed*speed;
+	// fixme: add linear drag caused by hull skin friction here!
 	if (fabs(speed) < 1.0) speed2 = fabs(speed)*max_speed_forward;
 
 	vector3 Fr, Tr;
