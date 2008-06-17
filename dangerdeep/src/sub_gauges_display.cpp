@@ -79,8 +79,8 @@ void sub_gauges_display::display(class game& gm) const
 //	indicator_battery->display(0);
 //	indicator_compressor->display(0);
 //	indicator_diesel->display(0);
-	indicator_bow_depth_rudder->display(player->get_bow_rudder()*2.0);
-	indicator_stern_depth_rudder->display(-player->get_stern_rudder()*2.0);
+	indicator_bow_depth_rudder->display(player->get_bow_rudder()*-2.0);
+	indicator_stern_depth_rudder->display(-player->get_stern_rudder()*-2.0);
 	indicator_depth->display(player->get_depth()*1.36-136.0);
 	indicator_knots->display(fabs(player->get_speed())*22.33512-131);
 	indicator_main_rudder->display(player->get_rudder_pos()*2.25);
@@ -127,11 +127,11 @@ void sub_gauges_display::process_input(class game& gm, const SDL_Event& event)
 		} else if( indicator_bow_depth_rudder->is_over(mx,my)){
 			angle mang(indicator_bow_depth_rudder->get_angle(mx,my)-angle(270));
 			double pos = myclamp(mang.value_pm180() / 60.0, -1.0, 1.0);
-			sub->set_bow_depth_rudder(pos);
+			sub->set_bow_depth_rudder(-pos);
 		} else if( indicator_stern_depth_rudder->is_over(mx,my)){
-			angle mang(indicator_stern_depth_rudder->get_angle(mx,my)-angle(90));
+			angle mang(angle(90) - indicator_stern_depth_rudder->get_angle(mx,my));
 			double pos = myclamp(mang.value_pm180() / 60.0, -1.0, 1.0);
-			sub->set_stern_depth_rudder(pos);
+			sub->set_stern_depth_rudder(-pos);
 		} else if (indicator_mt->is_over(mx, my)) {
 			// 270° in 15 steps, 45°-315°, so 18° per step.
 			unsigned opt = unsigned( ((indicator_mt->get_angle(mx, my) - angle(45)).value()) / 18.0);
