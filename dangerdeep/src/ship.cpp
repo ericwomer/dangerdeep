@@ -82,9 +82,24 @@ void ship::generic_rudder::save(xml_elem& parent) const
 
 
 
-//void ship::generic_rudder::compute_force_and_torque(vector3& F, vector3& T) const
-//{
-//}
+double ship::generic_rudder::compute_force_and_torque(vector3& F, vector3& T,
+						      const vector3& parent_local_velocity,
+						      const double& water_density,
+						      const double& flow_force) const
+{
+	double s = parent_local_velocity.y;
+	double force = (area * water_density * s*s + flow_force) * deflect_factor();
+	if (axis & 1) {
+		// x-axis is rotation axis (dive planes), force points to +z
+		F.z += force;
+		T += vector3(pos.y * force, -pos.x * force, 0);
+	} else {
+		// z-axis is rotation axis (rudder), force points to +x
+		F.x += force;
+		T += vector3(0, pos.z * force, -pos.y * force);
+	}
+	return flow_force * bypass_factor();
+}
 
 
 
@@ -95,7 +110,7 @@ double ship::generic_rudder::deflect_factor() const
 
 
 
-double ship::generic_rudder::flow_factor() const
+double ship::generic_rudder::bypass_factor() const
 {
 	return cos(angle * M_PI / 180);
 }
@@ -258,6 +273,10 @@ ship::ship(game& gm_, const xml_elem& parent)
 		max_flooded_mass = mymodel->get_base_mesh().volume * 1000 /* density of water */;
 		flooded_mass.resize(mymodel->get_voxel_data().size());
 	}
+
+	// set up rudder values
+	rudder.pos.y = -size3d.y*0.5;
+	rudder.area = 4;
 }
 
 
@@ -908,11 +927,16 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	double speed = get_speed();
 	double speed2 = speed*speed;
 	if (fabs(speed) < 1.0) speed2 = fabs(speed)*max_speed_forward;
+
+	vector3 Fr, Tr;
+	double flowforce = get_throttle_accel() * mass;
+	const double water_density = 1000.0;
+	double finalflowforce = rudder.compute_force_and_torque(Fr, Tr, get_local_velocity(), water_density, flowforce);
 	double drag_factor = (speed2) * max_accel_forward / (max_speed_forward*max_speed_forward);
-	double acceleration = get_throttle_accel() * rudder.flow_factor();
 	if (speed > 0) drag_factor = -drag_factor;
+	Fr.y += finalflowforce + drag_factor * mass;
 	// force is in world space
-	F = orientation.rotate(vector3(0, (acceleration + drag_factor) * mass, 0));
+	F = orientation.rotate(Fr);
 
 	// new algo: compute drag directly from linear momentum
 	vector3 linear_momentum_xz = orientation.rotate(orientation.conj().rotate(linear_momentum).coeff_mul(vector3(1, 0, 1)));
@@ -966,7 +990,6 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// = Dcoeff * density * tvr^2 * area / (2*L) * L^4 / 4
 	// = Dcoeff * density * tvr^2 * area * L^3 / 8
 	const double drag_coefficient = get_turn_drag_coeff();
-	const double water_density = 1000.0;
 	// compute turn velocities around the 3 axes (local)
 	// w.xyz is turn velocity around xyz axis.
 	vector3 w = inertia_tensor_inv * orientation.conj().rotate(angular_momentum);
@@ -982,7 +1005,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	const vector3 L(size3d.y*0.5, size3d.x*0.5, size3d.y*0.5);
 	//fixme: size3d.xyz is not always symmetric...
 	const vector3 area(size3d.x*size3d.y*0.25, size3d.x*size3d.y*1.0, get_turn_drag_area());
-	// local_torque is drag_torque plus rudder_torque
+	// local_torque is drag_torque
 	//fixme without that 80 drag is too low, not only turn drag,
 	//but also roll/yaw drag, ship capsizes without that!!
 	vector3 local_torque = tvr2.coeff_mul(area).coeff_mul(L.coeff_mul(L).coeff_mul(L))
@@ -991,23 +1014,8 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	if (w.y > 0.0) local_torque.y = -local_torque.y;
 	if (w.z > 0.0) local_torque.z = -local_torque.z;
 
-	// negate rudder_pos here, because turning is mathematical, so rudder left means
-	// rudder_pos < 0 and this means ccw turning and this means turn velocity > 0!
-	// fixme: store rudder pos in per-ship spec file.
-	// fixme: rudder torque must have similar formula like above, depends on rudder area
-	// assume rudder area = 2% * turn drag area
-	// fixme: rudder gives also sidewards force, not only torque, but it is negligible...
-	double rdf = rudder.deflect_factor();
-	//fixme: later use rudder.area here!
-	//fixme: size3d.y*0.5 is rudder.pos coded implicitly, later use ruder.pos!
-	double rudder_torque = (size3d.y*0.5) * get_turn_drag_area()*0.005 * water_density * speed*speed * rdf;
-	// add torque caused by forward force
-	rudder_torque += (size3d.y*0.5) * get_throttle_accel() * rdf * mass;
-	// this depends on rudder axis, so maybe compute torque as method of generic_rudder, fixme
-	local_torque.z += rudder_torque;
-
 	// positive torque turns counter clockwise! torque is in world space!
-	T = orientation.rotate(local_torque) + dr_torque;
+	T = orientation.rotate(local_torque + Tr) + dr_torque;
 
 	//fixme: the AI uses turn radius to decide turning direction, that may give
 	//wrong values with new physics!
