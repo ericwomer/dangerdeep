@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <list>
 #include <stdexcept>
+#include <memory>
 
 // same as std::list regarding the interface (partly), but handles pointers.
 template <class T>

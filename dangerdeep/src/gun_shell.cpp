@@ -136,7 +136,7 @@ void gun_shell::check_collision()
 			continue;
 		tmp = sqrt(tmp);
 		double t0 = -kd + tmp, t1 = -kd - tmp;
-		if (t0*t1 < 0.0 || t0 >= 0.0 && t0 <= dvl || t1 >= 0.0 && t1 <= dvl) {
+		if (t0*t1 < 0.0 || (t0 >= 0.0 && t0 <= dvl) || (t1 >= 0.0 && t1 <= dvl)) {
 			//log_debug("gun_shell "<<this<<" intersects bsphere of "<<s);
 			check_collision_precise(*s, -k, dv2 - k);
 			if (alive_stat == dead) return; // no more checks after hit

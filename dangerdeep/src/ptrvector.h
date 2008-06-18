@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <vector>
 #include <stdexcept>
+#include <memory>
 
 // same as std::vector regarding the interface, but handles pointers.
 template <class T>

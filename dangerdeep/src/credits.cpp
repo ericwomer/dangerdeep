@@ -33,6 +33,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ptrvector.h"
 #include "frustum.h"
 
+#include <algorithm>
+
 using namespace std;
 
 
@@ -112,6 +114,7 @@ const char* credits[] = {
 	"Alexandre Paes",
 	"Alexander W. Janssen",
 	"vonhalenbach",
+	"Matthias Heinz",
 	"...",
 	"...and all i may have forgotten here (write me!)",
 	"(no bockwursts were harmed in the making of this game).",

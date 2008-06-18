@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "datadirs.h"
 #include <set>
 #include <sstream>
+#include <algorithm>
 using std::vector;
 using std::list;
 using std::string;

@@ -21,6 +21,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // subsim (C)+(W) Markus Petermann and Thorsten Jordan. SEE LICENSE
 
 #include <iomanip>
+#include <cstdlib>
+
 #include "date.h"
 #include "texts.h"
 

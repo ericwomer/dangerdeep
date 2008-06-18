@@ -1,6 +1,7 @@
 // some test code for the 2d bsplines!
 #include "bspline.h"
 #include <fstream>
+#include <cstdlib>
 using namespace std;
 
 double rnd() { return double(rand())/RAND_MAX; }
