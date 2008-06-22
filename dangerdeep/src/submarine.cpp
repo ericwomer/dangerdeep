@@ -227,8 +227,7 @@ submarine::submarine(game& gm_, const xml_elem& parent)
 	  max_depth(0),
 	  dive_to(0),
 	  permanent_dive(false),
-	  delayed_dive_to_depth(0),
-	  delayed_planes_down(0),
+	  dive_state(dive_state_surfaced),
 	  bow_depth_rudder(vector3(0,30,0 /*not used yet*/), 1, 30, 4/*area*/, 10),//read consts from spec file, fixme
 	  stern_depth_rudder(vector3(0,-30,0 /*not used yet*/), 1, 30, 4/*area*/, 10),//read consts from spec file, fixme
 	  mass_flooded_tanks(0),
@@ -236,6 +235,9 @@ submarine::submarine(game& gm_, const xml_elem& parent)
 	  scope_raise_level(0.0f),
 	  scope_raise_to_level(0.0f),
 	  electric_engine(false),
+	  hassnorkel(false),
+	  snorkel_depth(8.0),
+	  alarm_depth(150.0),
 	  snorkelup(false),
 	  battery_level(0)
 {
@@ -324,8 +326,7 @@ void submarine::load(const xml_elem& parent)
 	max_depth = dv.attrf("max_depth");
 	dive_to = dv.attrf("dive_to");
 	permanent_dive = dv.attrb("permanent_dive");
-	delayed_dive_to_depth = dv.attru("delayed_dive_to_depth");
-	delayed_planes_down = dv.attrf("delayed_planes_down");
+	dive_state = dive_states(dv.attru("dive_state"));
 	bow_depth_rudder.load(dv.child("bow_depth_rudder"));
 	stern_depth_rudder.load(dv.child("stern_depth_rudder"));
 
@@ -375,8 +376,7 @@ void submarine::save(xml_elem& parent) const
 	dv.set_attr(max_depth, "max_depth");
 	dv.set_attr(dive_to, "dive_to");
 	dv.set_attr(permanent_dive, "permanent_dive");
-	dv.set_attr(delayed_dive_to_depth, "delayed_dive_to_depth");
-	dv.set_attr(delayed_planes_down, "delayed_planes_down");
+	dv.set_attr(dive_state, "dive_state");
 	xml_elem ebdr = dv.add_child("bow_depth_rudder");
 	bow_depth_rudder.save(ebdr);
 	xml_elem esdr = dv.add_child("stern_depth_rudder");
@@ -487,60 +487,43 @@ void submarine::simulate(double delta_time)
 		depth_steering_logic();
 	}
 	
+	ballast_tank_control_logic(delta_time);
 
 	bow_depth_rudder.simulate(delta_time);
 	stern_depth_rudder.simulate(delta_time);
 
-#if 1 // test code to dive by flooding
-	//const double kg_per_sec = 1000; // 100 liters per second can be flooded/blowed out
-	// neutral code: flood as much water into the tanks so the sub floats
-	// should be done only when not surfaced, though...
-	double s1 = mass + mass_flooded_tanks - mymodel->get_base_mesh().volume * 1000.0/*water_density*/; //, s2 = 0;
-//	double s1 = position.z - dive_to;
-//	double s2 = linear_momentum.z * mass_inv;
-//	double s3 = (200000 - mass_flooded_tanks) * 0.01;
-//	double err = mysgn(s1)*s1*s1 + mysgn(s2)*s2*s2*20.0 + mysgn(s3)*s3*s3*0.03;
-	double err = s1;//(s1 + s2*20.0)*1000.0;
-//	if (err < 1e-3) {
-	if (err > 0) {
-		// we need to go up, so empty ballast tanks
-		/*double rest = */ push_air_to_ballast_tanks(1 /*m^3 of air*/ * delta_time);
-		//fixme: handle compressed air storage/management
-		//fixme: old code
-		//double blow = std::min(kg_per_sec * delta_time, mass_flooded_tanks);
-		//mass_flooded_tanks -= blow;
-//	} else if (err > -1e-3) {
-	} else if (err < 0) {
-		flood_ballast_tanks();
-		//fixme: old code
-		// we need to go down, so flood ballast tanks (max 600t flood)
-		//double flood = std::min(kg_per_sec * delta_time, ballast_tank_capacity - mass_flooded_tanks);
-		//mass_flooded_tanks += flood;
-	}
-	//log_debug("volume="<<mymodel->get_base_mesh().volume<<" mass="<<mass<<" flooded tanks mass="<<mass_flooded_tanks<<" err="<<err);
-	//DBGOUT8(position.z,dive_to,mass_flooded_tanks,mass,s1,s2,s3,err);
-#endif
-
-	// old code, to be replaced
-	double delta_depth = 0;
-
-	// Activate or deactivate electric engines.
-	// fixme: make it snorkel depth
-	if ((position.z > -SUBMARINE_SUBMERGED_DEPTH) &&
-		(position.z+delta_depth < -SUBMARINE_SUBMERGED_DEPTH))
-	{
-		// Activate electric engine.
-		electric_engine = true;
-	}
-	else if ((position.z < -SUBMARINE_SUBMERGED_DEPTH) &&
-		(position.z+delta_depth > -SUBMARINE_SUBMERGED_DEPTH))
-	{
-		// Activate diesel engine.
-		electric_engine = false;
-	}
-
 	if (-position.z > max_depth)
 		kill();
+
+	// ------------- simulate state changes ----------------------------------
+	//log_debug("dive_state="<<unsigned(dive_state));
+	switch (dive_state) {
+	case dive_state_surfaced:
+		break;
+	case dive_state_preparing_for_dive:
+		if (electric_engine)
+			electric_engine = false;
+		if (!is_gun_manned())
+			dive_state = dive_state_diving;
+		break;
+	case dive_state_diving:
+		if (dive_to > -1.0 && position.z > -2.0) {
+			electric_engine = false;
+			dive_state = dive_state_surfaced;
+			crash_diving = false;
+		} else if (crash_diving) {
+			dive_state = dive_state_crashdive;
+		}
+		break;
+	case dive_state_crashdive:
+		if (position.z < -alarm_depth * 0.9) {
+			dive_state = dive_state_diving;
+			crash_diving = false;
+		}
+		break;
+	default:
+		break;
+	}
 
 	// ------------- simulate periscope movement -----------------------------
 	const double scope_move_speed = 2.0/6.0; // m/sec / total raise height
@@ -940,11 +923,11 @@ float submarine::sonar_visibility ( const vector2& watcher ) const
 	{
 		diveFactor = 1.0f;
 	}
-	else if ( (depth > SUBMARINE_SUBMERGED_DEPTH ) && ( depth < 10.0f ) )
+	else if ( (depth > 2.0f ) && ( depth < 10.0f ) )
 	{
 		// Submarine becomes visible for active sonar system while
 		// diving process.
-		diveFactor = 0.125f * (depth - SUBMARINE_SUBMERGED_DEPTH);
+		diveFactor = 0.125f * (depth - 2.0f);
 	}
 
 	diveFactor *= 1.0/700.0 * get_cross_section ( watcher );
@@ -965,13 +948,13 @@ void submarine::set_planes_to(double amount)
 {
 	amount = myclamp(amount, -1.0, 1.0);
 	if (amount < 0) {
-		// diving - fixme misplaced here...
-		if (has_deck_gun() && is_gun_manned()) {
+		if (dive_state == dive_state_surfaced) {
 			gm.add_event(new event_preparing_to_dive());
-			delayed_planes_down = amount;
-			delayed_dive_to_depth = 0;
-			unman_guns();
-			gm.add_event(new event_unmanning_gun());
+			if (has_deck_gun() && is_gun_manned()) {
+				unman_guns(); // rather to state simulation?! fixme
+				gm.add_event(new event_unmanning_gun());
+			}
+			// don't set planes yet
 			return;
 		}
 	} else if (fabs(amount) < 0.001) {
@@ -980,9 +963,14 @@ void submarine::set_planes_to(double amount)
 		dive_to = position.z;
 	}		
 	
+	if (dive_state == dive_state_crashdive) {
+		dive_state = dive_state_diving;
+	}
+
 	bow_depth_rudder.set_to(amount);
 	stern_depth_rudder.set_to(amount);
 	permanent_dive = true;
+	crash_diving = false;
 }
 
 
@@ -990,18 +978,37 @@ void submarine::set_planes_to(double amount)
 void submarine::dive_to_depth(unsigned meters)
 {
 	// fixme misplaced here...
-	if (has_deck_gun() && is_gun_manned()) {
-		if (!gun_manning_is_changing) {
+	if (dive_state == dive_state_surfaced) {
+		if (has_deck_gun() && is_gun_manned()) {
 			gm.add_event(new event_preparing_to_dive());
-			delayed_planes_down = 0.0;
-			delayed_dive_to_depth = meters;
 			unman_guns();
 			gm.add_event(new event_unmanning_gun());
 		}
-	} else {
-		dive_to = -int(meters);
-		permanent_dive = false;
+		dive_state = dive_state_preparing_for_dive;
+	} else if (dive_state == dive_state_crashdive) {
+		dive_state = dive_state_diving;
 	}
+	dive_to = -int(meters);
+	permanent_dive = false;
+	crash_diving = false;
+}
+
+
+
+void submarine::crash_dive()
+{
+	// fixme misplaced here...
+	if (dive_state == dive_state_surfaced) {
+		if (has_deck_gun() && is_gun_manned()) {
+			gm.add_event(new event_preparing_to_dive());
+			unman_guns();
+			gm.add_event(new event_unmanning_gun());
+		}
+		dive_state = dive_state_preparing_for_dive;
+	}
+	crash_diving = true;
+	dive_to = -alarm_depth;
+	permanent_dive = false;
 }
 
 
@@ -1010,6 +1017,8 @@ void submarine::dive_to_depth(unsigned meters)
 // later useful for torpedoes too...
 void submarine::depth_steering_logic()
 {
+	// --------------- dynamic depth control (rudders) ------------------------------------------
+
 	/* New helmsman simulation.
 	   We have the formula
 	   error = a * x + b * y + c * z
@@ -1024,7 +1033,16 @@ void submarine::depth_steering_logic()
 	   tuning of a, b, c. Their values depend on maximum turn speed.
 	   The following (experimentally gained) formulas give good results.
 	*/
-	double depthdiff = position.z - dive_to;
+	double target_depth = dive_to;
+	switch (dive_state) {
+	case dive_state_surfaced:
+	case dive_state_preparing_for_dive:
+		target_depth = 0;
+		break;
+	default:
+		break;
+	}
+	double depthdiff = position.z - target_depth;
 	double error0 = depthdiff;
 	double error1 = (bow_depth_rudder.max_angle/bow_depth_rudder.max_turn_speed +
 			 stern_depth_rudder.max_angle/stern_depth_rudder.max_turn_speed) * local_velocity.z * 1.0;
@@ -1041,6 +1059,42 @@ void submarine::depth_steering_logic()
 		stern_depth_rudder.midships();
 		//std::cout << "reached course, diff=" << anglediff << " tv=" << turn_velocity << "\n";
 	}
+}
+
+
+
+void submarine::ballast_tank_control_logic(double delta_time)
+{
+	// --------------- static depth control (ballast tanks) ---------------------------------------
+	//const double kg_per_sec = 1000; // 100 liters per second can be flooded/blowed out
+	// neutral code: flood as much water into the tanks so the sub floats
+	// should be done only when not surfaced, though...
+	double s1 = mass + mass_flooded_tanks - mymodel->get_base_mesh().volume * 1000.0/*water_density*/; //, s2 = 0;
+//	double s1 = position.z - dive_to;
+//	double s2 = linear_momentum.z * mass_inv;
+//	double s3 = (200000 - mass_flooded_tanks) * 0.01;
+//	double err = mysgn(s1)*s1*s1 + mysgn(s2)*s2*s2*20.0 + mysgn(s3)*s3*s3*0.03;
+	double err = s1;//(s1 + s2*20.0)*1000.0;
+//	if (err < 1e-3) {
+	// force emptying of ballast tanks when going surface
+	// quick & dirty solution
+	if (dive_state == dive_state_surfaced || dive_state == dive_state_preparing_for_dive
+	    || (!permanent_dive && dive_to > -1.0)) {
+		err = 1;
+		//log_debug("blowing tanks to get to surface");
+	} else if (dive_state == dive_state_crashdive) {
+		err = -1;
+		//log_debug("flooding tanks because of crashdive");
+	}
+	if (err > 0) {
+		// we need to go up, so empty ballast tanks
+		/*double rest = */ push_air_to_ballast_tanks(1 /*m^3 of air*/ * delta_time);
+		//fixme: handle compressed air storage/management
+	} else if (err < 0) {
+		flood_ballast_tanks();
+	}
+	//log_debug("volume="<<mymodel->get_base_mesh().volume<<" mass="<<mass<<" flooded tanks mass="<<mass_flooded_tanks<<" err="<<err);
+	//DBGOUT8(position.z,dive_to,mass_flooded_tanks,mass,s1,s2,s3,err);
 }
 
 
@@ -1266,16 +1320,6 @@ void submarine::gun_manning_changed(bool is_gun_manned)
 		gm.add_event(new event_gun_manned());
 	else
 		gm.add_event(new event_gun_unmanned());
-
-	if (0.0 != delayed_planes_down) {
-		set_planes_to(delayed_planes_down);
-		delayed_planes_down = 0.0;
-		gm.add_event(new event_diving());
-	} else if (0 != delayed_dive_to_depth) {
-		dive_to_depth(delayed_dive_to_depth);
-		delayed_dive_to_depth = 0;
-		gm.add_event(new event_diving());
-	}
 }
 
 

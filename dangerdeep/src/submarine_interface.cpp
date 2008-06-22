@@ -391,11 +391,9 @@ void submarine_interface::process_input(const SDL_Event& event)
 				add_message(texts::get(55));
 			}
 		} else if (mycfg.getkey(KEY_CRASH_DIVE).equal(event.key.keysym)) {
-			// fixme: we should introduce a new command here, because crash diving
-			// is different from normal diving
 			add_message(texts::get(41));
 			mygame->add_logbook_entry(texts::get(41));
-			player->dive_to_depth(unsigned(player->get_alarm_depth()));
+			player->crash_dive();
 		} else if (mycfg.getkey(KEY_GO_TO_SNORKEL_DEPTH).equal(event.key.keysym)) {
 			if (player->has_snorkel () ) {
 				player->dive_to_depth(unsigned(player->get_snorkel_depth()));

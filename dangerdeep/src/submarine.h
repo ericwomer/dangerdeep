@@ -29,9 +29,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "sonar_operator.h"
 #include <vector>
 
-//fixme: this is very ugly. replace this asap.
-#define SUBMARINE_SUBMERGED_DEPTH 2.0f // meters
-
 class game;
 class torpedo;
 
@@ -70,16 +67,24 @@ class submarine : public ship
 		hearing_device_BG
 	};
 
+	enum dive_states { // numbers are stored in savegame, don't change later!
+		dive_state_surfaced = 0, // boat is at surface
+		dive_state_preparing_for_dive = 1, // prepare to dive, gun is unmanned etc.
+		dive_state_diving = 2, // boat is diving, hatches closed
+		dive_state_crashdive = 3,
+		//dive_state_running_silent,
+		//dive_state_snorkeling,
+		//surface torpedo transfer?
+	};
+
 protected:
 	double max_depth;		// created with some randomness after spec file, must get stored!
 
 	/// variables for dive-helmsman simulation
 	double dive_to;
 	bool permanent_dive;
-
-	/// used to simulate delayed diving because gun needs to be cleared
-	unsigned int delayed_dive_to_depth;
-	double delayed_planes_down;
+	dive_states dive_state;
+	bool crash_diving;
 
 	/// bow and stern depth rudders
 	generic_rudder bow_depth_rudder, stern_depth_rudder;
@@ -283,7 +288,7 @@ public:
 	virtual bool is_scope_up() const { return scope_raise_level >= 0.8f; }
 	virtual float get_scope_raise_level() const { return scope_raise_level; }
 	virtual double get_periscope_depth() const { return periscope_depth; }
-	virtual bool is_submerged () const { return get_depth() > SUBMARINE_SUBMERGED_DEPTH; }
+	virtual bool is_submerged () const { return dive_state == dive_state_diving; }
 	virtual double get_max_depth () const { return max_depth; }
 	virtual bool is_electric_engine () const { return (electric_engine == true); }
 	virtual bool is_snorkel_up () const { return ( snorkelup == true ); }
@@ -312,8 +317,10 @@ public:
 	virtual void snorkel_up() { set_snorkel_up(true); }
 	virtual void snorkel_down() { set_snorkel_up(false); }
 	virtual void set_planes_to(double amount); // -2...2 // fixme: functions for both dive planes needed?
+	virtual void crash_dive();
 	virtual void dive_to_depth(unsigned meters);
 	virtual void depth_steering_logic();
+	virtual void ballast_tank_control_logic(double delta_time);
 	virtual void transfer_torpedo(unsigned from, unsigned to);
 
 	// give tubenr -1 for any loaded tube, or else 0-5, returns true on success
