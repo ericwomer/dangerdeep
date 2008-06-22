@@ -774,7 +774,7 @@ void map_display::display(class game& gm) const
 		ostringstream os0, os1, os2;
 		// fixme: use estimated values from target/tdc estimation here, make functions for that
 		os0 << texts::get(3) << ": " << unsigned(target->get_pos().xy().distance(player->get_pos().xy())) << texts::get(206);
-		os1 << texts::get(4) << ": " << unsigned(sea_object::ms2kts(target->get_speed())) << texts::get(208);
+		os1 << texts::get(4) << ": " << unsigned(fabs(sea_object::ms2kts(target->get_speed()))) << texts::get(208);
 		os2 << texts::get(1) << ": " << unsigned(target->get_heading().value()) << texts::get(207);
 		font_vtremington12->print(nx+16, ny+40, os0.str(), color(0,0,0));
 		font_vtremington12->print(nx+16, ny+60, os1.str(), color(0,0,0));
