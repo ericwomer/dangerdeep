@@ -71,7 +71,8 @@ class submarine : public ship
 		dive_state_surfaced = 0, // boat is at surface
 		dive_state_preparing_for_dive = 1, // prepare to dive, gun is unmanned etc.
 		dive_state_diving = 2, // boat is diving, hatches closed
-		dive_state_crashdive = 3,
+		dive_state_crashdive = 3, // boat is on crash dive, diving fast down to alarm depth
+		dive_state_preparing_for_crashdive = 4, // prepare to crash dive, gun is unmanned etc.
 		//dive_state_running_silent,
 		//dive_state_snorkeling,
 		//surface torpedo transfer?
@@ -84,7 +85,6 @@ protected:
 	double dive_to;
 	bool permanent_dive;
 	dive_states dive_state;
-	bool crash_diving;
 
 	/// bow and stern depth rudders
 	generic_rudder bow_depth_rudder, stern_depth_rudder;

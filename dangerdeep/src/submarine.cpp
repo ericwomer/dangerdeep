@@ -501,24 +501,25 @@ void submarine::simulate(double delta_time)
 	case dive_state_surfaced:
 		break;
 	case dive_state_preparing_for_dive:
+	case dive_state_preparing_for_crashdive:
 		if (electric_engine)
 			electric_engine = false;
-		if (!is_gun_manned())
-			dive_state = dive_state_diving;
+		if (!is_gun_manned()) {
+			if (dive_state == dive_state_preparing_for_dive)
+				dive_state = dive_state_diving;
+			else
+				dive_state = dive_state_crashdive;
+		}
 		break;
 	case dive_state_diving:
 		if (dive_to > -1.0 && position.z > -2.0) {
 			electric_engine = false;
 			dive_state = dive_state_surfaced;
-			crash_diving = false;
-		} else if (crash_diving) {
-			dive_state = dive_state_crashdive;
 		}
 		break;
 	case dive_state_crashdive:
-		if (position.z < -alarm_depth * 0.9) {
+		if (position.z < -alarm_depth * 0.8) {
 			dive_state = dive_state_diving;
-			crash_diving = false;
 		}
 		break;
 	default:
@@ -970,7 +971,6 @@ void submarine::set_planes_to(double amount)
 	bow_depth_rudder.set_to(amount);
 	stern_depth_rudder.set_to(amount);
 	permanent_dive = true;
-	crash_diving = false;
 }
 
 
@@ -990,7 +990,6 @@ void submarine::dive_to_depth(unsigned meters)
 	}
 	dive_to = -int(meters);
 	permanent_dive = false;
-	crash_diving = false;
 }
 
 
@@ -1004,9 +1003,8 @@ void submarine::crash_dive()
 			unman_guns();
 			gm.add_event(new event_unmanning_gun());
 		}
-		dive_state = dive_state_preparing_for_dive;
+		dive_state = dive_state_preparing_for_crashdive;
 	}
-	crash_diving = true;
 	dive_to = -alarm_depth;
 	permanent_dive = false;
 }
