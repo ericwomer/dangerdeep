@@ -92,19 +92,24 @@ void main()
 	       + texture2D(tex_cloud, texcoord.xy*5.0).x * 0.25
 	       + texture2D(tex_cloud, texcoord.xy*9.5).x * 0.125
 	       ) * (1.0/1.875);
-    final_color = vec3(b, b, b);
+    float b2 = (texture2D(tex_cloud, texcoord.xy*1.5).x
+	       + texture2D(tex_cloud, texcoord.xy*3.5).x * 0.5
+		) * (1.0/1.5) * 0.7 + 0.3;
+    final_color = vec3(b2, b2, b2);
     const float coverage = 0.5;
     b = max(b - 1.0 + coverage, 0.0) / coverage;
-    alpha = b;
+    alpha = 1.0 - b;
+    alpha = 1.0 - alpha*alpha;
+    alpha *= horizon_alpha;
 
     /* We can improve this later, since clouds seem to behave with different
       color at horizon, we might use fog to do some tricks later, but for
       the time being, let's leave fog disabled */
-    float fog_factor = clamp((gl_Fog.end - gl_FogFragCoord) * 
-                        gl_Fog.scale, 0.0, 1.0);
+    //float fog_factor = clamp((gl_Fog.end - gl_FogFragCoord) * 
+    //                    gl_Fog.scale, 0.0, 1.0);
     //fog_factor = exp2(-gl_Fog.density * gl_FogFragCoord /* * 1.4426940 */);
 
     /* final color, mix between fog and final color, but see above notes */
-    gl_FragColor = vec4( mix(vec3(gl_Fog.color), final_color, fog_factor), alpha);
-    //gl_FragColor = vec4( final_color, alpha);
+    //gl_FragColor = vec4( mix(vec3(gl_Fog.color), final_color, fog_factor), alpha);
+    gl_FragColor = vec4( final_color, alpha);
 }
