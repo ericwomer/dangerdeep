@@ -25,6 +25,6 @@ void main()
 
 	lightcolor = gl_Color.xyz;
 
-	// set fog coordinate
-//	gl_FogFragCoord = gl_Position.z;
+	// set fog coordinate, later take distance in world (along xy plane), not viewer
+	gl_FogFragCoord = gl_Position.z;
 }
