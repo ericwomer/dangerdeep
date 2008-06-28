@@ -113,6 +113,12 @@ std::auto_ptr<model> tree_generator::generate() const
 	mat2->texmaps[1].reset(bmap);
 	mat2->compute_texloc();
 
+	glsl_shader_setup& gss = mat2->get_shadersetup();
+	gss.use();
+	int loc_depth_factor = gss.get_uniform_location("depth_factor");
+	gss.set_uniform(loc_depth_factor, float(0.002));
+	gss.use_fixed();
+
 	//mat->specularmap.reset(smap);
 	//mat->colormap.reset(dmap);
 	//mat->normalmap.reset(bmap);
