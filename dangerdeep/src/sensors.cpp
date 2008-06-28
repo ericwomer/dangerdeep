@@ -326,7 +326,7 @@ bool radar_sensor::is_detected ( const game* gm, const sea_object* d,
 	
 	// Surfaced submarines cannot use ASDIC.
 	const submarine* dsub = dynamic_cast<const submarine*> ( d );
-    if ( dsub && !dsub->is_submerged () || !dsub)
+	if ((dsub && !dsub->is_submerged ()) || !dsub)
 	{
 		vector2 r = t->get_pos ().xy () - d->get_pos ().xy ();
 		if ( is_within_detection_cone ( r, d->get_heading () ) )

@@ -239,7 +239,7 @@ perlinnoise::perlinnoise(unsigned levelsize, unsigned sizeminfreq, unsigned leve
 	if (!is_power2(sizeminfreq)) throw std::invalid_argument("sizeminfreq is not power of two");
 	if (levels < 1) throw std::invalid_argument("levels must be >= 1");
 
-	resultsize = levelsize * sizeminfreq * (1 << levels - 1);
+	resultsize = levelsize * sizeminfreq * (1 << (levels - 1));
 
 	noise_functions.reserve(levels);
 	for (unsigned i = 0; i < levels; ++i) {
