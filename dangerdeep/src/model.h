@@ -132,6 +132,7 @@ public:
 		const std::string& get_fragmentshaderfn() const { return fragmentshaderfn; }
 		bool needs_texcoords() const { return nrtex > 0; }
 		bool use_default_shader() const { return false; }
+		glsl_shader_setup& get_shadersetup() { return shadersetup; }
 
 		std::auto_ptr<map> texmaps[4]; // up to four texture units
 		std::string texnames[4];

@@ -732,21 +732,37 @@ void model::mesh::compile()
 	}
 	// auxiliary data
 	// give tangents as texture coordinates for unit 1.
-	if (has_texture_u0 && tangentsx.size() == vs && mymaterial->use_default_shader()) {
-		vbo_tangents_righthanded.init_data(4 * sizeof(float) * vs, 0, GL_STATIC_DRAW);
-		float* xdata = (float*) vbo_tangents_righthanded.map(GL_WRITE_ONLY);
-		for (unsigned i = 0; i < vs; ++i) {
-			xdata[4*i+0] = tangentsx[i].x;
-			xdata[4*i+1] = tangentsx[i].y;
-			xdata[4*i+2] = tangentsx[i].z;
-			xdata[4*i+3] = (righthanded[i]) ? 1.0f : -1.0f;
+	if (has_texture_u0 && tangentsx.size() == vs) {
+		if (mymaterial->use_default_shader()) {
+			vbo_tangents_righthanded.init_data(4 * sizeof(float) * vs, 0, GL_STATIC_DRAW);
+			float* xdata = (float*) vbo_tangents_righthanded.map(GL_WRITE_ONLY);
+			for (unsigned i = 0; i < vs; ++i) {
+				xdata[4*i+0] = tangentsx[i].x;
+				xdata[4*i+1] = tangentsx[i].y;
+				xdata[4*i+2] = tangentsx[i].z;
+				xdata[4*i+3] = (righthanded[i]) ? 1.0f : -1.0f;
+			}
+			vbo_tangents_righthanded.unmap();
+			vbo_tangents_righthanded.unbind();
+			glsl_shader_setup& gss = mymaterial->specularmap.get() ? *glsl_color_normal_specular : *glsl_color_normal;
+			gss.use();
+			vertex_attrib_index = gss.get_vertex_attrib_index("tangentx_righthanded");
+			gss.use_fixed();
+		} else {
+			vbo_tangents_righthanded.init_data(3 * sizeof(float) * vs, 0, GL_STATIC_DRAW);
+			float* xdata = (float*) vbo_tangents_righthanded.map(GL_WRITE_ONLY);
+			for (unsigned i = 0; i < vs; ++i) {
+				xdata[3*i+0] = tangentsx[i].x;
+				xdata[3*i+1] = tangentsx[i].y;
+				xdata[3*i+2] = tangentsx[i].z;
+			}
+			vbo_tangents_righthanded.unmap();
+			vbo_tangents_righthanded.unbind();
+			glsl_shader_setup& gss = static_cast<material_glsl*>(mymaterial)->get_shadersetup();
+			gss.use();
+			vertex_attrib_index = gss.get_vertex_attrib_index("tangentx");
+			gss.use_fixed();
 		}
-		vbo_tangents_righthanded.unmap();
-		vbo_tangents_righthanded.unbind();
-		glsl_shader_setup& gss = mymaterial->specularmap.get() ? *glsl_color_normal_specular : *glsl_color_normal;
-		gss.use();
-		vertex_attrib_index = gss.get_vertex_attrib_index("tangentx_righthanded");
-		gss.use_fixed();
 	}
 
 	// indices - Note: for models with less than 65536 vertices we could
@@ -1546,10 +1562,17 @@ void model::mesh::display(const texture *caustic_map) const
 	// Using vertex and fragment programs.
 	// give tangents/righthanded info as vertex attribute.
 	if (has_texture_u0 && tangentsx.size() == vertices.size()) {
-		vbo_tangents_righthanded.bind();
-		glVertexAttribPointer(vertex_attrib_index, 4, GL_FLOAT, GL_FALSE,
-				      0, 0);
-		glEnableVertexAttribArray(vertex_attrib_index);
+		if (mymaterial->use_default_shader()) {
+			vbo_tangents_righthanded.bind();
+			glVertexAttribPointer(vertex_attrib_index, 4, GL_FLOAT, GL_FALSE,
+					      0, 0);
+			glEnableVertexAttribArray(vertex_attrib_index);
+		} else {
+			vbo_tangents_righthanded.bind();
+			glVertexAttribPointer(vertex_attrib_index, 3, GL_FLOAT, GL_FALSE,
+					      0, 0);
+			glEnableVertexAttribArray(vertex_attrib_index);
+		}
 	}
 
 	// unbind VBOs (can't be static or we would need to define type of VBO vert/index)
