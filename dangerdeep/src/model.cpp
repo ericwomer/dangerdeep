@@ -773,6 +773,31 @@ void model::mesh::transform(const matrix4f& m)
 
 void model::mesh::write_off_file(const string& fn) const
 {
+	if (indices_type == pt_triangle_strip) {
+		unsigned nr_tri = 0;
+		for (unsigned j = 2; j < indices.size(); ++j) {
+			unsigned i0 = indices[j-2];
+			unsigned i1 = indices[j-1];
+			unsigned i2 = indices[j];
+			if (i0 != i1 && i1 != i2 && i2 != i0)
+				++nr_tri;
+		}
+		FILE *f = fopen(fn.c_str(), "wb");
+		if (!f) return;
+		fprintf(f, "OFF\n%u %u %u\n", vertices.size(), nr_tri * 3, 0);
+	
+		for (unsigned i = 0; i < vertices.size(); i++) {
+			fprintf(f, "%f %f %f\n", vertices[i].x, vertices[i].y, vertices[i].z);
+		}
+		for (unsigned j = 2; j < indices.size(); ++j) {
+			unsigned i0 = indices[j-2];
+			unsigned i1 = indices[j-1];
+			unsigned i2 = indices[j];
+			fprintf(f, "3 %u %u %u\n", i0, i1, i2);
+		}
+		fclose(f);
+		return;
+	}
 	if (indices_type != pt_triangles) throw std::runtime_error("write_off_file: can't handle primitives other than triangles!");
 
 	FILE *f = fopen(fn.c_str(), "wb");
