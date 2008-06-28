@@ -793,7 +793,10 @@ void model::mesh::write_off_file(const string& fn) const
 			unsigned i0 = indices[j-2];
 			unsigned i1 = indices[j-1];
 			unsigned i2 = indices[j];
-			fprintf(f, "3 %u %u %u\n", i0, i1, i2);
+			if (j & 1)
+				fprintf(f, "3 %u %u %u\n", i1, i0, i2);
+			else
+				fprintf(f, "3 %u %u %u\n", i0, i1, i2);
 		}
 		fclose(f);
 		return;
