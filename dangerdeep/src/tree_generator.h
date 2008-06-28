@@ -41,9 +41,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 /*
 Generiere Kegelstümpfe mit Biegung (bspline)
-oberes ende mit kappe verschließen,
+oberes ende mit kappe verschließen, <<<<<<<<<<<<<<<<<<<<<<<<
 texturkoordinaten generieren, evtl.
 auch wind-faktor (für bewegung), der ist am stamm 0 und wird immer größer bis zu den blättern.
+^^^<<<<<<<<<<<<<<<<<<<
 stamm ist ein kegelstumpf (KS)
 am ende 2-4 kinder, länge, winkel zufällig,
 immer weiter verzweigen
@@ -95,28 +96,40 @@ std::auto_ptr<model> tree_generator::generate() const
 	}
 	std::auto_ptr<model> mdl(new model());
 
+	model::material_glsl* mat2 = new model::material_glsl("bark", "reliefmapping.vshader", "reliefmapping.fshader");
+	mat2->nrtex = 2;
+	mat2->texnames[0] = "tex_color";
+	mat2->texnames[1] = "tex_normal";
+
 	model::material::map* dmap = new model::material::map();
 	model::material::map* bmap = new model::material::map();
-	model::material::map* smap = new model::material::map();
+	//model::material::map* smap = new model::material::map();
 	dmap->set_texture(new texture(get_texture_dir() + "barktest1.png", texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
 	bmap->set_texture(new texture(get_texture_dir() + "treebarktest_normal.png", texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
-	smap->set_texture(new texture(get_texture_dir() + "treebarktest_specular.png", texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
-	model::material* mat = new model::material();
-	mat->specularmap.reset(smap);
-	mat->colormap.reset(dmap);
-	mat->normalmap.reset(bmap);
-	msh->mymaterial = mat;
-	mdl->add_material(mat);
+	//smap->set_texture(new texture(get_texture_dir() + "treebarktest_specular.png", texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
+	//model::material* mat = new model::material();
+
+	mat2->texmaps[0].reset(dmap);
+	mat2->texmaps[1].reset(bmap);
+	mat2->compute_texloc();
+
+	//mat->specularmap.reset(smap);
+	//mat->colormap.reset(dmap);
+	//mat->normalmap.reset(bmap);
+	//msh->mymaterial = mat;
+	//mdl->add_material(mat);
+	msh->mymaterial = mat2;
+	mdl->add_mesh(msh.release());
+	mdl->add_material(mat2);
 
 	dmap = new model::material::map();
 	dmap->set_texture(new texture(get_texture_dir() + "leaves.png", texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP_TO_EDGE));
-	mat = new model::material();
+	model::material* mat = new model::material();
 	mat->specular = color::white();
 	mat->colormap.reset(dmap);
 	mshleaves->mymaterial = mat;
 
 	mdl->add_material(mat);
-	mdl->add_mesh(msh.release());
 	mdl->add_mesh(mshleaves.release());
 
 	mdl->compile();
@@ -239,6 +252,9 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 			mshleaves.normals[vidx] = axis;
 			mshleaves.texcoords[vidx] = vector2f((0.5f+lt)*0.25, 1.0f);
 			++vidx;
+			//fixme: use tri-strips for leaves, gives 6 indices per leaf
+			//(double sides) plus 2 degen. -> 8 indices per leaf, not 12!
+			//plus better vertex post-TL-cache usage
 			mshleaves.indices[iidx++] = vidx-4;
 			mshleaves.indices[iidx++] = vidx-3;
 			mshleaves.indices[iidx++] = vidx-2;
