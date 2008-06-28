@@ -72,18 +72,18 @@ class tree_generator
 {
  public:
 	tree_generator() {}
-	std::auto_ptr<model::mesh> generate() const;
+	std::auto_ptr<model> generate() const;
  protected:
 	// bend: evtl. gebe besser axis unten und oben an, dazwischen einfach biegen
-	void generate_log(model::mesh& msh,
-			  const vector3f& root, const vector3f& axis, unsigned segs,
-			  float length, float radius0, float radius1,
-			  float bend_factor = 0.0f, unsigned bend_segs = 1) const;
+	vector3f generate_log(model::mesh& msh,
+			      const vector3f& root, const vector3f& axis, unsigned segs,
+			      float length, float radius0, float radius1,
+			      float bend_factor = 0.0f, unsigned bend_segs = 1) const;
 	void generate_tree(model::mesh& msh, unsigned lvl,
 			   const vector3f& root, const vector3f& axis) const;
 };
 
-std::auto_ptr<model::mesh> tree_generator::generate() const
+std::auto_ptr<model> tree_generator::generate() const
 {
 	std::auto_ptr<model::mesh> msh(new model::mesh("tree"));
 	generate_tree(*msh, 0, vector3f(0,0,0), vector3f(0,0,1));
@@ -95,14 +95,33 @@ std::auto_ptr<model::mesh> tree_generator::generate() const
 	generate_tree(*msh, 0, vector3f(6,0,0), vector3f(0,0,1));
 	generate_tree(*msh, 0, vector3f(6,3,0), vector3f(0,0,1));
 	generate_tree(*msh, 0, vector3f(3,6,0), vector3f(0,0,1));
-	msh->write_off_file("test.off");
-	return msh;
+	std::auto_ptr<model> mdl(new model());
+
+	model::material::map* dmap = new model::material::map();
+	model::material::map* bmap = new model::material::map();
+	model::material::map* smap = new model::material::map();
+	dmap->set_texture(new texture(get_texture_dir() + "barktest1.png", texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
+	bmap->set_texture(new texture(get_texture_dir() + "treebarktest_normal.png", texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
+	smap->set_texture(new texture(get_texture_dir() + "treebarktest_specular.png", texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
+	model::material* mat = new model::material();
+	mat->specularmap.reset(smap);
+	mat->colormap.reset(dmap);
+	mat->normalmap.reset(bmap);
+	msh->mymaterial = mat;
+
+	mdl->add_material(mat);
+	mdl->add_mesh(msh.release());
+
+	mdl->compile();
+	mdl->set_layout();
+
+	return mdl;
 }
 
-void tree_generator::generate_log(model::mesh& msh,
-				  const vector3f& root, const vector3f& axis, unsigned segs,
-				  float length, float radius0, float radius1,
-				  float bend_factor, unsigned bend_segs) const
+vector3f tree_generator::generate_log(model::mesh& msh,
+				      const vector3f& root, const vector3f& axis, unsigned segs,
+				      float length, float radius0, float radius1,
+				      float bend_factor, unsigned bend_segs) const
 {
 	if (segs < 3 || bend_segs < 1) throw std::invalid_argument("treegenerator::generate_log");
 	const unsigned nr_verts = (segs+1) * (bend_segs+1);
@@ -118,22 +137,23 @@ void tree_generator::generate_log(model::mesh& msh,
 	msh.indices.resize(old_i + nr_indis);
 	// generate bend spline
 	std::vector<vector3f> cp;
-	cp.reserve(bend_segs + 1);
+	cp.reserve(4);
 	cp.push_back(root);
 	vector3f xaxis(1, 0, 0); // fixme: if axis==xaxis?!
 	vector3f yaxis = axis.cross(xaxis).normal();
 	xaxis = yaxis.cross(axis);
-	for (unsigned i = 1; i < bend_segs; ++i) {
-		vector3f a = root + axis * (float(i)/bend_segs) + xaxis * ((rnd()-0.5)*bend_factor*length) + yaxis * ((rnd()-0.5)*bend_factor*length);
+	for (unsigned i = 1; i < 3; ++i) {
+		vector3f a = root + axis * (float(i)/3 * length) + xaxis * ((rnd()-0.5)*bend_factor*length) + yaxis * ((rnd()-0.5)*bend_factor*length);
 		cp.push_back(a);
 	}
 	cp.push_back(root + axis * length);
-	bsplinet<vector3f> bsp(std::min(cp.size()-1, 3U), cp);
+	bsplinet<vector3f> bsp(3, cp);
 	// generate vertices
 	unsigned vidx = old_v;
 	for (unsigned b = 0; b <= bend_segs; ++b) {
 		float b_fac = float(b)/bend_segs;
 		vector3f p = bsp.value(b_fac);
+		//p = root + axis * (b_fac * length);
 		float r = radius0 + (radius1 - radius0) * b_fac;
 		for (unsigned s = 0; s <= segs; ++s) {
 			float s_fac = float(s)/segs;
@@ -142,7 +162,7 @@ void tree_generator::generate_log(model::mesh& msh,
 			msh.vertices[vidx] = p + xaxis * (d.x * r) + yaxis * (d.y * r);
 			msh.normals[vidx] = (xaxis * d.x + yaxis * d.y).normal();
 			msh.tangentsx[vidx] = (yaxis * d.x - xaxis * d.y).normal();
-			msh.texcoords[vidx] = vector2f(s_fac, b_fac);
+			msh.texcoords[vidx] = vector2f(s_fac, b_fac*length);
 			++vidx;
 		}
 	}
@@ -161,33 +181,38 @@ void tree_generator::generate_log(model::mesh& msh,
 		}
 		msh.indices[iidx++] = v0-1;
 	}
+	//return root + axis * length;
+	return bsp.value(1.0);
 }
 
 void tree_generator::generate_tree(model::mesh& msh, unsigned lvl,
 				   const vector3f& root, const vector3f& axis) const
 {
 	static const unsigned segs[5] = { 16, 12, 8, 6, 3 };
-	static const float length0[5] = { 1.0, 0.6, 0.4, 0.3, 0.15 };
-	static const float length1[5] = { 1.5, 1.0, 0.6, 0.4, 0.2 };
+	static const float length0[5] = { 1.0, 0.6, 0.4, 0.2, 0.1 };
+	static const float length1[5] = { 1.5, 1.2, 0.8, 0.4, 0.3 };
 	static const float radius0[5] = { 0.2, 0.15, 0.05, 0.025, 0.015 };
 	static const float radius1[5] = { 0.15, 0.05, 0.025, 0.015, 0.005 };
-	static const unsigned children0[5] = { 2, 2, 2, 3, 3 };
-	static const unsigned children1[5] = { 4, 4, 4, 5, 5 };
-	static const float bendfac[5] = { 0.2, 0.3, 0.4, 0.5, 0.6 };
+	static const unsigned children0[5] = { 2, 2, 3, 4, 4 };
+	static const unsigned children1[5] = { 4, 4, 5, 6, 7 };
+	static const float bendfac[5] = { 0.3, 0.5, 0.6, 0.7, 0.8 };
 	float len = (length1[lvl] - length0[lvl])*rnd() + length0[lvl];
-	generate_log(msh, root, axis, segs[lvl], len, radius0[lvl], radius1[lvl],
-		     bendfac[lvl],4);
+	vector3f rootc = generate_log(msh, root, axis, segs[lvl], len, radius0[lvl], radius1[lvl],
+				      bendfac[lvl], 4);
 	if (lvl == 4) {
 		// generate leaves
 		return;
 	} else {
 		// generate children
+		vector3f xaxis(1, 0, 0); // fixme: if axis==xaxis?!
+		vector3f yaxis = axis.cross(xaxis).normal();
+		xaxis = yaxis.cross(axis);
 		unsigned c = rnd(children1[lvl] - children0[lvl] + 1) + children0[lvl];
-		vector3f rootc = root + axis * len;
 		for (unsigned i = 0; i < c; ++i) {
-			float a = ((i + 0.5f)/c + rnd() * 0.4f / c) * 2*M_PI;
+			float a = (i + 0.1f + rnd() * 0.8f) * 2*M_PI / c;
 			vector2f d(cos(a), sin(a));
-			vector3f axisc = (axis * len + (d * (len * (0.25f + 1.5*rnd()))).xy0()).normal();
+			d *= len * (0.25f + 1.5*rnd());
+			vector3f axisc = (axis * len + xaxis * d.x + yaxis * d.y).normal();
 			generate_tree(msh, lvl+1, rootc, axisc);
 		}
 	}
