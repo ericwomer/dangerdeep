@@ -40,8 +40,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <set>
 
 /*
-Generiere Kegelstümpfe mit Biegung (bspline)
-oberes ende mit kappe verschließen, <<<<<<<<<<<<<<<<<<<<<<<<
 zB indem unterster ring an vertices aller childs gleich oberstem hier!
 auch wind-faktor (für bewegung), der ist am stamm 0 und wird immer größer bis zu den blättern.
 ^^^<<<<<<<<<<<<<<<<<<<
@@ -242,11 +240,11 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 		unsigned vidx = old_v;
 		unsigned iidx = old_i;
 		for (unsigned i = 0; i < nrl; ++i) {
-			vector3f p = bsp.value(rnd());
+			vector3f p = bsp.value((i + rnd())/nrl);
 			float a = 2*M_PI*rnd();
 			vector2f d(cos(a), sin(a));
-			vector3f lxaxis = xaxis * d.x + yaxis * d.y;
-			vector3f lyaxis = yaxis * d.x - xaxis * d.y;
+			vector3f lxaxis = xaxis * d.x + yaxis * d.y + axis * 0.5;
+			vector3f lyaxis = yaxis * d.x - xaxis * d.y + axis * 0.5;
 			lxaxis.normalize();
 			lyaxis.normalize();
 			mshleaves.vertices[vidx] = p;
@@ -301,13 +299,13 @@ void tree_generator::generate_tree(model::mesh& msh, model::mesh& mshleaves, uns
 				   const vector3f& root, const vector3f& axis) const
 {
 	static const unsigned segs[5] = { 16, 12, 8, 6, 3 };
-	static const float length0[5] = { 1.0, 0.4, 0.4, 0.3, 0.3 };
-	static const float length1[5] = { 1.5, 0.6, 0.6, 0.4, 0.4 };
+	static const float length0[5] = { 1.0, 0.4, 0.3, 0.25, 0.2 };
+	static const float length1[5] = { 1.5, 0.6, 0.4, 0.35, 0.3 };
 	static const float radius0[5] = { 0.15, 0.12, 0.05, 0.025, 0.01 };
 	static const float radius1[5] = { 0.12, 0.05, 0.025, 0.01, 0.005 };
 	static const float anglefac[5] = { 1.5, 2.0, 2.5, 3.0, 3.5 };
-	static const unsigned children0[5] = { 2, 2, 3, 4, 4 };
-	static const unsigned children1[5] = { 4, 4, 5, 6, 7 };
+	static const unsigned children0[5] = { 2, 2, 3, 4, 0 };
+	static const unsigned children1[5] = { 4, 4, 5, 6, 0 };
 	static const float bendfac[5] = { 0.3, 0.5, 0.6, 0.7, 0.8 };
 	float len = (length1[lvl] - length0[lvl])*rnd() + length0[lvl];
 	vector3f rootc = generate_log(msh, mshleaves, lvl,
