@@ -42,31 +42,18 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /*
 Generiere Kegelstümpfe mit Biegung (bspline)
 oberes ende mit kappe verschließen, <<<<<<<<<<<<<<<<<<<<<<<<
-texturkoordinaten generieren, evtl.
+zB indem unterster ring an vertices aller childs gleich oberstem hier!
 auch wind-faktor (für bewegung), der ist am stamm 0 und wird immer größer bis zu den blättern.
 ^^^<<<<<<<<<<<<<<<<<<<
-stamm ist ein kegelstumpf (KS)
-am ende 2-4 kinder, länge, winkel zufällig,
-immer weiter verzweigen
-äußerste mit blättern.
-teilweise auch mittem am stamm (selten) neue äste abzweigen.
-max. 4-8 KS in kette
-parameter: anzahl vertices außenrum, in der höhe (für biegung) usw.
-letzten vertex rundum doppelt für texturkoord.
-generiere eine mesh für alles.
-blätter sind dann dreiecke (mit alpha) oder 2 in diamantform (mit alpha, 
-aber ohne z-sort).
-textur: eine für alles, repeat, rinde nimmt aber nur unteren teil ein
-also in höhe kein repeat durch texturkoord.
-oder generell kein repeat.
-oberer teil: verschiedene blätter.
-gerne normal mapping oder sogar parallax/relief für nahe bäume.
-zahl der dreiecke pro baum < 10000 am besten < 2000.
+
+blätter einzeln, oder eben textur wie mini-ast mit blättern,
+diesen in einem quad, oder mit leichter beugung in 2-3
+
+orientierung der blätter-quads nach oben besser,
+leichte varianz!
+
 imposter für spätere.
 auto-imposter-berechnung in class model implementieren.
-tangentsx auch generieren
-obwohl besser blätter extra, als einzelne quads, alle äste als EIN tri-strip
-winkel der äste zu globaler z-axis wächst von 0 am stamm bis max. 90 am ende oder so
 */
 
 class tree_generator
@@ -130,9 +117,13 @@ std::auto_ptr<model> tree_generator::generate() const
 
 	dmap = new model::material::map();
 	dmap->set_texture(new texture(get_texture_dir() + "leaves.png", texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP_TO_EDGE));
+#if 0
+	dmap->set_texture(new texture(get_texture_dir() + "leaves_log.png", texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP_TO_EDGE));
+#endif
 	model::material* mat = new model::material();
 	mat->specular = color::white();
 	mat->colormap.reset(dmap);
+	mat->two_sided = true;
 	mshleaves->mymaterial = mat;
 
 	mdl->add_material(mat);
@@ -219,11 +210,11 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 		}
 	}
 	if (generate_leaves) {
-		unsigned nrl = unsigned(length / 0.05) * 2;
+		unsigned nrl = unsigned(length / 0.03) * 4;
 		const unsigned nr_verts = nrl*4;
-		const unsigned nr_indis = nrl*12;
-		xaxis.z = 0;
-		yaxis.z = 0;
+		const unsigned nr_indis = nrl*6;
+		xaxis.z *= rnd() * 0.25;
+		yaxis.z *= rnd() * 0.25;
 		xaxis.normalize();
 		yaxis.normalize();
 		unsigned old_v = mshleaves.vertices.size();
@@ -238,14 +229,14 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 		unsigned vidx = old_v;
 		unsigned iidx = old_i;
 		for (unsigned i = 0; i < nrl; ++i) {
-			vector3f p = bsp.value(float(i/2)/(nrl/2));
+			vector3f p = bsp.value(rnd());
 			mshleaves.vertices[vidx] = p;
 			mshleaves.normals[vidx] = axis;
 			unsigned lt = rnd(4);
 			mshleaves.texcoords[vidx] = vector2f((0.5f+lt)*0.25, 0.0f);
 			++vidx;
-			float x = (i & 1) ? -0.05f : 0.05f;
-			float y = (i & 1) ? -0.05f : 0.05f;
+			float x = (i & 1) ? -0.04f : 0.04f;
+			float y = (i & 1) ? -0.04f : 0.04f;
 			mshleaves.vertices[vidx] = p + xaxis * x + yaxis * y;
 			mshleaves.normals[vidx] = axis;
 			mshleaves.texcoords[vidx] = vector2f((1.0f+lt)*0.25, 0.5f);
@@ -254,25 +245,33 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 			mshleaves.normals[vidx] = axis;
 			mshleaves.texcoords[vidx] = vector2f((0.0f+lt)*0.25, 0.5f);
 			++vidx;
-			mshleaves.vertices[vidx] = p + xaxis * 2*x;
+			mshleaves.vertices[vidx] = p + xaxis * (2+rnd()*0.25)*x + yaxis * (y * (rnd() - 0.5) * 0.25);
 			mshleaves.normals[vidx] = axis;
 			mshleaves.texcoords[vidx] = vector2f((0.5f+lt)*0.25, 1.0f);
 			++vidx;
-			//fixme: use tri-strips for leaves, gives 6 indices per leaf
-			//(double sides) plus 2 degen. -> 8 indices per leaf, not 12!
-			//plus better vertex post-TL-cache usage
+			//fixme: use quads for leaves, saves 2 indices per leaf.
 			mshleaves.indices[iidx++] = vidx-4;
 			mshleaves.indices[iidx++] = vidx-3;
 			mshleaves.indices[iidx++] = vidx-2;
 			mshleaves.indices[iidx++] = vidx-2;
 			mshleaves.indices[iidx++] = vidx-3;
 			mshleaves.indices[iidx++] = vidx-1;
-			mshleaves.indices[iidx++] = vidx-4;
-			mshleaves.indices[iidx++] = vidx-2;
-			mshleaves.indices[iidx++] = vidx-3;
-			mshleaves.indices[iidx++] = vidx-3;
-			mshleaves.indices[iidx++] = vidx-2;
-			mshleaves.indices[iidx++] = vidx-1;
+#if 0
+			mshleaves.vertices[vidx-4] = p + xaxis * 0 + yaxis * -y;
+			mshleaves.vertices[vidx-3] = p + xaxis * 0 + yaxis * y;
+			mshleaves.vertices[vidx-2] = p + xaxis * 2*x + yaxis * y;
+			mshleaves.vertices[vidx-1] = p + xaxis * 2*x + yaxis * -y;
+			mshleaves.texcoords[vidx-4] = vector2f(0.0f, 0.0f);
+			mshleaves.texcoords[vidx-3] = vector2f(1.0f, 0.0f);
+			mshleaves.texcoords[vidx-2] = vector2f(1.0f, 1.0f);
+			mshleaves.texcoords[vidx-1] = vector2f(0.0f, 1.0f);
+			mshleaves.indices[iidx-6] = vidx-4;
+			mshleaves.indices[iidx-5] = vidx-3;
+			mshleaves.indices[iidx-4] = vidx-2;
+			mshleaves.indices[iidx-3] = vidx-4;
+			mshleaves.indices[iidx-2] = vidx-2;
+			mshleaves.indices[iidx-1] = vidx-1;
+#endif
 		}
 	}
 	//return root + axis * length;
