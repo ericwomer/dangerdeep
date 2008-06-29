@@ -101,6 +101,7 @@ public:
 		std::auto_ptr<map> colormap;	// replaces diffuse color if not defined.
 		std::auto_ptr<map> normalmap;	// should be of type RGB to work properly.
 		std::auto_ptr<map> specularmap; // should be of type LUMINANCE to work properly.
+		bool two_sided;
 		
 		material(const std::string& nm = "Unnamed material");
 		virtual ~material() {}

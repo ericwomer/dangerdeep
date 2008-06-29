@@ -1215,7 +1215,7 @@ void model::material::map::get_all_layout_names(std::set<std::string>& result) c
 
 
 
-model::material::material(const std::string& nm) : name(nm), shininess(50.0f)
+model::material::material(const std::string& nm) : name(nm), shininess(50.0f), two_sided(false)
 {
 }
 
@@ -1521,8 +1521,13 @@ void model::material_glsl::get_all_layout_names(std::set<std::string>& result) c
 void model::mesh::display(const texture *caustic_map) const
 {
 	// set up material
+	GLint cull_mode = GL_LEFT; // used as "not set" marker
 	if (mymaterial != 0) {
 		mymaterial->set_gl_values(caustic_map);
+		if (mymaterial->two_sided) {
+			glGetIntegerv(GL_CULL_FACE_MODE, &cull_mode);
+			glCullFace(GL_NONE);
+		}
 	} else {
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glColor3f(0.5,0.5,0.5);
@@ -1602,6 +1607,8 @@ void model::mesh::display(const texture *caustic_map) const
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex1
 	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
+	if (cull_mode != GL_LEFT)
+		glCullFace(cull_mode);
 	
 	// local transformation matrix.
 	glPopMatrix();
