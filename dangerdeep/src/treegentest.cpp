@@ -155,6 +155,8 @@ void run()
 	tree_generator tgn;
 	std::auto_ptr<model> treemdl = tgn.generate();
 
+	vector3f wind_movement;
+
 	while (true) {
 		double tm1 = sys().millisec();
 		double delta_t = tm1 - tm0;
@@ -192,6 +194,7 @@ void run()
 		ld.normalize();
 		GLfloat lposition[4] = {ld.x,ld.y,ld.z,0};
 		glLightfv(GL_LIGHT0, GL_POSITION, lposition);
+		wind_movement.z = cos(tm1/2000.0f * M_PI) * 0.01;
 
 		// render ground plane
 		glColor4f(0.5,0.8,0.5,1);
@@ -210,6 +213,11 @@ void run()
 		glColor4f(1,1,1,1);
 
 		treemdl->display();
+		model::material_glsl& leafmat = dynamic_cast<model::material_glsl&>(treemdl->get_material(1));
+		glsl_shader_setup& gss = leafmat.get_shadersetup();
+		gss.use();
+		gss.set_uniform(gss.get_uniform_location("wind_movement"), wind_movement);
+		gss.use_fixed();
 
 		vector3 oldpos = pos;
 		const double movesc = 0.25;

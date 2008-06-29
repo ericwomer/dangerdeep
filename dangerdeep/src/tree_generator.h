@@ -118,10 +118,14 @@ std::auto_ptr<model> tree_generator::generate() const
 #if 0
 	dmap->set_texture(new texture(get_texture_dir() + "leaves_log.png", texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP_TO_EDGE));
 #endif
-	model::material* mat = new model::material();
+	model::material_glsl* mat = new model::material_glsl("leaf", "treeleaves.vshader", "treeleaves.fshader");
+	mat->nrtex = 1;
+	mat->texnames[0] = "tex_color";
 	mat->specular = color::white();
-	mat->colormap.reset(dmap);
+	mat->texmaps[0].reset(dmap);
 	mat->two_sided = true;
+	mat->compute_texloc();
+
 	mshleaves->mymaterial = mat;
 
 	mdl->add_material(mat);
@@ -273,22 +277,6 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 			mshleaves.indices[iidx++] = vidx-2;
 			mshleaves.indices[iidx++] = vidx-3;
 			mshleaves.indices[iidx++] = vidx-1;
-#if 0
-			mshleaves.vertices[vidx-4] = p + lxaxis * 0 + lyaxis * -y;
-			mshleaves.vertices[vidx-3] = p + lxaxis * 0 + lyaxis * y;
-			mshleaves.vertices[vidx-2] = p + lxaxis * 2*x + lyaxis * y;
-			mshleaves.vertices[vidx-1] = p + lxaxis * 2*x + lyaxis * -y;
-			mshleaves.texcoords[vidx-4] = vector2f(0.0f, 0.0f);
-			mshleaves.texcoords[vidx-3] = vector2f(1.0f, 0.0f);
-			mshleaves.texcoords[vidx-2] = vector2f(1.0f, 1.0f);
-			mshleaves.texcoords[vidx-1] = vector2f(0.0f, 1.0f);
-			mshleaves.indices[iidx-6] = vidx-4;
-			mshleaves.indices[iidx-5] = vidx-3;
-			mshleaves.indices[iidx-4] = vidx-2;
-			mshleaves.indices[iidx-3] = vidx-4;
-			mshleaves.indices[iidx-2] = vidx-2;
-			mshleaves.indices[iidx-1] = vidx-1;
-#endif
 		}
 	}
 	//return root + axis * length;
