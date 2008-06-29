@@ -233,7 +233,7 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 			mshleaves.vertices[vidx] = p;
 			mshleaves.normals[vidx] = axis;
 			unsigned lt = rnd(4);
-			mshleaves.texcoords[vidx] = vector2f((0.5f+lt)*0.25, 0.0f);
+			mshleaves.texcoords[vidx] = vector2f((0.5f+lt)*0.25, 1.0f);
 			++vidx;
 			float x = (i & 1) ? -0.04f : 0.04f;
 			float y = (i & 1) ? -0.04f : 0.04f;
@@ -247,7 +247,7 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 			++vidx;
 			mshleaves.vertices[vidx] = p + xaxis * (2+rnd()*0.25)*x + yaxis * (y * (rnd() - 0.5) * 0.25);
 			mshleaves.normals[vidx] = axis;
-			mshleaves.texcoords[vidx] = vector2f((0.5f+lt)*0.25, 1.0f);
+			mshleaves.texcoords[vidx] = vector2f((0.5f+lt)*0.25, 0.0f);
 			++vidx;
 			//fixme: use quads for leaves, saves 2 indices per leaf.
 			mshleaves.indices[iidx++] = vidx-4;
