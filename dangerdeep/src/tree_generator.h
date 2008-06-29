@@ -142,8 +142,8 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 				      bool generate_leaves) const
 {
 	if (segs < 3 || bend_segs < 1) throw std::invalid_argument("treegenerator::generate_log");
-	const unsigned nr_verts = (segs+1) * (bend_segs+1);
-	const unsigned nr_indis = (2*(segs+1) + 2) * bend_segs - (msh.indices.empty() ? 1 : 0);
+	const unsigned nr_verts = (segs+1) * (bend_segs+1) + 1;
+	const unsigned nr_indis = (2*(segs+1) + 2) * (bend_segs + 1) - (msh.indices.empty() ? 1 : 0);
 	unsigned old_v = msh.vertices.size();
 	unsigned old_i = msh.indices.size();
 	msh.indices_type = model::mesh::pt_triangle_strip;
@@ -184,6 +184,12 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 			++vidx;
 		}
 	}
+	// final cusp
+	msh.vertices[vidx] = root + axis * (length + radius1);
+	msh.normals[vidx] = axis;
+	msh.tangentsx[vidx] = xaxis;
+	msh.texcoords[vidx] = vector2f(0, 1.0+1/length);
+	
 	// generate indices
 	unsigned iidx = old_i;
 	for (unsigned b = 0; b < bend_segs; ++b) {
@@ -199,6 +205,17 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 		}
 		msh.indices[iidx++] = v0-1;
 	}
+	// final cusp
+	unsigned v0 = old_v + bend_segs * (segs+1);
+	unsigned v1 = vidx;
+	msh.indices[iidx++] = v1;
+	for (unsigned r = 0; r <= segs; ++r) {
+		msh.indices[iidx++] = v1;
+		msh.indices[iidx++] = v0;
+		++v0;
+	}
+	msh.indices[iidx++] = v0-1;
+
 	if (rnd(4) == 0 && lvl < 3) {
 		// generate side child
 		unsigned c = rnd(2) == 0 ? 2 : 1;
@@ -286,8 +303,8 @@ void tree_generator::generate_tree(model::mesh& msh, model::mesh& mshleaves, uns
 	static const unsigned segs[5] = { 16, 12, 8, 6, 3 };
 	static const float length0[5] = { 1.0, 0.4, 0.4, 0.3, 0.3 };
 	static const float length1[5] = { 1.5, 0.6, 0.6, 0.4, 0.4 };
-	static const float radius0[5] = { 0.15, 0.12, 0.05, 0.025, 0.015 };
-	static const float radius1[5] = { 0.12, 0.05, 0.025, 0.015, 0.005 };
+	static const float radius0[5] = { 0.15, 0.12, 0.05, 0.025, 0.01 };
+	static const float radius1[5] = { 0.12, 0.05, 0.025, 0.01, 0.005 };
 	static const float anglefac[5] = { 1.5, 2.0, 2.5, 3.0, 3.5 };
 	static const unsigned children0[5] = { 2, 2, 3, 4, 4 };
 	static const unsigned children1[5] = { 4, 4, 5, 6, 7 };
