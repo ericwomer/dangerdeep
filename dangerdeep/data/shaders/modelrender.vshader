@@ -7,15 +7,6 @@
    tangentx_righthanded	(tangentx,righthanded-factor)
 */
 
-/* can we give names to default attributes? or do we need to use named attributes for that?
-   how to give named attributes with vertex buffer objects?
-   we could assign them to a variable, but would that be efficient? an unnecessary copy.
-   but the shader compiler should be able to optimize that...
-   the way should be to use vertex attributes (together with vertex arrays or VBOs),
-   that have a name and use that name here.
-   until then, access sources directly or via a special variable.
-*/
-
 varying vec2 texcoord;
 varying vec3 lightdir, halfangle;
 attribute vec4 tangentx_righthanded;
