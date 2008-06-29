@@ -197,7 +197,7 @@ void run()
 		glColor4f(0.5,0.8,0.5,1);
 		terraintex->set_gl_texture();
 		glBegin(GL_QUADS);
-		float tc = 150, vc = 3000;
+		float tc = 600, vc = 3000;
 		glTexCoord2f(-tc,-tc);
 		glVertex3f(-vc,-vc,0);
 		glTexCoord2f(+tc,-tc);

@@ -213,10 +213,6 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 		unsigned nrl = unsigned(length / 0.03) * 4;
 		const unsigned nr_verts = nrl*4;
 		const unsigned nr_indis = nrl*6;
-		xaxis.z *= rnd() * 0.25;
-		yaxis.z *= rnd() * 0.25;
-		xaxis.normalize();
-		yaxis.normalize();
 		unsigned old_v = mshleaves.vertices.size();
 		unsigned old_i = mshleaves.indices.size();
 		mshleaves.indices_type = model::mesh::pt_triangles;
@@ -230,6 +226,12 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 		unsigned iidx = old_i;
 		for (unsigned i = 0; i < nrl; ++i) {
 			vector3f p = bsp.value(rnd());
+			float a = 2*M_PI*rnd();
+			vector2f d(cos(a), sin(a));
+			vector3f lxaxis = xaxis * d.x + yaxis * d.y;
+			vector3f lyaxis = yaxis * d.x - xaxis * d.y;
+			lxaxis.normalize();
+			lyaxis.normalize();
 			mshleaves.vertices[vidx] = p;
 			mshleaves.normals[vidx] = axis;
 			unsigned lt = rnd(4);
@@ -237,15 +239,15 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 			++vidx;
 			float x = (i & 1) ? -0.04f : 0.04f;
 			float y = (i & 1) ? -0.04f : 0.04f;
-			mshleaves.vertices[vidx] = p + xaxis * x + yaxis * y;
+			mshleaves.vertices[vidx] = p + lxaxis * x + lyaxis * y;
 			mshleaves.normals[vidx] = axis;
 			mshleaves.texcoords[vidx] = vector2f((1.0f+lt)*0.25, 0.5f);
 			++vidx;
-			mshleaves.vertices[vidx] = p + xaxis * x + yaxis * -y;
+			mshleaves.vertices[vidx] = p + lxaxis * x + lyaxis * -y;
 			mshleaves.normals[vidx] = axis;
 			mshleaves.texcoords[vidx] = vector2f((0.0f+lt)*0.25, 0.5f);
 			++vidx;
-			mshleaves.vertices[vidx] = p + xaxis * (2+rnd()*0.25)*x + yaxis * (y * (rnd() - 0.5) * 0.25);
+			mshleaves.vertices[vidx] = p + lxaxis * (2+rnd()*0.25)*x + lyaxis * (y * (rnd() - 0.5) * 0.25);
 			mshleaves.normals[vidx] = axis;
 			mshleaves.texcoords[vidx] = vector2f((0.5f+lt)*0.25, 0.0f);
 			++vidx;
@@ -257,10 +259,10 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 			mshleaves.indices[iidx++] = vidx-3;
 			mshleaves.indices[iidx++] = vidx-1;
 #if 0
-			mshleaves.vertices[vidx-4] = p + xaxis * 0 + yaxis * -y;
-			mshleaves.vertices[vidx-3] = p + xaxis * 0 + yaxis * y;
-			mshleaves.vertices[vidx-2] = p + xaxis * 2*x + yaxis * y;
-			mshleaves.vertices[vidx-1] = p + xaxis * 2*x + yaxis * -y;
+			mshleaves.vertices[vidx-4] = p + lxaxis * 0 + lyaxis * -y;
+			mshleaves.vertices[vidx-3] = p + lxaxis * 0 + lyaxis * y;
+			mshleaves.vertices[vidx-2] = p + lxaxis * 2*x + lyaxis * y;
+			mshleaves.vertices[vidx-1] = p + lxaxis * 2*x + lyaxis * -y;
 			mshleaves.texcoords[vidx-4] = vector2f(0.0f, 0.0f);
 			mshleaves.texcoords[vidx-3] = vector2f(1.0f, 0.0f);
 			mshleaves.texcoords[vidx-2] = vector2f(1.0f, 1.0f);
