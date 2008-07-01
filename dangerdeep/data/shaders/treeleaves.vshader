@@ -46,6 +46,7 @@ void main()
 
 	// wind factor
 	float wind_factor = 1.0 - gl_MultiTexCoord0.y;
+	wind_factor *= wind_factor;
 	vec4 pos = gl_Vertex + vec4(wind_movement * wind_factor, 0.0);
 
 	// finally compute position
