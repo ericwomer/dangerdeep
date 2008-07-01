@@ -41,6 +41,8 @@ export __GL_WriteProgramObjectSource=1
 to get ASM source.
 */
 
+bool glsl_shader::enable_hqsfx = false;
+
 int glsl_program::glsl_supported = -1;
 bool glsl_program::supported()
 {
@@ -101,6 +103,10 @@ glsl_shader::glsl_shader(const string& filename, type stype, const glsl_shader::
 					;
 			}
 		}
+
+		// add global hqsfx flag, but define first, so user can override it
+		if (enable_hqsfx)
+			prg += "#define HQSFX\n";
 
 		// add defines to top of list for preprocessor
 		for (defines_list::const_iterator it = dl.begin(); it != dl.end(); ++it) {

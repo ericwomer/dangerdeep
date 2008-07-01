@@ -1301,6 +1301,8 @@ void menu_misc()
 	w.run(0, false);
 
 	cfg::instance().set("use_hqsfx", whqsfx->is_checked());
+	model::enable_hqsfx = whqsfx->is_checked();
+	glsl_shader::enable_hqsfx = whqsfx->is_checked();
 }
 
 
@@ -1780,6 +1782,7 @@ int mymain(list<string>& args)
 //	mycfg.save("./testconf");
 
 	model::enable_hqsfx = cfg::instance().getb("use_hqsfx");
+	glsl_shader::enable_hqsfx = cfg::instance().getb("use_hqsfx");
 
 	// read screen resolution from config file if no override has been set by command line parameters
 	if (res_x == 0) {

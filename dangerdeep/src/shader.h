@@ -44,6 +44,9 @@ class glsl_shader
 	/// a list of strings with shader preprocessor defines
 	typedef std::list<std::string> defines_list;
 
+	/// use a default define HQSFX everywhere if enabled
+	static bool enable_hqsfx;
+
 	/// create a shader
 	glsl_shader(const std::string& filename, type stype, const defines_list& dl = defines_list());
 
