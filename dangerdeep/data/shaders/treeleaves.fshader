@@ -29,7 +29,7 @@ void main()
 	vec3 diffuse_color = vec3(col);
 
 	// handle ambient
-	diffuse_color = diffuse_color * mix(max(dot(L, N), 0.0), 1.0, gl_LightSource[0].ambient.r);
+	diffuse_color = diffuse_color * mix(max(dot(L, N), 0.0), 1.0, gl_LightSource[0].ambient.r * 0.25 + 0.75);
 
 	// final color of fragment
 	vec3 final_color = (diffuse_color + specular_color) * vec3(gl_LightSource[0].diffuse /*light_color*/);
