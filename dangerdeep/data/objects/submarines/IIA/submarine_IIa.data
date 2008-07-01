@@ -18,8 +18,8 @@
   <motion maxspeed="13.0" maxrevspeed="5" acceleration="0.6" turnrate="0.2">
     <submerged maxspeed="6.9" safedepth="80" maxdepth="150"/>
   </motion>
-  <tonnage value="381" />
-  <mass value="214000" />
+  <tonnage value="323" />
+  <mass value="323000" />
   <smoke type="0" x="0" y="0" z="0"/>
   <sensors>
     <sensor type="lookout"/>
@@ -37,10 +37,10 @@
   <gun_turrets>
   	<turret barrels="1" shell_capacity="1200" initial_velocity="200.0" max_inclination="30" max_declination="0" time_to_man="8" time_to_unman="8" shell_damage="0.03" calibre="20.0" exclusion_radius_start="160" exclusion_radius_end="200"/>
   </gun_turrets>
-  <bridge model="conning_tower_typeVIIc.xml">
-  	<camera x="0.25" y="3.45" z="5.65"/>
-  	<uzo x="0" y="0" z="6"/>
-  	<freeview x="20" y="0" z="10"/>
+  <bridge model="uboat_IIa_bridge.ddxml">
+  	<camera x="-0.598" y="0.502" z="5.43"/>
+  	<uzo x="-0.598" y="0.502" z="5.43"/>
+  	<freeview x="25" y="0" z="10"/>
   </bridge>
 </dftd-submarine>
 
