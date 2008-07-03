@@ -5,7 +5,7 @@ varying vec3 viewerdir;
 varying vec3 lightdir;
 varying vec3 normal;
 varying vec3 foamtexcoord; // z coord is crest_foam value
-#ifdef HQ_SFX
+#ifdef HQSFX
 varying vec3 realcoordinates;
 #else
 varying vec4 reflectiontexcoord;	// x,y,w
@@ -25,7 +25,7 @@ attribute float amount_of_foam;
 
 const float foamamount_f1 = 0.8;
 const float foamamount_f2 = -1.0;
-#ifndef HQ_SFX
+#ifndef HQSFX
 const float virtualplane_height = 12.0;
 #endif
 
@@ -66,7 +66,7 @@ void main()
 	//fixme: use uniforms here as well, no tex matrix.
 	foamtexcoord = vec3((gl_TextureMatrix[0] * gl_Vertex).xy, amount_of_foam);
 
-#ifdef HQ_SFX
+#ifdef HQSFX
 	realcoordinates = vec3(gl_Vertex);
 #else
 	// compute reflection texture coordinates

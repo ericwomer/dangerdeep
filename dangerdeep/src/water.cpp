@@ -245,7 +245,7 @@ water::water(double tm) :
 	// initialize shaders
 	glsl_shader::defines_list defines;
 	if (use_hqsfx) {
-		defines.push_back("HQ_SFX");
+		defines.push_back("HQSFX");
 	}
 	glsl_water.reset(new glsl_shader_setup(get_shader_dir() + "water.vshader",
 					       get_shader_dir() + "water.fshader",
