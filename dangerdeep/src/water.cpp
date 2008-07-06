@@ -1298,6 +1298,8 @@ void water::generate_subdetail_texture()
 	} else {
 		//fixme: mipmap levels of normal map should be computed
 		//by this class, not glu!
+		//this could explain some artifacts in the distance, at least
+		//when using relief mapping - heights are not downsampled...?!
 		water_bumpmap.reset(new texture(curr_wtp->mipmaps[0].normals_tex,
 						wave_resolution, wave_resolution,
 						GL_RGB, texture::LINEAR_MIPMAP_LINEAR,
