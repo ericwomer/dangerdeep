@@ -1,4 +1,4 @@
-// g++ -Wall testthreads.cpp thread.cpp message_queue.cpp condvar.cpp mutex.cpp error.cpp -I/usr/include/SDL -lSDL
+// g++ -Wall testthreads.cpp thread.cpp message_queue.cpp condvar.cpp mutex.cpp error.cpp log.cpp -I/usr/include/SDL -lSDL
 
 #include "thread.h"
 #include "message_queue.h"
@@ -28,7 +28,7 @@ public:
 	}
 
 	unsigned sent, rcvd;
-	A(unsigned s_, unsigned m_, unsigned p_) : s(s_), m(m_), p(p_), sent(0), rcvd(0) {}
+	A(unsigned s_, unsigned m_, unsigned p_) : thread("A"), s(s_), m(m_), p(p_), sent(0), rcvd(0) {}
 	void loop() {
 		for (unsigned i = 0; i < 3; ++i) {
 			A* t = nextrcv();
