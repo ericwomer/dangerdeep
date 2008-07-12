@@ -32,6 +32,7 @@ class height_generator_map : public height_generator
 	double realwidth, realheight;
 	unsigned mapw, maph;
 	double pixelw_real;
+	vector2i mapoff;
 public:
 	height_generator_map(const std::string& filename);
 
@@ -46,8 +47,8 @@ public:
 
 protected:
 	Uint8 hd_at(int x, int y) {
-		x = std::min(std::max(x + int(mapw/2), 0), int(mapw)-1);
-		y = std::max(std::min(int(maph/2) - y, int(maph)-1), 0);
+		x = std::min(std::max(x - mapoff.x, 0), int(mapw)-1);
+		y = std::min(std::max(y - mapoff.y, 0), int(maph)-1);
 		return hd.at(x, y);
 	}
 

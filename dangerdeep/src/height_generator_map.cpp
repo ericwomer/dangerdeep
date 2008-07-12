@@ -39,6 +39,8 @@ height_generator_map::height_generator_map(const std::string& filename)
 	mapw = surf->w;
 	maph = surf->h;
 	pixelw_real = realwidth/mapw;
+	mapoff.x = realoffset.x/pixelw_real;
+	mapoff.y = realoffset.y/pixelw_real;
 	realheight = maph*realwidth/mapw;
 	sample_spacing = pixelw_real;
 	log2_color_res_factor = 0;
@@ -52,7 +54,7 @@ height_generator_map::height_generator_map(const std::string& filename)
 		mapoffy -= mapw;
 		for (int xx = 0; xx < int(mapw); ++xx) {
 			Uint8 c = (*offset++);
-			hd.at(xx, yy) = c;
+			hd.at(xx, maph-1-yy) = c;
 		}
 		offset += surf->pitch - mapw;
 	}
