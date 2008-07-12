@@ -21,6 +21,7 @@ dftdsources = Split("""subsim.cpp
 	game.cpp
 	game_editor.cpp
 	gun_shell.cpp
+	height_generator_map.cpp
 	highscorelist.cpp
 	keys.cpp
 	logbook.cpp
@@ -76,6 +77,7 @@ dftdmediasources = Split("""
 	framebufferobject.cpp
 	font.cpp
 	fpsmeasure.cpp
+	geoclipmap.cpp
 	image.cpp
 	make_mesh.cpp
 	model.cpp
@@ -133,7 +135,7 @@ env.Default(portal)
 treegentest = env.Program('treegentest', ['treegentest.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
 env.Default(treegentest)
 
-geoclipmaptest = env.Program('geoclipmaptest', ['geoclipmaptest.cpp', 'geoclipmap.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj, map_obj], LIBS = alllibs)
+geoclipmaptest = env.Program('geoclipmaptest', ['geoclipmaptest.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj, map_obj], LIBS = alllibs)
 env.Default(geoclipmaptest)
 
 ############ this allows to run "scons install" to install the binary

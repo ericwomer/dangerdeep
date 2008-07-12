@@ -22,7 +22,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef HEIGHT_GENERATOR_H
 #define HEIGHT_GENERATOR_H
 
+#include <vector>
 #include "color.h"
+#include "vector3.h"
 
 /* possible interface changes ahead:
    normals have 2x resolution than vertices,
@@ -134,8 +136,11 @@ class height_generator
 	unsigned get_log2_color_res_factor() const { return log2_color_res_factor; }
 
  protected:
+	/// normal constructor for heirs
+	/// if heirs know L or l2crf right at creation, give some default parameters
 	height_generator(double L = 1.0, unsigned l2crf = 1)
 		: sample_spacing(L), log2_color_res_factor(l2crf) {}
+
 	double sample_spacing;	// equal to "L" value of geoclipmap renderer
 	unsigned log2_color_res_factor; // colors have 2^x more values as vertices
 };
