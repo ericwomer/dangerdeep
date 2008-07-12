@@ -53,8 +53,8 @@ class vector3t
 	vector3t<D>& operator+= (const vector3t<D>& other) { x += other.x; y += other.y; z += other.z; return *this; }
 	vector3t<D>& operator-= (const vector3t<D>& other) { x -= other.x; y -= other.y; z -= other.z; return *this; }
 	vector3t<D>& operator*= (const D& s) { x *= s; y *= s; z *= s; return *this; }
-	vector3t<D> min(const vector3t<D>& other) const { return vector3t(x < other.x ? x : other.x, y < other.y ? y : other.y, z < other.z ? z : other.z); }
-	vector3t<D> max(const vector3t<D>& other) const { return vector3t(x > other.x ? x : other.x, y > other.y ? y : other.y, z > other.z ? z : other.z); }
+	vector3t<D> min(const vector3t<D>& other) const { return vector3t(std::min(x, other.x), std::min(y, other.y), std::min(z, other.z)); }
+	vector3t<D> max(const vector3t<D>& other) const { return vector3t(std::max(x, other.x), std::max(y, other.y), std::max(z, other.z)); }
 	bool operator== (const vector3t<D>& other) const { return x == other.x && y == other.y && z == other.z; }
 	D square_length() const { return x * x + y * y + z * z; }
 	D length() const { return D(sqrt(square_length())); }
