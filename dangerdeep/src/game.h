@@ -408,6 +408,7 @@ public:
 	water& get_water() { return *mywater.get(); }
 	const water& get_water() const { return *mywater.get(); }
 
+	height_generator& get_height_gen() { return *myheightgen.get(); }
 	const height_generator& get_height_gen() const { return *myheightgen.get(); }
 
 	/// get pointers to all ships for collision tests.

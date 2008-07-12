@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "color.h"
 #include "coastmap.h"
 #include "caustics.h"
+#include "geoclipmap.h"
 #include "ptrvector.h"
 #include "user_display.h"
 #include "user_popup.h"
@@ -98,6 +99,7 @@ protected:
 	std::auto_ptr<class sky> mysky;	// the one and only sky
 	caustics mycaustics;	//	caustic map
 	coastmap mycoastmap;	// this may get moved to game.h, yet it is used for display only, that's why it is here
+	std::auto_ptr<geoclipmap> mygeoclipmap; // terrain rendering instance
 
 	// is display in day mode (or night/redlight mode)?
 	bool daymode;

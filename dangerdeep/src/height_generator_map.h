@@ -47,7 +47,7 @@ public:
 protected:
 	Uint8 hd_at(int x, int y) {
 		x = std::min(std::max(x + int(mapw/2), 0), int(mapw)-1);
-		y = std::min(std::max(y + int(maph/2), 0), int(maph)-1);
+		y = std::max(std::min(int(maph/2) - y, int(maph)-1), 0);
 		return hd.at(x, y);
 	}
 
