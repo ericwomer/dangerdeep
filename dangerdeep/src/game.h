@@ -50,6 +50,7 @@ class water_splash;
 class particle;
 class convoy;
 class water;
+class height_generator;
 
 #include "angle.h"
 #include "date.h"
@@ -198,6 +199,9 @@ protected:
 
 	// water height data, and everything around it.
 	std::auto_ptr<water> mywater;
+
+	// terrain height data
+	std::auto_ptr<height_generator> myheightgen;
 
 	// multi-threading helper for simulation
 	void simulate_objects_mt(double delta_t, unsigned idxoff, unsigned idxmod, bool record,
@@ -403,6 +407,8 @@ public:
 
 	water& get_water() { return *mywater.get(); }
 	const water& get_water() const { return *mywater.get(); }
+
+	const height_generator& get_height_gen() const { return *myheightgen.get(); }
 
 	/// get pointers to all ships for collision tests.
 	std::vector<ship*> get_all_ships() const;

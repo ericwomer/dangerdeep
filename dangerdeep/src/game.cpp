@@ -61,6 +61,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "water.h"
 #include "cfg.h"
 #include "log.h"
+#include "height_generator_map.h"
 using std::ostringstream;
 using std::pair;
 using std::make_pair;
@@ -194,6 +195,8 @@ game::game()
 
 	mywater.reset(new water(0.0));
 
+	myheightgen.reset(new height_generator_map("default.xml"));
+
 #if 0
 	if (cfg::instance().geti("cpucores") > 1) {
 		log_info("game: Using extra worker for multicore acceleration.");
@@ -263,6 +266,8 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	equipment_date = currentdate;	// fixme: another crude guess or hack
 
 	mywater.reset(new water(time));
+
+	myheightgen.reset(new height_generator_map("default.xml"));
 
 	// Convoy-constructor creates all the objects and spawns them in this game object.
 	// fixme: creation of convoys should be rather moved to this class, so object creation
@@ -381,6 +386,8 @@ game::game(const string& filename)
 	// fixme: save original water creation time and random seed with that water was generated.
 	// set the same seed here again, so water is exactly like it was at game start.
 	mywater.reset(new water(time));
+
+	myheightgen.reset(new height_generator_map("default.xml"));
 
 	// create empty objects so references can be filled.
 	// there must be ships in a mission...
