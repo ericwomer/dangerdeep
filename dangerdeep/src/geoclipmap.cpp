@@ -790,7 +790,7 @@ void geoclipmap::level::display(const frustum& f) const
 	// is area size and offset in vertex VBO for wrapping.
 	unsigned nridx = 0;
 	if (tmp_inner.empty()) {
-		nridx = generate_indices(f, indexvbo, 0, tmp_outer.bl, tmp_outer.size(), dataoffset);
+		nridx = generate_indices(f, indexvbo, nridx, tmp_outer.bl, tmp_outer.size(), dataoffset);
 	} else {
 		// 4 columns: L,U,D,R (left, up, down, right)
 		// LUR
@@ -832,6 +832,7 @@ void geoclipmap::level::display(const frustum& f) const
 	//either the vertices are wrong, or the indices, it seems the latter,
 	//it looks like triangles are drawn using vertices from both sides of the patch
 	//why does it happen only on level 0, and how is it related to generate_indices_T?!
+	//see generate_indices(), there is the bug
 	nridx = generate_indices_T(indexvbo, nridx);
 
 	// add horizon gap triangles if needed
