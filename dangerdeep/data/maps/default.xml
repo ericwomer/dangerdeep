@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
 <dftd-map>
-  <topology image="default.png" realwidth="15625000" realoffsetx="-11254965" realoffsety="-1083984"/>
+  <topology image="default.png" heights="default_h.png" realwidth="15625000" realoffsetx="-11254965" realoffsety="-1083984"/>
   <cities>
     <city name="Murmansk" posx="33/16E" posy="68/59N"/>
     <city name="Trondheim" posx="10/25E" posy="63/24N"/>
