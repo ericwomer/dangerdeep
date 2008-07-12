@@ -86,7 +86,7 @@ class geoclipmap
 			return area(bl.max(other.bl), tr.min(other.tr));
 		}
 		vector2i size() const { return vector2i(tr.x - bl.x + 1, tr.y - bl.y + 1); }
-		bool empty() const { vector2i sz = size(); return sz.x*sz.y <= 0; }
+		bool empty() const { vector2i sz = size(); return sz.x <= 0 || sz.y <= 0; }
 	};
 
 	/// per-level data
