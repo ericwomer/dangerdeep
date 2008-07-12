@@ -823,6 +823,15 @@ void geoclipmap::level::display(const frustum& f) const
 		nridx += generate_indices(f, indexvbo, nridx, off, patchsz, gcm.clamp(dataoffset + patchoff));
 	}
 	// add t-junction triangles - they are never clipped against viewing frustum, but there are only few
+	//fixme: if this is NOT called, a rare display bug does not occur.
+	//maybe the bug is that T-junction triangles are always rendered around the whole
+	//level patch, but maybe there are no vertex data for the full size patch, because
+	//parts are clipped and thus not yet computed?
+	//This can't be true, as we update the whole area in vertices always.
+	//the bug seem to occur only for the innermost level...
+	//either the vertices are wrong, or the indices, it seems the latter,
+	//it looks like triangles are drawn using vertices from both sides of the patch
+	//why does it happen only on level 0, and how is it related to generate_indices_T?!
 	nridx += generate_indices_T(indexvbo, nridx);
 
 	// add horizon gap triangles if needed
