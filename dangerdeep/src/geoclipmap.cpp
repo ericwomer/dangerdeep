@@ -288,7 +288,7 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 		static const int dy[8] = { -1,-1,-1, 0, 1, 1,  1,  0 };
 		for (unsigned i = 0; i < 8; ++i) {
 			gcm.vboscratchbuf[4*i+0] = new_viewpos.x + 32000 * dx[i];
-			gcm.vboscratchbuf[4*i+1] = new_viewpos.x + 32000 * dy[i];
+			gcm.vboscratchbuf[4*i+1] = new_viewpos.y + 32000 * dy[i];
 			gcm.vboscratchbuf[4*i+2] = 0; // fixme: later give +- 10 for land/sea
 			gcm.vboscratchbuf[4*i+3] = 0; // same value here
 		}
@@ -726,30 +726,37 @@ unsigned geoclipmap::level::generate_indices_horizgap(uint32_t* buffer, unsigned
 	vector2i offset2 = gcm.clamp(tmp_outer.tr - vboarea.bl + dataoffset);
 
 	// bottom edge
+	// we need to repeat first index for degenerate triangle conjunction, and to
+	// rearrange the tri-strip order, we need to do it twice
+	buffer[ptr++] = evb+2;
+	buffer[ptr++] = evb+2;
 	buffer[ptr++] = evb+2;
 	buffer[ptr++] = offset2.x + gcm.resolution_vbo*offset.y;
-	for (int i = 1; i < sz.x; ++i) {
+	// we only need half resolution here, as we are operating on the
+	// outside, where we already have half resolution and also the T-junction
+	// faces.
+	for (int i = 2; i < sz.x; i += 2) {
 		buffer[ptr++] = evb+1;
 		buffer[ptr++] = gcm.mod(offset2.x-i) + gcm.resolution_vbo*offset.y;
 	}
 	// left edge
 	buffer[ptr++] = evb+0;
 	buffer[ptr++] = offset.x + gcm.resolution_vbo*offset.y;
-	for (int i = 1; i < sz.x; ++i) {
+	for (int i = 2; i < sz.x; i += 2) {
 		buffer[ptr++] = evb+7;
 		buffer[ptr++] = offset.x + gcm.resolution_vbo*gcm.mod(offset.y+i);
 	}
 	// top edge
 	buffer[ptr++] = evb+6;
 	buffer[ptr++] = offset.x + gcm.resolution_vbo*offset2.y;
-	for (int i = 1; i < sz.x; ++i) {
+	for (int i = 2; i < sz.x; i += 2) {
 		buffer[ptr++] = evb+5;
 		buffer[ptr++] = gcm.mod(offset.x+i) + gcm.resolution_vbo*offset2.y;
 	}
 	// right edge
 	buffer[ptr++] = evb+4;
 	buffer[ptr++] = offset2.x + gcm.resolution_vbo*offset2.y;
-	for (int i = 1; i < sz.x; ++i) {
+	for (int i = 2; i < sz.x; i += 2) {
 		buffer[ptr++] = evb+3;
 		buffer[ptr++] = offset2.x + gcm.resolution_vbo*gcm.mod(offset2.y-i);
 	}
