@@ -598,6 +598,7 @@ unsigned geoclipmap::level::generate_indices(const frustum& f,
 	if (size2.x <= 1 || size2.y <= 1) return idxbase;
 
 #if 1
+	//fixme: this causes the bug!
 	const unsigned colw = 17;
 	unsigned cols = (size2.x + colw-2) / (colw-1);
 	unsigned coloff = 0;
