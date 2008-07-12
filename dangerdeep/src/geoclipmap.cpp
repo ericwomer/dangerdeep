@@ -599,6 +599,11 @@ unsigned geoclipmap::level::generate_indices(const frustum& f,
 
 #if 1
 	//fixme: this causes the bug!
+	//if the last iteration of the following loop is omitted,the bug
+	//does not occur, but the last column is on the other end of the
+	//patch as the errornous faces...
+	//reducing szx for last column doesnt help there are still
+	//bugs. szx seems to be 15, so no special case when szx near 0 or so...
 	const unsigned colw = 17;
 	unsigned cols = (size2.x + colw-2) / (colw-1);
 	unsigned coloff = 0;
