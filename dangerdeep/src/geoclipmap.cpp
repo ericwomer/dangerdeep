@@ -533,7 +533,7 @@ unsigned geoclipmap::level::generate_indices(const frustum& f,
 					     const vector2i& vbooff) const // offset in VBO
 {
 	//log_debug("genindi="<<index<<" size="<<size);
-	if (size.x <= 1 || size.y <= 1) return 0;
+	if (size.x <= 1 || size.y <= 1) return idxbase;
 
 	/* how clipping works:
 	   each patch forms a rectangle in xy-plane. Together with min. and max. height
@@ -572,7 +572,7 @@ unsigned geoclipmap::level::generate_indices(const frustum& f,
 		}
 	}
 
-	if (allempty) return 0;
+	if (allempty) return idxbase;
 				
 	// convert coordinates back to integer values with rounding down/up
 	vector2i minvi(int(floor(minv.x / L_l)), int(floor(minv.y / L_l)));
@@ -595,16 +595,16 @@ unsigned geoclipmap::level::generate_indices(const frustum& f,
 	vector2i vbooff2 = vbooff + newoffset - offset;
 	vector2i size2 = newsize;
 	// check again if patch is still valid
-	if (size2.x <= 1 || size2.y <= 1) return 0;
+	if (size2.x <= 1 || size2.y <= 1) return idxbase;
 
 #if 1
 	const unsigned colw = 17;
 	unsigned cols = (size2.x + colw-2) / (colw-1);
 	unsigned coloff = 0;
-	unsigned result = 0;
+	unsigned result = idxbase;
 	for (unsigned c = 0; c < cols; ++c) {
 		unsigned szx = std::min(colw, unsigned(size2.x) - coloff);
-		result += generate_indices2(buffer, idxbase+result,
+		result = generate_indices2(buffer, result,
 					    vector2i(szx, size2.y),
 					    vector2i(vbooff2.x+coloff,vbooff2.y));
 		coloff += colw-1;
@@ -667,7 +667,7 @@ unsigned geoclipmap::level::generate_indices2(uint32_t* buffer, unsigned idxbase
 		vbooffy0 = vbooffy1;
 		vbooffy1 = (vbooffy1 + 1) & resolution_vbo_mod;
 	}
-	return bufptr - (buffer + idxbase);
+	return bufptr - buffer;
 }
 
 
@@ -708,7 +708,7 @@ unsigned geoclipmap::level::generate_indices_T(uint32_t* buffer, unsigned idxbas
 		buffer[ptr+3] = v.x + v.y * gcm.resolution_vbo;
 		ptr += 4;
 	}
-	return ptr - idxbase;
+	return ptr;
 }
 
 
@@ -763,7 +763,7 @@ unsigned geoclipmap::level::generate_indices_horizgap(uint32_t* buffer, unsigned
 	// final vertex to close it
 	buffer[ptr++] = evb+2;
 
-	return ptr - idxbase;
+	return ptr;
 }
 
 
@@ -805,12 +805,12 @@ void geoclipmap::level::display(const frustum& f) const
 		patchsz.y = tmp_inner.bl.y - tmp_outer.bl.y + 1;
 		vector2i patchoff(tmp_inner.bl.x - tmp_outer.bl.x, 0);
 		off.x += patchoff.x;
-		nridx += generate_indices(f, indexvbo, nridx, off, patchsz, gcm.clamp(dataoffset + patchoff));
+		nridx = generate_indices(f, indexvbo, nridx, off, patchsz, gcm.clamp(dataoffset + patchoff));
 		// upper column (U)
 		patchsz.y = tmp_outer.tr.y - tmp_inner.tr.y + 1;
 		patchoff.y = tmp_inner.tr.y - tmp_outer.bl.y;
 		off.y += patchoff.y;
-		nridx += generate_indices(f, indexvbo, nridx, off, patchsz, gcm.clamp(dataoffset + patchoff));
+		nridx = generate_indices(f, indexvbo, nridx, off, patchsz, gcm.clamp(dataoffset + patchoff));
 		// right column (R)
 		patchsz.x = tmp_outer.tr.x - tmp_inner.tr.x + 1;
 		patchsz.y = tmp_outer.tr.y - tmp_outer.bl.y + 1;
@@ -820,7 +820,7 @@ void geoclipmap::level::display(const frustum& f) const
 		patchoff.y = 0;
 		off.x += patchoff.x;
 		off.y += patchoff.y;
-		nridx += generate_indices(f, indexvbo, nridx, off, patchsz, gcm.clamp(dataoffset + patchoff));
+		nridx = generate_indices(f, indexvbo, nridx, off, patchsz, gcm.clamp(dataoffset + patchoff));
 	}
 	// add t-junction triangles - they are never clipped against viewing frustum, but there are only few
 	//fixme: if this is NOT called, a rare display bug does not occur.
@@ -832,11 +832,11 @@ void geoclipmap::level::display(const frustum& f) const
 	//either the vertices are wrong, or the indices, it seems the latter,
 	//it looks like triangles are drawn using vertices from both sides of the patch
 	//why does it happen only on level 0, and how is it related to generate_indices_T?!
-	nridx += generate_indices_T(indexvbo, nridx);
+	nridx = generate_indices_T(indexvbo, nridx);
 
 	// add horizon gap triangles if needed
 	if (outmost) {
-		nridx += generate_indices_horizgap(indexvbo, nridx);
+		nridx = generate_indices_horizgap(indexvbo, nridx);
 	}
 
 	indices.init_sub_data(0, nridx*4, &gcm.idxscratchbuf[0]);
