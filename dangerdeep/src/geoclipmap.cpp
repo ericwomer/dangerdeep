@@ -39,6 +39,8 @@ p is the factor.
 #undef  DEBUG_INDEX_USAGE
 #define DEBUG_INDEX_EXTRA 1000
 
+#define DYNAMIC_GROW_INDEX_VBO
+
 geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_generator& hg)
 	: resolution((1 << resolution_exp) - 2),
 	  resolution_vbo(1 << resolution_exp),
@@ -189,6 +191,7 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx, bool outmost_level)
 	  index(idx),
 	  vertices(false),
 	  indices(true),
+	  vbo_data_size(0),
 	  outmost(outmost_level)
 {
 	// mostly static...
@@ -201,13 +204,15 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx, bool outmost_level)
 	// however because of post-TL cache usage and line-to-line degenerated triangles
 	// we need much more indices. Precise numbers are hard to compute, so we take a value
 	// slightly larger than what we need.
-	indices.init_data((2*(gcm.resolution_vbo+4)*(gcm.resolution_vbo+4) + 2*4*gcm.resolution
-			   + (outmost ? 4*2*gcm.resolution_vbo : 0) + 32*gcm.resolution_vbo
-#ifdef DEBUG_INDEX_USAGE
-			   + DEBUG_INDEX_EXTRA
-#endif
-			   ) * 4/*GLuint*/,
+	// it seems that on innermost level we need more than we give, but the extra space for
+	// the outer tri-fan compensates it. If we would render only one level, we could
+	// run out of space again.
+	// We need to compute the exact maximum per level, fixme!
+	// Innermost levels needs much more than the rest, so we have much waste here!
+#ifndef DYNAMIC_GROW_INDEX_VBO
+	indices.init_data(gcm.idxscratchbuf.size() * 4/*GLuint*/,
 			  0, GL_STATIC_DRAW);
+#endif
 	// create space for normal texture
 	std::vector<Uint8> pxl(3*gcm.resolution_vbo*gcm.resolution_vbo*2*2);
 	normals.reset(new texture(pxl, gcm.resolution_vbo*2,
@@ -598,12 +603,23 @@ unsigned geoclipmap::level::generate_indices(const frustum& f,
 	if (size2.x <= 1 || size2.y <= 1) return idxbase;
 
 #if 1
-	//fixme: this causes the bug!
-	//if the last iteration of the following loop is omitted,the bug
-	//does not occur, but the last column is on the other end of the
-	//patch as the errornous faces...
-	//reducing szx for last column doesnt help there are still
-	//bugs. szx seems to be 15, so no special case when szx near 0 or so...
+	// for innermost level, when size2=(res_vbo-1,res_vbo-1), how many indices
+	// do we need? per call we need (szx*2+2)*(res_vbo-2)
+	// we have res_vbo/16 calls, while a call crosses the border one more,
+	// and szx is 16+1 each call, so total number is:
+	// (res_vbo/16)*(17*2+2)*(res_vbo-2) =
+	// res_vbo^2 * 36/16 - res_vbo * 72/16 =
+	// res_vbo^2 * 9/4 - res_vbo * 9/2 =
+	// res_vbo^2 * 2.25 - res_vbo * 4.5
+	// so the factor for the square of res_vbo is greater than 2, but we only
+	// use 2 in resizing the VBO and thus we need to compensate with much
+	// extra space. If we need to add one more call, that can happen
+	// on borders, we would have even more demand for space.
+	// at the moment for res_vbo=256 we have ca. 148000 indices per level, that
+	// is 578kB per level, at 7 levels thus nearly 4MB used for the index vbo.
+	// Since other levels need 3/4 of it, we waste at most 1MB, so no problem
+	// for now. We could also increase the VBO size on demand, but that means
+	// repeated new alloc of the VBO on the card.
 	const unsigned colw = 17;
 	unsigned cols = (size2.x + colw-2) / (colw-1);
 	unsigned coloff = 0;
@@ -621,6 +637,8 @@ unsigned geoclipmap::level::generate_indices(const frustum& f,
 #endif
 }
 
+// needed indices for this call:
+// (size2.x*2+2)*(size2.y-1)
 unsigned geoclipmap::level::generate_indices2(uint32_t* buffer, unsigned idxbase,
 					     const vector2i& size2,
 					     const vector2i& vbooff2) const
@@ -829,16 +847,6 @@ void geoclipmap::level::display(const frustum& f) const
 		nridx = generate_indices(f, indexvbo, nridx, off, patchsz, gcm.clamp(dataoffset + patchoff));
 	}
 	// add t-junction triangles - they are never clipped against viewing frustum, but there are only few
-	//fixme: if this is NOT called, a rare display bug does not occur.
-	//maybe the bug is that T-junction triangles are always rendered around the whole
-	//level patch, but maybe there are no vertex data for the full size patch, because
-	//parts are clipped and thus not yet computed?
-	//This can't be true, as we update the whole area in vertices always.
-	//the bug seem to occur only for the innermost level...
-	//either the vertices are wrong, or the indices, it seems the latter,
-	//it looks like triangles are drawn using vertices from both sides of the patch
-	//why does it happen only on level 0, and how is it related to generate_indices_T?!
-	//see generate_indices(), there is the bug
 	nridx = generate_indices_T(indexvbo, nridx);
 
 	// add horizon gap triangles if needed
@@ -846,6 +854,18 @@ void geoclipmap::level::display(const frustum& f) const
 		nridx = generate_indices_horizgap(indexvbo, nridx);
 	}
 
+#ifdef DEBUG_INDEX_USAGE
+	if (nridx > gcm.idxscratchbuf.size())printf("ERROR %i %i\n",nridx,gcm.idxscratchbuf.size());
+#endif
+
+#ifdef DYNAMIC_GROW_INDEX_VBO
+	if (nridx > vbo_data_size) {
+		static const unsigned roundup = 8191;
+		//printf("REALLOC VBO level=%u old=%u new=%u (%u) scratchsize=%u\n", index, vbo_data_size, nridx, (nridx + roundup) & ~roundup, gcm.idxscratchbuf.size());
+		vbo_data_size = (nridx + roundup) & ~roundup;
+		indices.init_data(vbo_data_size * 4/*GLuint*/, 0, GL_STATIC_DRAW);
+	}
+#endif
 	indices.init_sub_data(0, nridx*4, &gcm.idxscratchbuf[0]);
 
 	// render the data
