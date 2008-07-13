@@ -108,6 +108,8 @@ class geoclipmap
 		area vboarea;
 		/// offset in VBO of bottom left (vboarea.bl) data sample (dataoffset.x/y in [0...N] range)
 		vector2i dataoffset;
+		/// size of VBO data
+		mutable unsigned vbo_data_size;
 
 		mutable area tmp_inner, tmp_outer;
 		bool outmost;
