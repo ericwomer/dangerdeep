@@ -42,6 +42,13 @@ height_generator_map::height_generator_map(const std::string& filename)
 	mapoff.x = realoffset.x/pixelw_real;
 	mapoff.y = realoffset.y/pixelw_real;
 	realheight = maph*realwidth/mapw;
+	//fixme: this value is too high in combination with level resolution.
+	//we use 2^8=256 there and this value is ca. 4850m, so one level
+	//covers an area of 1241.6km! no wonder there are graphic errors.
+	//we need to give much finer detail values and a smaller number here,
+	//so that one level area is smaller than half screen space,
+	//i.e. < +-16km, so this value must be < 125m. Use 7 levels of
+	//sub-detail gives 4850/(2^7)=37.9m, fine enough.
 	sample_spacing = pixelw_real;
 	log2_color_res_factor = 0;
 	hd.resize(vector2i(mapw, maph));
