@@ -1,45 +1,42 @@
 
 varying vec2 texcoord;
 varying vec3 lightdir, viewdir, reflectdir;
-attribute vec4 tangentx_righthanded;
+attribute vec3 tangentx;
 
 void main()
 {
-	/* Build tangent space */
-	vec3 tangentx = vec3( tangentx_righthanded );
-	vec3 tangenty = cross( gl_Normal, tangentx) * tangentx_righthanded.w;
+	vec3 normal = normalize( gl_Normal );
+	vec3 tangent = normalize( tangentx );
+	vec3 binormal = cross( normal, tangent );
 
-	/* Build incident vector */
-	vec3 lightpos_obj = vec3( gl_ModelViewMatrixInverse *
-						gl_LightSource[0].position);
-	vec3 lightdir_obj = normalize( lightpos_obj - vec3(gl_Vertex) *
-						gl_LightSource[0].position.w);
+	/* gl_Vertex = object space already. Convert light position to object
+	   space, and incident vector (object space). */
+	vec3 viewer = normalize( vec3( gl_ModelViewMatrixInverse[3]) - 
+			vec3(gl_Vertex));
+	vec3 tmpvec = normalize( vec3(gl_ModelViewMatrixInverse *
+				gl_LightSource[0].position) - vec3(gl_Vertex) );
+	vec3 reflectiondir = normalize(reflect( tmpvec, gl_Normal ));
 
-	/* Build viewer vector */
-	vec3 viewerdir_obj = normalize( vec3( gl_ModelViewMatrixInverse[3]) -
-						vec3(gl_Vertex));
+	/* convert incident vector to tangent space */
+	lightdir.x = dot(tmpvec, tangent);
+	lightdir.y = dot(tmpvec, binormal);
+	lightdir.z = dot(tmpvec, normal);
 
-	/* Build reflection vector */
-	vec3 reflection_obj = normalize( reflect( -lightdir_obj, gl_Normal) );
+	/* convert viewer to tangent space */
+	tmpvec = viewer;
+	viewdir.x = dot(tmpvec, tangent);
+	viewdir.y = dot(tmpvec, binormal);
+	viewdir.z = dot(tmpvec, normal);
 
-	/* Convert incident and viewer vectors to tangent space */
-	lightdir.x = dot(tangentx, lightdir_obj);
-	lightdir.y = dot(tangenty, lightdir_obj);
-	lightdir.z = dot(gl_Normal /*tangentz*/, lightdir_obj);
+	tmpvec = reflectiondir;
+	reflectdir.x = dot(tmpvec, tangent);
+	reflectdir.y = dot(tmpvec, binormal);
+	reflectdir.z = dot(tmpvec, normal);
 
-	viewdir.x = dot(tangentx, viewerdir_obj);
-	viewdir.y = dot(tangenty, viewerdir_obj);
-	viewdir.z = dot(gl_Normal /*tangentz*/, viewerdir_obj);
-
-	reflectdir.x = dot(tangentx, reflection_obj);
-	reflectdir.y = dot(tangenty, reflection_obj);
-	reflectdir.z = dot(gl_Normal, reflection_obj);
-
-
-	/* Set texture coordinates */
+	/* compute texture coordinates */
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
-	/* Set position */
+	/* compute position */
 	gl_Position = ftransform();
 
 	/* Set fog coordinates */
