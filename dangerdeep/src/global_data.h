@@ -119,8 +119,8 @@ inline double myfmod(double a, double b) { return a-floor(a/b)*b; }//fmod is dif
 inline double myfrac(double a) { return a-floor(a); }
 inline float mysgn(float a) { return (a < 0) ? -1.0f : ((a > 0) ? 1.0f : 0.0f); }
 inline double mysgn(double a) { return (a < 0) ? -1.0 : ((a > 0) ? 1.0 : 0.0); }
-template<class T> inline T myclamp(const T& v, const T& minv, const T& maxv) { return (v < minv) ? minv : ((v > maxv) ? maxv : v); }
-template<class C> inline void add_saturated(C& sum, const C& add, const C& max) { sum += add; if (sum > max) sum = max; }
+template<class T> inline T myclamp(const T& v, const T& minv, const T& maxv) { return std::min(maxv, std::max(minv, v)); }
+template<class C> inline void add_saturated(C& sum, const C& add, const C& max) { sum = std::min(sum + add, max); }
 // return a random value in [0, 1(
 inline double rnd() { return double(rand())/RAND_MAX; }
 inline unsigned rnd(unsigned b) { return unsigned(b*rnd()); }
