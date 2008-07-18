@@ -142,7 +142,7 @@ class torpedo : public ship
 	double get_turn_accel_factor() const { return 50.0; } // rudder area etc.
 	double get_turn_drag_area() const;
 	double get_turn_drag_coeff() const { return 10.0; }
-	double get_throttle_speed() const { return get_max_speed(); }
+	double get_throttle_speed() const;
 
 	virtual bool causes_spray() const { return false; }//causes wake, only true for steam torpedoes and maybe for Walter engine
 

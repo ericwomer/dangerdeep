@@ -364,7 +364,7 @@ void torpedo::simulate(double delta_time)
 	dive_planes.simulate(delta_time);
 
 	// simulate screw turning. one model for all torps, but this doesnt matter
-	double screw_ang = myfrac(gm.get_time()) * 360.0;
+	double screw_ang = myfrac(gm.get_time()) * 360.0 * 4;
 	mymodel->set_object_angle(1, screw_ang);
 	mymodel->set_object_angle(2, screw_ang);
 
@@ -478,6 +478,13 @@ void torpedo::depth_steering_logic()
 	//DBGOUT8(position.z,depthdiff, local_velocity.z, dive_planes.angle, error0, error1, error2, error);
 	double rd = myclamp(error, -5.0, 5.0);
 	dive_planes.to_angle = dive_planes.max_angle * rd / 5.0;
+}
+
+
+
+double torpedo::get_throttle_speed() const
+{
+	return run_length > get_range() ? 0.0 : get_max_speed();
 }
 
 
