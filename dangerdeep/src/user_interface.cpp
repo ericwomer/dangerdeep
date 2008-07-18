@@ -643,7 +643,7 @@ void user_interface::draw_infopanel(bool onlytexts) const
 		os1 << setw(3) << left << unsigned(fabs(round(sea_object::ms2kts(mygame->get_player()->get_speed()))));
 		panel_valuetexts[1]->set_text(os1.str());
 		ostringstream os2;
-		os2 << setw(3) << left << unsigned(round(-mygame->get_player()->get_pos().z));
+		os2 << setw(3) << left << unsigned(round(std::max(0.0, -mygame->get_player()->get_pos().z)));
 		panel_valuetexts[2]->set_text(os2.str());
 		ostringstream os3;
 		os3 << setw(3) << left << get_absolute_bearing().ui_value();
