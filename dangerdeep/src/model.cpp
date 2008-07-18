@@ -1020,6 +1020,33 @@ bool model::mesh::is_inside(const vector3f& p) const
 
 
 
+/* computing Volume
+*/
+double model::mesh::compute_volume() const
+{
+	double vsum = 0;
+	std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+	do {
+		unsigned i0 = tit->i0();
+		unsigned i1 = tit->i1();
+		unsigned i2 = tit->i2();
+		const vector3f& A = vertices[i0];
+		const vector3f& B = vertices[i1];
+		const vector3f& C = vertices[i2];
+		const vector3f D; // we use the center of mesh space for D.
+		vector3 a = A - D;
+		vector3 b = B - D;
+		vector3 c = C - D;
+		vector3 abcd = A + B + C + D;
+		double V_i = (1.0/6.0) * (b.cross(c) * a);
+		vsum += V_i;
+	} while (tit->next());
+	// result is always matching vertex data, NOT treating the transformation!
+	return vsum;
+}
+
+
+
 /* computing center of gravity:
    Divide sum over tetrahedrons with V_i * c_i each by sum over tetrahedrons
    with V_i each. Where V_i and c_i are volume and center of mass for each

@@ -327,7 +327,7 @@ int mymain(list<string>& args)
 	cout << "min=" << mmin << " max=" << mmax << " mw=" << mw << " mh=" << mh << "\n";
 
 	// voxel resolution
-	const vector3i resolution = torpedomode ? vector3i(1, 1, 1) : vector3i(5, 7, 7);
+	const vector3i resolution = torpedomode ? vector3i(2, 4, 2) : vector3i(5, 7, 7);
 	vector<float> mass_part(resolution.x*resolution.y*resolution.z);
 
 	for (unsigned i = 0; i < ANGLES; ++i) {
@@ -439,6 +439,7 @@ int mymain(list<string>& args)
 	double vol_inside = (inside_vol * vol) / is_inside.size();
 	//cout << "Inside volume " << vol_inside << " (" << vol_inside/2.8317 << " BRT) of " << vol << "\n";
 	physroot.add_child("volume").set_attr(vol_inside);
+	physroot.child("volume").set_attr(mdl->get_base_mesh().compute_volume(), "mesh");
 	physroot.add_child("center-of-gravity").set_attr(mdl->get_base_mesh().compute_center_of_gravity());
 	matrix3 ten = mdl->get_base_mesh().compute_inertia_tensor(mdl->get_base_mesh_transformation());
 	ostringstream ossit; ten.to_stream(ossit);
