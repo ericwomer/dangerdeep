@@ -56,6 +56,7 @@ class vector3t
 	vector3t<D> min(const vector3t<D>& other) const { return vector3t(std::min(x, other.x), std::min(y, other.y), std::min(z, other.z)); }
 	vector3t<D> max(const vector3t<D>& other) const { return vector3t(std::max(x, other.x), std::max(y, other.y), std::max(z, other.z)); }
 	vector3t<D> sign() const { return vector3t(x < 0 ? D(-1) : (x > 0 ? D(1) : D(0)), y < 0 ? D(-1) : (y > 0 ? D(1) : D(0)), z < 0 ? D(-1) : (z > 0 ? D(1) : D(0))); }
+	vector3t<D> abs() const { return vector3t(x < 0 ? -x : x, y < 0 ? -y : y, z < 0 ? -z : z); }
 	bool operator== (const vector3t<D>& other) const { return x == other.x && y == other.y && z == other.z; }
 	D square_length() const { return x * x + y * y + z * z; }
 	D length() const { return D(sqrt(square_length())); }
