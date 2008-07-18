@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "torpedo.h"
 #include "user_interface.h"
 #include "global_data.h"
+#include "log.h"
 #include <sstream>
 #include <fstream>
 #include <iomanip>
@@ -373,7 +374,7 @@ void sub_torpedo_display::enter(bool is_day)
 	const submarine* pl = dynamic_cast<const submarine*>(ui.get_game().get_player());
 	// fixme: catch errors for load, later do not accept missing images
 	try {
-	std::cout << "loading '" << get_data_dir() + data_file().get_rel_path(pl->get_specfilename()) + pl->get_torpedomanage_img_name() << "'\n";
+	log_debug("loading '" << get_data_dir() + data_file().get_rel_path(pl->get_specfilename()) + pl->get_torpedomanage_img_name());
 	subtopsideview.reset(new image(get_data_dir()
 				       + data_file().get_rel_path(pl->get_specfilename())
 				       + pl->get_torpedomanage_img_name()));
