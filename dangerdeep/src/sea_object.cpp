@@ -316,7 +316,7 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 	// constructor.
 	mass = mymodel->get_base_mesh().volume * 1100;
 	mass_inv = 1.0/mass;
-	inertia_tensor = mymodel->get_base_mesh().inertia_tensor * matrix3(mass,0,0,0,mass,0,0,0,mass); // fixme: handle mass!
+	inertia_tensor = mymodel->get_base_mesh().inertia_tensor * mass;
 	inertia_tensor_inv = inertia_tensor.inverse();
 }
 
