@@ -131,7 +131,7 @@ else:
 	uname_arch = os.popen2( 'uname -m', 'r', 1024 )[1].read().strip()
 
 	if ( 'x86_64' == uname_arch ):
-		arch = 'k8' # TODO: intel emt64 cpus...
+		arch = 'x86-64'
 	else:
 		arch = 'i686'
 
