@@ -1047,7 +1047,7 @@ void submarine::depth_steering_logic()
 	double error2 = 0;//-rudder_pos/max_rudder_turn_speed * turn_velocity;
 	double error = error0 + error1 + error2;
 	//DBGOUT7(anglediff, turn_velocity, rudder_pos, error0, error1, error2, error);
-	double rd = fabs(error) > 5.0 ? (error < 0 ? -5.0 : 5.0) : error;
+	double rd = myclamp(error, -5.0, 5.0);
 	bow_depth_rudder.to_angle = bow_depth_rudder.max_angle * rd / 5.0;
 	stern_depth_rudder.to_angle = stern_depth_rudder.max_angle * rd / 5.0;
 	// when error below a certain limit, set head_to_fixed=false, rudder_to=ruddermidships

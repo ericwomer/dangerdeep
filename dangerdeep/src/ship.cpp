@@ -166,7 +166,6 @@ ship::ship(game& gm_, const xml_elem& parent)
 	  tonnage(0),
 	  throttle(0),
 	  rudder(vector3(0,-30,0 /*not used yet*/), 0, 40, 4/*area*/, 10),//read consts from spec file, fixme
-	  max_angular_velocity(2),
 	  head_to_fixed(false),
 	  max_accel_forward(1),
 	  max_speed_forward(10),
@@ -211,10 +210,6 @@ ship::ship(game& gm_, const xml_elem& parent)
 	}
 	max_accel_forward = emotion.attrf("acceleration");
 	turn_rate = emotion.attrf("turnrate");
-	// compute max_angular_velocity from turn_rate:
-	// turn_rate = angles/m_forward at max. speed.
-	// so max_angular_veloctiy = angles/time * m/s
-	max_angular_velocity = turn_rate * max_speed_forward;
 
 	for (xml_elem::iterator it = parent.iterate("smoke"); !it.end(); it.next()) {
 		smoke.push_back(make_pair(it.elem().attru("type"), it.elem().attrv3()));
@@ -716,7 +711,7 @@ void ship::steering_logic()
 	double error2 = 0;//-rudder_pos/max_rudder_turn_speed * turn_velocity;
 	double error = error0 + error1 + error2;
 	//DBGOUT7(anglediff, turn_velocity, rudder_pos, error0, error1, error2, error);
-	double rd = fabs(error) > 5.0 ? (error < 0 ? -5.0 : 5.0) : error;
+	double rd = myclamp(error, -5.0, 5.0);
 	rudder.to_angle = rudder.max_angle * rd / 5.0;
 	// when error below a certain limit, set head_to_fixed=false, rudder_to=ruddermidships
 	if (fabs(anglediff) <= 0.25 && fabs(rudder.angle) < 1.0) {
@@ -919,29 +914,22 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	//in general: Power/(rpm * screw_radius * mass) = accel
 	//Power: engine Power (kWatts), rpm (screw turns per second), mass (ship's mass)
 	//SubVIIc: ~3500kW, rad=0.5m, rpm=2 (?), mass=750000kg -> acc=4,666. a bit much...
-	double speed = get_speed();
-	double speed2 = speed*speed;
+	vector3 local_velocity2 = local_velocity.coeff_mul(local_velocity.abs());
+
 	// fixme: add linear drag caused by hull skin friction here!
-	if (fabs(speed) < 1.0) speed2 = fabs(speed)*max_speed_forward;
+	if (fabs(local_velocity.y) < 1.0) local_velocity2.y = local_velocity.y*max_speed_forward;
 
 	vector3 Fr, Tr;
 	double flowforce = get_throttle_accel() * mass;
 	const double water_density = 1000.0;
-	double finalflowforce = rudder.compute_force_and_torque(Fr, Tr, get_local_velocity(), water_density, flowforce);
-	double drag_factor = (speed2) * max_accel_forward / (max_speed_forward*max_speed_forward);
-	if (speed > 0) drag_factor = -drag_factor;
-	Fr.y += finalflowforce + drag_factor * mass;
+	double finalflowforce = rudder.compute_force_and_torque(Fr, Tr, local_velocity, water_density, flowforce);
+	Fr.y += finalflowforce;
+
+	const vector3 drag_factors(1.0, max_accel_forward / (max_speed_forward*max_speed_forward), 0.2);
+	Fr -= local_velocity2.coeff_mul(drag_factors) * mass;
+
 	// force is in world space
 	F = orientation.rotate(Fr);
-
-	// new algo: compute drag directly from linear momentum
-	vector3 linear_momentum_xz = orientation.rotate(orientation.conj().rotate(linear_momentum).coeff_mul(vector3(1, 0, 1)));
-	// maybe add some linear drag too, so low linear_momentum values give some noticeable
-	// drag too (just squaring gives too low drag)
-	// fixme: drag depends on cross section area, is lower in forward direction
-	// than sideward direction!
-	double lmfac = -linear_momentum_xz.square_length() / (mass * mass);
-	F += linear_momentum_xz * lmfac;
 
 	// Note! drag should be computed for all three dimensions, each with area,
 	// to limit sideward/downward movement as well. We need to know the area
@@ -950,7 +938,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 	// this by length or width. Volume below water should be precomputed
 	// like cross section, e.g. with is_inside test over voxels inside the ship.
 	F.z += lift_force_sum; // buoyancy/gravity
-
+	//log_debug("force = "<<orientation.rotate(Fr)<<" + (z) "<<lift_force_sum<<" = "<<F);
 
 
 	// torque:
@@ -1012,6 +1000,7 @@ void ship::compute_force_and_torque(vector3& F, vector3& T) const
 
 	// positive torque turns counter clockwise! torque is in world space!
 	T = orientation.rotate(local_torque + Tr) + dr_torque;
+	//log_debug("Torque, local="<<local_torque<<"  Tr="<<Tr<<"  dr_tq="<<dr_torque);
 
 	//fixme: the AI uses turn radius to decide turning direction, that may give
 	//wrong values with new physics!

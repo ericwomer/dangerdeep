@@ -104,7 +104,6 @@ class torpedo : public ship
 	friend class sub_torpsetup_display;	// to set up values... maybe add get/set functions for them
 
 	// -------- computed at creation of object ------------------
-	double mass;		// in kg
 	double untertrieb;	// negative buoyancy
 	double warhead_weight;	// in kg
 	warhead_types warhead_type;
@@ -132,13 +131,17 @@ class torpedo : public ship
 	double probability_of_rundepth_failure;	// basically high before mid 1942, [SAVE]
 	double run_length;	// how long the torpedo has run, [SAVE]
 
+	generic_rudder dive_planes;
 
 	// specific damage here:
 //	virtual void create_sensor_array ( types t );
 	
+	void compute_force_and_torque(vector3& F, vector3& T) const;
 	void steering_logic();
+	void depth_steering_logic();
 	double get_turn_accel_factor() const { return 50.0; } // rudder area etc.
 	double get_turn_drag_area() const;
+	double get_turn_drag_coeff() const { return 10.0; }
 	double get_throttle_speed() const { return get_max_speed(); }
 
 	virtual bool causes_spray() const { return false; }//causes wake, only true for steam torpedoes and maybe for Walter engine

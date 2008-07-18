@@ -116,7 +116,6 @@ class ship : public sea_object
 
 	generic_rudder rudder;
 
-	double max_angular_velocity;	// depends on turn rate.
 	bool head_to_fixed;	// if true, change rudder_to so that heading moves to head_to
 	angle head_to;
 	

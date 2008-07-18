@@ -172,7 +172,8 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	  rundepth(3),
 	  temperature(15),	// degrees C
 	  probability_of_rundepth_failure(0.2),	// basically high before mid 1942, fixme
-	  run_length(0)
+	  run_length(0),
+  	  dive_planes(vector3(0,-3.5,0 /*not used yet*/), 1, 20, 0.25*0.1/*area*/, 40)//read consts from spec file, fixme
 {
 	date dt = gm.get_equipment_date();
 	// ------------ availability, check this first
@@ -183,6 +184,7 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	set_skin_layout(model::default_layout);
 
 	mass = parent.child("weight").attrf();
+	mass_inv = 1/mass;
 	untertrieb = parent.child("untertrieb").attrf();
 	xml_elem ewarhead = parent.child("warhead");
 	warhead_weight = ewarhead.attrf("weight");
@@ -276,118 +278,25 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	xml_elem epower = parent.child("power");
 
 	// ------------ set ship turning values, fixme: read from files, more a hack...
-	rudder.max_angle = 40;
-	// do not let the rudder simulation turn rudder, set it directly in steering logic (kind of hack)
-	rudder.max_turn_speed = 0.0001;//80;
+	rudder.max_angle = 20;
+	rudder.max_turn_speed = 40;
 	// set turn rate here. With 0.6 a torpedo takes roughly 10 seconds to turn 90 degrees.
 	// With that value the torpedo turn radius is ~98m. Maybe a bit too much.
 	turn_rate = 0.6;
+	// set rudder area
+	rudder.area = 0.25 * 0.1; // diameter 0,53m, rudder ca. half height, 10cm length
 
-	size3d = vector3f(0.533, 7, 0.533);	// diameter 53.3cm (21inch), length ~ 7m
-	mass = 1500; // 1.5tons
+	size3d = vector3f(0.533, 7, 0.533);	// diameter 53.3cm (21inch), length ~ 7m, fixme read from model file
+	//mass = 1500; // 1.5tons, fixme read from spec file
+	mass = mymodel->get_base_mesh().volume * 1000.0;
 	mass_inv = 1.0/mass;
-	inertia_tensor = mymodel->get_base_mesh().inertia_tensor * matrix3(mass,0,0,0,mass,0,0,0,mass); // fixme: handle mass!
+	inertia_tensor = mymodel->get_base_mesh().inertia_tensor * mass;
 	inertia_tensor_inv = inertia_tensor.inverse();
+
+	log_debug("torpedo mass now " << mass);
 }
 
 	
-#if 0 // fixme: to fire a torp, let the TDC set the values while torpedo is in tube (stored!)
-//and then spawn it in game, so that torp::simulate() is called...
-torpedo::torpedo(game& gm_, sea_object* parent, torpedo::types type_, bool usebowtubes, angle headto_,
-		 const tubesetup& stp) : ship(gm_), temperature(20.0 /* fixme*/ )
-{
-	type = type_;
-	primaryrange = (stp.primaryrange <= 16) ? 1600+stp.primaryrange*100 : 1600;
-	secondaryrange = (stp.secondaryrange & 1) ? 1600 : 800;
-	initialturn = stp.initialturn;
-	turnangle = stp.turnangle;
-	torpspeed = stp.torpspeed;
-	rundepth = stp.rundepth;
-
-	position = parent->get_pos();
-	heading = parent->get_heading();
-	if (!usebowtubes) heading += angle(180);
-	vector2 dp = heading.direction() * (parent->get_length()/2 + 3.5);
-	position.x += dp.x;
-	position.y += dp.y;
-	head_to_ang(headto_, !heading.is_cw_nearer(headto_));
-	// fixme: simulate variable speeds of T1?
-	// fixme: simulate effect of magnetic influence fuse (much greater damage)
-	turn_rate = 0.6f;	// most submarine simulations seem to ignore this
-			// launching a torpedo will cause it to run in target direction
-			// immidiately instead of turning there from the sub's heading
-			// fixme historic values??
-	size3d = vector3f(0.533, 7, 0.533);	// diameter 53.3cm (21inch), length ~ 7m
-		//fixme: retrieve from model file referenced in xml file
-		// preheated torpedoes hat longer ranges... this needs to be simulated, too
-		// look at: http://www.uboat.net/technical/torpedoes.htm
-		// and: http://www.uboat.net/history/torpedo_crisis.htm
-		// and: http://www.u-boot-greywolf.de/utorpedo.htm
-	run_length = 0;
-	max_speed_forward = velocity.y = get_speed_by_type(type_);
-	max_speed_reverse = 0;
-	switch (type_) {
-		case T1:
-			max_run_length = 14000;
-			influencefuse = false;
-			break;
-		case T2:
-			max_run_length = 5000;
-			influencefuse = false;
-			break;
-		case T3:
-			max_run_length = 5000;
-			influencefuse = true;
-			break;
-		case T3a:
-			max_run_length = 7500;
-			influencefuse = true;
-			break;
-		case T4:
-			max_run_length = 7500;
-			// fixme: Falke sensor
-			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
-				passive_sonar_sensor::passive_sonar_type_tt_t5 ) );
-			influencefuse = true;
-			break;
-		case T5:
-			max_run_length = 5700;
-			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
-				passive_sonar_sensor::passive_sonar_type_tt_t5 ) );
-			influencefuse = true;
-			break;
-		case T11:
-			max_run_length = 5700;
-			set_sensor ( passive_sonar_system, new passive_sonar_sensor (
-				passive_sonar_sensor::passive_sonar_type_tt_t11 ) );
-			influencefuse = true;
-			break;
-		case T1FAT:
-			max_run_length = 14000;
-			influencefuse = false;
-			break;
-		case T3FAT:
-			max_run_length = 7500;
-			influencefuse = true;
-			break;
-		case T6LUT:
-			max_run_length = 7500;
-			influencefuse = true;
-			break;
-	};
-	throttle = aheadflank;
-
-	// set ship turning values
-	rudder.max_angle = 40;
-	rudder.max_turn_speed = 200;//20;	// with smaller values torpedo course oscillates. damping too high?! steering to crude?! fixme
-	max_angular_velocity = 18;	// ~ 5 seconds for 90 degree turn (50m radius circle with 30 knots)
-	turn_rate = 1; // ? is this needed somewhere?!
-	max_accel_forward = 1;
-
-	log_info("torpedo created");
-}
-#endif
-
 
 void torpedo::load(const xml_elem& parent)
 {
@@ -402,6 +311,7 @@ void torpedo::load(const xml_elem& parent)
 	temperature = parent.child("temperature").attrf();
 	probability_of_rundepth_failure = parent.child("probability_of_rundepth_failure").attrf();
 	run_length = parent.child("run_length").attrf();
+	dive_planes.load(parent.child("dive_planes"));
 }
 
 
@@ -419,6 +329,8 @@ void torpedo::save(xml_elem& parent) const
 	parent.add_child("temperature").set_attr(temperature);
 	parent.add_child("probability_of_rundepth_failure").set_attr(probability_of_rundepth_failure);
 	parent.add_child("run_length").set_attr(run_length);
+	xml_elem ed = parent.add_child("dive_planes");
+	rudder.save(ed);
 }
 
 
@@ -439,14 +351,17 @@ void torpedo::set_steering_values(unsigned primrg, unsigned secrg,
 
 void torpedo::simulate(double delta_time)
 {
-/*
-	cout << "torpedo  " << this << " heading " << heading.value() << " should head to " << head_to.value() << " turn speed " << turn_velocity << "\n";
-	cout << " position " << position << " orientation " << orientation << " run_length " << run_length << "\n";
-	cout << " velo " << velocity << " turnvelo " << turn_velocity << " global vel " << global_velocity << "\n";
-	cout << " acceleration " << acceleration << " delta t "<< delta_time << "\n";
-*/
+	/*
+	log_debug("torpedo  " << this << " heading " << heading.value() << " should head to " << head_to.value() << " turn speed " << turn_velocity << "\n"
+		  << " position " << position << " orientation " << orientation << " run_length " << run_length << "\n"
+		  << " velo " << velocity << " turnvelo " << turn_velocity << "\n"
+		  << " delta t "<< delta_time << "linear_mom " << linear_momentum);
+	*/
 	redetect_time = 1.0;
 	ship::simulate(delta_time);
+
+	depth_steering_logic();
+	dive_planes.simulate(delta_time);
 
 	// simulate screw turning. one model for all torps, but this doesnt matter
 	double screw_ang = myfrac(gm.get_time()) * 360.0;
@@ -503,25 +418,66 @@ void torpedo::simulate(double delta_time)
 
 
 
+void torpedo::compute_force_and_torque(vector3& F, vector3& T) const
+{
+	ship::compute_force_and_torque(F, T);
+
+	// drag by stern dive rudder
+	const double water_density = 1000.0;
+
+	vector3 Fdr, Tdr;
+	double flowforce = get_throttle_accel() * mass * rudder.deflect_factor();
+	double finalflowforce = dive_planes.compute_force_and_torque(Fdr, Tdr, get_local_velocity(), water_density, flowforce);
+	// we limit torque here to avoid too much turning of the torpedo.
+	// Otherwise small dive plane movements would cause large turning, not only
+	// depth changes (by the laws of physics). This trick simulates
+	// the stabilizing work of fins
+	Tdr.x = 0.01;
+
+	// when stern rudder is not at angle 0, some force points orthogonal to the
+	// rudder (stern_depth_rudder.deflect_factor), so less force is available for
+	// forward movement of torpedo. So subtract from forward force what does not
+	// bypass the rudder.
+	//log_debug("Fdr=" << Fdr << " Tdr=" << Tdr);
+	Fdr.y += finalflowforce - flowforce;
+
+	F += orientation.rotate(Fdr);
+	T += orientation.rotate(Tdr);
+}
+
+
+
 void torpedo::steering_logic()
 {
 	// this is the same code as in class ship, but with direct rudder control
 	double anglediff = (head_to - heading).value_pm180();
 	double error0 = anglediff;
-	double error1 = 1.0 /*(max_rudder_angle/max_rudder_turn_speed)*/ * turn_velocity * 1.0;
-	double error2 = 0;//-rudder_pos/max_rudder_turn_speed * turn_velocity;
-	double error = error0 + error1 + error2;
+	// using 1.5 as extra factor here leads to some oscillation, 2.0 is too much
+	// damped. With 1.5 it misses target course temporally up to ~ 5 degrees,
+	// but converges quickly.
+	double error1 = (rudder.max_angle/rudder.max_turn_speed) * turn_velocity * 1.5;
+	double error = error0 + error1;
 	// we set rudder angle directly here (a bit cheating).
 	// in reality the torpedo could set any angle quickly, so it would be
 	// a bit more difficult to steer, but it shouldn't make a big difference
 	// for a realistic simulation.
-	if (error < -5.0) error = -5.0;
-	if (error >  5.0) error =  5.0;
-	rudder.angle = rudder.max_angle * error / 5.0;
-	if (fabs(anglediff) < 0.1 && fabs(turn_velocity) < 0.05) {
-		head_to_fixed = false;
-		rudder.angle = 0;
-	}
+	//log_debug("torpedo steering, speed="<<local_velocity.y<<" anglediff="<<anglediff<<" error="<<error0<<"+"<<error1<<"="<<error<<" angle="<<rudder.angle<<" turn_v="<<turn_velocity);
+	double rd = myclamp(error, -5.0, 5.0);
+	rudder.to_angle = rudder.max_angle * rd / 5.0;
+}
+
+
+
+void torpedo::depth_steering_logic()
+{
+	double depthdiff = position.z - (-rundepth);
+	double error0 = depthdiff;
+	double error1 = dive_planes.max_angle/dive_planes.max_turn_speed * local_velocity.z * 1.0;
+	double error2 = 0;//-rudder_pos/max_rudder_turn_speed * turn_velocity;
+	double error = error0 + error1 + error2;
+	//DBGOUT8(position.z,depthdiff, local_velocity.z, dive_planes.angle, error0, error1, error2, error);
+	double rd = myclamp(error, -5.0, 5.0);
+	dive_planes.to_angle = dive_planes.max_angle * rd / 5.0;
 }
 
 
@@ -542,7 +498,6 @@ void torpedo::launch(const vector3& launchpos, angle parenthdg)
 	linear_momentum = orientation.rotate(vector3(0, max_speed_forward * mass, 0)); // fixme: get from parent
 	angular_momentum = vector3(); // fixme: get from parent
 	compute_helper_values();
-	max_angular_velocity = max_speed_forward * turn_rate;
 	run_length = 0;
 	turn_velocity = 0;
 }
