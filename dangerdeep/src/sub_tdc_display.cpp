@@ -190,11 +190,13 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 	}
 */
 
+	/* this keypress never arrives here, toggle_popup eats it earlier.
 	if (event.type == SDL_KEYDOWN) {
 		if (cfg::instance().getkey(KEY_TOGGLE_POPUP).equal(event.key.keysym)) {
 			next_sub_screen(gm.is_day_mode());
 		}
 	}
+	*/
 }
 
 

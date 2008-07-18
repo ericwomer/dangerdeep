@@ -484,6 +484,7 @@ void user_interface::process_input(const SDL_Event& event)
 			return;
 		} else if (cfg::instance().getkey(KEY_TOGGLE_POPUP).equal(event.key.keysym)) {
 			toggle_popup();
+			return;
 		}
 	}
 
