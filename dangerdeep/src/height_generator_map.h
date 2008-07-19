@@ -27,12 +27,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 class height_generator_map : public height_generator
 {
-	bivector<Uint8> hd;
+	const unsigned subdivision_steps;
+	bivector<float> height_data;
 	vector2 realoffset;
 	double realwidth, realheight;
 	unsigned mapw, maph;
 	double pixelw_real;
 	vector2i mapoff;
+	random_generator rndgen;
+	std::vector<uint8_t> ct[8];
+	unsigned cw, ch;
 public:
 	height_generator_map(const std::string& filename);
 
@@ -46,13 +50,10 @@ public:
 	void get_min_max_height(double& minh, double& maxh) const;
 
 protected:
-	Uint8 hd_at(int x, int y) {
-		x = std::min(std::max(x - mapoff.x, 0), int(mapw)-1);
-		y = std::min(std::max(y - mapoff.y, 0), int(maph)-1);
-		return hd.at(x, y);
-	}
+	bivector<float> generate_patch(int detail, const vector2i& coord_bl,
+				       const vector2i& coord_sz);
 
-	void gen_col(int x, int y, Uint8* c);
+	void gen_col(float h, Uint8* c);
 };
 
 #endif

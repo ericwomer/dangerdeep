@@ -23,10 +23,31 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "xml.h"
 #include "datadirs.h"
 #include "texture.h"
+#include "error.h"
+#include "global_data.h"
 
 using std::string;
 
+/* the map covers ca. 15625000m width at 3200 pixels,
+   so we have S := 4882.8125m per pixel (height sample).
+   Visible area is ca. 60km*60km, so we have to chose
+   a geoclipmap value of N so that N*S <= 60km,
+   and so many subdivision levels, that N/2^level is a
+   reasonable value. With 7 further subdivision levels
+   the finest level would have 4882.8125/128 = 38.15m
+   sample spacing.
+   For N we would have 60000/4882.8125 = 12.288, so N
+   would be 8. Thus the coarsest level covers an area
+   of 8*4882.8125 = 39062.5m, which is enough.
+   N as low as 8 is highly problematic for the geoclipmap
+   renderer, the smooth level transitions work barely
+   and not very well.
+   The finest level thus covers 8*38.15 = 305.2m, which
+   is enough as well.
+*/
+
 height_generator_map::height_generator_map(const std::string& filename)
+	: subdivision_steps(7)
 {
 	xml_doc doc(get_map_dir() + filename);
 	doc.load();
@@ -42,16 +63,9 @@ height_generator_map::height_generator_map(const std::string& filename)
 	mapoff.x = realoffset.x/pixelw_real;
 	mapoff.y = realoffset.y/pixelw_real;
 	realheight = maph*realwidth/mapw;
-	//fixme: this value is too high in combination with level resolution.
-	//we use 2^8=256 there and this value is ca. 4850m, so one level
-	//covers an area of 1241.6km! no wonder there are graphic errors.
-	//we need to give much finer detail values and a smaller number here,
-	//so that one level area is smaller than half screen space,
-	//i.e. < +-16km, so this value must be < 125m. Use 7 levels of
-	//sub-detail gives 4850/(2^7)=37.9m, fine enough.
-	sample_spacing = pixelw_real;
+	sample_spacing = pixelw_real / (1 << subdivision_steps);
 	log2_color_res_factor = 0;
-	hd.resize(vector2i(mapw, maph));
+	height_data.resize(vector2i(mapw, maph));
 	surf.lock();
 	if (surf->format->BytesPerPixel != 1 || surf->format->palette == 0 || surf->format->palette->ncolors != 256)
 		throw error(string("coastmap: image is no greyscale 8bpp paletted image, in ") + filename);
@@ -61,42 +75,78 @@ height_generator_map::height_generator_map(const std::string& filename)
 		mapoffy -= mapw;
 		for (int xx = 0; xx < int(mapw); ++xx) {
 			Uint8 c = (*offset++);
-			hd.at(xx, maph-1-yy) = c;
+			height_data.at(xx, maph-1-yy) = (float(c)-128) * 4;
 		}
 		offset += surf->pitch - mapw;
 	}
 	surf.unlock();
+
+	static const char* texnames[8] = {
+		"tex_stone.jpg",
+		"tex_sand.jpg",
+		"tex_mud.jpg",
+		"tex_grass.jpg",
+		"tex_grass2.jpg",
+		"tex_grass3.jpg",
+		"tex_grass4.jpg",
+		"tex_grass5.jpg"
+	};
+	for (unsigned i = 0; i < 8; ++i) {
+		sdl_image tmp(get_texture_dir() + texnames[i]);
+		unsigned bpp = 0;
+		ct[i] = tmp.get_plain_data(cw, ch, bpp);
+		if (bpp != 3) throw error("color bpp != 3");
+	}
+}
+
+bivector<float> height_generator_map::generate_patch(int detail, const vector2i& coord_bl,
+						     const vector2i& coord_sz)
+{
+	// without caching this is slow as hell, but we don't care for first test.
+	if (detail < int(subdivision_steps)) {
+		// with smooth upsampling we can create 2n+1 values from n+3 values, so if we
+		// assume coord_sz.x/y = m = 2n+1, thus (m-1)/2+3 = n+3
+		// so we need (m-1)/2+3 samples in the coarser level
+		// that is one extra value all around.
+		// we can compute the values simply: round down/up the lower/upper
+		// cordinates, divide by 2, enlarge by 1 and generate a subdivision from this.
+		vector2i coord_tr = coord_bl + coord_sz - vector2i(1, 1);
+		vector2i coord2_bl((coord_bl.x >> 1) - 1, (coord_bl.y >> 1) - 1);
+		vector2i coord2_tr(((coord_tr.x+1) >> 1) + 1, ((coord_tr.y+1) >> 1) + 1);
+		vector2i coord2_sz = coord2_tr - coord2_bl + vector2i(1, 1);
+		bivector<float> v = generate_patch(detail + 1, coord2_bl, coord2_sz).smooth_upsampled();
+		rndgen.set_seed(coord_bl.x * 3 + coord_bl.y * 5 + coord_sz.x * 7 + coord_sz.y * 11);
+		//fixme: doesn't work that way, noise value must be repeatable for
+		//every pixel!
+		//use one noise map per level and add this!
+		return v;//.add_gauss_noise(float(1<<(detail+3)), rndgen);
+	} else if (detail == int(subdivision_steps)) {
+		return height_data.sub_area(coord_bl - mapoff, coord_sz);
+	} else {
+		throw error("invalid detail level requested");
+	}
 }
 
 void height_generator_map::compute_heights(int detail, const vector2i& coord_bl,
 					   const vector2i& coord_sz, float* dest, unsigned stride,
-					   unsigned line_stride, bool noise)
+					   unsigned line_stride, bool /*noise*/)
 {
 	if (!stride) stride = 1;
 	if (!line_stride) line_stride = coord_sz.x * stride;
+	bivector<float> v = generate_patch(detail, coord_bl, coord_sz);
 	for (int y = 0; y < coord_sz.y; ++y) {
 		float* dest2 = dest;
 		for (int x = 0; x < coord_sz.x; ++x) {
-			vector2i coord = coord_bl + vector2i(x, y);
-			if (detail >= 0) {
-				int xc = coord.x * int(1 << detail);
-				int yc = coord.y * int(1 << detail);
-				*dest2 = (hd_at(xc, yc) - 128.f) * 4;
-			} else {
-				float xc = coord.x / float(1 << -detail);
-				float yc = coord.y / float(1 << -detail);
-				*dest2 = (hd_at(xc, yc) - 128.f) * 4;
-			}
+			*dest2 = v[vector2i(x, y)];
 			dest2 += stride;
 		}
 		dest += line_stride;
 	}
 }
 
-void height_generator_map::gen_col(int x, int y, Uint8* c)
+void height_generator_map::gen_col(float h, Uint8* c)
 {
-	Uint8 h = hd_at(x, y);
-	h /= 32;
+	unsigned hh = (h + 512) / 128;
 	static const Uint8 cols[8*3] = {
 		32, 32, 32,
 		48, 48, 48,
@@ -107,29 +157,51 @@ void height_generator_map::gen_col(int x, int y, Uint8* c)
 		180, 220, 64,
 		180, 180, 180
 	};
-	c[0] = cols[h*3+0];
-	c[1] = cols[h*3+1];
-	c[2] = cols[h*3+2];
+	c[0] = cols[hh*3+0];
+	c[1] = cols[hh*3+1];
+	c[2] = cols[hh*3+2];
 }
 
 void height_generator_map::compute_colors(int detail, const vector2i& coord_bl,
 					  const vector2i& coord_sz, Uint8* dest)
 {
+	bivector<float> v = generate_patch(detail, coord_bl, coord_sz);
 	for (int y = 0; y < coord_sz.y; ++y) {
 		for (int x = 0; x < coord_sz.x; ++x) {
+			float h = v[vector2i(x, y)];
+			unsigned xc, yc;
 			vector2i coord = coord_bl + vector2i(x, y);
-			if (detail >= 0) {
-				int xc = coord.x * int(1 << detail);
-				int yc = coord.y * int(1 << detail);
-				gen_col(xc, yc, dest);
+			if (detail >= -2) {
+				xc = coord.x << (detail+2);
+				yc = coord.y << (detail+2);
 			} else {
-				float xc = coord.x / float(1 << -detail);
-				float yc = coord.y / float(1 << -detail);
-				gen_col(xc, yc, dest);
+				xc = coord.x >> (-(detail+2));
+				yc = coord.y >> (-(detail+2));
 			}
+			float zif = (h + 512) * 7 / 1024;
+			if (zif < 0.0) zif = 0.0;
+			if (zif >= 7.0) zif = 6.999;
+			unsigned zi = unsigned(zif);
+			zif = myfrac(zif);
+			unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
+			float zif2 = 1.0-zif;
+			color c(uint8_t(ct[zi][3*i]*zif2 + ct[zi+1][3*i]*zif),
+				uint8_t(ct[zi][3*i+1]*zif2 + ct[zi+1][3*i+1]*zif),
+				uint8_t(ct[zi][3*i+2]*zif2 + ct[zi+1][3*i+2]*zif));
+			dest[0] = c.r;
+			dest[1] = c.g;
+			dest[2] = c.b;
 			dest += 3;
 		}
 	}
+/*
+	for (int y = 0; y < coord_sz.y; ++y) {
+		for (int x = 0; x < coord_sz.x; ++x) {
+			gen_col(v[vector2i(x, y)], dest);
+			dest += 3;
+		}
+	}
+*/
 }
 
 void height_generator_map::get_min_max_height(double& minh, double& maxh) const
