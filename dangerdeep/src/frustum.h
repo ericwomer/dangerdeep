@@ -49,6 +49,8 @@ public:
 	/// construct frustum from current OpenGL matrices.
 	///@param z_near_distance - override for z-near value, give any value below zero to use OpenGL value
 	static frustum from_opengl(double z_near_distance = 1.0, const vector3& viewpos = vector3());
+	/// translate all points
+	void translate(const vector3& delta);
 };
 
 #endif

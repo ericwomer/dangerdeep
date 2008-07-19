@@ -78,3 +78,13 @@ frustum frustum::from_opengl(double z_near_distance, const vector3& viewpos)
 	//viewwindow.print();
 	return frustum(viewwindow, viewpos, vd, z_near_distance /* znear, maybe better read from matrix! */);
 }
+
+
+
+void frustum::translate(const vector3& delta)
+{
+	viewpos += delta;
+	viewwindow.translate(delta);
+	for (unsigned i = 0; i < planes.size(); ++i)
+		planes[i].translate(delta);
+}

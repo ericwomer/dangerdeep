@@ -149,6 +149,11 @@ public:
 			return plane_t<D>();
 		return plane_t<D>(points[0], points[1], points[2]);
 	}
+	/// translate
+	void translate(const vector3t<D>& delta) {
+		for (unsigned i = 0; i < points.size(); ++i)
+			points[i] += delta;
+	}
 };
 
 typedef polygon_t<double> polygon;

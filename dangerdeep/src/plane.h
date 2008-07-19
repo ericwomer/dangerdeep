@@ -82,6 +82,10 @@ public:
 		result = intersection(a, b);
 		return true;
 	}
+	/// translate
+	void translate(const vector3t<D>& delta) {
+		d += delta * N;
+	}
 };
 
 typedef plane_t<double> plane;
