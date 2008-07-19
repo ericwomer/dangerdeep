@@ -182,6 +182,13 @@ void freeview_display::process_input(class game& gm, const SDL_Event& event)
 			//fixme handle clamping of elevation at +-90deg
 		}
 		break;
+        case SDL_MOUSEBUTTONDOWN:
+                if (event.button.button == SDL_BUTTON_WHEELUP) {
+			add_pos += forward * 5;
+                } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
+			add_pos -= forward * 5;
+                }
+                break;
 	default:
 		break;
 	}
