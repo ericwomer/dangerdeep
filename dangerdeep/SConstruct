@@ -313,7 +313,7 @@ def findSVN(basedir):
 
 ############### option so that "scons tarball" builds a tarball of source
 # tar building works only on linux
-if (( build_dir == 'linux' ) or ( build_dir == 'freebsd' )) and (os.path.isdir('./CVS')):
+if (( build_dir == 'linux' ) or ( build_dir == 'freebsd' )) and (os.path.isdir('./.svn')):
 	basetarfilename = 'dangerdeep-' + version
 	os.system('rm -rf ' + basetarfilename)
 	os.system('ln -s . ' + basetarfilename)
