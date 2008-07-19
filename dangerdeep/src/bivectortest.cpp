@@ -27,6 +27,7 @@ bivector<uint8_t> load(const char* n)
 
 int main(int, char**)
 {
+	/*
 	save(load("test.pgm"), "test2.pgm");
 	save(load("test.pgm").upsampled(), "test3.pgm");
 	save(load("test.pgm").upsampled().upsampled(), "test4.pgm");
@@ -56,14 +57,16 @@ int main(int, char**)
 	save(load("test.pgm").convert<float>().smooth_upsampled(true).convert<uint8_t>(0,255), "test3sw.pgm");
 	save(load("test.pgm").convert<float>().smooth_upsampled(true).smooth_upsampled(true).convert<uint8_t>(0,255), "test4sw.pgm");
 	save(load("test.pgm").convert<float>().smooth_upsampled(true).smooth_upsampled(true).smooth_upsampled(true).convert<uint8_t>(0,255), "test5sw.pgm");
+	*/
 
+	random_generator rg;
 	bivector<float> y(vector2i(256,256));
-	y.add_gauss_noise(1.0);
+	y.add_gauss_noise(1.0, rg);
 	y *= 128;
 	y += 128;
 	save(y.convert<uint8_t>(0, 255), "testgauss.pgm");
 	bivector<float> noise(vector2i(50, 50));
-	noise.add_gauss_noise(1.0);
+	noise.add_gauss_noise(1.0, rg);
 	bivector<float> x(vector2i(16,16));
 	x.add_tiled(noise, 1.0);
 	x = x.smooth_upsampled(true);

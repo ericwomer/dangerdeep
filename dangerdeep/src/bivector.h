@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define BIVECTOR_H
 
 #include "vector2.h"
+#include "random_generator.h"
 #include <vector>
 #include <stdexcept>
 #include <cstdlib>
@@ -74,7 +75,7 @@ class bivector
 	// algebraic operations, omponent-wise add, sub, multiply (of same datasize)
 	// sum of square of differences etc.
 
-	bivector<T>& add_gauss_noise(const T& scal);
+	bivector<T>& add_gauss_noise(const T& scal, random_generator& rg);
 	bivector<T>& add_tiled(const bivector<T>& other, const T& scal);
 
  protected:
@@ -395,19 +396,19 @@ bivector<T> bivector<T>::smooth_upsampled(bool wrap) const
 #endif
 
 template <class T>
-bivector<T>& bivector<T>::add_gauss_noise(const T& scal)
+bivector<T>& bivector<T>::add_gauss_noise(const T& scal, random_generator& rg)
 {
 	for (int z=0; z < int(data.size()); ++z) {
 		double r, q, s;
 		do {
-			r=(double(rand())/RAND_MAX)*2-1;
+			r=rg.rndf()*2-1;
 			s=r*M_PI;
 			s=exp(-0.5*s*s);
-			q=double(rand())/RAND_MAX;
+			q=rg.rndf();
 		} while (q > s);
 		data[z] += T(r * scal);
 	}
-	//bivector_FOREACH(data[z] += T(((double(rand())/RAND_MAX)*2.0-1.0) * scal))
+	//bivector_FOREACH(data[z] += T((rg.rndf()*2.0-1.0) * scal))
 	return *this;
 }
 
