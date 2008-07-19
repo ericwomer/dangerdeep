@@ -44,10 +44,10 @@ class geoclipmap
 	~geoclipmap();
 
 	/// set/change viewer position
-	void set_viewerpos(const vector3f& viewpos);
+	void set_viewerpos(const vector3& viewpos);
 
 	/// render the view (will only fetch the vertex/index data, no texture setup)
-	void display(const frustum& f) const;
+	void display(const frustum& f, const vector3& view_delta = vector3()) const;
 
  protected:
 	// "N", must be power of two
@@ -60,6 +60,9 @@ class geoclipmap
 	// resolution factor vertex to color
 	const unsigned color_res_fac;
 	const unsigned log2_color_res_fac;
+
+	// base viewerpos in 2d
+	vector2 base_viewpos;
 
 	// scratch buffer for VBO data, for transmission
 	std::vector<float> vboscratchbuf;
@@ -134,10 +137,11 @@ class geoclipmap
 		texture::ptr colors;
 	public:
 		level(geoclipmap& gcm_, unsigned idx, bool outmost_level);
-		area set_viewerpos(const vector3f& new_viewpos, const geoclipmap::area& inner);
+		area set_viewerpos(const vector3& new_viewpos, const geoclipmap::area& inner);
 		void display(const frustum& f) const;
 		texture& normals_tex() const { return *normals; }
 		texture& colors_tex() const { return *colors; }
+		void clear_area();
 	};
 
 	ptrvector<level> levels;
@@ -161,10 +165,12 @@ class geoclipmap
 	unsigned loc_w_p1;
 	unsigned loc_w_rcp;
 	unsigned loc_viewpos;
+	unsigned loc_viewpos_offset;
 	unsigned loc_xysize2;
 	unsigned loc_L_l_rcp;
 	unsigned loc_N_rcp;
 	unsigned loc_texcshift;
+	unsigned loc_texcshift2;
 	texture::ptr horizon_normal;
 
  public:

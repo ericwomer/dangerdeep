@@ -97,6 +97,9 @@ height_generator_map::height_generator_map(const std::string& filename)
 		ct[i] = tmp.get_plain_data(cw, ch, bpp);
 		if (bpp != 3) throw error("color bpp != 3");
 	}
+	for (unsigned i = 0; i < subdivision_steps+3; ++i) {
+		noisemaps[i] = bivector<float>(vector2i(256, 256), 0.f).add_gauss_noise(float(1<<i), rndgen);
+	}
 }
 
 bivector<float> height_generator_map::generate_patch(int detail, const vector2i& coord_bl,
@@ -115,11 +118,8 @@ bivector<float> height_generator_map::generate_patch(int detail, const vector2i&
 		vector2i coord2_tr(((coord_tr.x+1) >> 1) + 1, ((coord_tr.y+1) >> 1) + 1);
 		vector2i coord2_sz = coord2_tr - coord2_bl + vector2i(1, 1);
 		bivector<float> v = generate_patch(detail + 1, coord2_bl, coord2_sz).smooth_upsampled();
-		rndgen.set_seed(coord_bl.x * 3 + coord_bl.y * 5 + coord_sz.x * 7 + coord_sz.y * 11);
-		//fixme: doesn't work that way, noise value must be repeatable for
-		//every pixel!
-		//use one noise map per level and add this!
-		return v;//.add_gauss_noise(float(1<<(detail+3)), rndgen);
+		v.add_shifted(noisemaps[detail+3], coord_bl);
+		return v;
 	} else if (detail == int(subdivision_steps)) {
 		return height_data.sub_area(coord_bl - mapoff, coord_sz);
 	} else {

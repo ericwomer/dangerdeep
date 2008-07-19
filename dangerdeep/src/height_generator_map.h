@@ -37,6 +37,7 @@ class height_generator_map : public height_generator
 	random_generator rndgen;
 	std::vector<uint8_t> ct[8];
 	unsigned cw, ch;
+	bivector<float> noisemaps[7+3];
 public:
 	height_generator_map(const std::string& filename);
 

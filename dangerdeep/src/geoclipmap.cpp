@@ -18,6 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 #include "geoclipmap.h"
+#include "global_data.h"
 
 /*
 Note: the geoclipmap renderer code can't handle levels < 0 yet, so no
@@ -83,15 +84,16 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 	loc_w_p1 = myshader.get_uniform_location("w_p1");
 	loc_w_rcp = myshader.get_uniform_location("w_rcp");
 	loc_viewpos = myshader.get_uniform_location("viewpos");
+	loc_viewpos_offset = myshader.get_uniform_location("viewpos_offset");
 	loc_xysize2 = myshader.get_uniform_location("xysize2");
 	loc_L_l_rcp = myshader.get_uniform_location("L_l_rcp");
 	loc_N_rcp = myshader.get_uniform_location("N_rcp");
 	loc_texcshift = myshader.get_uniform_location("texcshift");
+	loc_texcshift2 = myshader.get_uniform_location("texcshift2");
 	const float w_fac = 0.2f;//0.1f;
 	myshader.set_uniform(loc_w_p1, resolution_vbo * w_fac + 1.0f);
 	myshader.set_uniform(loc_w_rcp, 1.0f/(resolution_vbo * w_fac));
 	myshader.set_uniform(loc_N_rcp, 1.0f/resolution_vbo);
-	myshader.set_uniform(loc_texcshift, 0.5f/resolution_vbo);
 	myshader.use_fixed();
 	// set a texture for normals outside coarsest level, just 0,0,1
 	std::vector<Uint8> pxl(3, 128);
@@ -108,8 +110,16 @@ geoclipmap::~geoclipmap()
 
 
 
-void geoclipmap::set_viewerpos(const vector3f& new_viewpos)
+void geoclipmap::set_viewerpos(const vector3& new_viewpos)
 {
+	// check for a total reset of base_viewpos
+	if (new_viewpos.xy().distance(base_viewpos) > 10000.0) {
+		for (unsigned i = 0; i < levels.size(); ++i) {
+			levels[i]->clear_area();
+		}
+		base_viewpos = new_viewpos.xy();
+	}
+
 	// for each level compute clip area for that new viewerpos
 	// for each level compute area that needs to get updated and do that
 
@@ -140,13 +150,14 @@ void geoclipmap::set_viewerpos(const vector3f& new_viewpos)
 	}
 
 	myshader.use();
-	myshader.set_uniform(loc_viewpos, new_viewpos);
+	myshader.set_uniform(loc_viewpos, new_viewpos - base_viewpos.xy0());
+	myshader.set_uniform(loc_viewpos_offset, new_viewpos);
 	myshader.use_fixed();
 }
 
 
 
-void geoclipmap::display(const frustum& f) const
+void geoclipmap::display(const frustum& f, const vector3& view_delta) const
 {
 	if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// display levels from inside to outside
@@ -158,6 +169,11 @@ void geoclipmap::display(const frustum& f) const
 	glActiveTexture(GL_TEXTURE3);
 	glEnable(GL_TEXTURE_2D);
 	myshader.use();
+	glPushMatrix();
+	//fixme: this is logically correct, to get global coordinates again
+	//but we must avoid that, this brings the rounding errors of float back
+	vector3 translation = base_viewpos.xy0() + view_delta;
+	glTranslated(translation.x, translation.y, translation.z);
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
 		myshader.set_gl_texture(levels[lvl]->colors_tex(), loc_texcolor, 0);
 		myshader.set_gl_texture(levels[lvl]->normals_tex(), loc_texnormal, 2);
@@ -170,6 +186,7 @@ void geoclipmap::display(const frustum& f) const
 		}
 		levels[lvl]->display(f);
 	}
+	glPopMatrix();
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glActiveTexture(GL_TEXTURE2);
@@ -231,7 +248,7 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx, bool outmost_level)
 
 
 
-geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, const geoclipmap::area& inner)
+geoclipmap::area geoclipmap::level::set_viewerpos(const vector3& new_viewpos, const geoclipmap::area& inner)
 {
 	// x_base/y_base tells offset in sample data according to level and
 	// viewer position (new_viewpos)
@@ -292,8 +309,8 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3f& new_viewpos, c
 		static const int dx[8] = { -1, 0, 1, 1, 1, 0, -1, -1 };
 		static const int dy[8] = { -1,-1,-1, 0, 1, 1,  1,  0 };
 		for (unsigned i = 0; i < 8; ++i) {
-			gcm.vboscratchbuf[4*i+0] = new_viewpos.x + 32000 * dx[i];
-			gcm.vboscratchbuf[4*i+1] = new_viewpos.y + 32000 * dy[i];
+			gcm.vboscratchbuf[4*i+0] = new_viewpos.x + 32000 * dx[i] - gcm.base_viewpos.x;
+			gcm.vboscratchbuf[4*i+1] = new_viewpos.y + 32000 * dy[i] - gcm.base_viewpos.y;
 			gcm.vboscratchbuf[4*i+2] = 0; // fixme: later give +- 10 for land/sea
 			gcm.vboscratchbuf[4*i+3] = 0; // same value here
 		}
@@ -349,8 +366,8 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	for (int y = 0; y < sz.y + 2; ++y) {
 		vector2i upcrd2 = upcrd;
 		for (int x = 0; x < sz.x + 2; ++x) {
-			gcm.vboscratchbuf[ptr+0] = upcrd2.x * L_l; // fixme: maybe subtract viewerpos here later.
-			gcm.vboscratchbuf[ptr+1] = upcrd2.y * L_l;
+			gcm.vboscratchbuf[ptr+0] = upcrd2.x * L_l - gcm.base_viewpos.x;
+			gcm.vboscratchbuf[ptr+1] = upcrd2.y * L_l - gcm.base_viewpos.y;
 			ptr += geoclipmap_fperv;
 			++upcrd2.x;
 		}
@@ -798,6 +815,14 @@ void geoclipmap::level::display(const frustum& f) const
 	vector2f outsz = vector2f(outszi.x - 1, outszi.y - 1) * 0.5f;
 	gcm.myshader.set_uniform(gcm.loc_xysize2, outsz);
 	gcm.myshader.set_uniform(gcm.loc_L_l_rcp, 1.0f/L_l);
+	vector2 texdelta = gcm.base_viewpos * (1.0 / (L_l * gcm.resolution_vbo));
+	vector2f texdelta_f(myfrac(texdelta.x) + 0.5/gcm.resolution_vbo,
+			    myfrac(texdelta.y) + 0.5/gcm.resolution_vbo);
+	gcm.myshader.set_uniform(gcm.loc_texcshift, texdelta_f);
+	texdelta = gcm.base_viewpos * (0.5 / (L_l * gcm.resolution_vbo));
+	texdelta_f = vector2f(myfrac(texdelta.x) + 0.5/gcm.resolution_vbo,
+			      myfrac(texdelta.y) + 0.5/gcm.resolution_vbo);
+	gcm.myshader.set_uniform(gcm.loc_texcshift2, texdelta_f);
 
 	uint32_t* indexvbo = &gcm.idxscratchbuf[0];
 #ifdef DEBUG_INDEX_USAGE
@@ -902,4 +927,12 @@ void geoclipmap::level::display(const frustum& f) const
 	//printf("first index end %u of %u\n",e,s);
 	if (e + DEBUG_INDEX_EXTRA >= s) printf("ERROR %u\n",e+DEBUG_INDEX_EXTRA-s);
 #endif
+}
+
+
+
+void geoclipmap::level::clear_area()
+{
+	vboarea = area();
+	dataoffset = vector2i(0, 0);
 }

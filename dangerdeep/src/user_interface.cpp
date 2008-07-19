@@ -554,10 +554,10 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 	//viewer offset, or global mapping will be faulty
 	//this leads to terrain rendering with shaking effect (numerically unstable
 	//because of rounding errors).
-	glTranslated(-viewpos.x, -viewpos.y, -viewpos.z);
-	frustum viewfrustum = frustum::from_opengl(1.0 /* fixme: read from matrix! */, viewpos);
+	frustum viewfrustum = frustum::from_opengl(1.0 /* fixme: read from matrix! */);
+	viewfrustum.translate(viewpos);
 	mygeoclipmap->set_viewerpos(viewpos);
-	mygeoclipmap->display(viewfrustum);
+	mygeoclipmap->display(viewfrustum, -viewpos);
 	glPopMatrix();
 }
 

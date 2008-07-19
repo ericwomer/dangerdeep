@@ -11,12 +11,14 @@ varying vec2 texcoordnormal_c;
 varying float alpha;
 
 uniform vec3 viewpos;
+uniform vec3 viewpos_offset;
 uniform vec2 xysize2;
 uniform float w_p1;
 uniform float w_rcp;
 uniform float L_l_rcp;
 uniform float N_rcp;
 uniform vec2 texcshift;
+uniform vec2 texcshift2;
 
 attribute float z_c;
 
@@ -31,11 +33,11 @@ void main()
 
 	// shift is 0.5 texel, so it is 1/texres * 0.5
 	texcoordnormal = vpos.xy * L_l_rcp * N_rcp + texcshift;
-	texcoordnormal_c = vpos.xy * L_l_rcp * 0.5 * N_rcp + texcshift;
+	texcoordnormal_c = vpos.xy * L_l_rcp * 0.5 * N_rcp + texcshift2;
 
 	// compute direction to light
 	vec3 lightpos_obj = vec3(gl_ModelViewMatrixInverse * gl_LightSource[0].position);
-	vec3 lightdir_obj = normalize(lightpos_obj - vpos.xyz * gl_LightSource[0].position.w);
+	vec3 lightdir_obj = normalize(lightpos_obj - (vpos.xyz + viewpos_offset) * gl_LightSource[0].position.w);
 	lightdir = lightdir_obj;
 	//normal = normalize(gl_Normal);
 	//normal = vec3(0.0, 0.0, 1.0);

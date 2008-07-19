@@ -70,6 +70,7 @@ class bivector
 	T get_max() const;
 	bivector<T>& operator*= (const T& s);
 	bivector<T>& operator+= (const T& v);
+	bivector<T>& operator+= (const bivector<T>& v);
 	bivector<T> smooth_upsampled(bool wrap = false) const;
 
 	// algebraic operations, omponent-wise add, sub, multiply (of same datasize)
@@ -77,6 +78,7 @@ class bivector
 
 	bivector<T>& add_gauss_noise(const T& scal, random_generator& rg);
 	bivector<T>& add_tiled(const bivector<T>& other, const T& scal);
+	bivector<T>& add_shifted(const bivector<T>& other, const vector2i& offset);
 
  protected:
 	vector2i datasize;
@@ -134,6 +136,13 @@ template <class T>
 bivector<T>& bivector<T>::operator+= (const T& v)
 {
 	bivector_FOREACH(data[z] += v)
+	return *this;
+}
+
+template <class T>
+bivector<T>& bivector<T>::operator+= (const bivector<T>& v)
+{
+	bivector_FOREACH(data[z] += v.data[z])
 	return *this;
 }
 
@@ -416,6 +425,13 @@ template <class T>
 bivector<T>& bivector<T>::add_tiled(const bivector<T>& other, const T& scal)
 {
 	bivector_FOREACH_XY(at(x,y) += other.at(x % other.datasize.x, y % other.datasize.y) * scal;)
+	return *this;
+}
+
+template <class T>
+bivector<T>& bivector<T>::add_shifted(const bivector<T>& other, const vector2i& offset)
+{
+	bivector_FOREACH_XY(at(x,y) += other.at((x+offset.x) % other.datasize.x, (y+offset.y) % other.datasize.y);)
 	return *this;
 }
 
