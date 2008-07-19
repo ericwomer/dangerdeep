@@ -38,6 +38,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "thread.h"
 #include "angle.h"
 #include "vector3.h"
+#include "singleton.h"
 
 // definitions for sound file categories
 #define SFX_MACHINE_SUB_DIESEL "sub-diesel"
@@ -55,7 +56,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
 ///\brief Handles music and background songs.
-class music : public thread
+class music : public singleton<class music>, public thread
 {
  public:
 	/// which mode to use when playing tracks from a play list
@@ -144,9 +145,6 @@ class music : public thread
 	/// set to false if you don't want music.  fixme - rather ugly approach!
 	static bool use_music;
 
-	/// get the only instance of class music
-	static music& inst() { return *instance; }
-
  protected:
 	const unsigned nr_reserved_channels;
 	unsigned current_track;
@@ -157,7 +155,6 @@ class music : public thread
 	std::vector<std::string> playlist;
 	// we can't use the ptrvector here, since Mix_Music ptrs must be freed with special function.
 	std::vector<Mix_Music*> musiclist;
-	static music* instance;
 	message_queue command_queue;
 	std::map<std::string, std::vector<Mix_Chunk*> > sfx_events;
 	std::map<std::string, std::vector<Mix_Chunk*> > sfx_machines;

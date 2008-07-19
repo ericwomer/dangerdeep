@@ -26,11 +26,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <map>
 #include <string>
 #include <SDL.h>
+#include "singleton.h"
 
 ///\brief This class stores and manages the global game configuration.
 ///\todo replace tinyxml code and include with own xml class.
-class cfg
+class cfg : public singleton<class cfg>
 {
+	friend class singleton<cfg>;
 public:
 	///\brief Documentation is build of keys. Each key has a name and an value.
 	struct key
@@ -67,7 +69,6 @@ private:
 	bool set_str(const std::string& name, const std::string& value);
 
 public:
-	static cfg& instance();
 	~cfg();
 	
 	// load the values from a config file. Note! register() calls must be happen
@@ -94,9 +95,6 @@ public:
 	key getkey(unsigned nr) const;
 	
 	void parse_value(const std::string& s);	// give elements of command line array to it!
-
-	// call only once, at deinitialization of main program
-	static void release_instance() { delete myinst; myinst = 0; }
 };
 
 #endif

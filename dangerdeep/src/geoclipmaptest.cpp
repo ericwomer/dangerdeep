@@ -764,13 +764,13 @@ int mymain(list<string>& args)
 	// with black borders at top/bottom (height 2*32pixels)
 	res_y = res_x*3/4;
 	// weather conditions and earth curvature allow 30km sight at maximum.
-	std::auto_ptr<class system> mysys(new class system(1.0, 30000.0+500.0, res_x, res_y, fullscreen));
-	mysys->set_res_2d(1024, 768);
+	system::create_instance(new class system(1.0, 30000.0+500.0, res_x, res_y, fullscreen));
+	sys().set_res_2d(1024, 768);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	sys().gl_perspective_fovx(70, 4.0/3.0, 1.0, 30000);
 	glMatrixMode(GL_MODELVIEW);
-//	mysys->set_max_fps(60);
+//	sys().set_max_fps(60);
 	
 	log_info("Danger from the Deep");
 
@@ -784,9 +784,11 @@ int mymain(list<string>& args)
 
  	font_arial = new font(get_font_dir() + "font_arial");
 	auto_ptr<font> fa(font_arial);
- 	mysys->draw_console_with(font_arial, 0);
+ 	sys().draw_console_with(font_arial, 0);
 
 	run();
+
+	system::release_instance();
 
 	return 0;
 }

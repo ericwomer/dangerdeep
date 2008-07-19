@@ -194,6 +194,7 @@ int main(int argc, char** argv)
 
 	res_y = res_x*3/4;
 
+	//fixme: replace by proper singleton using!
 	mysys = new class system(1.0, 1000.0, res_x, res_y, fullscreen);
 	mysys->set_res_2d(1024, 768);
 	

@@ -60,14 +60,6 @@ cfg::cfg()
 
 
 
-cfg& cfg::instance()
-{
-	if (!myinst) myinst = new cfg();
-	return *myinst;
-}
-
-
-
 cfg::~cfg()
 {
 }

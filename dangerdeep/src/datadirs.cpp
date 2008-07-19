@@ -80,19 +80,6 @@ void data_file_handler::parse_for_data_files(std::string dir, std::list<std::str
 
 
 
-data_file_handler* data_file_handler::my_instance = 0;
-
-
-
-const data_file_handler& data_file_handler::instance()
-{
-	if (!my_instance)
-		my_instance = new data_file_handler();
-	return *my_instance;
-}
-
-
-
 const std::string& data_file_handler::get_rel_path(const std::string& objectid) const
 {
 	static std::string emptystr;

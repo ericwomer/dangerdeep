@@ -48,8 +48,6 @@ string get_program_version()
 
 
 
-global_data* global_data::inst = 0;
-
 global_data::global_data()
 	: modelcache(get_data_dir()),
 	  imagecache(get_image_dir()),
@@ -57,16 +55,12 @@ global_data::global_data()
 	  //soundcache(get_sound_dir()),
 	  fontcache(get_font_dir())
 {
-	if (inst != 0)
-		throw std::runtime_error("must not initialize global_data object twice");
-	inst = this;
 }
 
 
 
 global_data::~global_data()
 {
-	inst = 0;
 }
 
 

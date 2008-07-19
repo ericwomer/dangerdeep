@@ -175,9 +175,9 @@ int mymain(list<string>& args)
 	// with black borders at top/bottom (height 2*32pixels)
 	res_y = res_x*3/4;
 	// weather conditions and earth curvature allow 30km sight at maximum.
-	mysys = new class system(1.0, 30000.0+500.0, res_x, res_y, fullscreen);
-	mysys->set_res_2d(1024, 768);
-//	mysys->set_max_fps(60);
+	system::create_instance(new class system(1.0, 30000.0+500.0, res_x, res_y, fullscreen));
+	sys().set_res_2d(1024, 768);
+//	sys().set_max_fps(60);
 	
 	log_info("Danger from the Deep");
 
@@ -190,12 +190,13 @@ int mymain(list<string>& args)
 	glEnable(GL_LIGHT0);
 
  	font_arial = new font(get_font_dir() + "font_arial");
- 	mysys->draw_console_with(font_arial, 0);
+ 	sys().draw_console_with(font_arial, 0);
 
 	run();
 
  	delete font_arial;
-	delete mysys;
+
+	system::release_instance();
 
 	return 0;
 }
@@ -580,7 +581,7 @@ void run()
 
 		vector3 oldpos = pos;
 		const double movesc = 0.25;
-		list<SDL_Event> events = mysys->poll_event_queue();
+		list<SDL_Event> events = sys().poll_event_queue();
 		vector3 forward = -invmvr.column3(2) * movesc;
 		vector3 upward = invmvr.column3(1) * movesc;
 		vector3 sideward = invmvr.column3(0) * movesc;
@@ -652,7 +653,7 @@ void run()
 		font_arial->print(0, 0, oss.str());
 		sys().unprepare_2d_drawing();
 		
-		mysys->swap_buffers();
+		sys().swap_buffers();
 	}
 
 	delete glsl_reliefmapping;

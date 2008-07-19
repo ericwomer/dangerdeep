@@ -126,13 +126,13 @@ user_interface::user_interface(game& gm) :
 			if (!active) return;
 			int s = get_selected();
 			if (s >= 0)
-				music::inst().play_track(unsigned(s), 500);
+				music::instance().play_track(unsigned(s), 500);
 		}
 		musiclist(int x, int y, int w, int h) : widget_list(x, y, w, h), active(false) {}
 	};
 	musiclist* playlist = new musiclist(0, 0, 384, 512);
 	music_playlist->add_child_near_last_child(playlist);
-	music& m = music::inst();
+	music& m = music::instance();
 	vector<string> mpl = m.get_playlist();
 	for (vector<string>::const_iterator it = mpl.begin();
 	     it != mpl.end(); ++it) {
@@ -699,7 +699,7 @@ void user_interface::add_message(const string& s)
 void user_interface::play_sound_effect(const string &se,
 				       const vector3& noise_source /*, bool loop*/) const
 {	
-	music::inst().play_sfx(se, mygame->get_player()->get_pos(),
+	music::instance().play_sfx(se, mygame->get_player()->get_pos(),
 			       mygame->get_player()->get_heading(),
 			       noise_source);
 }
@@ -748,20 +748,20 @@ void user_interface::set_current_display(unsigned curdis) const
 void user_interface::playlist_mode_changed()
 {
 	if (playlist_repeat_checkbox->is_checked()) {
-		music::inst().set_playback_mode(music::PBM_LOOP_TRACK);
+		music::instance().set_playback_mode(music::PBM_LOOP_TRACK);
 	} else if (playlist_shuffle_checkbox->is_checked()) {
-		music::inst().set_playback_mode(music::PBM_SHUFFLE_TRACK);
+		music::instance().set_playback_mode(music::PBM_SHUFFLE_TRACK);
 	} else {
-		music::inst().set_playback_mode(music::PBM_LOOP_LIST);
+		music::instance().set_playback_mode(music::PBM_LOOP_LIST);
 	}
 }
 
 void user_interface::playlist_mute()
 {
 	if (playlist_mute_checkbox->is_checked())
-		music::inst().stop();
+		music::instance().stop();
 	else
-		music::inst().play();
+		music::instance().play();
 }
 
 void user_interface::show_screen_selector()
@@ -787,10 +787,10 @@ void user_interface::show_playlist()
 
 void user_interface::pause_all_sound() const
 {
-	music::inst().pause_sfx(true);
+	music::instance().pause_sfx(true);
 }
 
 void user_interface::resume_all_sound() const
 {
-	music::inst().pause_sfx(false);
+	music::instance().pause_sfx(false);
 }

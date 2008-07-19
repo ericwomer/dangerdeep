@@ -39,7 +39,6 @@ using namespace std;
 #define SFX_CHANNEL_MACHINE 0
 
 bool music::use_music = true;
-music* music::instance = 0;
 
 
 
@@ -53,10 +52,6 @@ music::music(bool useit)
 	  stopped(true),
 	  current_machine_sfx(0)
 {
-	if (instance) {
-		throw error("only one instance of class music at a time valid");
-	}
-	instance = this;
 	use_music = useit;
 }
 
@@ -64,7 +59,6 @@ music::music(bool useit)
 
 music::~music()
 {
-	instance = 0;
 }
 
 
@@ -113,9 +107,7 @@ void music::callback_track_finished()
 	// note! we CAN NOT protect the instance variable with a mutex here, because
 	// we can't make a static variable for this, because we need to initialize SDL
 	// before using SDL_mutexes...
-	if (!instance)
-		return;	// should never happen
-	instance->track_finished();
+	instance().track_finished();
 }
 
 

@@ -70,17 +70,12 @@ bad_typeid
 #include <exception>
 #endif
 
-class system* system::instance = 0;
-
 system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bool fullscreen) :
 	res_x(res_x_), res_y(res_y_), nearz(nearz_), farz(farz_), is_fullscreen(fullscreen),
 	show_console(false), console_font(0), console_background(0),
 	draw_2d(false), time_passed_while_sleeping(0), sleep_time(0),
 	is_sleeping(false), maxfps(0), last_swap_time(0), screenshot_nr(0)
 {
-	if (instance)
-		throw runtime_error("system construction: system instance already exists");
-
 	int err = SDL_Init(SDL_INIT_VIDEO);
 	if (err < 0)
 		throw sdl_error("video init failed");
@@ -175,18 +170,11 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 		 << "GL maximum viewport dimensions : " << maxviewportdims[0] << "x" << maxviewportdims[1] << "\n"
 		 << "GL depth bits (current) : " << depthbits << "\n"
 		 << "Supported GL extensions :\n" << extensions << "\n");
-		
-	instance = this;
 }
 
 system::~system()
 {
-	if (!instance) {
-		SDL_Quit();
-		throw sdl_error("system destruction: system instance doesn't exist");
-	}
 	SDL_Quit();
-	instance = 0;
 }
 
 

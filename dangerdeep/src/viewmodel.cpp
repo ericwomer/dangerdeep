@@ -737,8 +737,8 @@ int mymain(list<string>& args)
 
 	res_y = res_x*3/4;
 
-	mysys = new class system(1.0, 1000.0, res_x, res_y, fullscreen);
-	mysys->set_res_2d(1024, 768);
+	system::create_instance(new class system(1.0, 1000.0, res_x, res_y, fullscreen));
+	sys().set_res_2d(1024, 768);
 	
 	log_info("A simple model viewer for DftD-.mdl files");
 	log_info("copyright and written 2003 by Thorsten Jordan");
@@ -756,7 +756,7 @@ int mymain(list<string>& args)
 	font_arial = new font(get_font_dir() + "font_arial");
         font_vtremington12 = new font(get_font_dir() + "font_vtremington12");
         
-	mysys->draw_console_with(font_arial, 0);
+	sys().draw_console_with(font_arial, 0);
 
 	objcachet<class image> imagecache(get_image_dir());
 	widget::set_image_cache(&imagecache);
@@ -769,7 +769,8 @@ int mymain(list<string>& args)
 
 	delete font_arial;
         delete font_vtremington12;
-	delete mysys;
+
+	system::release_instance();
 
 	return 0;
 }

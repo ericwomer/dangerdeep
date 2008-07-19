@@ -709,7 +709,7 @@ void submarine_interface::display() const
 	case ship::stop:        thr =   0; break;
 	default:          thr =   0; break; // throttled speeds not supported here...
 	}
-	music::inst().play_sfx_machine(SFX_MACHINE_SUB_DIESEL, thr);
+	music::instance().play_sfx_machine(SFX_MACHINE_SUB_DIESEL, thr);
 
 	user_interface::display();
 

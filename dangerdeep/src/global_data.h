@@ -58,20 +58,18 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "objcache.h"
 #include <sstream>
 #include <iomanip>
+#include "singleton.h"
 
 std::string get_program_version();
 
 
 ///> all global data grouped in one class
-class global_data
+class global_data : public singleton<class global_data>
 {
  private:
 	// no copy
 	global_data(const global_data& );
 	global_data& operator= (const global_data& );
-
- protected:
-	static global_data* inst;
 
  public:
 	objcachet<class model> modelcache;
@@ -82,8 +80,6 @@ class global_data
 
 	global_data();
 	~global_data();
-
-	static global_data& instance() { return *inst; }
 };
 
 inline objcachet<class model>& modelcache() { return global_data::instance().modelcache; }

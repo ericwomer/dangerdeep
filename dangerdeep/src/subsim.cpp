@@ -469,7 +469,7 @@ void run_game(auto_ptr<game> gm)
 //			if (state == game::mission_complete)
 
 			if (state == game::player_killed) {
-				music::inst().play_track(1, 500);
+				music::instance().play_track(1, 500);
 				widget w(0, 0, 1024, 768, "", 0, "killed.jpg");
 				widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(103));
 				w.add_child(wm);
@@ -486,7 +486,7 @@ void run_game(auto_ptr<game> gm)
 			//if (q == 1)
 				break;
 		} else {
-			music::inst().play_track(1, 500);
+			music::instance().play_track(1, 500);
 			loadsavequit_dialogue dlg(gm.get());
 			int q = dlg.run(0, false);
 			// replace game and ui if new game was loaded
@@ -506,11 +506,11 @@ void run_game(auto_ptr<game> gm)
 			}
 			//replace ui after loading!!!!
 			if (q == 1){
-				music::inst().play_track(1, 500);
+				music::instance().play_track(1, 500);
 				break;
 			}
 			if( q == 0 ){
-				//music::inst()._fade_out(1000);
+				//music::instance()._fade_out(1000);
 			}
 		}
 		//SDL_ShowCursor(SDL_DISABLE);
@@ -547,7 +547,7 @@ void run_game_editor(auto_ptr<game> gm)
 		/*game::run_state state =*/ game__exec(*gm, *ui);
 		gametheme = widget::replace_theme(tmp);
 
-		music::inst().play_track(1, 500);
+		music::instance().play_track(1, 500);
 		loadsavequit_dialogue dlg(gm.get());
 		int q = dlg.run(0, false);
 		// replace game and ui if new game was loaded
@@ -567,11 +567,11 @@ void run_game_editor(auto_ptr<game> gm)
 		}
 		//replace ui after loading!!!!
 		if (q == 1){
-			music::inst().play_track(1, 500);
+			music::instance().play_track(1, 500);
 			break;
 		}
 		if( q == 0 ){
-			//music::inst()._fade_out(1000);
+			//music::instance()._fade_out(1000);
 		}
 	}
 
@@ -1795,10 +1795,10 @@ int mymain(list<string>& args)
 	// fixme: also allow 1280x1024, set up gl viewport for 4:3 display
 	// with black borders at top/bottom (height 2*32pixels)
 	// weather conditions and earth curvature allow 30km sight at maximum.
-	auto_ptr<class system> mysys(new class system(1.0, 30000.0+500.0, res_x, res_y, fullscreen));
-	mysys->set_screenshot_directory(savegamedirectory);
-	mysys->set_res_2d(1024, 768);
-	mysys->set_max_fps(maxfps);
+	system::create_instance(new class system(1.0, 30000.0+500.0, res_x, res_y, fullscreen));
+	sys().set_screenshot_directory(savegamedirectory);
+	sys().set_res_2d(1024, 768);
+	sys().set_max_fps(maxfps);
 
 	reset_loading_screen();
 	// init the global_data object before calling init_global_data
@@ -1874,21 +1874,21 @@ int mymain(list<string>& args)
 	glEnable(GL_LIGHT0);
 
 	// create and start thread for music handling.
-	thread::auto_ptr<music> mmusic(new music(use_sound));
-	mmusic->start();
+	music::create_instance(new music(use_sound));
+	music::instance().start();
 
-	mmusic->append_track("ImInTheMood.ogg");
-	mmusic->append_track("Betty_Roche-Trouble_Trouble.ogg");
-	mmusic->append_track("theme.ogg");
-	mmusic->append_track("Auf_Feindfahrt_fast.ogg");
-	mmusic->append_track("outside_underwater.ogg");
-	mmusic->append_track("Auf_Feindfahrt_environmental.ogg");
-	mmusic->append_track("loopable_seasurface.ogg");
-	mmusic->append_track("loopable_seasurface_badweather.ogg");
-	mmusic->append_track("Auf_Feindfahrt.ogg");
+	music::instance().append_track("ImInTheMood.ogg");
+	music::instance().append_track("Betty_Roche-Trouble_Trouble.ogg");
+	music::instance().append_track("theme.ogg");
+	music::instance().append_track("Auf_Feindfahrt_fast.ogg");
+	music::instance().append_track("outside_underwater.ogg");
+	music::instance().append_track("Auf_Feindfahrt_environmental.ogg");
+	music::instance().append_track("loopable_seasurface.ogg");
+	music::instance().append_track("loopable_seasurface_badweather.ogg");
+	music::instance().append_track("Auf_Feindfahrt.ogg");
 	add_loading_screen("Music list loaded");
-	//mmusic->set_playback_mode(music::PBM_SHUFFLE_TRACK);
-	mmusic->play();
+	//music::instance().set_playback_mode(music::PBM_SHUFFLE_TRACK);
+	music::instance().play();
 	
 	widget::set_theme(auto_ptr<widget::theme>(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
 								    font_typenr16,
@@ -1897,7 +1897,7 @@ int mymain(list<string>& args)
 								    color(92, 72 ,68))));
 
 	std::auto_ptr<texture> metalbackground(new texture(get_image_dir() + "metalbackground.jpg"));
-	mysys->draw_console_with(font_arial, metalbackground.get());
+	sys().draw_console_with(font_arial, metalbackground.get());
 
 
 	// try to make directories if they do not exist
@@ -1988,8 +1988,7 @@ int mymain(list<string>& args)
 		} while (retval != 0);
 	}
 
-	mmusic->stop(1000);
-	mmusic.reset();
+	music::instance().stop(1000);
 
 	hsl_mission.save(highscoredirectory + HSL_MISSION_NAME);
 	hsl_career.save(highscoredirectory + HSL_CAREER_NAME);
@@ -2000,6 +1999,9 @@ int mymain(list<string>& args)
 	widget::set_theme(auto_ptr<widget::theme>(0));	// clear allocated theme
 	deinit_global_data();
 	gbd.reset();
+	music::release_instance();
+	system::release_instance();
+	log::release_instance();
 
 	return 0;
 }

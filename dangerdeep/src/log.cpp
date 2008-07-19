@@ -110,16 +110,7 @@ log::log()
 	mylogint->threadnames[SDL_ThreadID()] = "__main__";
 }
 
-log* log::myinstance = 0;
-
 bool log::copy_output_to_console = false;
-
-log& log::instance()
-{
-	if (!myinstance)
-		myinstance = new log();
-	return *myinstance;
-}
 
 void log::append(log::level l, const std::string& msg)
 {

@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <set>
 #include <string>
 #include "vector2.h"
+#include "singleton.h"
 
 #ifdef WIN32
 #ifndef M_PI
@@ -43,8 +44,9 @@ class font;
 class texture;
 
 ///\brief This class groups system related functions like graphic output or user input.
-class system
+class system : public singleton<class system>
 {
+	friend class singleton<system>;
 public:
 	/// used to handle out-of-order quit events, do NOT heir from std::exception!
 	class quit_exception
@@ -80,7 +82,7 @@ public:
 
 	unsigned long millisec();	// returns time in milliseconds
 
-	static inline system& sys() { return *instance; };
+	static inline system& sys() { return instance(); }
 	
 	void set_screenshot_directory(const std::string& s) { screenshot_dir = s; }
 	void screenshot(const std::string& filename = std::string());
@@ -123,8 +125,6 @@ private:
 	bool draw_2d;
 	unsigned res_x_2d, res_y_2d;	// real resolution (depends on user settings)
 	
-	static system* instance;
-
 	void draw_console();
 
 	unsigned long time_passed_while_sleeping;	// total sleep time

@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define LOG_H
 
 #include <sstream>
+#include "singleton.h"
 
 #define log_template(x, y) do { std::ostringstream oss; oss << x; log::instance().append(log::y, oss.str()); } while(0)
 #define log_debug(x) log_template(x, LOG_DEBUG)
@@ -34,8 +35,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define log_warning(x) log_template(x, LOG_WARNING)
 
 /// manager class for a global threadsafe log
-class log
+class log : public singleton<class log>
 {
+	friend class singleton<log>;
  public:
 	/// level of log message, in descending importance.
 	/// we use LOG_ prefix to avoid collisions with DEBUG compile flag.
@@ -46,9 +48,6 @@ class log
 		LOG_DEBUG,
 		LOG_NR_LEVELS
 	};
-
-	/// get the one and only log instance
-	static log& instance();
 
 	/// wether log output should go to console as well
 	static bool copy_output_to_console;
@@ -71,7 +70,6 @@ class log
  protected:
 	log();
 	class log_internal* mylogint;
-	static log* myinstance;
 	const char* get_thread_name() const;
 	friend class log_msg;
 };
