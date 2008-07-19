@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "bspline.h"
 #include "texture.h"
 #include "thread.h"
+#include "objcache.h"
 #include <vector>
 #include <string>
 #include <list>
@@ -131,6 +132,8 @@ class coastmap
 
 	std::auto_ptr<texture> atlanticmap;
 	
+	objcachet<texture>::reference terraintex; //fixme: remove soon
+
 	coastmap();
 	coastmap(const coastmap& );
 	coastmap& operator= (const coastmap& );

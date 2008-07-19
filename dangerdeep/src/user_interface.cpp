@@ -93,12 +93,13 @@ user_interface::user_interface(game& gm) :
 	current_display(0),
 	current_popup(0),
 	mycoastmap(get_map_dir() + "default.xml"),
-	daymode(gm.is_day_mode())
+	daymode(gm.is_day_mode()),
+	terraintex(texturecache(), "terrain.jpg")
 {
 	add_loading_screen("coast map initialized");
 	mysky.reset(new sky());
 	panel.reset(new widget(0, 768-32, 1024, 32, "", 0));
-	panel->set_background(panelbackground);
+	panel->set_background(0);
 	// ca. 1024-2*8 for 6 texts => 168 pix. for each text
 	int paneltextnrs[6] = { 1, 4, 5, 2, 98, 61 };
 	const char* paneltexts[6] = { "000", "000", "000", "000", "000", "00:00:00" };
@@ -113,11 +114,11 @@ user_interface::user_interface(game& gm) :
 
 	// create screen selector widget
 	screen_selector.reset(new widget(0, 0, 256, 32, "", 0));
-	screen_selector->set_background(panelbackground);
+	screen_selector->set_background(0);
 
 	// create playlist widget
 	music_playlist.reset(new widget(0, 0, 384, 512, texts::get(262), 0));
-	music_playlist->set_background(panelbackground);
+	music_playlist->set_background(0);
 	struct musiclist : public widget_list
 	{
 		bool active;
@@ -155,7 +156,7 @@ user_interface::user_interface(game& gm) :
 
 	// create main menu widget
 	main_menu.reset(new widget(0, 0, 256, 128, texts::get(104), 0));
-	main_menu->set_background(panelbackground);
+	main_menu->set_background(0);
 	typedef widget_caller_button<user_interface, void (user_interface::*)()> wcbui;
 	main_menu->add_child_near_last_child(new wcbui(this, &user_interface::show_screen_selector, 0, 0, 256, 32, texts::get(266)));
 	main_menu->add_child_near_last_child(new wcbui(this, &user_interface::toggle_popup, 0, 0, 256, 32, texts::get(267)), 0);
@@ -541,7 +542,7 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 				  double max_view_dist, bool mirrored) const
 {
 #if 1	// terrain pulls fps down from 45 to 33...
-	terraintex->set_gl_texture();
+	terraintex.get()->set_gl_texture();
 	glPushMatrix();
 	glTranslated(0, 0, -viewpos.z);
 	mycoastmap.render(viewpos.xy(), max_view_dist, mirrored);

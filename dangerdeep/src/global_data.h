@@ -94,10 +94,6 @@ inline objcachet<class font>& fontcache() { return global_data::instance().fontc
 
 
 
-// store in objects where it is needed/ref'd! fixme
-extern class texture *notepadsheet,
-	*terraintex, *panelbackground;
-
 // only used as shortcut, fonts are managed by fontcache.
 extern class font *font_arial, *font_jphsl, *font_vtremington10, 
        *font_vtremington12, *font_typenr16;

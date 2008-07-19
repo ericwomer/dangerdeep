@@ -81,6 +81,8 @@ class sub_torpedo_display : public user_display
 
 	mutable unsigned torp_desc_line;
 
+	objcachet<texture>::reference notepadsheet;
+
 	const texture& torptex(const std::string& torpname) const;
 
 	std::vector<vector2i> get_tubecoords(class submarine* sub) const;

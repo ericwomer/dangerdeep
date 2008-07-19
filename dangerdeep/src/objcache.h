@@ -129,6 +129,18 @@ public:
 		for (typename std::map<std::string, std::pair<unsigned, T*> >::const_iterator it = cache.begin(); it != cache.end(); ++it)
 			std::cout << "key=\"" << it->first << "\" ref=" << it->second.first << " addr=" << it->second.second << "\n";
 	}
+
+	class reference
+	{
+		objcachet<T>& mycache;
+		T* myobj;
+	public:
+		reference(objcachet<T>& cache, const std::string& objname)
+			: mycache(cache), myobj(cache.ref(objname)) {}
+		~reference() { mycache.unref(myobj); }
+		T* get() { return myobj; }
+		const T* get() const { return myobj; }
+	};
 };
 
 #endif

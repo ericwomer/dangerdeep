@@ -34,6 +34,7 @@ class sub_damage_display : public user_display
 	std::auto_ptr<image> damage_screen_background;
 	std::auto_ptr<image> sub_damage_scheme_all;
 	texture::ptr repairlight, repairmedium, repairheavy, repaircritical, repairwrecked;
+	objcachet<texture>::reference notepadsheet;
 public:
 	sub_damage_display(class user_interface& ui_);
 

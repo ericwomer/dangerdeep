@@ -329,7 +329,8 @@ map_display::map_display(user_interface& ui_) :
 	edit_cvname(0),
 	edit_cvspeed(0),
 	edit_cvlist(0),
-	mx_down(-1), my_down(-1), shift_key_pressed(0), ctrl_key_pressed(0)
+	mx_down(-1), my_down(-1), shift_key_pressed(0), ctrl_key_pressed(0),
+	notepadsheet(texturecache(), "notepadsheet.png")
 {
 	game& gm = ui_.get_game();
 
@@ -339,7 +340,7 @@ map_display::map_display(user_interface& ui_) :
 
 		// create editor main panel
 		edit_panel.reset(new widget(0, 0, 1024, 32, "", 0));
-		edit_panel->set_background(panelbackground);
+		edit_panel->set_background(0);
 		edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game_editor&), game_editor&>(this, &map_display::edit_add_obj, gme, 0, 0, 128, 32, texts::get(224)));
 		edit_btn_del = new widget_caller_arg_button<map_display, void (map_display::*)(game_editor&), game_editor&>(this, &map_display::edit_del_obj, gme, 128, 0, 128, 32, texts::get(225));
 		edit_panel->add_child(edit_btn_del);
@@ -355,7 +356,7 @@ map_display::map_display(user_interface& ui_) :
 
 		// create "add ship" window
 		edit_panel_add.reset(new widget(0, 32, 1024, 768-2*32, texts::get(224)));
-		edit_panel_add->set_background(panelbackground);
+		edit_panel_add->set_background(0);
 		edit_shiplist = new widget_list(20, 32, 1024-2*20, 768-2*32-2*32-8);
 		edit_panel_add->add_child(edit_shiplist);
 		edit_panel_add->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_add.get(), &widget::close, EPFG_SHIPADDED,  20, 768-3*32-8, 512-20, 32, texts::get(224)));
@@ -367,7 +368,7 @@ map_display::map_display(user_interface& ui_) :
 		// create "motion edit" window
 		// open widget with text edits: course, speed, throttle
 		edit_panel_chgmot.reset(new widget(0, 32, 1024, 768-2*32, texts::get(226)));
-		edit_panel_chgmot->set_background(panelbackground);
+		edit_panel_chgmot->set_background(0);
 		edit_heading = new widget_slider(20, 128, 1024-40, 80, texts::get(1), 0, 360, 0, 15);
 		edit_panel_chgmot->add_child(edit_heading);
 		edit_speed = new widget_slider(20, 220, 1024-40, 80, texts::get(4), 0/*minspeed*/, 34/*maxspeed*/, 0, 1);
@@ -381,13 +382,13 @@ map_display::map_display(user_interface& ui_) :
 
 		// create help window
 		edit_panel_help.reset(new widget(0, 32, 1024, 768-2*32, texts::get(230)));
-		edit_panel_help->set_background(panelbackground);
+		edit_panel_help->set_background(0);
 		edit_panel_help->add_child(new widget_text(20, 32, 1024-2*20, 768-2*32-2*32-8, texts::get(231), 0, true));
 		edit_panel_help->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_help.get(), &widget::close, EPFG_CANCEL, 20, 768-3*32-8, 1024-20, 32, texts::get(105)));
 
 		// create edit time window
 		edit_panel_time.reset(new widget(0, 32, 1024, 768-2*32, texts::get(229)));
-		edit_panel_time->set_background(panelbackground);
+		edit_panel_time->set_background(0);
 		edit_panel_time->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_time.get(), &widget::close, EPFG_CHANGETIME,  20, 768-3*32-8, 512-20, 32, texts::get(229)));
 		edit_panel_time->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_time.get(), &widget::close, EPFG_CANCEL, 512, 768-3*32-8, 512-20, 32, texts::get(117)));
 		edit_timeyear = new widget_slider(20, 128, 1024-40, 80, texts::get(234), 1939, 1945, 0, 1);
@@ -405,7 +406,7 @@ map_display::map_display(user_interface& ui_) :
 
 		// create convoy menu
 		edit_panel_convoy.reset(new widget(0, 32, 1024, 768-2*32, texts::get(228)));
-		edit_panel_convoy->set_background(panelbackground);
+		edit_panel_convoy->set_background(0);
 		edit_panel_convoy->add_child(new widget_text(20, 32, 256, 32, texts::get(244)));
 		edit_cvname = new widget_edit(256+20, 32, 1024-256-2*20, 32, "-not usable yet, fixme-");
 		edit_panel_convoy->add_child(edit_cvname);
@@ -770,7 +771,7 @@ void map_display::display(class game& gm) const
 	// draw notepad sheet giving target distance, speed and course
 	if (target) {
 		int nx = 768, ny = 512;
-		notepadsheet->draw(nx, ny);
+		notepadsheet.get()->draw(nx, ny);
 		ostringstream os0, os1, os2;
 		// fixme: use estimated values from target/tdc estimation here, make functions for that
 		os0 << texts::get(3) << ": " << unsigned(target->get_pos().xy().distance(player->get_pos().xy())) << texts::get(206);

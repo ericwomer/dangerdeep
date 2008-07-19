@@ -175,7 +175,7 @@ unsigned sub_torpedo_display::get_tube_below_mouse(const vector<vector2i>& tubec
 
 sub_torpedo_display::sub_torpedo_display(user_interface& ui_) :
 	user_display(ui_), torptranssrc(ILLEGAL_TUBE), desc_texts(get_data_dir()),
-	mx(0), my(0), mb(0), torp_desc_line(0)
+	mx(0), my(0), mb(0), torp_desc_line(0), notepadsheet(texturecache(), "notepadsheet.png")
 {
 }
 
@@ -268,7 +268,7 @@ void sub_torpedo_display::display(class game& gm) const
 			if (torpedoes[tb].status == submarine::stored_torpedo::st_reloading ||
 			    torpedoes[tb].status == submarine::stored_torpedo::st_unloading) {
 				glColor4f(1,1,1,1);
-				notepadsheet->draw(mx, my);
+				notepadsheet.get()->draw(mx, my);
 				font_vtremington12->print(mx+32, my+50, texts::get(211) +
 						  get_time_string(torpedoes[tb].remaining_time), color(32,0,0));
 			}

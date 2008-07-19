@@ -88,6 +88,7 @@ protected:
 	vector<vector2> cvroute;
 	int cvridx;
 #endif
+	objcachet<texture>::reference notepadsheet;
 
 	// editor methods
 	void edit_add_obj(game_editor& gm);

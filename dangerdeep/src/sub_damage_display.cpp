@@ -85,7 +85,8 @@ static rect rect_data[] = {
 
 sub_damage_display::sub_damage_display (user_interface& ui_) :
 	user_display(ui_),
-	mx(0), my(0)
+	mx(0), my(0),
+	notepadsheet(texturecache(), "notepadsheet.png")
 {
 }
 
@@ -103,7 +104,7 @@ void sub_damage_display::display_popup (int x, int y, const string& text, bool a
 	glEnd();
 
 	color::white().set_gl_color();
-	notepadsheet->draw(posx, posy);
+	notepadsheet.get()->draw(posx, posy);
 	font_vtremington12->print_wrapped(posx+8, posy+45, 256-16, 20, text, color(0,0,128));
 	
 //	color(0,0,0).set_gl_color(128);

@@ -70,10 +70,6 @@ global_data::~global_data()
 }
 
 
-// remove this ASAP.
-texture *notepadsheet,
-	*terraintex, *panelbackground;
-
 font *font_arial, *font_jphsl, *font_vtremington10, *font_vtremington12, 
      *font_typenr16;
 
@@ -88,18 +84,10 @@ void init_global_data()
 	font_vtremington12 = fontcache().ref("font_vtremington12");
 	font_typenr16 = fontcache().ref("font_typenr16");
 	add_loading_screen("fonts loaded");
-	// later: they should get loaded by environmental classes (sky/water/user_interface)
-	panelbackground = 0; // not used with new ingame gui
-	notepadsheet = new texture(get_texture_dir() + "notepadsheet.png" /*, GL_CLAMP_TO_EDGE*/);
-	terraintex = new texture(get_texture_dir() + "terrain.jpg", texture::LINEAR);
-	add_loading_screen("textures loaded");
 }
 
 void deinit_global_data()
 {
-	delete panelbackground;
-	delete notepadsheet;
-	delete terraintex;
 }
 
 // display loading progress

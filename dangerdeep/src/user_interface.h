@@ -34,6 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ptrvector.h"
 #include "user_display.h"
 #include "user_popup.h"
+#include "objcache.h"
 
 class game;
 class water;
@@ -107,6 +108,8 @@ protected:
 	// weather graphics
 	ptrvector<class texture> raintex;	// images (animation) of rain drops
 	ptrvector<class texture> snowtex;	// images (animation) of snow flakes
+
+	objcachet<texture>::reference terraintex; //fixme: remove soon
 
 	// free view mode
 //	float freeviewsideang, freeviewupang;	// global spectators viewing angles
