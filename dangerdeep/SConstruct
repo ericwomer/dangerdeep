@@ -292,28 +292,23 @@ SConscript(source_base_dir + os.sep + 'SConscript', build_dir = target_dir, dupl
 BuildDir(target_dir, source_base_dir, duplicate=0)
 
 ############### Helper functions
-def findCVS(basedir):
-	f = open(basedir + os.sep + 'CVS' + os.sep + 'Entries')
+def findSVN(basedir):
+	f = open(basedir + os.sep + '.svn' + os.sep + 'entries')
 	lines = f.readlines()
 	mydirs = []
 	myfiles = []
-	for l in lines:
-		if l.startswith('D/'):
-			l2 = l[2:]
-			i = l2.find('/')
-			if i != -1:
-				l3 = l2[0:i]
-				mydirs += [l3]
-		elif l.startswith('/'):
-			l2 = l[1:]
-			i = l2.find('/')
-			if i != -1:
-				l3 = l2[0:i]
-				myfiles += [basedir + os.sep + l3]
+	for i in range(0, len(lines)):
+		if lines[i] == '\x0c\n' and i+2 < len(lines):
+			fname = lines[i+1][:-1]
+			ftype = lines[i+2][:-1]
+			if ftype == 'dir':
+				mydirs.append(fname)
+			elif ftype == 'file':
+				myfiles.append(basedir + os.sep + fname)
 	for d in mydirs:
 		nextdir = basedir + os.sep + d
 		if os.path.isdir(nextdir):
-			myfiles += findCVS(nextdir)
+			myfiles += findSVN(nextdir)
 	return myfiles
 
 ############### option so that "scons tarball" builds a tarball of source
@@ -322,9 +317,9 @@ if (( build_dir == 'linux' ) or ( build_dir == 'freebsd' )) and (os.path.isdir('
 	basetarfilename = 'dangerdeep-' + version
 	os.system('rm -rf ' + basetarfilename)
 	os.system('ln -s . ' + basetarfilename)
-	allcvsfiles = findCVS('.')
+	allsvnfiles = findSVN('.')
 	filestopack = []
-	for i in allcvsfiles:
+	for i in allsvnfiles:
 		if not(i.endswith('.xcf')) and not(i.startswith('./data/')):
 			if not(i.startswith('.' + os.sep + 'build')):
 				filestopack += [basetarfilename + os.sep + i]
