@@ -364,7 +364,7 @@ void torpedo::simulate(double delta_time)
 	dive_planes.simulate(delta_time);
 
 	// simulate screw turning. one model for all torps, but this doesnt matter
-	double screw_ang = myfrac(gm.get_time()) * 360.0 * 4;
+	double screw_ang = myfrac(gm.get_time() * 4) * 360.0;
 	mymodel->set_object_angle(1, screw_ang);
 	mymodel->set_object_angle(2, screw_ang);
 
