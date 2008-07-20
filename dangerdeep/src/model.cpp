@@ -56,7 +56,6 @@ using std::isfinite;
 using namespace std;
 
 texture::mapping_mode model::mapping = texture::LINEAR_MIPMAP_LINEAR;//texture::NEAREST;
-bool model::enable_hqsfx = true;
 
 unsigned model::init_count = 0;
 
@@ -204,8 +203,6 @@ void model::render_init()
 	glsl_color_normal_specular_caustic.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
 								       get_shader_dir() + "modelrender.fshader", dl));
 	dl.clear();
-	if (enable_hqsfx)
-		dl.push_back("DO_REAL_CLIPPING");
 	glsl_mirror_clip.reset(new glsl_shader_setup(get_shader_dir() + "modelrender_mirrorclip.vshader",
 						     get_shader_dir() + "modelrender_mirrorclip.fshader", dl));
 	// request uniform locations

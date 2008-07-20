@@ -7,7 +7,7 @@ varying float world_z;
 
 void main()
 {
-#ifdef DO_REAL_CLIPPING
+#ifdef HQSFX
 	if (world_z < 0.0)
 		discard;
 	float alpha = 1.0;

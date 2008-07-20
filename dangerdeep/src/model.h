@@ -425,7 +425,6 @@ public:
 	model();
 
 	static texture::mapping_mode mapping;	// GL_* mapping constants (default GL_LINEAR_MIPMAP_LINEAR)
-	static bool enable_hqsfx;
 
 	model(const std::string& filename, bool use_material = true);
 	~model();

@@ -17,7 +17,7 @@ const float ambient = 0.3;
 void main()
 {
 #ifdef MIRROR
-#ifdef DO_REAL_CLIPPING
+#ifdef HQSFX
 	if (world_z < 0.0)
 		discard;
 #endif
@@ -41,7 +41,7 @@ void main()
 	// output color is a mix between fog and final color
 	gl_FragColor = vec4(mix(vec3(gl_Fog.color), final_color, fog_factor),
 #ifdef MIRROR
-#ifdef DO_REAL_CLIPPING
+#ifdef HQSFX
 			    1.0
 #else
 			    world_z <= 0.0 ? 0.0 : 1.0

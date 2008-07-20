@@ -243,13 +243,8 @@ water::water(double tm) :
 	use_hqsfx = cfg::instance().getb("use_hqsfx");
 
 	// initialize shaders
-	glsl_shader::defines_list defines;
-	if (use_hqsfx) {
-		defines.push_back("HQSFX");
-	}
 	glsl_water.reset(new glsl_shader_setup(get_shader_dir() + "water.vshader",
-					       get_shader_dir() + "water.fshader",
-					       defines));
+					       get_shader_dir() + "water.fshader"));
 	glsl_under_water.reset(new glsl_shader_setup(get_shader_dir() + "under_water.vshader",
 						     get_shader_dir() + "under_water.fshader"));
 	glsl_water->use();
