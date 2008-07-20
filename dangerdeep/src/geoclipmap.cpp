@@ -78,7 +78,11 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 	myshader[1].reset(new glsl_shader_setup(get_shader_dir() + "geoclipmap.vshader",
 					     get_shader_dir() + "geoclipmap.fshader", defines));
 
-	const float w_fac = 0.2f;//0.1f;
+	// do not use too high w_fac with too small resolutions.
+	// Otherwise the decaying transition factor (going from 1.0 at outer border
+	// down to 0.0 at center), won't have reached 0.0 at inner border,
+	// leading to visible gaps.
+	const float w_fac = resolution_vbo < 128 ? 0.1f : 0.2f;
 	for (unsigned i = 0; i < 2; ++i) {
 		myshader[i]->use();
 		myshader_vattr_z_c_index[i] = myshader[i]->get_vertex_attrib_index("z_c");

@@ -28,8 +28,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using std::string;
 
-//fixme: use wireframe rendering for debugging
-// - gaps between levels
+//fixme: gaps between levels
+// it is uncertain if the additional noise is the problem or
+// the upsample algorithm, seems rather the noise
+// But even after lowering w_fac, the problem remains with this
+// height generator, and only with this.
 
 /* the map covers ca. 15625000m width at 3200 pixels,
    so we have S := 4882.8125m per pixel (height sample).
