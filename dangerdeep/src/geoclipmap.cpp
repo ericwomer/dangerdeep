@@ -64,9 +64,6 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 			),
 	  levels(nr_levels),
 	  height_gen(hg),
-	  myshader(get_shader_dir() + "geoclipmap.vshader",
-		   get_shader_dir() + "geoclipmap.fshader"),
-	  myshader_vattr_z_c_index(0),
 	  wireframe(false)
 {
 	// initialize vertex VBO and all level VBOs
@@ -74,32 +71,40 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 		levels.reset(lvl, new level(*this, lvl, lvl+1==levels.size()));
 	}
 
-	myshader.use();
-	myshader_vattr_z_c_index = myshader.get_vertex_attrib_index("z_c");
-	loc_texterrain = myshader.get_uniform_location("texterrain");
-	loc_texcolor = myshader.get_uniform_location("texcolor");
-	loc_texcolor_c = myshader.get_uniform_location("texcolor_c");
-	loc_texnormal = myshader.get_uniform_location("texnormal");
-	loc_texnormal_c = myshader.get_uniform_location("texnormal_c");
-	loc_w_p1 = myshader.get_uniform_location("w_p1");
-	loc_w_rcp = myshader.get_uniform_location("w_rcp");
-	loc_viewpos = myshader.get_uniform_location("viewpos");
-	loc_viewpos_offset = myshader.get_uniform_location("viewpos_offset");
-	loc_xysize2 = myshader.get_uniform_location("xysize2");
-	loc_L_l_rcp = myshader.get_uniform_location("L_l_rcp");
-	loc_N_rcp = myshader.get_uniform_location("N_rcp");
-	loc_texcshift = myshader.get_uniform_location("texcshift");
-	loc_texcshift2 = myshader.get_uniform_location("texcshift2");
+	myshader[0].reset(new glsl_shader_setup(get_shader_dir() + "geoclipmap.vshader",
+					     get_shader_dir() + "geoclipmap.fshader"));
+	glsl_shader::defines_list defines;
+	defines.push_back("MIRROR");
+	myshader[1].reset(new glsl_shader_setup(get_shader_dir() + "geoclipmap.vshader",
+					     get_shader_dir() + "geoclipmap.fshader", defines));
+
 	const float w_fac = 0.2f;//0.1f;
-	myshader.set_uniform(loc_w_p1, resolution_vbo * w_fac + 1.0f);
-	myshader.set_uniform(loc_w_rcp, 1.0f/(resolution_vbo * w_fac));
-	myshader.set_uniform(loc_N_rcp, 1.0f/resolution_vbo);
-	myshader.use_fixed();
+	for (unsigned i = 0; i < 2; ++i) {
+		myshader[i]->use();
+		myshader_vattr_z_c_index[i] = myshader[i]->get_vertex_attrib_index("z_c");
+		loc_texterrain[i] = myshader[i]->get_uniform_location("texterrain");
+		loc_texcolor[i] = myshader[i]->get_uniform_location("texcolor");
+		loc_texcolor_c[i] = myshader[i]->get_uniform_location("texcolor_c");
+		loc_texnormal[i] = myshader[i]->get_uniform_location("texnormal");
+		loc_texnormal_c[i] = myshader[i]->get_uniform_location("texnormal_c");
+		loc_w_p1[i] = myshader[i]->get_uniform_location("w_p1");
+		loc_w_rcp[i] = myshader[i]->get_uniform_location("w_rcp");
+		loc_viewpos[i] = myshader[i]->get_uniform_location("viewpos");
+		loc_viewpos_offset[i] = myshader[i]->get_uniform_location("viewpos_offset");
+		loc_xysize2[i] = myshader[i]->get_uniform_location("xysize2");
+		loc_L_l_rcp[i] = myshader[i]->get_uniform_location("L_l_rcp");
+		loc_N_rcp[i] = myshader[i]->get_uniform_location("N_rcp");
+		loc_texcshift[i] = myshader[i]->get_uniform_location("texcshift");
+		loc_texcshift2[i] = myshader[i]->get_uniform_location("texcshift2");
+		myshader[i]->set_uniform(loc_w_p1[i], resolution_vbo * w_fac + 1.0f);
+		myshader[i]->set_uniform(loc_w_rcp[i], 1.0f/(resolution_vbo * w_fac));
+		myshader[i]->set_uniform(loc_N_rcp[i], 1.0f/resolution_vbo);
+	}
+	myshader[0]->use_fixed();
 	// set a texture for normals outside coarsest level, just 0,0,1
 	std::vector<Uint8> pxl(3, 128);
 	pxl[2] = 255;
 	horizon_normal.reset(new texture(pxl, 1, 1, GL_RGB, texture::LINEAR, texture::REPEAT));
-	myshader.use_fixed();
 }
 
 
@@ -149,15 +154,18 @@ void geoclipmap::set_viewerpos(const vector3& new_viewpos)
 		levelborder.tr.y /= 2;
 	}
 
-	myshader.use();
-	myshader.set_uniform(loc_viewpos, new_viewpos - base_viewpos.xy0());
-	myshader.set_uniform(loc_viewpos_offset, new_viewpos);
-	myshader.use_fixed();
+	myshader[0]->use();
+	myshader[0]->set_uniform(loc_viewpos[0], new_viewpos - base_viewpos.xy0());
+	myshader[0]->set_uniform(loc_viewpos_offset[0], new_viewpos);
+	myshader[1]->use();
+	myshader[1]->set_uniform(loc_viewpos[1], new_viewpos - base_viewpos.xy0());
+	myshader[1]->set_uniform(loc_viewpos_offset[1], new_viewpos);
+	myshader[1]->use_fixed();
 }
 
 
 
-void geoclipmap::display(const frustum& f, const vector3& view_delta, bool /*is_mirror*/) const
+void geoclipmap::display(const frustum& f, const vector3& view_delta, bool is_mirror) const
 {
 	if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// display levels from inside to outside
@@ -168,23 +176,22 @@ void geoclipmap::display(const frustum& f, const vector3& view_delta, bool /*is_
 	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE3);
 	glEnable(GL_TEXTURE_2D);
-	myshader.use();
+	unsigned si = is_mirror ? 1 : 0;
+	myshader[si]->use();
 	glPushMatrix();
-	//fixme: this is logically correct, to get global coordinates again
-	//but we must avoid that, this brings the rounding errors of float back
 	vector3 translation = base_viewpos.xy0() + view_delta;
 	glTranslated(translation.x, translation.y, translation.z);
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
-		myshader.set_gl_texture(levels[lvl]->colors_tex(), loc_texcolor, 0);
-		myshader.set_gl_texture(levels[lvl]->normals_tex(), loc_texnormal, 2);
+		myshader[si]->set_gl_texture(levels[lvl]->colors_tex(), loc_texcolor[si], 0);
+		myshader[si]->set_gl_texture(levels[lvl]->normals_tex(), loc_texnormal[si], 2);
 		if (lvl + 1 < levels.size()) {
-			myshader.set_gl_texture(levels[lvl+1]->colors_tex(), loc_texcolor_c, 1);
-			myshader.set_gl_texture(levels[lvl+1]->normals_tex(), loc_texnormal_c, 3);
+			myshader[si]->set_gl_texture(levels[lvl+1]->colors_tex(), loc_texcolor_c[si], 1);
+			myshader[si]->set_gl_texture(levels[lvl+1]->normals_tex(), loc_texnormal_c[si], 3);
 		} else {
-			myshader.set_gl_texture(levels[levels.size()-1]->colors_tex(), loc_texcolor_c, 1);
-			myshader.set_gl_texture(*horizon_normal, loc_texnormal_c, 3);
+			myshader[si]->set_gl_texture(levels[levels.size()-1]->colors_tex(), loc_texcolor_c[si], 1);
+			myshader[si]->set_gl_texture(*horizon_normal, loc_texnormal_c[si], 3);
 		}
-		levels[lvl]->display(f);
+		levels[lvl]->display(f, is_mirror);
 	}
 	glPopMatrix();
 	glActiveTexture(GL_TEXTURE3);
@@ -194,7 +201,7 @@ void geoclipmap::display(const frustum& f, const vector3& view_delta, bool /*is_
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glActiveTexture(GL_TEXTURE0);
-	myshader.use_fixed();
+	myshader[si]->use_fixed();
 	if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
@@ -809,20 +816,21 @@ unsigned geoclipmap::level::generate_indices_horizgap(uint32_t* buffer, unsigned
 
 
 
-void geoclipmap::level::display(const frustum& f) const
+void geoclipmap::level::display(const frustum& f, bool is_mirror) const
 {
 	vector2i outszi = tmp_outer.size();
 	vector2f outsz = vector2f(outszi.x - 1, outszi.y - 1) * 0.5f;
-	gcm.myshader.set_uniform(gcm.loc_xysize2, outsz);
-	gcm.myshader.set_uniform(gcm.loc_L_l_rcp, 1.0f/L_l);
+	unsigned si = is_mirror ? 1 : 0;
+	gcm.myshader[si]->set_uniform(gcm.loc_xysize2[si], outsz);
+	gcm.myshader[si]->set_uniform(gcm.loc_L_l_rcp[si], 1.0f/L_l);
 	vector2 texdelta = gcm.base_viewpos * (1.0 / (L_l * gcm.resolution_vbo));
 	vector2f texdelta_f(myfrac(texdelta.x) + 0.5/gcm.resolution_vbo,
 			    myfrac(texdelta.y) + 0.5/gcm.resolution_vbo);
-	gcm.myshader.set_uniform(gcm.loc_texcshift, texdelta_f);
+	gcm.myshader[si]->set_uniform(gcm.loc_texcshift[si], texdelta_f);
 	texdelta = gcm.base_viewpos * (0.5 / (L_l * gcm.resolution_vbo));
 	texdelta_f = vector2f(myfrac(texdelta.x) + 0.5/gcm.resolution_vbo,
 			      myfrac(texdelta.y) + 0.5/gcm.resolution_vbo);
-	gcm.myshader.set_uniform(gcm.loc_texcshift2, texdelta_f);
+	gcm.myshader[si]->set_uniform(gcm.loc_texcshift2[si], texdelta_f);
 
 	uint32_t* indexvbo = &gcm.idxscratchbuf[0];
 #ifdef DEBUG_INDEX_USAGE
@@ -898,8 +906,8 @@ void geoclipmap::level::display(const frustum& f) const
 	vertices.bind();
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, geoclipmap_fperv*4, (float*)0 + 0);
-	glVertexAttribPointer(gcm.myshader_vattr_z_c_index, 1, GL_FLOAT, GL_FALSE, geoclipmap_fperv*4, (float*)0 + 3);
-	glEnableVertexAttribArray(gcm.myshader_vattr_z_c_index);
+	glVertexAttribPointer(gcm.myshader_vattr_z_c_index[si], 1, GL_FLOAT, GL_FALSE, geoclipmap_fperv*4, (float*)0 + 3);
+	glEnableVertexAttribArray(gcm.myshader_vattr_z_c_index[si]);
 	vertices.unbind();
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -912,7 +920,7 @@ void geoclipmap::level::display(const frustum& f) const
 			    gcm.resolution_vbo*gcm.resolution_vbo-1/*max_vertex_index*/,
 			    nridx-1, GL_UNSIGNED_INT, (unsigned*)0 + 1); // skip first index
 	indices.unbind();
-	glDisableVertexAttribArray(gcm.myshader_vattr_z_c_index);
+	glDisableVertexAttribArray(gcm.myshader_vattr_z_c_index[si]);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 

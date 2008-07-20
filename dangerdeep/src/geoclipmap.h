@@ -138,7 +138,7 @@ class geoclipmap
 	public:
 		level(geoclipmap& gcm_, unsigned idx, bool outmost_level);
 		area set_viewerpos(const vector3& new_viewpos, const geoclipmap::area& inner);
-		void display(const frustum& f) const;
+		void display(const frustum& f, bool is_mirror = false) const;
 		texture& normals_tex() const { return *normals; }
 		texture& colors_tex() const { return *colors; }
 		void clear_area();
@@ -155,23 +155,23 @@ class geoclipmap
 		return vector2i(mod(v.x), mod(v.y));
 	}
 
-	mutable glsl_shader_setup myshader;
+	/*mutable*/ std::auto_ptr<glsl_shader_setup> myshader[2];
 	//mutable glsl_shader_setup myshader_mirror;
-	unsigned myshader_vattr_z_c_index;
-	unsigned loc_texterrain;
-	unsigned loc_texnormal;
-	unsigned loc_texnormal_c;
-	unsigned loc_texcolor;
-	unsigned loc_texcolor_c;
-	unsigned loc_w_p1;
-	unsigned loc_w_rcp;
-	unsigned loc_viewpos;
-	unsigned loc_viewpos_offset;
-	unsigned loc_xysize2;
-	unsigned loc_L_l_rcp;
-	unsigned loc_N_rcp;
-	unsigned loc_texcshift;
-	unsigned loc_texcshift2;
+	unsigned myshader_vattr_z_c_index[2];
+	unsigned loc_texterrain[2];
+	unsigned loc_texnormal[2];
+	unsigned loc_texnormal_c[2];
+	unsigned loc_texcolor[2];
+	unsigned loc_texcolor_c[2];
+	unsigned loc_w_p1[2];
+	unsigned loc_w_rcp[2];
+	unsigned loc_viewpos[2];
+	unsigned loc_viewpos_offset[2];
+	unsigned loc_xysize2[2];
+	unsigned loc_L_l_rcp[2];
+	unsigned loc_N_rcp[2];
+	unsigned loc_texcshift[2];
+	unsigned loc_texcshift2[2];
 	texture::ptr horizon_normal;
 
  public:

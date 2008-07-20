@@ -552,7 +552,7 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 	frustum viewfrustum = frustum::from_opengl();
 	viewfrustum.translate(-viewpos);
 	mygeoclipmap->set_viewerpos(viewpos);
-	mygeoclipmap->display(viewfrustum, -viewpos);
+	mygeoclipmap->display(viewfrustum, -viewpos, mirrored);
 }
 
 
