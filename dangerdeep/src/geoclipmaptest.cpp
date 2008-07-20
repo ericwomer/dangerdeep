@@ -680,24 +680,7 @@ void run()
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
-		matrix4 prj = matrix4::get_gl(GL_PROJECTION_MATRIX);
-		matrix4 mvp = prj * mv;
-		matrix4 invmvp = mvp.inverse();
-		vector3 wbln = invmvp * vector3(-1,-1,-1);
-		vector3 wbrn = invmvp * vector3(+1,-1,-1);
-		vector3 wtln = invmvp * vector3(-1,+1,-1);
-		vector3 wtrn = invmvp * vector3(+1,+1,-1);
-		polygon viewwindow(wbln, wbrn, wtrn, wtln);
-		// hmm wouldn't be znear the distance of point (0,0,0) to the viewindow?
-		// that is the distance of the plane through that window to 0?
-		// if we do a scalar product of any point with the normal, we get the direction
-		// (fabs it, or negate?)
-		vector3 wn = (wbrn - wbln).cross(wtln - wbln).normal();
-		//double neardist = fabs((wbln - campos) * wn);
-		//log_debug("neardist="<<neardist);//gives 1.0, seems correct?
-		frustum viewfrustum(viewwindow, campos, 0.1 /* fixme: read from matrix! */);
-		viewfrustum = frustum::from_opengl();
+		frustum viewfrustum = frustum::from_opengl();
 
 		glColor4f(1,1,1,1);
 		gcm.display(viewfrustum);
