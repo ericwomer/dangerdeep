@@ -65,6 +65,10 @@ frustum frustum::from_opengl()
 	matrix4 mvp = prj * mv;
 	matrix4 invmv = mv.inverse();
 	matrix4 invmvp = mvp.inverse();
+	// since the viewer looks along neg. z-axis, the viewer
+	// coordinate system (after perspective projection) has positive
+	// z-values going into the screen, so the near z-value is
+	// -1, the far z-value is 1.
 	vector3 wbln = invmvp * vector3(-1,-1,-1);
 	vector3 wbrn = invmvp * vector3(+1,-1,-1);
 	vector3 wtln = invmvp * vector3(-1,+1,-1);
