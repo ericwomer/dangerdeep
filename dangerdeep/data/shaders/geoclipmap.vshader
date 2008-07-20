@@ -19,6 +19,9 @@ uniform float L_l_rcp;
 uniform float N_rcp;
 uniform vec2 texcshift;
 uniform vec2 texcshift2;
+#ifdef MIRROR
+varying float world_z;
+#endif
 
 attribute float z_c;
 
@@ -42,6 +45,15 @@ void main()
 	//normal = normalize(gl_Normal);
 	//normal = vec3(0.0, 0.0, 1.0);
 
+#ifdef MIRROR
+	// transform vertex to projection space (clip coordinates)
+	// transform to clip space (only transform x/y/z as w is one and clip3 is 0,0,0,1)
+	vec4 vertex_worldspace = (gl_TextureMatrix[1] * gl_Vertex);
+#ifndef DO_REAL_CLIPPING
+	vertex_worldspace.z = max(vertex_worldspace.z, 0.0);
+#endif
+	world_z = vertex_worldspace.z;
+#endif
 	// finally compute position
 	gl_Position = gl_ModelViewProjectionMatrix * vpos;
 

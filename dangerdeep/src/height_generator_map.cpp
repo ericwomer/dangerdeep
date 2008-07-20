@@ -28,6 +28,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using std::string;
 
+//fixme: use wireframe rendering for debugging
+// - gaps between levels
+// - clipping is buggy
+
 /* the map covers ca. 15625000m width at 3200 pixels,
    so we have S := 4882.8125m per pixel (height sample).
    Visible area is ca. 60km*60km, so we have to chose
@@ -117,7 +121,8 @@ bivector<float> height_generator_map::generate_patch(int detail, const vector2i&
 		vector2i coord2_bl((coord_bl.x >> 1) - 1, (coord_bl.y >> 1) - 1);
 		vector2i coord2_tr(((coord_tr.x+1) >> 1) + 1, ((coord_tr.y+1) >> 1) + 1);
 		vector2i coord2_sz = coord2_tr - coord2_bl + vector2i(1, 1);
-		bivector<float> v = generate_patch(detail + 1, coord2_bl, coord2_sz).smooth_upsampled();
+		vector2i offset(coord_bl.x & 1, coord_bl.y & 1);
+		bivector<float> v = generate_patch(detail + 1, coord2_bl, coord2_sz).smooth_upsampled().sub_area(offset, coord_sz);
 		v.add_shifted(noisemaps[detail+3], coord_bl);
 		return v;
 	} else if (detail == int(subdivision_steps)) {

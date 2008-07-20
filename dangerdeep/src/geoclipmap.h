@@ -47,7 +47,7 @@ class geoclipmap
 	void set_viewerpos(const vector3& viewpos);
 
 	/// render the view (will only fetch the vertex/index data, no texture setup)
-	void display(const frustum& f, const vector3& view_delta = vector3()) const;
+	void display(const frustum& f, const vector3& view_delta = vector3(), bool is_mirror = false) const;
 
  protected:
 	// "N", must be power of two
@@ -156,6 +156,7 @@ class geoclipmap
 	}
 
 	mutable glsl_shader_setup myshader;
+	//mutable glsl_shader_setup myshader_mirror;
 	unsigned myshader_vattr_z_c_index;
 	unsigned loc_texterrain;
 	unsigned loc_texnormal;

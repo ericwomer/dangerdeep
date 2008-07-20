@@ -157,7 +157,7 @@ void geoclipmap::set_viewerpos(const vector3& new_viewpos)
 
 
 
-void geoclipmap::display(const frustum& f, const vector3& view_delta) const
+void geoclipmap::display(const frustum& f, const vector3& view_delta, bool /*is_mirror*/) const
 {
 	if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// display levels from inside to outside

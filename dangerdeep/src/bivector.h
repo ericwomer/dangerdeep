@@ -48,6 +48,7 @@ class bivector
 	const vector2i& size() const { return datasize; }
 	void resize(const vector2i& newsz, const T& v = T());
 	bivector<T> sub_area(const vector2i& offset, const vector2i& sz) const;
+	///@note bivector must have power of two dimensions for this!
 	bivector<T> shifted(const vector2i& offset) const;
 	bivector<T> transposed() const;
 
@@ -77,7 +78,9 @@ class bivector
 	// sum of square of differences etc.
 
 	bivector<T>& add_gauss_noise(const T& scal, random_generator& rg);
+	///@note other bivector must have power of two dimensions for this!
 	bivector<T>& add_tiled(const bivector<T>& other, const T& scal);
+	///@note other bivector must have power of two dimensions for this!
 	bivector<T>& add_shifted(const bivector<T>& other, const vector2i& offset);
 
  protected:
@@ -162,8 +165,7 @@ template <class T>
 bivector<T> bivector<T>::shifted(const vector2i& offset) const
 {
 	bivector<T> result(datasize);
-	//fixme: if datasize.xy is power of two, use faster & instead of %
-	bivector_FOREACH_XYZ(result.at((x+offset.x)%datasize.x, (y+offset.y)%datasize.y) = data[z])
+	bivector_FOREACH_XYZ(result.at((x+offset.x) & (datasize.x-1), (y+offset.y) & (datasize.y-1)) = data[z])
 	return result;
 }
 
@@ -424,14 +426,14 @@ bivector<T>& bivector<T>::add_gauss_noise(const T& scal, random_generator& rg)
 template <class T>
 bivector<T>& bivector<T>::add_tiled(const bivector<T>& other, const T& scal)
 {
-	bivector_FOREACH_XY(at(x,y) += other.at(x % other.datasize.x, y % other.datasize.y) * scal;)
+	bivector_FOREACH_XY(at(x,y) += other.at(x & (other.datasize.x-1), y & (other.datasize.y-1)) * scal;)
 	return *this;
 }
 
 template <class T>
 bivector<T>& bivector<T>::add_shifted(const bivector<T>& other, const vector2i& offset)
 {
-	bivector_FOREACH_XY(at(x,y) += other.at((x+offset.x) % other.datasize.x, (y+offset.y) % other.datasize.y);)
+	bivector_FOREACH_XY(at(x,y) += other.at((x+offset.x) & (other.datasize.x-1), (y+offset.y) & (other.datasize.y-1));)
 	return *this;
 }
 
