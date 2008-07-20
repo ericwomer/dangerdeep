@@ -30,7 +30,6 @@ using std::string;
 
 //fixme: use wireframe rendering for debugging
 // - gaps between levels
-// - clipping is buggy
 
 /* the map covers ca. 15625000m width at 3200 pixels,
    so we have S := 4882.8125m per pixel (height sample).
