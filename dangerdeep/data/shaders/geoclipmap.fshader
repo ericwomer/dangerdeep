@@ -20,9 +20,6 @@ void main()
 #ifdef DO_REAL_CLIPPING
 	if (world_z < 0.0)
 		discard;
-	float alpha = 1.0;
-#else
-	float alpha = world_z <= 0.0 ? 0.0 : 1.0; // does this work without if? fixme check asm output
 #endif
 #endif
 	vec3 L = normalize(lightdir);
@@ -44,7 +41,11 @@ void main()
 	// output color is a mix between fog and final color
 	gl_FragColor = vec4(mix(vec3(gl_Fog.color), final_color, fog_factor),
 #ifdef MIRROR
-			    alpha
+#ifdef DO_REAL_CLIPPING
+			    1.0
+#else
+			    world_z <= 0.0 ? 0.0 : 1.0
+#endif
 #else
 			    1.0
 #endif

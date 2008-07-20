@@ -211,5 +211,6 @@ void height_generator_map::compute_colors(int detail, const vector2i& coord_bl,
 
 void height_generator_map::get_min_max_height(double& minh, double& maxh) const
 {
-	minh = -512.0; maxh = 512.0;
+	// because of the additional noise, z-range is doubled
+	minh = -512.0*2; maxh = 512.0*2;
 }

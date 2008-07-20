@@ -918,7 +918,7 @@ void water::display(const vector3& viewpos, double max_view_dist, bool under_wat
 	// ------------------- rendering --------------------------
 
 	// compute viewing frustum for culling
-	frustum viewfrustum = frustum::from_opengl(1.0);
+	frustum viewfrustum = frustum::from_opengl();
 
 	// as first, map buffers correctly.
 	vertices.bind();

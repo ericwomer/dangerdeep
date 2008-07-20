@@ -554,7 +554,7 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 	//viewer offset, or global mapping will be faulty
 	//this leads to terrain rendering with shaking effect (numerically unstable
 	//because of rounding errors).
-	frustum viewfrustum = frustum::from_opengl(1.0 /* fixme: read from matrix! */);
+	frustum viewfrustum = frustum::from_opengl();
 	viewfrustum.translate(viewpos);
 	mygeoclipmap->set_viewerpos(viewpos);
 	mygeoclipmap->display(viewfrustum, -viewpos);

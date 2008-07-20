@@ -55,6 +55,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <time.h>
 #include <iostream>
 #include <sstream>
+#include "height_generator_map.h"
 
 
 // ------------------------------------------- code ---------------------------------------
@@ -562,7 +563,12 @@ void run()
 	// 8, 7, 1.0 gives 2^14m = 16384m
 #if 1
 	float camadd=0;
+#if 0
 	geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, hgt);
+#else
+	height_generator_map hgtm("default.xml");
+	geoclipmap gcm(7, 5/*3*/, hgtm);
+#endif
 #else	
 	float camadd=-4500.0;
 	rastered_map terrain(get_map_dir()+"/ETOPO2v2c_i2_LSB.xml", get_map_dir()+"/ETOPO2v2c_i2_LSB.bin", vector2l(-4*60, 4*60), 8*60 , 11, 1);
@@ -690,7 +696,8 @@ void run()
 		vector3 wn = (wbrn - wbln).cross(wtln - wbln).normal();
 		//double neardist = fabs((wbln - campos) * wn);
 		//log_debug("neardist="<<neardist);//gives 1.0, seems correct?
-		frustum viewfrustum(viewwindow, campos, cm.view_dir(), 0.1 /* fixme: read from matrix! */);
+		frustum viewfrustum(viewwindow, campos, 0.1 /* fixme: read from matrix! */);
+		viewfrustum = frustum::from_opengl();
 
 		glColor4f(1,1,1,1);
 		gcm.display(viewfrustum);

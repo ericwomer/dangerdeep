@@ -36,10 +36,9 @@ public:
 	std::vector<plane> planes;
 	polygon viewwindow;	// planes are constructed matching to this
 	vector3 viewpos;
-	vector3 viewdir;
 	double znear;
 	/// construct frustum from given data
-	frustum(polygon poly, const vector3& viewp, const vector3& viewd, double znear);
+	frustum(polygon poly, const vector3& viewp, double znear);
 	/// clip polygon to frustum and return intersecting polygon
 	polygon clip(polygon p) const;
 	/// render frustum as test
@@ -47,8 +46,7 @@ public:
 	/// print frumstum values for debugging
 	void print() const;
 	/// construct frustum from current OpenGL matrices.
-	///@param z_near_distance - override for z-near value, give any value below zero to use OpenGL value
-	static frustum from_opengl(double z_near_distance = 1.0, const vector3& viewpos = vector3());
+	static frustum from_opengl();
 	/// translate all points
 	void translate(const vector3& delta);
 };

@@ -186,9 +186,8 @@ void run()
 		vector3 wbrn = invmvp * vector3(+1,-1,-1);
 		vector3 wtln = invmvp * vector3(-1,+1,-1);
 		vector3 wtrn = invmvp * vector3(+1,+1,-1);
-		vector3 vd = invmvr * vector3(0,0,-1);
 		polygon viewwindow(wbln, wbrn, wtrn, wtln);
-		frustum viewfrustum(viewwindow, pos, vd, 0.1 /* fixme: read from matrix! */);
+		frustum viewfrustum(viewwindow, pos, 0.1 /* fixme: read from matrix! */);
 
 		// set light
 		vector3 ld(cos((sys().millisec()%10000)*2*3.14159/10000), sin((sys().millisec()%10000)*2*3.14159/10000), 1.0);

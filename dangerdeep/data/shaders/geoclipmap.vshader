@@ -48,7 +48,7 @@ void main()
 #ifdef MIRROR
 	// transform vertex to projection space (clip coordinates)
 	// transform to clip space (only transform x/y/z as w is one and clip3 is 0,0,0,1)
-	vec4 vertex_worldspace = (gl_TextureMatrix[1] * gl_Vertex);
+	vec4 vertex_worldspace = (gl_TextureMatrix[1] * vpos);
 #ifndef DO_REAL_CLIPPING
 	vertex_worldspace.z = max(vertex_worldspace.z, 0.0);
 #endif

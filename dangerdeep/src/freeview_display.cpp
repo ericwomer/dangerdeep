@@ -524,7 +524,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 
 	// check if we are below water surface, above or near it
 	int above_water = 1; // 1: above, 0: near, -1: below
-	frustum viewfrustum = frustum::from_opengl(1.0);
+	frustum viewfrustum = frustum::from_opengl();
 	matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	matrix4 prj = matrix4::get_gl(GL_PROJECTION_MATRIX);
 	matrix4 mvp = prj * mv;
