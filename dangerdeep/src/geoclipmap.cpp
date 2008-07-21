@@ -823,7 +823,10 @@ unsigned geoclipmap::level::generate_indices_horizgap(uint32_t* buffer, unsigned
 void geoclipmap::level::display(const frustum& f, bool is_mirror) const
 {
 	vector2i outszi = tmp_outer.size();
-	vector2f outsz = vector2f(outszi.x - 1, outszi.y - 1) * 0.5f;
+	// we have to decrease the region by 0.1 to avoid alpha values
+	// near level transition that are not 1.0 but very close to it
+	// values < 1.0 give visible gaps, especially for low N values.
+	vector2f outsz = vector2f(outszi.x - 1.1f, outszi.y - 1.1f) * 0.5f;
 	unsigned si = is_mirror ? 1 : 0;
 	gcm.myshader[si]->set_uniform(gcm.loc_xysize2[si], outsz);
 	gcm.myshader[si]->set_uniform(gcm.loc_L_l_rcp[si], 1.0f/L_l);

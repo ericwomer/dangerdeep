@@ -30,9 +30,17 @@ using std::string;
 
 //fixme: gaps between levels
 // it is uncertain if the additional noise is the problem or
-// the upsample algorithm, seems rather the noise
-// But even after lowering w_fac, the problem remains with this
-// height generator, and only with this.
+// the upsample algorithm, but if we add the noise
+// to fix height values, there are no gaps
+
+// either the heights are not matching (z of next level with z_c of
+// current level) or the transition in v-shader is wrong.
+// checking the alpha values shows that there is sometimes a gap
+// to the horizon faces
+// But after some fix in geoclipmap renderer, alpha value is always
+// 1.0 at border, so the bug must be in height generation here
+
+// this also means the smooth_upsample makes the difference...
 
 /* the map covers ca. 15625000m width at 3200 pixels,
    so we have S := 4882.8125m per pixel (height sample).
@@ -125,6 +133,7 @@ bivector<float> height_generator_map::generate_patch(int detail, const vector2i&
 		vector2i coord2_sz = coord2_tr - coord2_bl + vector2i(1, 1);
 		vector2i offset(coord_bl.x & 1, coord_bl.y & 1);
 		bivector<float> v = generate_patch(detail + 1, coord2_bl, coord2_sz).smooth_upsampled().sub_area(offset, coord_sz);
+		//fixme test   v = bivector<float>(coord_sz, float(detail*20)-350);
 		v.add_shifted(noisemaps[detail+3], coord_bl);
 		return v;
 	} else if (detail == int(subdivision_steps)) {
