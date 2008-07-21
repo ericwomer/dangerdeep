@@ -433,7 +433,7 @@ int mymain(list<string>& args)
 		mdl->get_base_mesh().display();
 		sys().swap_buffers();
 		sys().screenshot(modelfilename.substr(0, st) + ".mass_map_draft");
-		sleep(3);
+		thread::sleep(3000);
 	}
 
 	double vol_inside = (inside_vol * vol) / is_inside.size();
