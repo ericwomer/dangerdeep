@@ -20,6 +20,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "geoclipmap.h"
 #include "global_data.h"
 
+//fixme: mirrored terrain doesn't display correctly, z-offset is wrong,
+//moving too fast
+
 /*
 Note: the geoclipmap renderer code can't handle levels < 0 yet, so no
 extra geometry is rendered that is finer than the stored data and thus generated.
@@ -386,7 +389,9 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 	}
 
 	// get heights of coarser level, only for values inside original scratchbuf area
-	// (without the +1 perimeter for normals)
+	// (without the +1 perimeter for normals). Note that upar.bl has always even
+	// numbers here, as border to next coarser level has always even number of
+	// vertices.
 	upcrd.x = upar.bl.x >> 1; // need to shift here because values could be negative!
 	upcrd.y = upar.bl.y >> 1;
 	// sz.xy can be odd, so we must compute size with rounding up tr...
