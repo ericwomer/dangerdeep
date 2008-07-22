@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "global_data.h"
 
 //fixme: mirrored terrain doesn't display correctly, z-offset is wrong,
-//moving too fast
+//moving too fast, or it can be a clipping problem! rather clipping...
 
 /*
 Note: the geoclipmap renderer code can't handle levels < 0 yet, so no

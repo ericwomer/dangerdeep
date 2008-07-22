@@ -28,19 +28,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using std::string;
 
-//fixme: gaps between levels
-// it is uncertain if the additional noise is the problem or
-// the upsample algorithm, but if we add the noise
-// to fix height values, there are no gaps
+//fixme: it seems we have a gap near the horizon,
+//this may be because the coarsest level is much wider
+//than the horizon faces, as 2^7*32 (N) is > 32km
 
-// either the heights are not matching (z of next level with z_c of
-// current level) or the transition in v-shader is wrong.
-// checking the alpha values shows that there is sometimes a gap
-// to the horizon faces
-// But after some fix in geoclipmap renderer, alpha value is always
-// 1.0 at border, so the bug must be in height generation here
-
-// this also means the smooth_upsample makes the difference...
 
 /* the map covers ca. 15625000m width at 3200 pixels,
    so we have S := 4882.8125m per pixel (height sample).
@@ -127,13 +118,15 @@ bivector<float> height_generator_map::generate_patch(int detail, const vector2i&
 		// that is one extra value all around.
 		// we can compute the values simply: round down/up the lower/upper
 		// cordinates, divide by 2, enlarge by 1 and generate a subdivision from this.
+		// we need to handle the special case how smooth_upsample treats the borders
+		// (extra skip 2 values)
 		vector2i coord_tr = coord_bl + coord_sz - vector2i(1, 1);
 		vector2i coord2_bl((coord_bl.x >> 1) - 1, (coord_bl.y >> 1) - 1);
 		vector2i coord2_tr(((coord_tr.x+1) >> 1) + 1, ((coord_tr.y+1) >> 1) + 1);
 		vector2i coord2_sz = coord2_tr - coord2_bl + vector2i(1, 1);
-		vector2i offset(coord_bl.x & 1, coord_bl.y & 1);
+		vector2i offset(2 + (coord_bl.x & 1), 2 + (coord_bl.y & 1));
+		// giving smooth_upsample the subarea already would be handy...
 		bivector<float> v = generate_patch(detail + 1, coord2_bl, coord2_sz).smooth_upsampled().sub_area(offset, coord_sz);
-		//fixme test   v = bivector<float>(coord_sz, float(detail*20)-350);
 		v.add_shifted(noisemaps[detail+3], coord_bl);
 		return v;
 	} else if (detail == int(subdivision_steps)) {
