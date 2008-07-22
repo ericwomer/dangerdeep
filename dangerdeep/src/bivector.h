@@ -152,8 +152,8 @@ bivector<T>& bivector<T>::operator+= (const bivector<T>& v)
 template <class T>
 bivector<T> bivector<T>::sub_area(const vector2i& offset, const vector2i& sz) const
 {
-	if (offset.y + sz.y >= datasize.y) throw std::invalid_argument("bivector::sub_area, offset.y invalid");
-	if (offset.x + sz.x >= datasize.x) throw std::invalid_argument("bivector::sub_area, offset.x invalid");
+	if (offset.y + sz.y > datasize.y) throw std::invalid_argument("bivector::sub_area, offset.y invalid");
+	if (offset.x + sz.x > datasize.x) throw std::invalid_argument("bivector::sub_area, offset.x invalid");
 	bivector<T> result(sz);
 	for (int y=0; y < result.datasize.y; ++y)
 		for (int x=0; x < result.datasize.x; ++x)
