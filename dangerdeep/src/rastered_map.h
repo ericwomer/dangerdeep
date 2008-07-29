@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <sstream>
 #include <vector>
 #include <math.h>
+#include <SDL.h>
 #include "vector2.h"
 #include "global_constants.h"
 #include "xml.h"
@@ -36,15 +37,22 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "bivector.h"
 #include "perlinnoise.h"
 
+const int ENDIAN_TEST = 1;
+
+#define is_bigendian() ( ((char*)&ENDIAN_TEST) == 0)
+#define LSB 0
+#define MSB 1
+
 class rastered_map : public height_generator
 {
 public: 
 
-protected: // map
+protected:
 	std::ifstream data_stream;
 	int num_levels;
 	long int max_lat, min_lat, max_lot, min_lot, resolution, min_height, max_height;
-	
+        bool byteorder;
+        
 	rastered_map();
 
 	void load(bivector<float>&);
@@ -56,7 +64,7 @@ protected: // map
 	std::vector<float> extrah;
 	
 
-public: // map
+public:
 
 	rastered_map(const std::string&, const std::string&, unsigned);
 	~rastered_map();
@@ -67,6 +75,6 @@ public: // map
 		minh = (double)min_height;
 		maxh = (double)max_height;
 	}
-}; // map
+};
 
 #endif

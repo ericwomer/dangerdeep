@@ -17,12 +17,14 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-// I know that this class is very ineffective but it's only a first test so just ignore it atm
+#include "xml.h"
+
 
 #include "rastered_map.h"
 
 rastered_map::rastered_map(const std::string& header_file, const std::string& data_file, unsigned _num_levels) :
-num_levels(_num_levels), pn(64, 2, 16), pn2(64, 4, num_levels - 4, true) {
+num_levels(_num_levels), pn(64, 2, 16), pn2(64, 4, num_levels - 4, true)
+{
     extrah.resize(64 * 64);
     for (unsigned y = 0; y < 64; ++y)
         for (unsigned x = 0; x < 64; ++x)
@@ -60,18 +62,23 @@ num_levels(_num_levels), pn(64, 2, 16), pn2(64, 4, num_levels - 4, true) {
     min_lat = elem.attri("latitude");
     min_lot = elem.attri("longitude");
     min_height = elem.attri("height");
-
+    elem = root.child("byte-order");
+    byteorder = elem.attrb("value");
+    
     // open data file
     data_stream.open(data_file.c_str(), std::ios::binary | std::ios::in);
     if (!data_stream.is_open()) throw std::ios::failure("Could not open file: " + data_file);
+
 }
 
-rastered_map::~rastered_map() {
+rastered_map::~rastered_map()
+{
     data_stream.close();
 }
 
 void rastered_map::compute_heights(int detail, const vector2i& coord_bl, const vector2i& coord_sz,
-        float* dest, unsigned stride, unsigned line_stride, bool noise) {
+                                   float* dest, unsigned stride, unsigned line_stride, bool noise)
+{
     float level_res = (resolution / pow(2, num_levels - 1 - detail));
 
     float scale = 1.0;
@@ -100,25 +107,33 @@ void rastered_map::compute_heights(int detail, const vector2i& coord_bl, const v
         } else if (detail == (num_levels - 1)) {
             // coarsest level - read from file
             data_stream.clear();
-            short signed int buf=0;
-            char *c_buf = (char*) &buf;
-                    
+            Sint16 buf = 0;
+            char *c_buf = (char*) & buf;
+
             long int file_width = (max_lot + abs(min_lot)) / level_res;
-            long int file_center = (long int) ((max_lat / level_res) * file_width + (abs(min_lot) / level_res));            
-            
+            long int file_center = (long int) ((max_lat / level_res) * file_width + (abs(min_lot) / level_res));
+
             for (int y = 0; y < coord_sz.y; ++y) {
                 float* dest2 = dest;
                 for (int x = 0; x < coord_sz.x; ++x) {
                     vector2i coord = coord_bl + vector2i(x, y);
                     vector2f coord_f = vector2f((coord.x / SECOND_IN_METERS) / level_res, (coord.y / SECOND_IN_METERS) / level_res);
-                    (coord_f.x < 0) ? coord_f.x = floor(coord_f.x) : coord_f.x = ceil(coord_f.x);
-                    (coord_f.y < 0) ? coord_f.y = floor(coord_f.y) : coord_f.y = ceil(coord_f.y);
+                    (coord_f.x < 0)?coord_f.x = floor(coord_f.x):coord_f.x = ceil(coord_f.x);
+                    (coord_f.y < 0)?coord_f.y = floor(coord_f.y):coord_f.y = ceil(coord_f.y);
 
 
                     data_stream.seekg((file_center - coord_f.y * file_width + coord_f.x) * 2);
                     data_stream.read(c_buf, 2);
-
-                    *dest2 = (float)buf;
+                    
+                    // if the architectures byte order dont fits the data files byte order we need to swap lsb and msb
+                    if ((is_bigendian() && !byteorder) || (!is_bigendian() && byteorder)) {
+                        unsigned char c1, c2;
+                        c1 = buf&255;
+                        c2 = (buf>>8)&255;
+                        buf = (c1<<8)+c2;
+                    }
+                    
+                    *dest2 = (float) buf;
                     if (noise) *dest2 += pn2.value(coord.x * int(1 << detail), coord.y * int(1 << detail), num_levels - detail) * scale;
                     dest2 += stride;
                 }
@@ -130,7 +145,7 @@ void rastered_map::compute_heights(int detail, const vector2i& coord_bl, const v
         // we need one value more to correctly upsample it
         bivector<float> d0h(vector2i((coord_sz.x >> -detail) + 1, (coord_sz.y >> -detail) + 1));
         compute_heights(0, vector2i(coord_bl.x >> -detail, coord_bl.y >> -detail),
-                d0h.size(), d0h.data_ptr());
+                        d0h.size(), d0h.data_ptr());
         for (int z = detail; z < 0; ++z) {
             bivector<float> tmp = d0h.upsampled(false);
             tmp.swap(d0h);
@@ -150,7 +165,8 @@ void rastered_map::compute_heights(int detail, const vector2i& coord_bl, const v
 
 }
 
-void rastered_map::compute_colors(int detail, const vector2i& coord_bl, const vector2i& coord_sz, Uint8* dest) {
+void rastered_map::compute_colors(int detail, const vector2i& coord_bl, const vector2i& coord_sz, Uint8* dest)
+{
     for (int y = 0; y < coord_sz.y; ++y) {
         for (int x = 0; x < coord_sz.x; ++x) {
             vector2i coord = coord_bl + vector2i(x, y);
@@ -180,8 +196,8 @@ void rastered_map::compute_colors(int detail, const vector2i& coord_bl, const ve
                 unsigned i = ((yc & (ch - 1)) * cw + (xc & (cw - 1)));
                 float zif2 = 1.0 - zif;
                 c = color(uint8_t(ct[zi][3 * i] * zif2 + ct[zi + 1][3 * i] * zif),
-                        uint8_t(ct[zi][3 * i + 1] * zif2 + ct[zi + 1][3 * i + 1] * zif),
-                        uint8_t(ct[zi][3 * i + 2] * zif2 + ct[zi + 1][3 * i + 2] * zif));
+                          uint8_t(ct[zi][3 * i + 1] * zif2 + ct[zi + 1][3 * i + 1] * zif),
+                          uint8_t(ct[zi][3 * i + 2] * zif2 + ct[zi + 1][3 * i + 2] * zif));
             } else {
                 unsigned xc = coord.x >> (-(detail + 2));
                 unsigned yc = coord.y >> (-(detail + 2));
@@ -199,8 +215,8 @@ void rastered_map::compute_colors(int detail, const vector2i& coord_bl, const ve
                 unsigned i = ((yc & (ch - 1)) * cw + (xc & (cw - 1)));
                 float zif2 = 1.0 - zif;
                 c = color(uint8_t(ct[zi][3 * i] * zif2 + ct[zi + 1][3 * i] * zif),
-                        uint8_t(ct[zi][3 * i + 1] * zif2 + ct[zi + 1][3 * i + 1] * zif),
-                        uint8_t(ct[zi][3 * i + 2] * zif2 + ct[zi + 1][3 * i + 2] * zif));
+                          uint8_t(ct[zi][3 * i + 1] * zif2 + ct[zi + 1][3 * i + 1] * zif),
+                          uint8_t(ct[zi][3 * i + 2] * zif2 + ct[zi + 1][3 * i + 2] * zif));
             }
             dest[0] = c.r;
             dest[1] = c.g;
