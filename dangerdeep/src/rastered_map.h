@@ -42,10 +42,8 @@ public:
 
 protected: // map
 	std::ifstream data_stream;
-	int num_levels, cache_levels;
-	long int max_lat, min_lat, max_lot, min_lot, resolution, min_height, max_height, square_size;
-	vector2l cache_tl;
-	std::vector<bivector<float> > levels;
+	int num_levels;
+	long int max_lat, min_lat, max_lot, min_lot, resolution, min_height, max_height;
 	
 	rastered_map();
 
@@ -60,7 +58,7 @@ protected: // map
 
 public: // map
 
-	rastered_map(const std::string&, const std::string&, vector2l, long int, unsigned, unsigned);
+	rastered_map(const std::string&, const std::string&, unsigned);
 	~rastered_map();
 	void compute_heights(int, const vector2i&, const vector2i&, float*, unsigned = 0, unsigned = 0, bool = true);
 	void compute_colors(int, const vector2i&, const vector2i&, Uint8*);
