@@ -25,8 +25,22 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "oglext/OglExt.h"
 #include <algorithm>
 
+
 #include "global_data.h" //for smoke texture, fixme
 #include "datadirs.h"
+
+#ifdef WIN32
+
+// more c99 stuff missing from wintel
+
+double fmin( double a, double b )
+{
+	if ( a < b )
+		return a;
+	return b;
+}
+
+#endif
 
 using std::vector;
 using std::string;

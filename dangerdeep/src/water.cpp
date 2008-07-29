@@ -422,7 +422,12 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 	*/
 	static const int a_0 = 2, b_0 = 5;
 	static const int a_1 = -4, b_1 = 3;
+#ifdef WIN32
+	// windows lacks sqrt(int) ?!?! TODO: casting to float ok as a general rule? -- matt
+	static const double s_0 = sqrt((float)(a_0*a_0 + b_0*b_0)), s_1 = sqrt((float)(a_1*a_1 + b_1*b_1));
+#else
 	static const double s_0 = sqrt(a_0*a_0 + b_0*b_0), s_1 = sqrt(a_1*a_1 + b_1*b_1);
+#endif
 	static const double V_0 = 2.0, V_1 = 1.0;
 	// maybe: remove hardwired scale factors of 8 and 32, but looks best with that values.
 	static const double t_0 = wavetile_length / 8.0 * s_0 / V_0, t_1 = wavetile_length / 32.0 * s_1 / V_1;
