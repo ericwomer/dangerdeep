@@ -25,7 +25,13 @@
 
 #include "condvar.h"
 #include <stdexcept>
-#include <stdint.h>
+
+#ifdef WIN32
+	// win32 lacks stdint.h (thankfully SDL provides...)
+	#include <SDL_config_win32.h>
+#else
+	#include <stdint.h>	
+#endif
 
 /// base class for threads.
 ///@note Each thread should be an instance of a class that heirs
