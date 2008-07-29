@@ -165,7 +165,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
     render and update last rendered viewpos
   - check for combining updates to texture/VBO (at least texture possible) PERFORMANCE
   - write good height generator
-  - do not render too small detail (start at min_level, but test that this works)
+  - do not render levels[detail - (num_levels - cache_levels)].at(coord_f.x - (cache_tl.x / level_res), ((cache_tl.y / level_res) - coord_f.y));too small detail (start at min_level, but test that this works)
   - compute how many tris per second are rendered as performance measure
   - interpolation between levels is sometimes visible (on sharp high mountain ridges),
     there heights seem to jump. It seems that interpolation area doesnt reach 1.0 on
@@ -561,7 +561,7 @@ void run()
 	height_generator_test2 hgt;
 	// total area covered = 2^(levels-1) * L * N
 	// 8, 7, 1.0 gives 2^14m = 16384m
-#if 1
+#if 0
 	float camadd=0;
 #if 0
 	geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, hgt);
@@ -571,7 +571,7 @@ void run()
 #endif
 #else	
 	float camadd=-4500.0;
-	rastered_map terrain(get_map_dir()+"/ETOPO2v2c_i2_LSB.xml", get_map_dir()+"/ETOPO2v2c_i2_LSB.bin", vector2l(-4*60, 4*60), 8*60 , 11, 1);
+	rastered_map terrain(get_map_dir()+"/ETOPO2v2c_i2_LSB.xml", get_map_dir()+"/ETOPO2v2c_i2_LSB.bin", 11);
 	geoclipmap gcm(10, 8, terrain);
 #endif
 	
