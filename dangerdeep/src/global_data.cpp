@@ -90,10 +90,17 @@ unsigned starttime;
 void display_loading_screen()
 {
 	if (!loading_screen_usable) return;
+
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	sys().prepare_2d_drawing();
 	glColor4f(1, 1, 1, 1);
+
+	// display a nice loading image in the background
+	image* background;
+	background = imagecache().ref( "entryscreen.png" );
+	background->draw( 0, 0 );
+
 	unsigned fh = font_arial->get_height();
 	unsigned y = 0;
 	for (list<string>::const_iterator it = loading_screen_messages.begin();
