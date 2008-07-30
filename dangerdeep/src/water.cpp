@@ -1020,6 +1020,8 @@ float water::get_height(const vector2& pos) const
 	int iy2 = (iy+1) & (wave_resolution-1);
 	float fracx = x - ix;
 	float fracy = y - iy;
+	ix &= (wave_resolution-1); // avoid rare cases of wrap-around, when x is == wave_resolution because of float round errors
+	iy &= (wave_resolution-1);
 	float a = curr_wtp->get_height(ix +(iy <<wave_resolution_shift));
 	float b = curr_wtp->get_height(ix2+(iy <<wave_resolution_shift));
 	float c = curr_wtp->get_height(ix +(iy2<<wave_resolution_shift));
