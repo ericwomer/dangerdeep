@@ -54,12 +54,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "cfg.h"
 #include "keys.h"
 #include "music.h"
-#include "faulthandler.h"
 #include "datadirs.h"
 #include "credits.h"
 #include "log.h"
+#include "faulthandler.h"
 #include "mymain.cpp"
+
+#ifndef WIN32
+// broken under windows... TODO
 #include "dftdtester/tests.h"
+#endif
 
 using std::auto_ptr;
 
@@ -1806,6 +1810,8 @@ int mymain(list<string>& args)
 
 	// --------------------------------------------------------------------------------
 	// check for shader/glsl support
+
+#ifndef WIN32
 		tests gltest = tests();
 		int problems = gltest.do_gl_tests();
 		std::string warnings;
@@ -1856,7 +1862,7 @@ int mymain(list<string>& args)
 				throw system::quit_exception(-1);
 			}
 		}
-
+#endif // WIN32
 	// --------------------------------------------------------------------------------
 
 	log_info("Danger from the Deep");
@@ -1961,11 +1967,14 @@ int mymain(list<string>& args)
 		do {	// loop until menu is closed.
 			// main menu
 			w.remove_children();
+
+#ifndef WIN32
 			// opengl warnings
 			if ( 0 != warnings.length() )
 			{
 				w.add_child(new widget_text(20, 20, 0, 0, warnings));
 			}
+#endif // WIN32
 			widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(104));
 			wm->set_entry_spacing(8);
 			w.add_child(wm);
