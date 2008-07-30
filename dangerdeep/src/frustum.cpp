@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <iostream>
 
 frustum::frustum(polygon poly, const vector3& viewp, double znear_)
-	: viewwindow(poly), viewpos(viewp), znear(znear_)
+	: viewpos(viewp), znear(znear_)
 {
 	planes.reserve(poly.points.size());
 	for (unsigned i = 0; i < poly.points.size(); ++i) {
@@ -44,6 +44,7 @@ polygon frustum::clip(polygon p) const
 	return result;
 }
 
+/*
 void frustum::draw() const
 {
 	glColor3f(0,1,0);
@@ -55,7 +56,7 @@ void frustum::print() const
 	std::cout << "Frustum: viewpos " << viewpos << "\n";
 	viewwindow.print();
 }
-
+*/
 
 
 frustum frustum::from_opengl()
@@ -85,7 +86,19 @@ frustum frustum::from_opengl()
 void frustum::translate(const vector3& delta)
 {
 	viewpos += delta;
-	viewwindow.translate(delta);
 	for (unsigned i = 0; i < planes.size(); ++i)
 		planes[i].translate(delta);
+}
+
+
+
+frustum frustum::get_mirrored() const
+{
+	frustum f = *this;
+	f.viewpos.z = -f.viewpos.z;
+	for (std::vector<plane>::iterator it = f.planes.begin(); it != f.planes.end(); ++it) {
+		// d remains the same
+		it->N.z = -it->N.z;
+	}
+	return f;
 }

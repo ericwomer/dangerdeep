@@ -34,21 +34,24 @@ class frustum
 public:
 	/// frustum is modelled by planes, each frustum has 6.
 	std::vector<plane> planes;
-	polygon viewwindow;	// planes are constructed matching to this
 	vector3 viewpos;
 	double znear;
 	/// construct frustum from given data
-	frustum(polygon poly, const vector3& viewp, double znear);
+	frustum(polygon viewwindow, const vector3& viewp, double znear);
 	/// clip polygon to frustum and return intersecting polygon
 	polygon clip(polygon p) const;
+	/*
 	/// render frustum as test
 	void draw() const;
 	/// print frumstum values for debugging
 	void print() const;
+	*/
 	/// construct frustum from current OpenGL matrices.
 	static frustum from_opengl();
 	/// translate all points
 	void translate(const vector3& delta);
+	/// generate mirrored frustum (at z=0 plane)
+	frustum get_mirrored() const;
 };
 
 #endif

@@ -37,6 +37,7 @@ public:
 
 	plane_t() : d(0) {}
 	plane_t(const vector3t<D>& N_, const D& d_) : N(N_), d(d_) {}
+	plane_t(const vector3t<D>& N_, const vector3t<D>& pivot) : N(N_), d(-N_ * pivot) {}
 	plane_t(const D& a, const D& b, const D& c, const D& d_) : N(a, b, c), d(d_) {}
 	/// construct from three points.
 	plane_t(const vector3t<D>& a, const vector3t<D>& b, const vector3t<D>& c)
@@ -85,6 +86,10 @@ public:
 	/// translate
 	void translate(const vector3t<D>& delta) {
 		d += delta * N;
+	}
+	/// compute pivot point
+	vector3t<D> get_pivot() const {
+		return N * -d;
 	}
 };
 

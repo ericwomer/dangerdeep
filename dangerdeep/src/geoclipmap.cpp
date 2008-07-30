@@ -190,6 +190,8 @@ void geoclipmap::display(const frustum& f, const vector3& view_delta, bool is_mi
 	glPushMatrix();
 	vector3 translation = base_viewpos.xy0() + view_delta;
 	glTranslated(translation.x, translation.y, translation.z);
+	frustum f2 = f;
+	if (is_mirror) f2 = f.get_mirrored();
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
 		myshader[si]->set_gl_texture(levels[lvl]->colors_tex(), loc_texcolor[si], 0);
 		myshader[si]->set_gl_texture(levels[lvl]->normals_tex(), loc_texnormal[si], 2);
@@ -200,7 +202,7 @@ void geoclipmap::display(const frustum& f, const vector3& view_delta, bool is_mi
 			myshader[si]->set_gl_texture(levels[levels.size()-1]->colors_tex(), loc_texcolor_c[si], 1);
 			myshader[si]->set_gl_texture(*horizon_normal, loc_texnormal_c[si], 3);
 		}
-		levels[lvl]->display(f, is_mirror);
+		levels[lvl]->display(f2, is_mirror);
 	}
 	glPopMatrix();
 	glActiveTexture(GL_TEXTURE3);
