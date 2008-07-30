@@ -107,56 +107,56 @@ inline void write_u64(std::ostream& out, Uint64 i)
 
 inline Sint8 read_i8(std::istream& in)
 {
-	Sint8 i;	// no LE/BE swap needed.
+	Sint8 i = 0;	// no LE/BE swap needed.
 	in.read((char*)&i, 1);
 	return i;
 }
 
 inline Sint16 read_i16(std::istream& in)
 {
-	Uint16 i;
+	Uint16 i = 0;
 	in.read((char*)&i, 2);
 	return Sint16(SDL_SwapLE16(i));
 }
 
 inline Sint32 read_i32(std::istream& in)
 {
-	Uint32 i;
+	Uint32 i = 0;
 	in.read((char*)&i, 4);
 	return Sint32(SDL_SwapLE32(i));
 }
 
 inline Sint64 read_i64(std::istream& in)
 {
-	Uint64 i;
+	Uint64 i = 0;
 	in.read((char*)&i, 8);
 	return Sint64(SDL_SwapLE64(i));
 }
 
 inline Uint8 read_u8(std::istream& in)
 {
-	Uint8 i;	// no LE/BE swap needed.
+	Uint8 i = 0;	// no LE/BE swap needed.
 	in.read((char*)&i, 1);
 	return i;
 }
 
 inline Uint16 read_u16(std::istream& in)
 {
-	Uint16 i;
+	Uint16 i = 0;
 	in.read((char*)&i, 2);
 	return Uint16(SDL_SwapLE16(i));
 }
 
 inline Uint32 read_u32(std::istream& in)
 {
-	Uint32 i;
+	Uint32 i = 0;
 	in.read((char*)&i, 4);
 	return Uint32(SDL_SwapLE32(i));
 }
 
 inline Uint64 read_u64(std::istream& in)
 {
-	Uint64 i;
+	Uint64 i = 0;
 	in.read((char*)&i, 8);
 	return Uint64(SDL_SwapLE64(i));
 }
