@@ -160,7 +160,7 @@ void build_path()
 		char *ptr = &temp_path[strlen(temp_path)];
 		while( *(--ptr) != '\\')
 			*ptr = NULL;
-		*(ptr--) = NULL; // rm final \
+		*(ptr--) = NULL; // rm final
 		
 		strncat( sym_paths, temp_path, available_space );
 		available_space -= strlen( temp_path );
