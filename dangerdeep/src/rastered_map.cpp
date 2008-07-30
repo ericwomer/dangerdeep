@@ -18,16 +18,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #include "xml.h"
-
-
 #include "rastered_map.h"
 
 rastered_map::rastered_map(const std::string& header_file, const std::string& data_file, unsigned _num_levels) :
 num_levels(_num_levels), pn(64, 2, 16), pn2(64, 4, num_levels - 4, true)
 {
+    // proxy stuff for textures and detail <0
     extrah.resize(64 * 64);
     for (unsigned y = 0; y < 64; ++y)
         for (unsigned x = 0; x < 64; ++x)
+            // FIXME: use real gaussion noise function
             extrah[64 * y + x] = rnd() - 0.5; //extrah2[64*y+x]/256.0-0.5;
     const char* texnames[8] = {
         "tex_grass.jpg",
@@ -45,7 +45,8 @@ num_levels(_num_levels), pn(64, 2, 16), pn2(64, 4, num_levels - 4, true)
         ct[i] = tmp.get_plain_data(cw, ch, bpp);
         if (bpp != 3) throw error("color bpp != 3");
     }
-
+    // --------------------------------------
+    
     // open header file
     xml_doc doc(header_file);
     doc.load();
@@ -65,6 +66,9 @@ num_levels(_num_levels), pn(64, 2, 16), pn2(64, 4, num_levels - 4, true)
     elem = root.child("byte-order");
     byteorder = elem.attrb("value");
     
+    // heired from height_generator interface
+    sample_spacing = (SECOND_IN_METERS*resolution)/pow(2, num_levels-1);
+    
     // open data file
     data_stream.open(data_file.c_str(), std::ios::binary | std::ios::in);
     if (!data_stream.is_open()) throw std::ios::failure("Could not open file: " + data_file);
@@ -79,8 +83,6 @@ rastered_map::~rastered_map()
 void rastered_map::compute_heights(int detail, const vector2i& coord_bl, const vector2i& coord_sz,
                                    float* dest, unsigned stride, unsigned line_stride, bool noise)
 {
-    float level_res = (resolution / pow(2, num_levels - 1 - detail));
-
     float scale = 1.0;
     if (!stride) stride = 1;
     if (!line_stride) line_stride = coord_sz.x * stride;
@@ -92,6 +94,7 @@ void rastered_map::compute_heights(int detail, const vector2i& coord_bl, const v
             compute_heights(detail + 1, vector2i((coord_bl.x >> 1) + 1, (coord_bl.y >> 1) + 1), vector2i((coord_sz.x >> 1) + 1, (coord_sz.y >> 1) + 1), lower.data_ptr(), 0, 0, false);
             bivector<float> heights = lower.upsampled(false);
 
+            // copy the upsampled vector to dest
             for (int y = 0; y < coord_sz.y; ++y) {
                 float* dest2 = dest;
                 for (int x = 0; x < coord_sz.x; ++x) {
@@ -104,29 +107,35 @@ void rastered_map::compute_heights(int detail, const vector2i& coord_bl, const v
                 dest += line_stride;
             }
 
-        } else if (detail == (num_levels - 1)) {
-            // coarsest level - read from file
+        } else if (detail == (num_levels - 1)) { // coarsest level - read from file
+            
+            // sometimes a clear() is needed. don't know why and when it's needed but here it works.
+            // if removed data will not be loaded from file (without error or crash!)
             data_stream.clear();
             Sint16 buf = 0;
             char *c_buf = (char*) & buf;
 
-            long int file_width = (max_lot + abs(min_lot)) / level_res;
-            long int file_center = (long int) ((max_lat / level_res) * file_width + (abs(min_lot) / level_res));
+            long int file_width = (max_lot + abs(min_lot)) / resolution;
+            long int file_center = (long int) ((max_lat / resolution) * file_width + (abs(min_lot) / resolution));
 
             for (int y = 0; y < coord_sz.y; ++y) {
                 float* dest2 = dest;
                 for (int x = 0; x < coord_sz.x; ++x) {
                     vector2i coord = coord_bl + vector2i(x, y);
-                    vector2f coord_f = vector2f((coord.x / SECOND_IN_METERS) / level_res, (coord.y / SECOND_IN_METERS) / level_res);
+                    
+                    // dftd uses no real coordinates atm (it uses a simples cartesian coordinate system) while the map uses real
+                    // gps coordines. but instead doing a real conversion from dftd coords to gps coords, we just use the 
+                    // formula for arc length (l = r * alpha -> alpha = l / r)
+                    // with this, one meter in coord means one meter ON the earth surface, starting at 0°/0° 
+                    vector2f coord_f = vector2f(rad2deg(coord.x/EARTH_RADIUS)*3600/resolution, rad2deg(coord.x/EARTH_RADIUS)*3600/resolution);
                     (coord_f.x < 0)?coord_f.x = floor(coord_f.x):coord_f.x = ceil(coord_f.x);
                     (coord_f.y < 0)?coord_f.y = floor(coord_f.y):coord_f.y = ceil(coord_f.y);
-
-
+                    
                     data_stream.seekg((file_center - coord_f.y * file_width + coord_f.x) * 2);
                     data_stream.read(c_buf, 2);
                     
                     // if the architectures byte order dont fits the data files byte order we need to swap lsb and msb
-                    if ((is_bigendian() && !byteorder) || (!is_bigendian() && byteorder)) {
+                    if ((is_bigendian() && (byteorder==LSB)) || (!is_bigendian() && (byteorder==MSB))) {
                         unsigned char c1, c2;
                         c1 = buf&255;
                         c2 = (buf>>8)&255;
@@ -140,9 +149,7 @@ void rastered_map::compute_heights(int detail, const vector2i& coord_bl, const v
                 dest += line_stride;
             }
         }
-
-    } else {
-        // we need one value more to correctly upsample it
+    } else { // detail < 0
         bivector<float> d0h(vector2i((coord_sz.x >> -detail) + 1, (coord_sz.y >> -detail) + 1));
         compute_heights(0, vector2i(coord_bl.x >> -detail, coord_bl.y >> -detail),
                         d0h.size(), d0h.data_ptr());
@@ -162,7 +169,6 @@ void rastered_map::compute_heights(int detail, const vector2i& coord_bl, const v
             dest += line_stride;
         }
     }
-
 }
 
 void rastered_map::compute_colors(int detail, const vector2i& coord_bl, const vector2i& coord_sz, Uint8* dest)

@@ -40,6 +40,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 const int ENDIAN_TEST = 1;
 
 #define is_bigendian() ( ((char*)&ENDIAN_TEST) == 0)
+#define rad2deg(x) ((x*180.0)/M_PI)
 #define LSB 0
 #define MSB 1
 
