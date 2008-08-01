@@ -46,8 +46,6 @@ const int ENDIAN_TEST = 1;
 
 class rastered_map : public height_generator
 {
-public: 
-
 protected:
 	std::ifstream data_stream;
 	int num_levels;

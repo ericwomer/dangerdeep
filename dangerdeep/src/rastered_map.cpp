@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "xml.h"
 #include "rastered_map.h"
+#include "transform_coder.h"
 
 rastered_map::rastered_map(const std::string& header_file, const std::string& data_file, unsigned _num_levels) :
 num_levels(_num_levels), pn(64, 2, 16), pn2(64, 4, num_levels - 4, true)
@@ -68,10 +69,15 @@ num_levels(_num_levels), pn(64, 2, 16), pn2(64, 4, num_levels - 4, true)
     
     // heired from height_generator interface
     sample_spacing = (SECOND_IN_METERS*resolution)/pow(2, num_levels-1);
-    
+      
     // open data file
     data_stream.open(data_file.c_str(), std::ios::binary | std::ios::in);
     if (!data_stream.is_open()) throw std::ios::failure("Could not open file: " + data_file);
+    
+    transform_coder<short signed int> coder;
+    
+    std::ofstream out("/home/ad-530/test.raw");
+    coder.compress(data_stream, out, 10800, 5400, 150.f);
 
 }
 
@@ -148,7 +154,8 @@ void rastered_map::compute_heights(int detail, const vector2i& coord_bl, const v
                 }
                 dest += line_stride;
             }
-        }
+        } else throw error("invalid detail level requested");
+        
     } else { // detail < 0
         bivector<float> d0h(vector2i((coord_sz.x >> -detail) + 1, (coord_sz.y >> -detail) + 1));
         compute_heights(0, vector2i(coord_bl.x >> -detail, coord_bl.y >> -detail),
