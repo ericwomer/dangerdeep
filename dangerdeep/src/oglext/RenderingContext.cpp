@@ -1685,8 +1685,10 @@ bool CRenderingContext::InitExtColorSubtable()
 
 	#ifdef GL_EXT_color_subtable_OGLEXT
 
+#ifndef WIN32 // kind of hack, functions are never used in DftD
 		GET_PROC_ADDRESS(ColorSubTableEXT);
 		GET_PROC_ADDRESS(CopyColorSubTableEXT);
+#endif
 
 	#endif // GL_EXT_color_subtable_OGLEXT
 

@@ -985,8 +985,17 @@ texture3d::texture3d(const std::vector<Uint8>& pixels, unsigned w, unsigned h, u
 		// fixme: does this command set the base level, too?
 		// i.e. are the two gl commands redundant?
 		// fixme: doesn't work with textures that don't have power of two size...
+
+		// one is part of the GLU lib the other is probably part of GL
+		// gluBuild3DMipmaps doesn't seem to work under Win32:
+		//
+		// texture.cpp(988) : error C3861: 'gluBuild3DMipmaps': identifier not found
+		//
+		// --matt
+#ifndef WIN32	// ugly hack to make it compile with win32, 3d textures not used yet...
 		gluBuild3DMipmaps(GL_TEXTURE_3D, format, gl_width, gl_height, gl_depth,
 				  format, GL_UNSIGNED_BYTE, &pixels[0]);
+#endif
 	}
 
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, mapmodes[mapping]);

@@ -42,12 +42,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 using namespace std;
 
-#ifdef WIN32
-#ifndef round
-inline double round(double d) { return floor(d + 0.5); }
-#endif
-#endif
-
 // fixme: replace this
 #ifdef DEBUG
 //#define ASSERT(a,fmt,...) do{if(!(a)){char __tmp[256];vsprintf(__tmp, fmt, __VA_ARGS__);throw error(__tmp);}}while(0)
