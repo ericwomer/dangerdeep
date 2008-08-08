@@ -26,7 +26,7 @@ archflag = ARGUMENTS.get('arch', '')
 ################ set environment
 
 osspecificsrc = []
-extralibs = []
+extralibs = ['bz2']
 
 fftwlib = 'fftw3'
 if sys.platform == 'win32':
