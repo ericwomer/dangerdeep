@@ -1,25 +1,24 @@
 /*
-Danger from the Deep - Open source submarine simulation
-Copyright (C) 2003-2006  Thorsten Jordan, Luis Barrancos and others.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Danger from the Deep - Open source submarine simulation
+ * Copyright (C) 2003-2006  Thorsten Jordan, Luis Barrancos and others.
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #include "xml.h"
 #include "rastered_map.h"
-#include "transform_coder.h"
 
 rastered_map::rastered_map(const std::string& header_file, const std::string& data_file, unsigned _num_levels) :
 num_levels(_num_levels), pn(64, 2, 16), pn2(64, 4, num_levels - 4, true)
@@ -73,13 +72,7 @@ num_levels(_num_levels), pn(64, 2, 16), pn2(64, 4, num_levels - 4, true)
     // open data file
     data_stream.open(data_file.c_str(), std::ios::binary | std::ios::in);
     if (!data_stream.is_open()) throw std::ios::failure("Could not open file: " + data_file);
-    
-    transform_coder<short signed int> coder;
-    
-    std::ofstream out("/home/ad-530/test.raw");
-    coder.compress(data_stream, out, 10800, 5400, 150.f);
-
-}
+ }
 
 rastered_map::~rastered_map()
 {
@@ -129,7 +122,7 @@ void rastered_map::compute_heights(int detail, const vector2i& coord_bl, const v
                 for (int x = 0; x < coord_sz.x; ++x) {
                     vector2i coord = coord_bl + vector2i(x, y);
                     
-                    // dftd uses no real coordinates atm (it uses a simples cartesian coordinate system) while the map uses real
+                    // dftd uses no real coordinates atm (it uses a simple cartesian coordinate system) while the map uses real
                     // gps coordines. but instead doing a real conversion from dftd coords to gps coords, we just use the 
                     // formula for arc length (l = r * alpha -> alpha = l / r)
                     // with this, one meter in coord means one meter ON the earth surface, starting at 0°/0° 
