@@ -36,8 +36,6 @@
 #include "global_data.h"
 #include "bivector.h"
 #include "perlinnoise.h"
-#include "transform_coder.h"
-#include "bzip.h"
 
 const int ENDIAN_TEST = 1;
 
