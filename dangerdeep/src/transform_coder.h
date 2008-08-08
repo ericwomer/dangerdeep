@@ -35,14 +35,17 @@
 #include <math.h>
 #include <vector>
 
-template <class T>
+#include "type_info.h"
+#include "bzip.h"
+
+template <class T, class U>
 class transform_coder
 {
 protected:
 
     static const float ZERO = 0.0f;
     static const float HALF = 0.5f;
-    static const float TWO  = 2.0f;
+    static const float TWO = 2.0f;
     static const double SQHALF = 0.70710678118655;
     static const double SQTWO = 1.4142135623731;
     static const double CC1p8 = 9.23879532511287e-01 * 0.70710678118655;
@@ -53,10 +56,10 @@ protected:
 
     void dctII4(float* y);
     void dctIII4(float* y);
-    void forward_hlbtvec(std::vector<T>& x, int xlen, std::vector<float>& y, std::vector<float>& z);
-    void inverse_hlbtvec(std::vector<T>& x, int xlen, std::vector<float>& y, std::vector<float>& z);
-    void forward_hlbt(std::vector<std::vector<T> >& in, std::vector<std::vector<T> >& out, int nrows, int ncols);
-    void inverse_hlbt(std::vector<std::vector<T> >& in, std::vector<std::vector<T> >& out, int nrows, int ncols);
+    void forward_hlbtvec(std::vector<U>& x, int xlen, std::vector<float>& y, std::vector<float>& z);
+    void inverse_hlbtvec(std::vector<U>& x, int xlen, std::vector<float>& y, std::vector<float>& z);
+    void forward_hlbt(std::vector<std::vector<T> >& in, std::vector<std::vector<U> >& out, int nrows, int ncols);
+    void inverse_hlbt(std::vector<std::vector<U> >& in, std::vector<std::vector<T> >& out, int nrows, int ncols);
 
 public:
 
@@ -64,12 +67,13 @@ public:
     void decompress(std::istream& is, std::ostream& os, int width, int height);
 };
 
-template <class T>
-void transform_coder<T>::compress(std::istream& is, std::ostream& os, int width, int height, float qstep)
+template <class T, class U>
+void transform_coder<T, U>::compress(std::istream& is, std::ostream& os, int width, int height, float qstep)
 {
     T qv;
     float invstep = 1.0 / qstep;
-    std::vector<std::vector<T> > in, out;
+    std::vector<std::vector<T> > in;
+    std::vector<std::vector<U> > out;
 
     in.resize(height);
     out.resize(height);
@@ -77,17 +81,13 @@ void transform_coder<T>::compress(std::istream& is, std::ostream& os, int width,
     for (int i = 0; i < height; i++) {
         in[i].resize(width);
         out[i].resize(width);
-        for (int j = 0; j < width; j++) {
-            is.read((char*) & in[i][j], sizeof (T));
-        }
+        is.read((char*) & in[i][0], sizeof (T) * width);
     }
 
     // perform the forward HLBT
-    std::cout << "Performing HLBT on image" << std::endl;
     forward_hlbt(in, out, height, width);
 
     // quantize transform coefficients
-    std::cout << "quantize transform coefficients" << std::endl;
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             if (out[i][j] >= 0) {
@@ -98,13 +98,52 @@ void transform_coder<T>::compress(std::istream& is, std::ostream& os, int width,
             out[i][j] = qstep * qv;
         }
     }
+    
+    // write image
+    for (int i = 0; i < height; i++) {
+        os.write((char*) & out[i][0], width * sizeof (U));
+        in[i].clear();
+        out[i].clear();
+    }
+    in.clear();
+    out.clear();
 }
 
-template <class T>
-void transform_coder<T>::forward_hlbt(std::vector<std::vector<T> >& in, std::vector<std::vector<T> >& out, int nrows, int ncols)
+template <class T, class U>
+void transform_coder<T, U>::decompress(std::istream& is, std::ostream& os, int width, int height)
+{
+    std::vector<std::vector<U> > in;
+    std::vector<std::vector<T> > out;
+
+    in.resize(height);
+    out.resize(height);
+
+    // read image
+    for (int i = 0; i < height; i++) {
+        in[i].resize(width);
+        out[i].resize(width);
+        is.read((char*) & in[i][0], sizeof (U) * width);
+        if (is.fail()) throw std::exception();
+    }
+
+    // perform the inverse HLBT
+    inverse_hlbt(in, out, height, width);
+
+    // write image
+    for (int i = 0; i < height; i++) {
+        os.write((char*) & out[i][0], width * sizeof (T));
+        in[i].clear();
+        out[i].clear();
+    }
+    in.clear();
+    out.clear();
+};
+
+template <class T, class U>
+void transform_coder<T, U>::forward_hlbt(std::vector<std::vector<T> >& in, std::vector<std::vector<U> >& out, int nrows, int ncols)
 {
     int k, j, nf;
-    std::vector<T> t;
+    std::vector<U> t;
     std::vector<float> y, z;
 
     t.resize(nrows);
@@ -117,8 +156,10 @@ void transform_coder<T>::forward_hlbt(std::vector<std::vector<T> >& in, std::vec
     /* Transform rows */
     for (k = 0; k < nrows; k++) {
         for (j = 0; j < ncols; j++) {
-            /* remove mean and scale up by a factor of 8 */
-            out[k][j] = in[k][j];
+            if (type_info<T>::is_signed()) out[k][j] = in[k][j];
+            else out[k][j] = ((U)in[k][j]) - type_info<void>::max_value(in[k][j]);
+            
+            if (sizeof(T)<sizeof(float)) out[k][j] = (out[k][j]<<(sizeof(float)-sizeof(T)));
         }
         forward_hlbtvec(out[k], ncols, y, z);
     }
@@ -133,13 +174,15 @@ void transform_coder<T>::forward_hlbt(std::vector<std::vector<T> >& in, std::vec
     }
 }
 
-template <class T>
-void transform_coder<T>::inverse_hlbt(std::vector<std::vector<T> >& in, std::vector<std::vector<T> >& out, int nrows, int ncols)
+template <class T, class U>
+void transform_coder<T, U>::inverse_hlbt(std::vector<std::vector<U> >& in, std::vector<std::vector<T> >& out, int nrows, int ncols)
 {
+
+    U v;
     int k, j, nf;
-    T v;
-    std::vector<T> t;
+    std::vector<U> t;
     std::vector<float> y, z;
+
 
     /* Allocate memory for auxiliary vector */
     t.resize(nrows);
@@ -162,16 +205,26 @@ void transform_coder<T>::inverse_hlbt(std::vector<std::vector<T> >& in, std::vec
     for (k = 0; k < nrows; k++) {
         inverse_hlbtvec(in[k], ncols, y, z);
         for (j = 0; j < ncols; j++) {
-            out[k][j] = in[k][j];
+            v = in[k][j];
+           
+            if (sizeof(T)<sizeof(float)) v = (v>>(sizeof(float)-sizeof(T)));
+            
+            if (!type_info<T>::is_signed()) v =+ type_info<void>::max_value(in[k][j]);
+            
+            if (v < type_info<void>::min_value(out[k][j])) v = type_info<void>::min_value(out[k][j]);
+            if (v > type_info<void>::max_value(out[k][j])) v = type_info<void>::max_value(out[k][j]);
+            
+            out[k][j] = v;
+            
         }
     }
 }
 
-template <class T>
-void transform_coder<T>::forward_hlbtvec(std::vector<T>& x, int xlen, std::vector<float>& y, std::vector<float>& z)
+template <class T, class U>
+void transform_coder<T, U>::forward_hlbtvec(std::vector<U>& x, int xlen, std::vector<float>& y, std::vector<float>& z)
 {
     float *p1, *p2, *p3, *p4;
-    T *q1, *q2;
+    U *q1, *q2;
     int i;
 
     /* Copy x onto y and fold borders */
@@ -258,11 +311,11 @@ void transform_coder<T>::forward_hlbtvec(std::vector<T>& x, int xlen, std::vecto
     }
 }
 
-template <class T>
-void transform_coder<T>::inverse_hlbtvec(std::vector<T>& x, int xlen, std::vector<float>& y, std::vector<float>& z)
+template <class T, class U>
+void transform_coder<T, U>::inverse_hlbtvec(std::vector<U>& x, int xlen, std::vector<float>& y, std::vector<float>& z)
 {
     float *p1, *p2, *p3;
-    T *q1, *q3;
+    U *q1, *q3;
 
     /* 4th stage : combines DCs of adjacent blocks */
     p1 = &z[0];
@@ -344,8 +397,8 @@ void transform_coder<T>::inverse_hlbtvec(std::vector<T>& x, int xlen, std::vecto
     }
 }
 
-template <class T>
-void transform_coder<T>::dctIII4(float* y)
+template <class T, class U>
+void transform_coder<T, U>::dctIII4(float* y)
 {
     std::vector<float> x(4);
 
@@ -362,8 +415,8 @@ void transform_coder<T>::dctIII4(float* y)
     y[3] = x[0] - x[3];
 }
 
-template <class T>
-void transform_coder<T>::dctII4(float* y)
+template <class T, class U>
+void transform_coder<T, U>::dctII4(float* y)
 {
     std::vector<float> x(4);
 
