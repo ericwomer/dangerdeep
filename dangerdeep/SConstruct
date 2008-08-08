@@ -154,9 +154,9 @@ else:
 	elif (debug == -1):
 		ccflags += ' -g -O3 -march=' + arch + ' -mfpmath=sse -mmmx -msse -m3dnow'
 	elif (debug == -2):	# special g++4.0+ auto vectorization
-		ccflags += ' -g -O3 -march=' + arch + ' -mfpmath=sse -mmmx -msse -m3dnow -ftree-vectorize -ftree-vectorizer-verbose=2'
+		ccflags += ' -g -O3 -march=' + arch + ' -mfpmath=sse -mmmx -msse -m3dnow -ftree-vectorize'
 	elif (debug == -3):	# special g++4.0+ auto vectorization
-		ccflags += ' -g -O3 -march=' + arch + ' -mfpmath=sse -mmmx -msse -msse2 -m3dnow -ftree-vectorize -ftree-vectorizer-verbose=2'
+		ccflags += ' -g -O3 -march=' + arch + ' -mfpmath=sse -mmmx -msse -msse2 -m3dnow -ftree-vectorize'
 	else:
 		ccflags += ' -g -O2 -march=' + arch # debug symbols will be stripped by the linker for a debian package
 
