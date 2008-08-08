@@ -8,6 +8,7 @@ Import('env', 'gfxlibs', 'alllibs', 'installbindir', 'datadir', 'version', 'ossp
 dftdsources = Split("""subsim.cpp
 	ai.cpp
 	airplane.cpp
+	bzip.cpp
 	cfg.cpp
 	coastmap.cpp
 	convoy.cpp
@@ -135,7 +136,7 @@ env.Default(portal)
 treegentest = env.Program('treegentest', ['treegentest.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
 env.Default(treegentest)
 
-geoclipmaptest = env.Program('geoclipmaptest', ['geoclipmaptest.cpp', 'height_generator_map.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj, map_obj], LIBS = alllibs)
+geoclipmaptest = env.Program('geoclipmaptest', ['geoclipmaptest.cpp', 'height_generator_map.cpp', 'bzip.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj, map_obj], LIBS = alllibs)
 env.Default(geoclipmaptest)
 
 ############ this allows to run "scons install" to install the binary
