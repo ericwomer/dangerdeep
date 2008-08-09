@@ -159,7 +159,8 @@ void transform_coder<T, U>::forward_hlbt(std::vector<std::vector<T> >& in, std::
             if (type_info<T>::is_signed()) out[k][j] = in[k][j];
             else out[k][j] = ((U)in[k][j]) - type_info<void>::max_value(in[k][j]);
             
-            if (sizeof(T)<sizeof(float)) out[k][j] = (out[k][j]<<(sizeof(float)-sizeof(T)));
+            // 8bit values need to scaled up
+            if (sizeof(T)==1) out[k][j] = (out[k][j]<<3);
         }
         forward_hlbtvec(out[k], ncols, y, z);
     }
@@ -207,7 +208,8 @@ void transform_coder<T, U>::inverse_hlbt(std::vector<std::vector<U> >& in, std::
         for (j = 0; j < ncols; j++) {
             v = in[k][j];
            
-            if (sizeof(T)<sizeof(float)) v = (v>>(sizeof(float)-sizeof(T)));
+            // scale down 8bit values
+            if (sizeof(T)==1) v = (v>>3);
             
             if (!type_info<T>::is_signed()) v =+ type_info<void>::max_value(in[k][j]);
             
