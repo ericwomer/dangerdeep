@@ -79,7 +79,7 @@ protected:
     int blocksize_100_k, workfactor, buffer_size, state;
     bz_stream bzstream;
     const std::size_t put_back;
-    enum { COMPRESS, DECOMPRESS } mode;
+    enum { COMPRESS, DECOMPRESS, CLOSED } mode;
 
     int_type overflow(int_type ch);
     int_type underflow();
@@ -97,7 +97,7 @@ private:
 public:
     bzip_streambuf(std::ostream&, int, int, int);
     bzip_streambuf(std::istream&, int, int, int);
-    ~bzip_streambuf() {
+    void close() {
         if (mode == COMPRESS) {
             flush();
             state=BZ2_bzCompressEnd(&bzstream);
@@ -106,6 +106,7 @@ public:
             state=BZ2_bzDecompressEnd(&bzstream);
             if (state < 0) throw bzip_failure(state);
         }
+        mode = CLOSED;
     }
 };
 
@@ -120,7 +121,7 @@ public:
         close();
     }
     void close() {
-        delete rdbuf();
+        ((bzip_streambuf*)rdbuf())->close();
     }
 };
 
@@ -135,7 +136,7 @@ public:
         close();
     }
     void close() {
-        delete rdbuf();
+        ((bzip_streambuf*)rdbuf())->close();
     }
 };
 #endif	/* _BZIP_H */
