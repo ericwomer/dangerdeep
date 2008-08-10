@@ -19,6 +19,7 @@
 
 #include "bzip.h"
 #include "keys.h"
+#include <string.h>	//for memmove
 
 bzip_streambuf::bzip_streambuf(std::ostream& os, int blocksize, int _workfactor, int _buffer_size)
 : outstream(os), instream(), in_buffer(_buffer_size, 0), out_buffer(_buffer_size, 0), blocksize_100_k(blocksize), workfactor(_workfactor), buffer_size(_buffer_size), put_back(0), mode(COMPRESS)
@@ -91,7 +92,7 @@ std::streambuf::int_type bzip_streambuf::underflow()
     if (eback() == base) // true when this isn't the first fill
     {
         // Make arrangements for putback characters
-        std::memmove(base, egptr() - put_back, put_back);
+        memmove(base, egptr() - put_back, put_back);
         start += put_back;
     }
 
