@@ -15,10 +15,24 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+ */
 
 // main program
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
+
+/* 0.25 for hybrid, 1.0 ridged*/
+#define MF_H 1.0
+
+/* 0.7 for hybrid, 1.0 ridged */
+#define MF_OFFSET 0.9
+
+/* 2.0 for ridged (only used for ridged) */
+#define MF_GAIN 1.0
+
+#define MF_LACUNARITY 2.0
+
+/* ridged_multifractal | hetero_terrain | hybrid_multifractal */
+#define MF_FUNCTION ridged_multifractal
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -26,6 +40,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif
 
 #include "oglext/OglExt.h"
+#include "perlinnoise.h"
 #include <glu.h>
 #include <SDL.h>
 #include <SDL_net.h>
@@ -300,210 +315,436 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
     ad 4: remaining height diffs should use less than or equal 8 bits.
     hopefully a good entropy encoder can pack them with high rates.
 
-*/
+ */
 
 
 class height_generator_test1 : public height_generator
 {
 public:
-	height_generator_test1() : height_generator(1.0) {}
-	void compute_heights(int detail, const vector2i& coord_bl,
-			     const vector2i& coord_sz, float* dest, unsigned stride = 0,
-			     unsigned line_stride = 0) {
-		if (!stride) stride = 1;
-		if (!line_stride) line_stride = coord_sz.x * stride;
-		for (int y = 0; y < coord_sz.y; ++y) {
-			float* dest2 = dest;
-			for (int x = 0; x < coord_sz.x; ++x) {
-				vector2i coord = coord_bl + vector2i(x, y);
-				if (detail >= 0) {
-					int xc = coord.x * int(1 << detail);
-					int yc = coord.y * int(1 << detail);
-					*dest2 = sin(2*3.14159*xc*0.01) * sin(2*3.14159*yc*0.01) * 20.0 - 20;
-				} else {
-					float xc = coord.x / float(1 << -detail);
-					float yc = coord.y / float(1 << -detail);
-					*dest2 = sin(2*3.14159*xc*0.01) * sin(2*3.14159*yc*0.01) * 20.0 - 20;
-				}
-				dest2 += stride;
-			}
-			dest += line_stride;
-		}
-	}
 
-	void get_min_max_height(double& minh, double& maxh) const { minh = -40.0; maxh = 0.0; }
+    height_generator_test1() : height_generator(1.0)
+    {
+    }
+
+    void compute_heights(int detail, const vector2i& coord_bl,
+                         const vector2i& coord_sz, float* dest, unsigned stride = 0,
+                         unsigned line_stride = 0)
+    {
+        if (!stride) stride = 1;
+        if (!line_stride) line_stride = coord_sz.x * stride;
+        for (int y = 0; y < coord_sz.y; ++y) {
+            float* dest2 = dest;
+            for (int x = 0; x < coord_sz.x; ++x) {
+                vector2i coord = coord_bl + vector2i(x, y);
+                if (detail >= 0) {
+                    int xc = coord.x * int(1 << detail);
+                    int yc = coord.y * int(1 << detail);
+                    *dest2 = sin(2 * 3.14159 * xc * 0.01) * sin(2 * 3.14159 * yc * 0.01) * 20.0 - 20;
+                } else {
+                    float xc = coord.x / float(1 << -detail);
+                    float yc = coord.y / float(1 << -detail);
+                    *dest2 = sin(2 * 3.14159 * xc * 0.01) * sin(2 * 3.14159 * yc * 0.01) * 20.0 - 20;
+                }
+                dest2 += stride;
+            }
+            dest += line_stride;
+        }
+    }
+
+    void get_min_max_height(double& minh, double& maxh) const
+    {
+        minh = -40.0;
+        maxh = 0.0;
+    }
 };
-
-
-
 
 class height_generator_test2 : public height_generator
 {
-	perlinnoise pn;
-	const unsigned s2;
-	const unsigned height_segments;
-	const float total_height;
-	const float terrace_height;
-	std::vector<float> extrah;
-	perlinnoise pn2;
+protected:
+    perlinnoise pn;
+    const unsigned s2;
+    const unsigned height_segments;
+    const float total_height;
+    const float terrace_height;
+    std::vector<float> extrah;
+    perlinnoise pn2;
 
-	std::vector<uint8_t> ct[8];
-	unsigned cw, ch;
+    std::vector<uint8_t> ct[8];
+    unsigned cw, ch;
 public:
-	height_generator_test2()
-		: height_generator(1.0, 2),
-		  pn(64, 4, 6, true), s2(256*16), height_segments(10),
-		  total_height(256.0), terrace_height(total_height/height_segments),
-		  pn2(64, 2, 16)
-	{
-		/*
-		  lookup_function<float, 256U> asin_lookup;
-		  for (unsigned i = 0; i <= 256; ++i)
-		  asin_lookup.set_value(i, asin(float(i)/256) / M_PI + 0.5);
-		*/
-		std::vector<Uint8> extrah2 = pn2.generate();
-		extrah.resize(64*64);
-		for (unsigned y = 0; y < 64; ++y)
-			for (unsigned x = 0; x < 64; ++x)
-				extrah[64*y+x] = rnd()-0.5;//extrah2[64*y+x]/256.0-0.5;
-		const char* texnames[8] = {
-			"tex_grass.jpg",
-			"tex_grass2.jpg",
-			"tex_grass3.jpg",
-			"tex_grass4.jpg",
-			"tex_grass5.jpg",
-			"tex_mud.jpg",
-			"tex_stone.jpg",
-			"tex_sand.jpg"
-		};
-		for (unsigned i = 0; i < 8; ++i) {
-			sdl_image tmp(get_texture_dir() + texnames[i]);
-			unsigned bpp = 0;
-			ct[i] = tmp.get_plain_data(cw, ch, bpp);
-			if (bpp != 3) throw error("color bpp != 3");
-		}
-	}
-	void compute_heights(int detail, const vector2i& coord_bl,
-			     const vector2i& coord_sz, float* dest, unsigned stride = 0,
-			     unsigned line_stride = 0, bool = true) {
-		if (!stride) stride = 1;
-		if (!line_stride) line_stride = coord_sz.x * stride;
-		if (detail >= 0) {
-			for (int y = 0; y < coord_sz.y; ++y) {
-				float* dest2 = dest;
-				for (int x = 0; x < coord_sz.x; ++x) {
-					vector2i coord = coord_bl + vector2i(x, y);
-					int xc = coord.x * int(1 << detail);
-					int yc = coord.y * int(1 << detail);
-					if (detail <= 6) {
-						float h = pn.value(xc, yc, 6-detail)/255.0f;
-						*dest2 = -130 + h*h*h*0.5 * 256;
-					} else
-						*dest2 = -130;
-					dest2 += stride;
-				}
-				dest += line_stride;
-			}
-		} else {
-			// we need one value more to correctly upsample it
-			bivector<float> d0h(vector2i((coord_sz.x>>-detail)+1, (coord_sz.y>>-detail)+1));
-			compute_heights(0, vector2i(coord_bl.x>>-detail, coord_bl.y>>-detail),
-					d0h.size(), d0h.data_ptr());
-			for (int z = detail; z < 0; ++z) {
-				bivector<float> tmp = d0h.upsampled(false);
-				tmp.swap(d0h);
-			}
-			for (int y = 0; y < coord_sz.y; ++y) {
-				float* dest2 = dest;
-				for (int x = 0; x < coord_sz.x; ++x) {
-					vector2i coord = coord_bl + vector2i(x, y);
-					float baseh = d0h[vector2i(x,y)];
-					baseh += extrah[(coord.y&63)*64+(coord.x&63)] * 0.25;
-					*dest2 = baseh;
-					dest2 += stride;
-				}
-				dest += line_stride;
-			}
-		}
-	}
 
-	void compute_colors(int detail, const vector2i& coord_bl,
-			    const vector2i& coord_sz, Uint8* dest) {
-		for (int y = 0; y < coord_sz.y; ++y) {
-			for (int x = 0; x < coord_sz.x; ++x) {
-				vector2i coord = coord_bl + vector2i(x, y);
-				color c;
-				if (detail >= -2) {
-					unsigned xc = coord.x << (detail+2);
-					unsigned yc = coord.y << (detail+2);
-					unsigned xc2,yc2;
-					if (detail >= 0) {
-						xc2 = coord.x << detail;
-						yc2 = coord.y << detail;
-					} else {
-						xc2 = coord.x >> -detail;
-						yc2 = coord.y >> -detail;
-					}
-					float z = -130;
-					if (detail <= 6) {
-						float h = pn.value(xc2, yc2, 6)/255.0f;
-						z = -130 + h*h*h*0.5 * 256;
-					}
-					float zif = (z + 130) * 4 * 8 / 256;
-					if (zif < 0.0) zif = 0.0;
-					if (zif >= 7.0) zif = 6.999;
-					unsigned zi = unsigned(zif);
-					zif = myfrac(zif);
-					//if (zi <= 4) zi = ((xc/256)*(xc/256)*3+(yc/256)*(yc/256)*(yc/256)*2+(xc/256)*(yc/256)*7)%5;
-					unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
-					float zif2 = 1.0-zif;
-					c = color(uint8_t(ct[zi][3*i]*zif2 + ct[zi+1][3*i]*zif),
-						  uint8_t(ct[zi][3*i+1]*zif2 + ct[zi+1][3*i+1]*zif),
-						  uint8_t(ct[zi][3*i+2]*zif2 + ct[zi+1][3*i+2]*zif));
-				} else {
-					unsigned xc = coord.x >> (-(detail+2));
-					unsigned yc = coord.y >> (-(detail+2));
-					float z = -130;
-					if (detail <= 6) {
-						float h = pn.value(xc, yc, 6)/255.0f;
-						z = -130 + h*h*h*0.5 * 256;
-					}
-					float zif = (z + 130) * 4 * 8 / 256;
-					if (zif < 0.0) zif = 0.0;
-					if (zif >= 7.0) zif = 6.999;
-					unsigned zi = unsigned(zif);
-					zif = myfrac(zif);
-					//if (zi <= 4) zi = ((xc/256)*(xc/256)*3+(yc/256)*(yc/256)*(yc/256)*2+(xc/256)*(yc/256)*7)%5;
-					unsigned i = ((yc&(ch-1))*cw+(xc&(cw-1)));
-					float zif2 = 1.0-zif;
-					c = color(uint8_t(ct[zi][3*i]*zif2 + ct[zi+1][3*i]*zif),
-						  uint8_t(ct[zi][3*i+1]*zif2 + ct[zi+1][3*i+1]*zif),
-						  uint8_t(ct[zi][3*i+2]*zif2 + ct[zi+1][3*i+2]*zif));
-				}
-				dest[0] = c.r;
-				dest[1] = c.g;
-				dest[2] = c.b;
-				dest += 3;
-			}
-		}
-	}
-	void get_min_max_height(double& minh, double& maxh) const { minh = -130; maxh = 128.0-130; }
+    height_generator_test2()
+    : height_generator(1.0, 2),
+    pn(64, 4, 6, true), s2(256 * 16), height_segments(10),
+    total_height(256.0), terrace_height(total_height / height_segments),
+    pn2(64, 2, 16)
+    {
+        /*
+          lookup_function<float, 256U> asin_lookup;
+          for (unsigned i = 0; i <= 256; ++i)
+          asin_lookup.set_value(i, asin(float(i)/256) / M_PI + 0.5);
+         */
+        std::vector<Uint8> extrah2 = pn2.generate();
+        extrah.resize(64 * 64);
+        for (unsigned y = 0; y < 64; ++y)
+            for (unsigned x = 0; x < 64; ++x)
+                extrah[64 * y + x] = rnd() - 0.5; //extrah2[64*y+x]/256.0-0.5;
+        const char* texnames[8] = {
+            "tex_grass.jpg",
+            "tex_grass2.jpg",
+            "tex_grass3.jpg",
+            "tex_grass4.jpg",
+            "tex_grass5.jpg",
+            "tex_mud.jpg",
+            "tex_stone.jpg",
+            "tex_sand.jpg"
+        };
+        for (unsigned i = 0; i < 8; ++i) {
+            sdl_image tmp(get_texture_dir() + texnames[i]);
+            unsigned bpp = 0;
+            ct[i] = tmp.get_plain_data(cw, ch, bpp);
+            if (bpp != 3) throw error("color bpp != 3");
+        }
+    }
+
+    void compute_heights(int detail, const vector2i& coord_bl,
+                         const vector2i& coord_sz, float* dest, unsigned stride = 0,
+                         unsigned line_stride = 0, bool = true)
+    {
+        if (!stride) stride = 1;
+        if (!line_stride) line_stride = coord_sz.x * stride;
+        if (detail >= 0) {
+            for (int y = 0; y < coord_sz.y; ++y) {
+                float* dest2 = dest;
+                for (int x = 0; x < coord_sz.x; ++x) {
+                    vector2i coord = coord_bl + vector2i(x, y);
+                    int xc = coord.x * int(1 << detail);
+                    int yc = coord.y * int(1 << detail);
+                    if (detail <= 6) {
+                        float h = pn.value(xc, yc, 6 - detail) / 255.0f;
+                        *dest2 = -130 + h * h * h * 0.5 * 256;
+                    } else
+                        *dest2 = -130;
+                    dest2 += stride;
+                }
+                dest += line_stride;
+            }
+        } else {
+            // we need one value more to correctly upsample it
+            bivector<float> d0h(vector2i((coord_sz.x >> -detail) + 1, (coord_sz.y >> -detail) + 1));
+            compute_heights(0, vector2i(coord_bl.x >> -detail, coord_bl.y >> -detail),
+                            d0h.size(), d0h.data_ptr());
+            for (int z = detail; z < 0; ++z) {
+                bivector<float> tmp = d0h.upsampled(false);
+                tmp.swap(d0h);
+            }
+            for (int y = 0; y < coord_sz.y; ++y) {
+                float* dest2 = dest;
+                for (int x = 0; x < coord_sz.x; ++x) {
+                    vector2i coord = coord_bl + vector2i(x, y);
+                    float baseh = d0h[vector2i(x, y)];
+                    baseh += extrah[(coord.y & 63)*64 + (coord.x & 63)] * 0.25;
+                    *dest2 = baseh;
+                    dest2 += stride;
+                }
+                dest += line_stride;
+            }
+        }
+    }
+
+    void compute_colors(int detail, const vector2i& coord_bl,
+                        const vector2i& coord_sz, Uint8* dest)
+    {
+        for (int y = 0; y < coord_sz.y; ++y) {
+            for (int x = 0; x < coord_sz.x; ++x) {
+                vector2i coord = coord_bl + vector2i(x, y);
+                color c;
+                if (detail >= -2) {
+                    unsigned xc = coord.x << (detail + 2);
+                    unsigned yc = coord.y << (detail + 2);
+                    unsigned xc2, yc2;
+                    if (detail >= 0) {
+                        xc2 = coord.x << detail;
+                        yc2 = coord.y << detail;
+                    } else {
+                        xc2 = coord.x >> -detail;
+                        yc2 = coord.y >> -detail;
+                    }
+                    float z = -130;
+                    if (detail <= 6) {
+                        float h = pn.value(xc2, yc2, 6) / 255.0f;
+                        z = -130 + h * h * h * 0.5 * 256;
+                    }
+                    float zif = (z + 130) * 4 * 8 / 256;
+                    if (zif < 0.0) zif = 0.0;
+                    if (zif >= 7.0) zif = 6.999;
+                    unsigned zi = unsigned(zif);
+                    zif = myfrac(zif);
+                    //if (zi <= 4) zi = ((xc/256)*(xc/256)*3+(yc/256)*(yc/256)*(yc/256)*2+(xc/256)*(yc/256)*7)%5;
+                    unsigned i = ((yc & (ch - 1)) * cw + (xc & (cw - 1)));
+                    float zif2 = 1.0 - zif;
+                    c = color(uint8_t(ct[zi][3 * i] * zif2 + ct[zi + 1][3 * i] * zif),
+                              uint8_t(ct[zi][3 * i + 1] * zif2 + ct[zi + 1][3 * i + 1] * zif),
+                              uint8_t(ct[zi][3 * i + 2] * zif2 + ct[zi + 1][3 * i + 2] * zif));
+                } else {
+                    unsigned xc = coord.x >> (-(detail + 2));
+                    unsigned yc = coord.y >> (-(detail + 2));
+                    float z = -130;
+                    if (detail <= 6) {
+                        float h = pn.value(xc, yc, 6) / 255.0f;
+                        z = -130 + h * h * h * 0.5 * 256;
+                    }
+                    float zif = (z + 130) * 4 * 8 / 256;
+                    if (zif < 0.0) zif = 0.0;
+                    if (zif >= 7.0) zif = 6.999;
+                    unsigned zi = unsigned(zif);
+                    zif = myfrac(zif);
+                    //if (zi <= 4) zi = ((xc/256)*(xc/256)*3+(yc/256)*(yc/256)*(yc/256)*2+(xc/256)*(yc/256)*7)%5;
+                    unsigned i = ((yc & (ch - 1)) * cw + (xc & (cw - 1)));
+                    float zif2 = 1.0 - zif;
+                    c = color(uint8_t(ct[zi][3 * i] * zif2 + ct[zi + 1][3 * i] * zif),
+                              uint8_t(ct[zi][3 * i + 1] * zif2 + ct[zi + 1][3 * i + 1] * zif),
+                              uint8_t(ct[zi][3 * i + 2] * zif2 + ct[zi + 1][3 * i + 2] * zif));
+                }
+                dest[0] = c.r;
+                dest[1] = c.g;
+                dest[2] = c.b;
+                dest += 3;
+            }
+        }
+    }
+
+    void get_min_max_height(double& minh, double& maxh) const
+    {
+        minh = -130;
+        maxh = 128.0 - 130;
+    }
 };
 
+class height_generator_test3 : public height_generator_test2
+{
+private:
+
+    double hetero_terrain(vector2f point,
+                          double H, double lacunarity, double octaves, double offset, double dummy, int depth)
+    {
+        double value, increment, frequency, remainder;
+        int i;
+        static int first = true;
+        static double *exponent_array;
+        /* precompute and store spectral weights, for efficiency */
+        if (first) {
+            /* seize required memory for exponent_array */
+            exponent_array =
+                    (double *) malloc((octaves + 1) * sizeof (double));
+            frequency = 1.0;
+            for (i = 0; i <= octaves; i++) {
+                /* compute weight for each frequency */
+                exponent_array[i] = pow(frequency, -H);
+                frequency *= lacunarity;
+            }
+            first = false;
+        }
+        /* first unscaled octave of function; later octaves are scaled */
+        value = offset + pn.value(point.x, point.y, depth) / 255.0f;
+        point.x *= lacunarity;
+        point.y *= lacunarity;
+        /* spectral construction inner loop, where the fractal is built */
+        for (i = 1; i < octaves; i++) {
+            /* obtain displaced noise value */
+            increment = pn.value(point.x, point.y, depth) / 255.0f + offset;
+            /* scale amplitude appropriately for this frequency */
+            increment *= exponent_array[i];
+            /* scale increment by current “altitude” of function */
+            increment *= value;
+            /* add increment to “value” */
+            value += increment;
+            /* raise spatial frequency */
+            point.x *= lacunarity;
+            point.y *= lacunarity;
+        } /* for */
+        /* take care of remainder in “octaves” */
+        remainder = octaves - (int) octaves;
+        if (remainder) {
+            /* “i” and spatial freq. are preset in loop above */
+            /* note that the main loop code is made shorter here */
+            /* you may want to make that loop more like this */
+            increment = (pn.value(point.x, point.y, depth) / 255.0f + offset) * exponent_array[i];
+            value += remainder * increment * value;
+        }
+        return ( value);
+    }
+
+    double hybrid_multifractal(vector2f point, double H, double lacunarity,
+                               double octaves, double offset, double dummy, int depth)
+    {
+        double frequency, result, signal, weight, remainder;
+        int i;
+        static int first = true;
+        static double *exponent_array;
+        /* precompute and store spectral weights */
+        if (first) {
+            /* seize required memory for exponent_array */
+            exponent_array =
+                    (double *) malloc((octaves + 1) * sizeof (double));
+            frequency = 1.0;
+            for (i = 0; i <= octaves; i++) {
+                /* compute weight for each frequency */
+                exponent_array[i] = pow(frequency, -H);
+                frequency *= lacunarity;
+            }
+            first = false;
+        }
+        /* get first octave of function */
+        result = (pn.value(point.x, point.y, depth) / 255.0f + offset) * exponent_array[0];
+        weight = result;
+        /* increase frequency */
+        point.x *= lacunarity;
+        point.y *= lacunarity;
+        /* spectral construction inner loop, where the fractal is built */
+        for (i = 1; i < octaves; i++) {
+            /* prevent divergence */
+            if (weight > 1.0) weight = 1.0;
+            /* get next higher frequency */
+            signal = (pn.value(point.x, point.y, depth) / 255.0f + offset) * exponent_array[i];
+            /* add it in, weighted by previous freq’s local value */
+            result += weight * signal;
+            /* update the (monotonically decreasing) weighting value */
+            /* (this is why H must specify a high fractal dimension) */
+            weight *= signal;
+            /* increase frequency */
+            point.x *= lacunarity;
+            point.y *= lacunarity;
+        } /* for */
+        /* take care of remainder in “octaves” */
+        remainder = octaves - (int) octaves;
+        if (remainder)
+            /* “i” and spatial freq. are preset in loop above */
+            result += remainder * pn.value(point.x, point.y, depth) / 255.0f * exponent_array[i];
+        return ( result);
+    }
+
+    double ridged_multifractal(vector2f point, double H, double lacunarity,
+                               double octaves, double offset, double gain, int depth)
+    {
+        double result, frequency, signal, weight;
+        int i;
+        static int first = true;
+        static double *exponent_array;
+        /* precompute and store spectral weights */
+        if (first) {
+            /* seize required memory for exponent_array */
+            exponent_array =
+                    (double *) malloc((octaves + 1) * sizeof (double));
+            frequency = 1.0;
+            for (i = 0; i <= octaves; i++) {
+                /* compute weight for each frequency */
+                exponent_array[i] = pow(frequency, -H);
+                frequency *= lacunarity;
+            }
+            first = false;
+        }
+        /* get first octave */
+        signal = pn.value(point.x, point.y, depth) / 255.0f;
+        /* get absolute value of signal (this creates the ridges) */
+        if (signal < 0.0) signal = -signal;
+        /* invert and translate (note that “offset” should be   = 1.0) */
+        signal = offset - signal;
+        /* square the signal, to increase “sharpness” of ridges */
+        signal *= signal;
+        /* assign initial values */
+        result = signal;
+        weight = 1.0;
+        for (i = 1; i < octaves; i++) {
+            /* increase the frequency */
+            point.x *= lacunarity;
+            point.y *= lacunarity;
+            /* weight successive contributions by previous signal */
+            weight = signal * gain;
+            if (weight > 1.0) weight = 1.0;
+            if (weight < 0.0) weight = 0.0;
+            signal = pn.value(point.x, point.y, depth) / 255.0f;
+            if (signal < 0.0) signal = -signal;
+            signal = offset - signal;
+            signal *= signal;
+            /* weight the contribution */
+            signal *= weight;
+            result += signal * exponent_array[i];
+        }
+        return ( result);
+    }
+
+    float rnd_gauss() {
+        return 0.0f;
+    }
+
+public:
+
+    height_generator_test3() : height_generator_test2()
+    {
+        srand(time(NULL));
+    };
+
+    void compute_heights(int detail, const vector2i& coord_bl,
+                         const vector2i& coord_sz, float* dest, unsigned stride = 0,
+                         unsigned line_stride = 0, bool = true)
+    {
+        if (!stride) stride = 1;
+        if (!line_stride) line_stride = coord_sz.x * stride;
+        if (detail >= 0) {
+            for (int y = 0; y < coord_sz.y; ++y) {
+                float* dest2 = dest;
+                for (int x = 0; x < coord_sz.x; ++x) {
+                    vector2i coord = coord_bl + vector2i(x, y);
+                    int xc = coord.x * int(1 << detail);
+                    int yc = coord.y * int(1 << detail);
+                    if (detail <= 6) {
+                        float h = MF_FUNCTION(vector2f(xc, yc), MF_H, MF_LACUNARITY, 6 - detail, MF_OFFSET, MF_GAIN, 6 - detail);
+                        *dest2 = -130 + h*256;
+                    } else
+                        *dest2 = -130;
+                    dest2 += stride;
+                }
+                dest += line_stride;
+            }
+        } else {
+            // we need one value more to correctly upsample it
+            bivector<float> d0h(vector2i((coord_sz.x >> -detail) + 1, (coord_sz.y >> -detail) + 1));
+            compute_heights(0, vector2i(coord_bl.x >> -detail, coord_bl.y >> -detail),
+                            d0h.size(), d0h.data_ptr());
+            for (int z = detail; z < 0; ++z) {
+                bivector<float> tmp = d0h.upsampled(false);
+                tmp.swap(d0h);
+            }
+            for (int y = 0; y < coord_sz.y; ++y) {
+                float* dest2 = dest;
+                for (int x = 0; x < coord_sz.x; ++x) {
+                    vector2i coord = coord_bl + vector2i(x, y);
+                    float baseh = d0h[vector2i(x, y)];
+                    baseh += extrah[(coord.y & 63)*64 + (coord.x & 63)] * 0.25;
+                    *dest2 = baseh;
+                    dest2 += stride;
+                }
+                dest += line_stride;
+            }
+        }
+    }
+
+};
 
 template<class T, class U>
 std::vector<T> scaledown(const std::vector<T>& v, unsigned newres)
 {
-	std::vector<T> result(newres * newres);
-	for (unsigned y = 0; y < newres; ++y) {
-		for (unsigned x = 0; x < newres; ++x) {
-			result[y*newres+x] = T((U(v[2*y*newres*2+2*x]) +
-						U(v[2*y*newres*2+2*x+1]) +
-						U(v[(2*y+1)*newres*2+2*x]) +
-						U(v[(2*y+1)*newres*2+2*x+1])) / 4);
-		}
-	}
-	return result;
+    std::vector<T> result(newres * newres);
+    for (unsigned y = 0; y < newres; ++y) {
+        for (unsigned x = 0; x < newres; ++x) {
+            result[y * newres + x] = T((U(v[2 * y * newres * 2 + 2 * x]) +
+                                       U(v[2 * y * newres * 2 + 2 * x + 1]) +
+                                       U(v[(2 * y + 1) * newres * 2 + 2 * x]) +
+                                       U(v[(2 * y + 1) * newres * 2 + 2 * x + 1])) / 4);
+        }
+    }
+    return result;
 }
 
 
@@ -513,42 +754,58 @@ std::vector<T> scaledown(const std::vector<T>& v, unsigned newres)
 
 class camera
 {
-	vector3 position;
-	vector3 look_at;
+    vector3 position;
+    vector3 look_at;
 public:
-	camera(const vector3& p = vector3(), const vector3& la = vector3(0, 1, 0))
-		: position(p), look_at(la) {}
-	const vector3& get_pos() const { return position; }
-	vector3 view_dir() const { return (look_at - position).normal(); }
-	angle look_direction() const { return angle((look_at - position).xy()); }
-	void set(const vector3& pos, const vector3& lookat) { position = pos; look_at = lookat; }
-	matrix4 get_transformation() const;
-	void set_gl_trans() const;
+
+    camera(const vector3& p = vector3(), const vector3& la = vector3(0, 1, 0))
+    : position(p), look_at(la)
+    {
+    }
+
+    const vector3& get_pos() const
+    {
+        return position;
+    }
+
+    vector3 view_dir() const
+    {
+        return (look_at - position).normal();
+    }
+
+    angle look_direction() const
+    {
+        return angle((look_at - position).xy());
+    }
+
+    void set(const vector3& pos, const vector3& lookat)
+    {
+        position = pos;
+        look_at = lookat;
+    }
+    matrix4 get_transformation() const;
+    void set_gl_trans() const;
 };
-
-
 
 matrix4 camera::get_transformation() const
 {
-	// compute transformation matrix from camera
-	// orientation
-	// camera points to -z axis with OpenGL
-	vector3 zdir = -(look_at - position).normal();
-	vector3 ydir(0, 0, 1);
-	vector3 xdir = ydir.cross(zdir);
-	ydir = zdir.cross(xdir);
-	vector3 p(xdir * position, ydir * position, zdir * position);
-	return matrix4(xdir.x, xdir.y, xdir.z, -p.x,
-		       ydir.x, ydir.y, ydir.z, -p.y,
-		       zdir.x, zdir.y, zdir.z, -p.z,
-		       0, 0, 0, 1);
+    // compute transformation matrix from camera
+    // orientation
+    // camera points to -z axis with OpenGL
+    vector3 zdir = -(look_at - position).normal();
+    vector3 ydir(0, 0, 1);
+    vector3 xdir = ydir.cross(zdir);
+    ydir = zdir.cross(xdir);
+    vector3 p(xdir * position, ydir * position, zdir * position);
+    return matrix4(xdir.x, xdir.y, xdir.z, -p.x,
+                   ydir.x, ydir.y, ydir.z, -p.y,
+                   zdir.x, zdir.y, zdir.z, -p.z,
+                   0, 0, 0, 1);
 }
-
-
 
 void camera::set_gl_trans() const
 {
-	get_transformation().multiply_gl();
+    get_transformation().multiply_gl();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -557,228 +814,232 @@ font* font_arial = 0;
 
 void run()
 {
-	//height_generator_test1 hgt;
-	height_generator_test2 hgt;
-	// total area covered = 2^(levels-1) * L * N
-	// 8, 7, 1.0 gives 2^14m = 16384m
-#if 0
-	float camadd=0;
-#if 0
-	geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, hgt);
+
+#if 1
+    float camadd = 700;
+#if 1
+    //height_generator_test1 hgt;
+    height_generator_test3 hgt;
+    // total area covered = 2^(levels-1) * L * N
+    // 8, 7, 1.0 gives 2^14m = 16384m    
+    geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, hgt);
 #else
-	height_generator_map hgtm("default.xml");
-	geoclipmap gcm(7, 5/*3*/, hgtm);
+    height_generator_map hgtm("default.xml");
+    geoclipmap gcm(7, 5/*3*/, hgtm);
 #endif
 #else	
-	float camadd=-4500.0;
-	rastered_map terrain(get_map_dir()+"/ETOPO2v2c_i2_LSB.xml", get_map_dir()+"/ETOPO2v2c_i2_LSB.bin", 11);
-	geoclipmap gcm(10, 8, terrain);
+    float camadd = -4500.0;
+    rastered_map terrain(get_map_dir() + "/ETOPO2v2c_i2_LSB.xml", get_map_dir() + "/ETOPO2v2c_i2_LSB.bin", 11);
+    geoclipmap gcm(10, 8, terrain);
 #endif
-	
-	//gcm.set_viewerpos(vector3(0, 0, 30.0));
 
-	glClearColor(0.3,0.4,1.0,0.0);
+    //gcm.set_viewerpos(vector3(0, 0, 30.0));
 
-	vector3 viewpos(0, 0, 64);
+    glClearColor(0.3, 0.4, 1.0, 0.0);
 
-//	auto_ptr<sky> mysky(new sky(8*3600.0)); // 10 o'clock
-//	vector3 sunpos(0, 3000, 4000);
-//	mysky->rebuild_colors(sunpos, vector3(-500, -3000, 1000), viewpos);
+    vector3 viewpos(0, 0, 64);
 
-	// compute bspline for camera path
-	std::vector<vector3f> bsppts;
-	vector2f bsp[13] = {
-		vector2f( 0.00,  0.75),
-		vector2f( 0.75,  0.75),
-		vector2f( 0.75,  0.00),
-		vector2f( 0.00,  0.00),
-		vector2f(-0.75,  0.00),
-		vector2f(-0.75, -0.75),
-		vector2f( 0.00, -0.75),
-		vector2f( 0.75, -0.75),
-		vector2f( 0.75,  0.00),
-		vector2f( 0.00,  0.00),
-		vector2f(-0.75,  0.00),
-		vector2f(-0.75,  0.75),
-		vector2f( 0.00,  0.75)
-	};
-	for (unsigned j = 0; j < 13; ++j) {
-		vector2f a = bsp[j] * 256;
-		bsppts.push_back(a.xyz(0.0/*terrain height*/ * 0.5 + 20.0));
-	}
-	bsplinet<vector3f> cam_path(2, bsppts);
+    //	auto_ptr<sky> mysky(new sky(8*3600.0)); // 10 o'clock
+    //	vector3 sunpos(0, 3000, 4000);
+    //	mysky->rebuild_colors(sunpos, vector3(-500, -3000, 1000), viewpos);
 
-// we need a function to get height at x,y coord
-// store xy res of height map too
-// 	const float flight_wh(128, 128);
-// 	vector<vector3f> flight_coords;
-// 	flight_coords.push_back(vector3f(0, -flight_wh*0.75));
-// fly an 8 like figure
+    // compute bspline for camera path
+    std::vector<vector3f> bsppts;
+    vector2f bsp[13] = {
+        vector2f(0.00, 0.75),
+        vector2f(0.75, 0.75),
+        vector2f(0.75, 0.00),
+        vector2f(0.00, 0.00),
+        vector2f(-0.75, 0.00),
+        vector2f(-0.75, -0.75),
+        vector2f(0.00, -0.75),
+        vector2f(0.75, -0.75),
+        vector2f(0.75, 0.00),
+        vector2f(0.00, 0.00),
+        vector2f(-0.75, 0.00),
+        vector2f(-0.75, 0.75),
+        vector2f(0.00, 0.75)
+    };
+    for (unsigned j = 0; j < 13; ++j) {
+        vector2f a = bsp[j] * 256;
+        bsppts.push_back(a.xyz(0.0/*terrain height*/ * 0.5 + 20.0));
+    }
+    bsplinet<vector3f> cam_path(2, bsppts);
 
-	auto_ptr<texture> bkg;
-	auto_ptr<glsl_shader_setup> glss;
-	float cammove=0;
-	bool quit = false;
-	unsigned tm = sys().millisec();
-	unsigned tm0 = tm;
-	fpsmeasure fpsm(1.0f);
-	while (!quit) {
-		list<SDL_Event> events = sys().poll_event_queue();
-		for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
-			if (it->type == SDL_KEYDOWN) {
-				switch((*it).key.keysym.sym) {
-					case SDLK_ESCAPE: 
-						quit = true; 
-					break;
-					case SDLK_PAGEUP: 
-						camadd += 5;
-					break;
-					case SDLK_PAGEDOWN: 
-						camadd -= 5;
-					break;	
-					default: 
-					break;
-				}
-				//gcm.set_viewerpos(campos);
-			}
-			if (it->type == SDL_MOUSEBUTTONDOWN) {gcm.wireframe = !gcm.wireframe;}
-		}
+    // we need a function to get height at x,y coord
+    // store xy res of height map too
+    // 	const float flight_wh(128, 128);
+    // 	vector<vector3f> flight_coords;
+    // 	flight_coords.push_back(vector3f(0, -flight_wh*0.75));
+    // fly an 8 like figure
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    auto_ptr<texture> bkg;
+    auto_ptr<glsl_shader_setup> glss;
+    float cammove = 0;
+    bool quit = false;
+    unsigned tm = sys().millisec();
+    unsigned tm0 = tm;
+    fpsmeasure fpsm(1.0f);
+    while (!quit) {
+        list<SDL_Event> events = sys().poll_event_queue();
+        for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
+            if (it->type == SDL_KEYDOWN) {
+                switch ((*it).key.keysym.sym) {
+                    case SDLK_ESCAPE:
+                        quit = true;
+                        break;
+                    case SDLK_PAGEUP:
+                        camadd += 5;
+                        break;
+                    case SDLK_PAGEDOWN:
+                        camadd -= 5;
+                        break;
+                    default:
+                        break;
+                }
+                //gcm.set_viewerpos(campos);
+            }
+            if (it->type == SDL_MOUSEBUTTONDOWN) {
+                gcm.wireframe = !gcm.wireframe;
+            }
+        }
 
-		glColor4f(1,1,1,1);
-		glPushMatrix();
-		glLoadIdentity();
-		float zang = 360.0/40 * (sys().millisec() - tm0)/1000;
-		float zang2 = 360.0/200 * (sys().millisec() - tm0)/1000;
-		vector3 viewpos2 = viewpos + (angle(-zang2).direction() * 192).xy0();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		float path_fac = myfrac((1.0/120) * (sys().millisec() - tm0)/1000);
-		vector3f campos = cam_path.value(path_fac);
-		vector3f camlookat = cam_path.value(myfrac(path_fac + 0.01)) - vector3f(0, 0, 20);
-		//camera cm(viewpos2, viewpos2 + angle(zang).direction().xyz(-0.25));
-		campos.z+=camadd;
-		cammove+=200;
-//		campos.x-=cammove;
-		camlookat.z+=camadd;
-		camera cm(campos, camlookat);
-		zang = cm.look_direction().value();
-		cm.set_gl_trans();
+        glColor4f(1, 1, 1, 1);
+        glPushMatrix();
+        glLoadIdentity();
+        float zang = 360.0 / 40 * (sys().millisec() - tm0) / 1000;
+        float zang2 = 360.0 / 200 * (sys().millisec() - tm0) / 1000;
+        vector3 viewpos2 = viewpos + (angle(-zang2).direction() * 192).xy0();
 
-		// sky also sets light source position
-//		mysky->display(colorf(1.0f, 1.0f, 1.0f), viewpos2, 30000.0, false);
-		//glDisable(GL_FOG);
-		glFogi(GL_FOG_MODE, GL_EXP);
-		float fog_color[4] = { 0.6, 0.6, 0.6, 1.0 };
-		glFogfv(GL_FOG_COLOR, fog_color);
-		glFogf(GL_FOG_DENSITY, 0.0008);
+        float path_fac = myfrac((1.0 / 120) * (sys().millisec() - tm0) / 1000);
+        vector3f campos = cam_path.value(path_fac);
+        vector3f camlookat = cam_path.value(myfrac(path_fac + 0.01)) - vector3f(0, 0, 20);
+        //camera cm(viewpos2, viewpos2 + angle(zang).direction().xyz(-0.25));
+        campos.z += camadd;
+        cammove += 200;
+        //		campos.x-=cammove;
+        camlookat.z += camadd;
+        camera cm(campos, camlookat);
+        zang = cm.look_direction().value();
+        cm.set_gl_trans();
 
-		gcm.set_viewerpos(campos);
-		glColor4f(1,0,0,1);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, 0);
+        // sky also sets light source position
+        //		mysky->display(colorf(1.0f, 1.0f, 1.0f), viewpos2, 30000.0, false);
+        //glDisable(GL_FOG);
+        glFogi(GL_FOG_MODE, GL_EXP);
+        float fog_color[4] = {0.6, 0.6, 0.6, 1.0
+        };
+        glFogfv(GL_FOG_COLOR, fog_color);
+        glFogf(GL_FOG_DENSITY, 0.0008);
 
-		frustum viewfrustum = frustum::from_opengl();
+        gcm.set_viewerpos(campos);
+        glColor4f(1, 0, 0, 1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, 0);
 
-		glColor4f(1,1,1,1);
-		gcm.display(viewfrustum);
+        frustum viewfrustum = frustum::from_opengl();
 
-		// record fps
-		float fps = fpsm.account_frame();
+        glColor4f(1, 1, 1, 1);
+        gcm.display(viewfrustum);
 
-		sys().prepare_2d_drawing();
-		std::ostringstream oss; oss << "FPS: " << fps << "\n(all time total " << fpsm.get_total_fps() << ")";
-		font_arial->print(0, 0, oss.str());
-		sys().unprepare_2d_drawing();
+        // record fps
+        float fps = fpsm.account_frame();
 
-		sys().swap_buffers();
-	}
+        sys().prepare_2d_drawing();
+        std::ostringstream oss;
+        oss << "FPS: " << fps << "\n(all time total " << fpsm.get_total_fps() << ")";
+        font_arial->print(0, 0, oss.str());
+        sys().unprepare_2d_drawing();
 
-	log_info("slowest frame " << fpsm.get_slowest_frame_time_ms() << "ms, fps total " <<
-		 fpsm.get_total_fps());
+        sys().swap_buffers();
+    }
 
-	glClearColor(0, 0, 1, 0);
+    log_info("slowest frame " << fpsm.get_slowest_frame_time_ms() << "ms, fps total " <<
+             fpsm.get_total_fps());
+
+    glClearColor(0, 0, 1, 0);
 }
-
-
 
 int mymain(list<string>& args)
 {
-	// report critical errors (on Unix/Posix systems)
-	install_segfault_handler();
+    // report critical errors (on Unix/Posix systems)
+    install_segfault_handler();
 
-	// randomize
-	srand(time(0));
+    // randomize
+    srand(time(0));
 
-	// command line argument parsing
-	int res_x = 1024, res_y;
-	bool fullscreen = true;
+    // command line argument parsing
+    int res_x = 1024, res_y;
+    bool fullscreen = true;
 
-	// parse commandline
-	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
-		if (*it == "--help") {
-			cout << "*** Danger from the Deep ***\nusage:\n--help\t\tshow this\n"
-			<< "--res n\t\tuse resolution n horizontal,\n\t\tn is 512,640,800,1024 (recommended) or 1280\n"
-			<< "--nofullscreen\tdon't use fullscreen\n"
-			<< "--debug\t\tdebug mode: no fullscreen, resolution 800\n"
+    // parse commandline
+    for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
+        if (*it == "--help") {
+            cout << "*** Danger from the Deep ***\nusage:\n--help\t\tshow this\n"
+                    << "--res n\t\tuse resolution n horizontal,\n\t\tn is 512,640,800,1024 (recommended) or 1280\n"
+                    << "--nofullscreen\tdon't use fullscreen\n"
+                    << "--debug\t\tdebug mode: no fullscreen, resolution 800\n"
 #if !(defined (WIN32) || (defined (__APPLE__) && defined (__MACH__)))
-			     << "--vsync\tsync to vertical retrace signal (for nvidia cards)\n"
+                    << "--vsync\tsync to vertical retrace signal (for nvidia cards)\n"
 #endif
-			<< "--nosound\tdon't use sound\n";
-			return 0;
-		} else if (*it == "--nofullscreen") {
-			fullscreen = false;
-		} else if (*it == "--debug") {
-			fullscreen = false;
-			res_x = 800;
+                    << "--nosound\tdon't use sound\n";
+            return 0;
+        } else if (*it == "--nofullscreen") {
+            fullscreen = false;
+        } else if (*it == "--debug") {
+            fullscreen = false;
+            res_x = 800;
 #if !(defined (WIN32) || (defined (__APPLE__) && defined (__MACH__)))
-		} else if (*it == "--vsync") {
-			if (putenv((char*)"__GL_SYNC_TO_VBLANK=1") < 0)
-				cout << "ERROR: vsync setting failed.\n";
-			//maxfps = 0;
+        } else if (*it == "--vsync") {
+            if (putenv((char*) "__GL_SYNC_TO_VBLANK=1") < 0)
+                cout << "ERROR: vsync setting failed.\n";
+            //maxfps = 0;
 #endif
-		} else if (*it == "--res") {
-			list<string>::iterator it2 = it; ++it2;
-			if (it2 != args.end()) {
-				int r = atoi(it2->c_str());
-				if (r==512||r==640||r==800||r==1024||r==1280)
-					res_x = r;
-				++it;
-			}
-		}
-	}
+        } else if (*it == "--res") {
+            list<string>::iterator it2 = it;
+            ++it2;
+            if (it2 != args.end()) {
+                int r = atoi(it2->c_str());
+                if (r == 512 || r == 640 || r == 800 || r == 1024 || r == 1280)
+                    res_x = r;
+                ++it;
+            }
+        }
+    }
 
-	// fixme: also allow 1280x1024, set up gl viewport for 4:3 display
-	// with black borders at top/bottom (height 2*32pixels)
-	res_y = res_x*3/4;
-	// weather conditions and earth curvature allow 30km sight at maximum.
-	system::create_instance(new class system(1.0, 30000.0+500.0, res_x, res_y, fullscreen));
-	sys().set_res_2d(1024, 768);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	sys().gl_perspective_fovx(70, 4.0/3.0, 1.0, 30000);
-	glMatrixMode(GL_MODELVIEW);
-//	sys().set_max_fps(60);
-	
-	log_info("Danger from the Deep");
+    // fixme: also allow 1280x1024, set up gl viewport for 4:3 display
+    // with black borders at top/bottom (height 2*32pixels)
+    res_y = res_x * 3 / 4;
+    // weather conditions and earth curvature allow 30km sight at maximum.
+    system::create_instance(new class system(1.0, 30000.0 + 500.0, res_x, res_y, fullscreen));
+    sys().set_res_2d(1024, 768);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    sys().gl_perspective_fovx(70, 4.0 / 3.0, 1.0, 30000);
+    glMatrixMode(GL_MODELVIEW);
+    //	sys().set_max_fps(60);
 
-	GLfloat lambient[4] = {0.3,0.3,0.3,1};
-	GLfloat ldiffuse[4] = {1,1,1,1};
-	GLfloat lposition[4] = {0,0,1,0};
-	glLightfv(GL_LIGHT0, GL_AMBIENT, lambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, ldiffuse);
-	glLightfv(GL_LIGHT0, GL_POSITION, lposition);
-	glEnable(GL_LIGHT0);
+    log_info("Danger from the Deep");
 
- 	font_arial = new font(get_font_dir() + "font_arial");
-	auto_ptr<font> fa(font_arial);
- 	sys().draw_console_with(font_arial, 0);
+    GLfloat lambient[4] = {0.3, 0.3, 0.3, 1};
+    GLfloat ldiffuse[4] = {1, 1, 1, 1};
+    GLfloat lposition[4] = {0, 0, 1, 0};
+    glLightfv(GL_LIGHT0, GL_AMBIENT, lambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, ldiffuse);
+    glLightfv(GL_LIGHT0, GL_POSITION, lposition);
+    glEnable(GL_LIGHT0);
 
-	run();
+    font_arial = new font(get_font_dir() + "font_arial");
+    auto_ptr<font> fa(font_arial);
+    sys().draw_console_with(font_arial, 0);
 
-	system::release_instance();
+    run();
 
-	return 0;
+    system::release_instance();
+
+    return 0;
 }
