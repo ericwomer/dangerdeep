@@ -2,4 +2,7 @@
 	<resolution value="120"/>
 	<max latitude="324000" longitude="648000" height="8440" />
 	<min latitude="-324000" longitude="-648000" height="-10800" />
+
+	<!-- 0 = LSB / 1 = MSB -->
+	<byte-order value="0" />
 </dftd-map>
