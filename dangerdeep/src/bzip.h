@@ -73,8 +73,8 @@ public:
 class bzip_streambuf : public std::streambuf
 {
 protected:
-    std::ostream &outstream;
-    std::istream &instream;
+    std::ostream *outstream;
+    std::istream *instream;
     std::vector<char> in_buffer, out_buffer;
     int blocksize_100_k, workfactor, buffer_size, state;
     bz_stream bzstream;
@@ -95,8 +95,8 @@ private:
     bzip_streambuf & operator=(const bzip_streambuf &);
 
 public:
-    bzip_streambuf(std::ostream&, int, int, int);
-    bzip_streambuf(std::istream&, int, int, int);
+    bzip_streambuf(std::ostream*, int, int, int);
+    bzip_streambuf(std::istream*, int, int, int);
     void close() {
         if (mode == COMPRESS) {
             flush();
@@ -114,7 +114,7 @@ class bzip_ostream : public std::ostream
 {
 public:
 
-    bzip_ostream(std::ostream& os, int blocksize = 9, int workbuffer = 30, int buffsize = 256)
+    bzip_ostream(std::ostream* os, int blocksize = 9, int workbuffer = 30, int buffsize = 256)
             : std::ostream(new bzip_streambuf(os, blocksize, workbuffer, buffsize)) {
     }
     ~bzip_ostream() {
@@ -129,7 +129,7 @@ class bzip_istream : public std::istream
 {
 public:
 
-    bzip_istream(std::istream& is, int buffsize = 256, int small = 0)
+    bzip_istream(std::istream* is, int buffsize = 256, int small = 0)
             : std::istream(new bzip_streambuf(is, buffsize, 8, small)) {
     }
     ~bzip_istream() {

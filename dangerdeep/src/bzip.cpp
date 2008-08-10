@@ -18,13 +18,12 @@
  */
 
 #include "bzip.h"
-#include "keys.h"
 #include <string.h>	//for memmove
 
-bzip_streambuf::bzip_streambuf(std::ostream& os, int blocksize, int _workfactor, int _buffer_size)
-: outstream(os), instream(), in_buffer(_buffer_size, 0), out_buffer(_buffer_size, 0), blocksize_100_k(blocksize), workfactor(_workfactor), buffer_size(_buffer_size), put_back(0), mode(COMPRESS)
+bzip_streambuf::bzip_streambuf(std::ostream* os, int blocksize, int _workfactor, int _buffer_size)
+: outstream(os), in_buffer(_buffer_size, 0), out_buffer(_buffer_size, 0), blocksize_100_k(blocksize), workfactor(_workfactor), buffer_size(_buffer_size), put_back(0), mode(COMPRESS)
 {
-    outstream.clear();
+    outstream->clear();
 
     bzstream.next_in = &in_buffer[0];
     bzstream.next_out = &out_buffer[0];
@@ -39,10 +38,10 @@ bzip_streambuf::bzip_streambuf(std::ostream& os, int blocksize, int _workfactor,
     if (state < 0) throw bzip_failure(state);
 }
 
-bzip_streambuf::bzip_streambuf(std::istream& is, int _buffer_size, int _put_back, int small)
-: outstream(), instream(is), in_buffer(_buffer_size, 0), out_buffer(_buffer_size + _put_back, 0), buffer_size(_buffer_size), put_back(_put_back), mode(DECOMPRESS)
+bzip_streambuf::bzip_streambuf(std::istream* is, int _buffer_size, int _put_back, int small)
+: instream(is), in_buffer(_buffer_size, 0), out_buffer(_buffer_size + _put_back, 0), buffer_size(_buffer_size), put_back(_put_back), mode(DECOMPRESS)
 {
-    instream.clear();
+    instream->clear();
 
     bzstream.next_in = &in_buffer[0];
     bzstream.next_out = &out_buffer[0];
@@ -72,7 +71,7 @@ std::streambuf::int_type bzip_streambuf::overflow(int_type ch)
             bzstream.next_out = &out_buffer[0];
             state = BZ2_bzCompress(&bzstream, BZ_RUN);
             if (state < 0) throw bzip_failure(state);
-            outstream.write(&(out_buffer[0]), out_buffer.size() - bzstream.avail_out);
+            outstream->write(&(out_buffer[0]), out_buffer.size() - bzstream.avail_out);
         } while (state == BZ_RUN_OK && bzstream.avail_in != 0);
         
         setp(&in_buffer.front(), &in_buffer.front() + buffer_size - 1);
@@ -125,13 +124,13 @@ int bzip_streambuf::bzip2stream(char* start, int avail)
 
 int bzip_streambuf::fill_buffer()
 {
-    instream.read(&in_buffer[0], buffer_size);
-    if (instream.fail() && !instream.eof()) throw std::ios_base::failure("read error");
+    instream->read(&in_buffer[0], buffer_size);
+    if (instream->fail() && !instream->eof()) throw std::ios_base::failure("read error");
    
     bzstream.next_in = &in_buffer[0];
-    bzstream.avail_in = instream.gcount();
+    bzstream.avail_in = instream->gcount();
     
-    return instream.gcount();
+    return instream->gcount();
 }
 
 int bzip_streambuf::sync()
@@ -156,8 +155,8 @@ void bzip_streambuf::flush()
         state = BZ2_bzCompress(&bzstream, BZ_FINISH);
         if (state < 0) throw bzip_failure(state);
 
-        outstream.write(&(out_buffer[0]), out_buffer.size() - bzstream.avail_out);
+        outstream->write(&(out_buffer[0]), out_buffer.size() - bzstream.avail_out);
     } while (state == BZ_FINISH_OK);
 
-    outstream.flush();
+    outstream->flush();
 }
