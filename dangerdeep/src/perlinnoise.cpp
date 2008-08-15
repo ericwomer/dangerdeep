@@ -455,7 +455,7 @@ perlinnoise3d::perlinnoise3d(unsigned size, unsigned sizeminfreq, unsigned sizem
 		// growing size, constant frequency
 		noise_functions.push_back(noise_func(size/(sizemaxfreq>>i), 1));
 		// alternative, always same size, but growing frequency
-//		noise_functions.push_back(noise_func(size/sizemaxfreq, 1<<i));
+		//noise_functions.push_back(noise_func(size/sizemaxfreq, 1<<i));
 	}
 
 	// create interpolation function
@@ -466,8 +466,6 @@ perlinnoise3d::perlinnoise3d(unsigned size, unsigned sizeminfreq, unsigned sizem
 		interpolation_func[i] = (1.0f - cosf(f)) * 0.5f;
 	}
 }
-
-
 
 void perlinnoise3d::set_phase(unsigned func, float px, float py, float pz)
 {
@@ -515,4 +513,27 @@ vector<float> perlinnoise3d::generate(float& minv, float& maxv) const
 	}
 
 	return result;
+}
+
+float perlinnoise3d::valuef(unsigned x, unsigned y, unsigned z, unsigned depth) const
+{
+	float dxyz = 1.0/resultsize;
+ 	x = x & (resultsize - 1);
+ 	y = y & (resultsize - 1);
+        z = z & (resultsize - 1);
+	float sum = 0, f = 1.0f;
+	unsigned k = std::min(depth, unsigned(noise_functions.size()));
+	for (unsigned i = 0; i < k; ++i) {
+		// we have to remove the part of x/y that will be
+		// integral and bigger than size later
+		int xx = (x << i) & (resultsize - 1);
+		int yy = (y << i) & (resultsize - 1);
+                int zz = (z << i) & (resultsize - 1);
+		float fx = dxyz * xx, fy = dxyz * yy, fz = dxyz * zz;
+                noise_functions[i].set_plane_for_interpolation(interpolation_func, fz);
+		noise_functions[i].set_line_for_interpolation(interpolation_func, fy);
+		sum += (int(noise_functions[i].interpolate(interpolation_func, fx))-128) * f;
+		f *= 0.5f;
+	}
+	return f;
 }

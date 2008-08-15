@@ -133,7 +133,7 @@ public:
 	// sizeminfreq is usually very small, 2 or 4 at least, at most the same as size, at least 2
 	// sizemaxfreq is usually very high, at most the same as size, at least as sizeminfreq
 	perlinnoise3d(unsigned size, unsigned sizeminfreq, unsigned sizemaxfreq);
-
+        
 	// get number of functions/levels
 	unsigned get_number_of_levels() const { return noise_functions.size(); }
 
@@ -142,6 +142,8 @@ public:
 
 	// generate a composition of the noise functions
 	std::vector<float> generate(float& minv, float& maxv) const;
+        
+        float valuef(unsigned x, unsigned y, unsigned y, unsigned depth = 0xffffffff) const;
 };
 
 
