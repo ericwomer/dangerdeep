@@ -121,7 +121,7 @@ else:
 	env = Environment(ENV = os.environ)
 
 	env.Append(CPPPATH = ['/usr/include/SDL', '/usr/include/GL'])
-	libpath = ['/usr/X11R6/lib']
+	libpath = ['/usr/lib', '/usr/lib/X11', '/usr/X11R6/lib']
 	gllibs = ['GL', 'GLU']
 	sdllibs = ['SDL', 'SDL_image']
 
@@ -224,32 +224,26 @@ print 'Using data dir: ' + datadir
 
 target_dir = '#build' + os.sep + build_dir
 source_base_dir = 'src'
+libpath = libpath + [target_dir]
+env.Append(LIBPATH = libpath)
 
 ################ configure
 conf = Configure(env)
 if (devel == 0):
-	if not conf.CheckLibWithHeader('GL', 'gl.h', 'C'):
-		print 'GL library must be installed!'
-		Exit(1)
-	if not conf.CheckLibWithHeader('GLU', 'glu.h', 'C'):
-		print 'GLU library must be installed!'
-		Exit(1)
-	if not conf.CheckLibWithHeader('SDL', 'SDL.h', 'C'):
-		print 'SDL library must be installed!'
-		Exit(1)
-	if not conf.CheckLibWithHeader('SDL_image', 'SDL_image.h', 'C'):
-		print 'SDL_image library must be installed!'
-		Exit(1)
-	if not conf.CheckLibWithHeader('SDL_mixer', 'SDL_mixer.h', 'C'):
-		print 'SDL_mixer library is needed for sound support!'
-		Exit(1)
-	if not conf.CheckLibWithHeader('fftw3', 'fftw3.h', 'C'):
-		print 'fftw3 library must be installed!'
-		Exit(1)
+	for i in ['GL', 'GLU', 'SDL', 'SDL_image', 'SDL_mixer', 'fftw3', 'bz2']:
+		if not conf.CheckLib(i):
+			print 'Library ' + i + ' is missing, it must be installed!'
+			Exit(1)
+	for i in ['gl.h', 'glu.h', 'SDL.h', 'SDL_image.h', 'SDL_mixer.h', 'fftw3.h', 'bzlib.h']:
+		if not conf.CheckHeader(i):
+			print 'Include file ' + i + ' is missing, install matching development library!'
+			Exit(1)
 	if conf.CheckLibWithHeader('fftw3f', 'fftw3.h', 'C'):
 		print 'fftw3 library supports float type. Using it...'
 		fftwlib = 'fftw3f'
 		conf.env.Append(CPPDEFINES = ['WITH_FLOAT_FFTW'])
+	else:
+		print 'fftw3 library does not support float type.'
 else:
 	fftwlib = 'fftw3f'
 	conf.env.Append(CPPDEFINES = ['WITH_FLOAT_FFTW'])	# developers always use float...
@@ -275,9 +269,6 @@ Help("""
 	""")
 
 ################ build
-libpath = libpath + [target_dir]
-env.Append(LIBPATH = libpath)
-
 f = open('version.txt', 'r')
 version = f.readlines()[0][:-1]
 f.close()
