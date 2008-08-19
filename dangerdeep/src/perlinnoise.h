@@ -143,7 +143,7 @@ public:
 	// generate a composition of the noise functions
 	std::vector<float> generate(float& minv, float& maxv) const;
         
-        float valuef(unsigned x, unsigned y, unsigned y, unsigned depth = 0xffffffff) const;
+        float valuef(unsigned x, unsigned y, unsigned z, unsigned depth = 0xffffffff) const;
 };
 
 
