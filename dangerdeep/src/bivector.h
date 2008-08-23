@@ -118,6 +118,7 @@ T bivector<T>::get_min() const
 	if (data.empty()) throw std::invalid_argument("bivector::get_min data empty");
 	T m = data[0];
 	bivector_FOREACH(m = std::min(m, data[z]))
+	return m;
 }
 
 template <class T>
@@ -126,6 +127,7 @@ T bivector<T>::get_max() const
 	if (data.empty()) throw std::invalid_argument("bivector::get_max data empty");
 	T m = data[0];
 	bivector_FOREACH(m = std::max(m, data[z]))
+	return m;
 }
 
 template <class T>
