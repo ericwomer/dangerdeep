@@ -29,6 +29,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 #include <stdexcept>
 #include <cstdlib>
+#include <algorithm>
+#include <sstream>
 
 //#include <iostream>
 
@@ -39,10 +41,38 @@ class bivector
  public:
 	bivector() {}
 	bivector(const vector2i& sz, const T& v = T()) : datasize(sz), data(sz.x*sz.y, v) {}
-	T& at(const vector2i& p) { return data[p.x + p.y*datasize.x]; }
-	const T& at(const vector2i& p) const { return data[p.x + p.y*datasize.x]; }
-	T& at(int x, int y) { return data[x + y*datasize.x]; }
-	const T& at(int x, int y) const { return data[x + y*datasize.x]; }
+	T& at(const vector2i& p) { 
+		if (p.x>=datasize.x || p.y>=datasize.y) {
+			std::stringstream ss;
+			ss << "bivector::at " << p;
+			throw std::out_of_range(ss.str());
+		}
+		return data[p.x + p.y*datasize.x]; 
+	}
+	const T& at(const vector2i& p) const { 
+		if (p.x>=datasize.x || p.y>=datasize.y) {
+			std::stringstream ss;
+			ss << "bivector::at " << p;
+			throw std::out_of_range(ss.str());
+		}		
+		return data[p.x + p.y*datasize.x]; 
+	}
+	T& at(int x, int y) { 
+		if (x>=datasize.x || y>=datasize.y) {
+			std::stringstream ss;
+			ss << "bivector::at x=" << x << " y="<<x;
+			throw std::out_of_range(ss.str());
+		}		
+		return data[x + y*datasize.x]; 
+	}
+	const T& at(int x, int y) const { 
+		return data[x + y*datasize.x]; 
+		if (x>=datasize.x || y>=datasize.y) {
+			std::stringstream ss;
+			ss << "bivector::at x=" << x << " y="<<x;
+			throw std::out_of_range(ss.str());
+		}		
+	}
 	T& operator[](const vector2i& p) { return at(p); }
 	const T& operator[](const vector2i& p) const { return at(p); }
 	const vector2i& size() const { return datasize; }
@@ -69,6 +99,8 @@ class bivector
 	bivector<T> downsampled(bool force_even_size = false) const;
 	T get_min() const;
 	T get_max() const;
+	T get_min_abs() const;
+	T get_max_abs() const;
 	bivector<T>& operator*= (const T& s);
 	bivector<T>& operator+= (const T& v);
 	bivector<T>& operator+= (const bivector<T>& v);
@@ -111,6 +143,7 @@ void bivector<T>::resize(const vector2i& newsz, const T& v)
 #define bivector_FOREACH(cmd) for (int z=0; z < int(data.size()); ++z) { cmd ; }
 #define bivector_FOREACH_XY(cmd) for (int y=0; y < datasize.y; ++y) for (int x=0; x < datasize.x; ++x) { cmd ; }
 #define bivector_FOREACH_XYZ(cmd) for (int y=0,z=0; y < datasize.y; ++y) for (int x=0; x < datasize.x; ++x,++z) { cmd ; }
+#define bivector_abs(x) ((x>0)?x:-x)
 
 template <class T>
 T bivector<T>::get_min() const
@@ -127,6 +160,25 @@ T bivector<T>::get_max() const
 	if (data.empty()) throw std::invalid_argument("bivector::get_max data empty");
 	T m = data[0];
 	bivector_FOREACH(m = std::max(m, data[z]))
+	return m;
+}
+
+
+template <class T>
+T bivector<T>::get_min_abs() const
+{
+	if (data.empty()) throw std::invalid_argument("bivector::get_min_abs data empty");
+	T m = bivector_abs(data[0]);
+	bivector_FOREACH(m = std::min(m, abs(data[z])))
+	return m;
+}
+
+template <class T>
+T bivector<T>::get_max_abs() const
+{
+	if (data.empty()) throw std::invalid_argument("bivector::get_max_abs data empty");
+	T m = bivector_abs(data[0]);
+	bivector_FOREACH(m = std::max(m, (T)abs(data[z])))
 	return m;
 }
 
@@ -367,8 +419,8 @@ bivector<T> bivector<T>::smooth_upsampled(bool wrap) const
 	for (int y=1; y < datasize.y-2; ++y) {
 		for (int x=0; x < resultsize.x; ++x) {
 			result.at(x, 2*y+1) = T(result.at(x, 2*y-2) * c1[0] +
-						result.at(x, 2*y  ) * c1[1] + 
-						result.at(x, 2*y+2) * c1[2] + 
+						result.at(x, 2*y  ) * c1[1] +
+						result.at(x, 2*y+2) * c1[2] +
 						result.at(x, 2*y+4) * c1[3]);
 		}
 	}
