@@ -138,6 +138,9 @@ env.Default(treegentest)
 geoclipmaptest = env.Program('geoclipmaptest', ['geoclipmaptest.cpp', 'height_generator_map.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
 env.Default(geoclipmaptest)
 
+map_tiles = env.Program('map_tiles', ['map_tiles.cpp'], LIBS = alllibs)
+env.Default(map_tiles)
+
 ############ this allows to run "scons install" to install the binary
 install = env.Alias('install', env.Install(installbindir, binary))
 env.Depends(install, binary)
