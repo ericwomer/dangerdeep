@@ -296,7 +296,7 @@ float perlinnoise::valuef(unsigned x, unsigned y, unsigned depth) const
 		sum += (int(noise_functions[i].interpolate(interpolation_func, fx))-128) * f;
 		f *= 0.5f;
 	}
-	return f;
+	return sum;
 }
 
 
@@ -517,23 +517,23 @@ vector<float> perlinnoise3d::generate(float& minv, float& maxv) const
 
 float perlinnoise3d::valuef(unsigned x, unsigned y, unsigned z, unsigned depth) const
 {
-	float dxyz = 1.0/resultsize;
+	float dxyz = 1.0f/resultsize;
  	x = x & (resultsize - 1);
  	y = y & (resultsize - 1);
-        z = z & (resultsize - 1);
+    z = z & (resultsize - 1);
 	float sum = 0, f = 1.0f;
 	unsigned k = std::min(depth, unsigned(noise_functions.size()));
 	for (unsigned i = 0; i < k; ++i) {
 		// we have to remove the part of x/y that will be
 		// integral and bigger than size later
-		int xx = (x << i) & (resultsize - 1);
-		int yy = (y << i) & (resultsize - 1);
-                int zz = (z << i) & (resultsize - 1);
-		float fx = dxyz * xx, fy = dxyz * yy, fz = dxyz * zz;
-                noise_functions[i].set_plane_for_interpolation(interpolation_func, fz);
+		//int xx = (x << i) & (resultsize - 1);
+		//int yy = (y << i) & (resultsize - 1);
+        //int zz = (z << i) & (resultsize - 1);
+		float fx = dxyz * x, fy = dxyz * y, fz = dxyz * z;
+        noise_functions[i].set_plane_for_interpolation(interpolation_func, fz);
 		noise_functions[i].set_line_for_interpolation(interpolation_func, fy);
-		sum += (int(noise_functions[i].interpolate(interpolation_func, fx))-128) * f;
+		sum += noise_functions[i].interpolate(interpolation_func, fx) * f;
 		f *= 0.5f;
 	}
-	return f;
+	return sum;
 }
