@@ -1,0 +1,6 @@
+<dftd-map>
+	<resolution value="60"/>
+	<height max="8440" min="-10800"/>
+	<bounds x="21600" y="10800" />
+	<origin x="10800" y="5400" />
+</dftd-map>
