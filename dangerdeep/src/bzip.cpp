@@ -147,7 +147,7 @@ int bzip_streambuf::sync()
 void bzip_streambuf::flush()
 {
     bzstream.next_in = &in_buffer[0];
-    bzstream.avail_in = pbase() - pptr();
+    bzstream.avail_in = pptr()-pbase();
 
     do {
         bzstream.avail_out = out_buffer.size();
