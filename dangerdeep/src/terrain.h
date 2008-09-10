@@ -42,17 +42,6 @@
 
 #define rad2deg(x) ((x*180.0)/M_PI)
 
-#define MF_H 0.0
-
-/* 0.7 for hybrid, 1.0 ridged */
-#define MF_OFFSET 1.0
-
-/* 2.0 for ridged (only used for ridged) */
-#define MF_GAIN 1.0
-
-#define MF_LACUNARITY .5
-
-
 template <class T>
 class terrain : public height_generator
 {
