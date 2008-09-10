@@ -1,8 +1,6 @@
 <dftd-map>
-	<resolution value="120"/>
-	<max latitude="324000" longitude="648000" height="8440" />
-	<min latitude="-324000" longitude="-648000" height="-10800" />
-
-	<!-- 0 = LSB / 1 = MSB -->
-	<byte-order value="0" />
+	<resolution value="60"/>
+	<height max="8440" min="-10800"/>
+	<bounds x="21600" y="10800" />
+	<origin x="10800" y="5400" />
 </dftd-map>
