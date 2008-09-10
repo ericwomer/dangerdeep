@@ -45,7 +45,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <SDL.h>
 #include <SDL_net.h>
 
-#include "rastered_map.h"
+#include "terrain.h"
 #include "system.h"
 #include "vector3.h"
 #include "model.h"
@@ -815,7 +815,7 @@ font* font_arial = 0;
 void run()
 {
 
-#if 1
+#if 0
     float camadd = 700;
 #if 1
     //height_generator_test1 hgt;
@@ -829,8 +829,8 @@ void run()
 #endif
 #else	
     float camadd = -4500.0;
-    rastered_map terrain(get_map_dir() + "/ETOPO2v2c_i2_LSB.xml", get_map_dir() + "/ETOPO2v2c_i2_LSB.bin", 11);
-    geoclipmap gcm(10, 8, terrain);
+    terrain<Sint16> m_terrain(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", 11);
+    geoclipmap gcm(10, 8, m_terrain);
 #endif
 
     //gcm.set_viewerpos(vector3(0, 0, 30.0));
