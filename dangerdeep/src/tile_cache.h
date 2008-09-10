@@ -143,6 +143,13 @@ template<class T>
 T tile_cache<T>::get_value(vector2l& coord) 
 {
 	T return_value;
+
+	/* wrap coordinates if needed */
+	if (coord.x >= configuration.overall_cols) coord.x-= configuration.overall_cols;
+	if (coord.y >= configuration.overall_cols) coord.y-= configuration.overall_cols;
+	if (coord.x < 0) coord.x+= configuration.overall_cols;
+	if (coord.y < 0) coord.y+= configuration.overall_cols;
+
 	vector2l tile_coord = coord_to_tile(coord);
 	tile_list_iterator it = tile_list.find(tile_coord);
 	
