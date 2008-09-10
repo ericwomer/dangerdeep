@@ -109,7 +109,6 @@ osspecificsrc_obj = [env.Object(source = x) for x in osspecificsrc]
 env.StaticLibrary(target = 'dftdmedia', source = dftdmediasources, LIBS = gfxlibs)
 filehelper_obj = env.Object(source = 'filehelper.cpp')
 widget_obj = env.Object(source = 'widget.cpp')
-map_obj = env.Object(source = 'rastered_map.cpp')
 datadirsobj = env.StaticObject('datadirs.cpp', CPPDEFINES = [('DATADIR', '\\"' + datadir + '/\\"')])
 globaldataobj = env.StaticObject('global_data.cpp', CPPDEFINES = [('VERSION', '\\"' + version + '\\"')])
 frustum_obj = env.Object(source = 'frustum.cpp')
@@ -136,7 +135,7 @@ env.Default(portal)
 treegentest = env.Program('treegentest', ['treegentest.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
 env.Default(treegentest)
 
-geoclipmaptest = env.Program('geoclipmaptest', ['geoclipmaptest.cpp', 'height_generator_map.cpp', 'bzip.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj, map_obj], LIBS = alllibs)
+geoclipmaptest = env.Program('geoclipmaptest', ['geoclipmaptest.cpp', 'height_generator_map.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
 env.Default(geoclipmaptest)
 
 ############ this allows to run "scons install" to install the binary
