@@ -121,7 +121,6 @@ else:
 	env = Environment(ENV = os.environ)
 
 	env.Append(CPPPATH = ['/usr/include/SDL', '/usr/include/GL'])
-	libpath = ['/usr/lib', '/usr/lib/X11', '/usr/X11R6/lib']
 	gllibs = ['GL', 'GLU']
 	sdllibs = ['SDL', 'SDL_image']
 
@@ -134,6 +133,16 @@ else:
 		arch = 'x86-64'
 	else:
 		arch = 'i686'
+
+	# Set libpath accordingly
+	
+	if arch == 'x86-64':
+		archlib = '/usr/lib64'
+	else:
+		archlib = '/usr/lib'
+
+	# Set libpath for real
+	libpath = [archlib, '/usr/lib/X11', '/usr/X11R6/lib']
 
 	# allow arch to be over-ridden if need be.
 	if archflag != '':
