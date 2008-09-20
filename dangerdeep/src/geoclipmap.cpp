@@ -20,11 +20,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "geoclipmap.h"
 #include "global_data.h"
 
-//fixme: mirrored terrain doesn't display correctly,
-//this is a clipping problem! either we mirror all coordinates
-//or we mirror the frustum. both approaches failed on first try
-//it seems mirroring the frustum would be easier...
-
 /*
 Note: the geoclipmap renderer code can't handle levels < 0 yet, so no
 extra geometry is rendered that is finer than the stored data and thus generated.
