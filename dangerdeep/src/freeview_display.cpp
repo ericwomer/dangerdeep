@@ -66,7 +66,7 @@ freeview_display::projection_data freeview_display::get_projection_data(game& gm
 
 
 
-void freeview_display::set_modelview_matrix(game& gm, const vector3& viewpos) const
+void freeview_display::set_modelview_matrix(game& gm, const vector3& /*viewpos*/) const
 {
 	glLoadIdentity();
 
@@ -423,9 +423,16 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		//   sky
 		ui.get_sky().display(gm.compute_light_color(viewpos_mirror), viewpos_mirror, max_view_dist, true);
 
-		//   terrain
+		glPopMatrix();
+
+		//   terrain - it handles z-flipping itself
 		glColor4f(1,1,1,1);//fixme: fog is missing
 		ui.draw_terrain(viewpos_mirror, ui.get_absolute_bearing(), max_view_dist, true/*mirrored*/);
+
+		glPushMatrix();
+		// flip geometry at z=0 plane
+		glScalef(1.0f, 1.0f, -1.0f);
+
 		//fixme
 		//   models/smoke
 		// test hack. limit mirror effect only to near objects?
@@ -642,15 +649,6 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 //	glDisable(GL_FOG);	//testing with new 2d bspline terrain.
 	ui.draw_terrain(viewpos, ui.get_absolute_bearing(), max_view_dist, false/*not mirrored*/);
 //	glEnable(GL_FOG);	
-
-/* test hack, remove
-	glCullFace(GL_FRONT);
-	glPushMatrix();
-	glScalef(1,1,-1);
-	draw_terrain(viewpos, dir, max_view_dist);
-	glCullFace(GL_BACK);
-	glPopMatrix();
-*/
 
 	// ******************** ships & subs *************************************************
 //	cout << "mv trans pos " << matrix4::get_gl(GL_MODELVIEW_MATRIX).column(3) << "\n";

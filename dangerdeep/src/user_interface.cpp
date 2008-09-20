@@ -549,10 +549,15 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 	glPopMatrix();
 #endif
 
+	// frustum is mirrored inside geoclipmap
 	frustum viewfrustum = frustum::from_opengl();
+	glPushMatrix();
+	if (mirrored)
+		glScalef(1.0f, 1.0f, -1.0f);
 	viewfrustum.translate(-viewpos);
 	mygeoclipmap->set_viewerpos(viewpos);
 	mygeoclipmap->display(viewfrustum, -viewpos, mirrored);
+	glPopMatrix();
 }
 
 
