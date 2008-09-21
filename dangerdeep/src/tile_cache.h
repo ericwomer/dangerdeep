@@ -40,7 +40,8 @@ class tile_cache
 public:
 	
 	/* A simple struct which holds all configuration related variables. Just gives a cleaner code. */
-	struct config_type {
+	struct config_type
+	{
 		std::string 	tile_folder;
 		int 			overall_rows;
 		int 			overall_cols;
@@ -51,11 +52,12 @@ public:
 	};
 	
 	/* The compare function for the std::map */
-	typedef struct {
+	struct coord_compare
+	{
  		bool operator()(const vector2l& lhs, const vector2l& rhs) const {
 			return (lhs.x<rhs.x || lhs.y<rhs.y);
 		}
-	} coord_compare;
+	};
 		
 	/* Iterator type to iterate through the tile map */
 	typedef typename std::map<vector2l, tile<T>, coord_compare>::iterator tile_list_iterator;
