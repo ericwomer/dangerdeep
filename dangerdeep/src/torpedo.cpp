@@ -457,10 +457,6 @@ void torpedo::steering_logic()
 	// but converges quickly.
 	double error1 = (rudder.max_angle/rudder.max_turn_speed) * turn_velocity * 1.5;
 	double error = error0 + error1;
-	// we set rudder angle directly here (a bit cheating).
-	// in reality the torpedo could set any angle quickly, so it would be
-	// a bit more difficult to steer, but it shouldn't make a big difference
-	// for a realistic simulation.
 	//log_debug("torpedo steering, speed="<<local_velocity.y<<" anglediff="<<anglediff<<" error="<<error0<<"+"<<error1<<"="<<error<<" angle="<<rudder.angle<<" turn_v="<<turn_velocity);
 	double rd = myclamp(error, -5.0, 5.0);
 	rudder.to_angle = rudder.max_angle * rd / 5.0;
