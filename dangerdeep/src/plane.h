@@ -85,7 +85,7 @@ public:
 	}
 	/// translate
 	void translate(const vector3t<D>& delta) {
-		d += delta * N;
+		d -= delta * N;
 	}
 	/// compute pivot point
 	vector3t<D> get_pivot() const {
