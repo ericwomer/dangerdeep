@@ -541,10 +541,10 @@ void user_interface::show_target(double vx, double vy, double w, double h, const
 void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 				  double max_view_dist, bool mirrored) const
 {
-#if 1	// terrain pulls fps down from 45 to 33...
-	terraintex.get()->set_gl_texture();
+#if 1
 	glPushMatrix();
 	glTranslated(0, 0, -viewpos.z);
+	// still needed to render the props.
 	mycoastmap.render(viewpos.xy(), max_view_dist, mirrored);
 	glPopMatrix();
 #endif
