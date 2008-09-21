@@ -55,8 +55,6 @@ public:
 		void print() const;	// for debugging
 		segcl(int glcn = -1) : global_clnr(glcn), beginpos(-1), endpos(-1), next(-1), cyclic(false) {}
 		void push_back_point(const segpos& sp);	// avoids double points
-		void render(const class coastmap& cm, int segx, int segy, const vector2& p,
-			    int detail) const;
 	};
 
 	unsigned type;	// 0 - sea, 1 - land, 2 mixed
@@ -84,8 +82,6 @@ public:
 	coastsegment(/*unsigned topon, const std::vector<float>& topod*/) : type(0), /*topo(topon, topod),*/ pointcachedetail(0) {}
 	
 	void draw_as_map(const class coastmap& cm, int x, int y, int detail = 0) const;
-	// p is position of viewer relative to segment
-	void render(const class coastmap& cm, int x, int y, const vector2& p, int detail = 0) const;
 };
 
 
