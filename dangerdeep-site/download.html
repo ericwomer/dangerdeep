@@ -66,18 +66,19 @@
 
 		<h3>CVS</h3>
 		<p>If you are feeling brave and want to compile the latest version from the repository you can get the code and data by running the commands:</p>
-		<div class="code">cvs -d:pserver:anonymous@dangerdeep.cvs.sourceforge.net:/cvsroot/dangerdeep login</div>
+		<div class="code">svn co https://dangerdeep.svn.sourceforge.net/svnroot/dangerdeep dangerdeep</div>
+		<!-- <div class="code">cvs -d:pserver:anonymous@dangerdeep.cvs.sourceforge.net:/cvsroot/dangerdeep login</div> 
 		<p>When prompted for a password for anonymous, simply press the Enter key. Then to checkout the files:</p>
 		<div class="code">cvs -z3 -d:pserver:anonymous@dangerdeep.cvs.sourceforge.net:/cvsroot/dangerdeep co -P dangerdeep</div>
-		<p>This will print out lots of things but when it is done and has returned a prompt you should have a folder called dangerdeep. To update the checkout simply make sure you are in the dangerdeep folder and run:</p>
-		<div class="code">cvs update -Pd</div>
+		<p>This will print out lots of things but when it is done and has returned a prompt you should have a folder called dangerdeep.-->
+		<p>To update the checkout simply make sure you are in the dangerdeep folder and run:</p>
+		<div class="code">svn update</div>
 		<p>We use the build system scons, so to compile a debug version try the command:</p>
-		<div class="code">scons debug=1 usex86sse=-1 datadir=/path/to/cvs/dangerdeep/data</div>
+		<div class="code">scons debug=1 datadir=/path/to/cvs/dangerdeep/data</div>
 		<p>Explanation of the options:</p>
 		<ul>
 			<li>debug=1 Makes the build debug (valid values are 0-3)</li>
-			<li>usex86sse=-1 Disables use of any SSE instructions</li>
-			<li>datadir=/path/to/cvs/dangerdeep/data Set this to the path of were you did your CVS checkout otherwise you may encounter issues of the game using either old or non-existent data files and then crashing</li>
+			<li>datadir=/path/to/cvs/dangerdeep/data Set this to the path of were you did your SVN checkout otherwise you may encounter issues of the game using either old or non-existent data files and then crashing</li>
 		</ul>
 
 		<div class="ie_center">
