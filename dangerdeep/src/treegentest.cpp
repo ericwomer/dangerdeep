@@ -127,7 +127,7 @@ int mymain(list<string>& args)
 
  	delete font_arial;
 
-	system::release_instance();
+	system::destroy_instance();
 
 	return 0;
 }

@@ -2001,14 +2001,14 @@ int mymain(list<string>& args)
 	hsl_career.save(highscoredirectory + HSL_CAREER_NAME);
 	mycfg.save(configdirectory + "config");
 
-	data_file_handler::release_instance();
-	cfg::release_instance();
+	data_file_handler::destroy_instance();
+	cfg::destroy_instance();
 	widget::set_theme(auto_ptr<widget::theme>(0));	// clear allocated theme
 	deinit_global_data();
 	gbd.reset();
-	music::release_instance();
-	system::release_instance();
-	log::release_instance();
+	music::release_instance()->destruct(); // kill thread
+	system::destroy_instance();
+	log::destroy_instance();
 
 	return 0;
 }

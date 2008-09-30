@@ -1039,7 +1039,7 @@ int mymain(list<string>& args)
 
     run();
 
-    system::release_instance();
+    system::destroy_instance();
 
     return 0;
 }

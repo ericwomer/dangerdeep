@@ -36,7 +36,9 @@ class singleton
 
 	static void create_instance(D* ptr) { D*& p = instance_ptr(); delete p; p = ptr; }
 
-	static void release_instance() { D*& p = instance_ptr(); delete p; p = 0; }
+	static void destroy_instance() { D*& p = instance_ptr(); delete p; p = 0; }
+
+	static D* release_instance() { D*& p = instance_ptr(); D* ptr = p; p = 0; return ptr; }
 
  protected:
 	singleton() {}
