@@ -1297,7 +1297,7 @@ void menu_misc()
 	int y = (curr_res.y - hg)/2;
 	widget_menu* wm = new widget_menu(x, y, wd, 40, texts::get(107));
 	widget_checkbox* whqsfx = new widget_checkbox(x, y + 60, wd, 40, cfg::instance().getb("use_hqsfx"), texts::get(111));
-	widget_slider* terrain_lod = new widget_slider(x, y + 120, wd, 80, texts::get(112), 1, 15, cfg::instance().geti("terrain_detail"), 1);
+	widget_slider* terrain_lod = new widget_slider(x, y + 120, wd, 80, texts::get(112), 3, 9, cfg::instance().geti("terrain_detail"), 1);
 	widget_button* wcb = new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, x, y + 240, wd, 40, texts::get(20));  
 
 	w.add_child(wm);
@@ -1692,7 +1692,7 @@ int mymain(list<string>& args)
 	mycfg.register_option("debug", false);
 	mycfg.register_option("sound", true);
 	mycfg.register_option("use_hqsfx", true);
-	mycfg.register_option("terrain_detail", 11);
+	mycfg.register_option("terrain_detail", 5);
 	mycfg.register_option("water_detail", 128);
 	mycfg.register_option("wave_fft_res", 128);
 	mycfg.register_option("wave_phases", 256);
