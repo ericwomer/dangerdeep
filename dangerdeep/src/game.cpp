@@ -196,9 +196,8 @@ game::game()
 
 	mywater.reset(new water(0.0));
 
-	//myheightgen.reset(new height_generator_map("default.xml"));
-	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", 11));
-
+	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", cfg::instance().geti("terrain_detail")+1));
+	
 #if 0
 	if (cfg::instance().geti("cpucores") > 1) {
 		log_info("game: Using extra worker for multicore acceleration.");
@@ -270,7 +269,7 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	mywater.reset(new water(time));
 
 	//myheightgen.reset(new height_generator_map("default.xml"));
-	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", 11));
+	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", cfg::instance().geti("terrain_detail")+1));
 
 	// Convoy-constructor creates all the objects and spawns them in this game object.
 	// fixme: creation of convoys should be rather moved to this class, so object creation
@@ -391,7 +390,7 @@ game::game(const string& filename)
 	mywater.reset(new water(time));
 
 	//myheightgen.reset(new height_generator_map("default.xml"));
-	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", 11));
+	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", cfg::instance().geti("terrain_detail")+1));
 
 	// create empty objects so references can be filled.
 	// there must be ships in a mission...
