@@ -54,6 +54,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "keys.h"
 #include "global_data.h"
 #include "music.h"
+#include "log.h"
 using namespace std;
 
 const double message_vanish_time = 10;
@@ -268,8 +269,10 @@ user_interface::user_interface(game& gm) :
 
 	particle::init();
 
-	unsigned nr_levels = 1 + ulog2(unsigned(30000.0/(1 << cfg::instance().geti("terrain_detail"))/
-		mygame->get_height_gen().get_sample_spacing()));
+	double sample_spacing = mygame->get_height_gen().get_sample_spacing();
+	unsigned nr_levels = 1 + ulog2(unsigned(30000.0/(1 << cfg::instance().geti("terrain_detail"))/sample_spacing));
+	log_debug("terrain detail " << cfg::instance().geti("terrain_detail") << " levels " << nr_levels << " samplespacing "
+		<< sample_spacing);
 	mygeoclipmap.reset(new geoclipmap(nr_levels, cfg::instance().geti("terrain_detail"), mygame->get_height_gen()));
 
 	add_loading_screen("user interface initialized");
