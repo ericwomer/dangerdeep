@@ -872,15 +872,15 @@ bool choose_player_info(game::player_info& pi, const std::string& subtype, const
 	for (unsigned i = 1; i <= 11; ++i)
 		playerphotos.push_back(std::string("player_photo") + str(i));
 
-	w.add_child(new widget_text(652+60, 40+10, 0, 0, texts::get(162)));
+	w.add_child(new widget_text(661+20, 40+30, 0, 0, texts::get(162)));
 
-	widget_image_select* wplayerphoto = new widget_image_select(652+45, 40+45, 205, 300, ".jpg|png", playerphotos);
+	widget_image_select* wplayerphoto = new widget_image_select(661, 40+45, 205, 300, ".jpg|png", playerphotos);
 	w.add_child(wplayerphoto);
 
-	widget_button_next *widget_image_left_btn = new widget_button_next(652+10, 40+150, 25, 80, -1, wplayerphoto, "", "BG_btn_left.png");
+	widget_button_next *widget_image_left_btn = new widget_button_next(661-35, 40+150, 25, 80, -1, wplayerphoto, "", "BG_btn_left.png");
 	w.add_child(widget_image_left_btn);
 
-	widget_button_next *widget_image_right_btn = new widget_button_next(652+260, 40+150, 25, 80, 1, wplayerphoto, "", "BG_btn_right.png");
+	widget_button_next *widget_image_right_btn = new widget_button_next(661+215, 40+150, 25, 80, 1, wplayerphoto, "", "BG_btn_right.png");
 	w.add_child(widget_image_right_btn);
 	
 	w.add_child(wemblem);
