@@ -1,3 +1,4 @@
+
 /*
 Danger from the Deep - Open source submarine simulation
 Copyright (C) 2003-2006  Thorsten Jordan, Luis Barrancos and others.
@@ -66,7 +67,7 @@ public:
 	};
 
 	videoplay(const std::string& filename, unsigned queue_len = 8);
-	void display_loop(double current_time); // fixme: pause doesnt work so...
+	void display_loop(double delta_time);
 	bool video_finished();
 	void request_abort();
 
@@ -74,6 +75,8 @@ protected:
 	~videoplay();
 	void loop();
 	void display(framebuffer& fb);
+	static int call_get_buffer(struct AVCodecContext *c, AVFrame *pic);
+	static void call_release_buffer(struct AVCodecContext *c, AVFrame *pic);
 
 	std::vector<framebuffer> fb_queue;
 	std::list<unsigned> decoded_pictures, free_buffers;
@@ -82,6 +85,7 @@ protected:
 	double playback_starttime;
 	bool playback_started;
 	double current_playtime;
+	double real_time;
 
 	int vstr_idx;
 	struct AVFormatContext* ictx;
@@ -91,6 +95,7 @@ protected:
 	struct AVFrame* picture;
 	unsigned frame_nr;
 	bool eof;
+	double next_frame_pts;
 
 	texture::ptr tex_y, tex_uv;
 	glsl_shader_setup myshader;
@@ -104,6 +109,7 @@ videoplay::videoplay(const std::string& filename, unsigned queue_len)
 	  playback_starttime(-1.0),
 	  playback_started(false),
 	  current_playtime(0.0),
+	  real_time(0.0),
 	  vstr_idx(-1),
 	  ictx(0),
 	  ifmt(0),
@@ -111,6 +117,7 @@ videoplay::videoplay(const std::string& filename, unsigned queue_len)
 	  picture(0),
 	  frame_nr(0),
 	  eof(false),
+	  next_frame_pts(-1.0),
 	  myshader(get_shader_dir() + "videoplay.vshader",
 		   get_shader_dir() + "videoplay.fshader")
 {
@@ -164,6 +171,11 @@ videoplay::videoplay(const std::string& filename, unsigned queue_len)
 			if (context->thread_opaque) avcodec_thread_free(context);
 			throw error("avcodec_open() failed");
 		}
+
+		context->opaque = this;
+		context->get_buffer = call_get_buffer;
+		context->release_buffer = call_release_buffer;
+
 	} catch (...) {
 		if (picture) av_freep(&picture);
 		av_close_input_file(ictx);
@@ -190,15 +202,19 @@ void videoplay::loop()
 				break;
 
 			}
-			// should never happen here... fixme
+			// should never happen... error reading file, try again next frame
 			return;
 		}
 	} while (ipkt.stream_index != vstr_idx);
+
+	double stamp = double((ipkt.pts == AV_NOPTS_VALUE) ? ipkt.dts : ipkt.pts) *
+		ictx->streams[vstr_idx]->time_base.num / ictx->streams[vstr_idx]->time_base.den;
 
 	// decode frame
 	int got_picture = 0;
 	avcodec_get_frame_defaults(picture);
 	AVCodecContext* ctx = ictx->streams[vstr_idx]->codec;
+	next_frame_pts = stamp;
 	if (eof)
 		avcodec_decode_video(ctx, picture, &got_picture, 0, 0);
 	else
@@ -210,6 +226,7 @@ void videoplay::loop()
 		return;
 	}
 	++frame_nr;
+	stamp = *(double*)picture->opaque;
 
 	// wait for free buffer
 	int bufnr = -1;
@@ -248,7 +265,7 @@ void videoplay::loop()
 	fb.height = h;
 	fb.empty = false;
 	fb.aspect_ratio = double(ctx->sample_aspect_ratio.num * w) / (ctx->sample_aspect_ratio.den * h);
-	fb.time_stamp = frame_nr * 0.04; // fixme, use ctx->timebase and/or str->timebase
+	fb.time_stamp = stamp;
 
 	// report as ready
 	{
@@ -257,20 +274,24 @@ void videoplay::loop()
 	}
 }
 
-void videoplay::display_loop(double current_time)
+void videoplay::display_loop(double delta_time)
 {
-	if (!playback_started) {
-		//fixme: start not before half of the buffers are filled!
-		playback_starttime = current_time;
-		playback_started = true;
-	}
+	real_time += delta_time;
+
 	// check if there is a picture to display
 	int bufnr = -1;
+	unsigned nr_full_buffers = 0;
 	{
 		mutex_locker ml(queue_mtx);
 		if (!decoded_pictures.empty()) {
+			nr_full_buffers = decoded_pictures.size();
 			bufnr = decoded_pictures.front();
-			if (fb_queue[bufnr].time_stamp <= (current_time - playback_starttime))
+			if (!playback_started && nr_full_buffers >= fb_queue.size() / 2) {
+				playback_starttime = fb_queue[bufnr].time_stamp;
+				playback_started = true;
+			}
+			if (playback_started &&
+			    fb_queue[bufnr].time_stamp <= (real_time + playback_starttime))
 				decoded_pictures.pop_front();
 			else
 				bufnr = -1;
@@ -280,7 +301,7 @@ void videoplay::display_loop(double current_time)
 		return;
 
 	// display the buffer
-	current_playtime = current_time - playback_starttime;
+	current_playtime = fb_queue[bufnr].time_stamp;
 	display(fb_queue[bufnr]);
 
 	// report as ready/free
@@ -344,6 +365,22 @@ void videoplay::display(framebuffer& fb)
 	}
 	tex_y->draw(x, y, w, h);
 	myshader.use_fixed();
+}
+
+int videoplay::call_get_buffer(struct AVCodecContext *c, AVFrame *pic)
+{
+	int ret = avcodec_default_get_buffer(c, pic);
+	double* pts = (double*)av_malloc(sizeof(double));
+	*pts = ((videoplay*)(c->opaque))->next_frame_pts;
+	pic->opaque = pts;
+	return ret;
+}
+
+
+void videoplay::call_release_buffer(struct AVCodecContext *c, AVFrame *pic)
+{
+	if (pic) av_freep(&pic->opaque);
+	avcodec_default_release_buffer(c, pic);
 }
 
 // ------------------------------------------- code ---------------------------------------
@@ -417,6 +454,7 @@ int mymain(list<string>& args)
     bool quit = false;
     thread::auto_ptr<videoplay> vpl(new videoplay(filename));
     vpl->start();
+    unsigned tm = sys().millisec();
     while (!quit) {
         list<SDL_Event> events = sys().poll_event_queue();
         for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
@@ -432,6 +470,7 @@ int mymain(list<string>& args)
             }
             if (it->type == SDL_MOUSEBUTTONDOWN) {
 		    paused = !paused;
+		    tm = sys().millisec();
             }
         }
 	if (quit)
@@ -444,8 +483,11 @@ int mymain(list<string>& args)
         sys().prepare_2d_drawing();
 
 	// render...
-	if (!paused)
-		vpl->display_loop(sys().millisec()/1000.0);
+	if (!paused) {
+		unsigned tm2 = sys().millisec();
+		vpl->display_loop((tm2 - tm)/1000.0);
+		tm = tm2;
+	}
 
         // record fps
         /*float fps = */ fpsm.account_frame();
