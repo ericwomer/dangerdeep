@@ -37,6 +37,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "shader.h"
 #include "fpsmeasure.h"
 #include "log.h"
+#include "datadirs.h"
 #include "mymain.cpp"
 
 
@@ -92,6 +93,8 @@ protected:
 	bool eof;
 
 	texture::ptr tex_y, tex_uv;
+	glsl_shader_setup myshader;
+	unsigned loc_tex_y, loc_tex_uv;
 };
 
 
@@ -107,10 +110,17 @@ videoplay::videoplay(const std::string& filename, unsigned queue_len)
 	  codec(0),
 	  picture(0),
 	  frame_nr(0),
-	  eof(false)
+	  eof(false),
+	  myshader(get_shader_dir() + "videoplay.vshader",
+		   get_shader_dir() + "videoplay.fshader")
 {
 	for (unsigned i = 0; i < queue_len; ++i)
 		free_buffers.push_back(i);
+
+	myshader.use();
+	loc_tex_y = myshader.get_uniform_location("tex_y");
+	loc_tex_uv = myshader.get_uniform_location("tex_uv");
+	myshader.use_fixed();
 
 	// open file
 	avcodec_init();
@@ -306,11 +316,14 @@ void videoplay::display(framebuffer& fb)
 	}
 	if (!tex_y.get()) {
 		tex_y.reset(new texture(fb.width, fb.height, GL_LUMINANCE, texture::LINEAR, texture::CLAMP_TO_EDGE));
-		// no UV filtering, so use nearest!
+		// no UV filtering, so use nearest! - we could place UV in planes, not interleaved...
 		tex_uv.reset(new texture(fb.width, fb.height/2, GL_LUMINANCE_ALPHA, texture::NEAREST, texture::CLAMP_TO_EDGE));
 	}
 	tex_y->sub_image(0, 0, fb.width, fb.height, fb.y, GL_LUMINANCE);
 	tex_uv->sub_image(0, 0, fb.width, fb.height/2, fb.uv, GL_LUMINANCE_ALPHA);
+	myshader.use();
+	myshader.set_gl_texture(*tex_y, loc_tex_y, 0);
+	myshader.set_gl_texture(*tex_uv, loc_tex_uv, 1);
 	// we assume square pixels for display
 	const unsigned sw = sys().get_res_x_2d(), sh = sys().get_res_y_2d();
 	double display_aspect_ratio = double(sw) / sh;
@@ -329,6 +342,7 @@ void videoplay::display(framebuffer& fb)
 		y = (sh - h) / 2;
 	}
 	tex_y->draw(x, y, w, h); //fixme with shaders
+	myshader.use_fixed();
 }
 
 // ------------------------------------------- code ---------------------------------------
