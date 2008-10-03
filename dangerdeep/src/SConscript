@@ -2,7 +2,7 @@
 import os
 import sys
 
-Import('env', 'gfxlibs', 'alllibs', 'installbindir', 'datadir', 'version', 'osspecificsrc')
+Import('env', 'gfxlibs', 'alllibs', 'installbindir', 'datadir', 'version', 'osspecificsrc', 'ffmpeg_available')
 
 ################## define sources #######################
 dftdsources = Split("""subsim.cpp
@@ -137,6 +137,11 @@ env.Default(treegentest)
 
 geoclipmaptest = env.Program('geoclipmaptest', ['geoclipmaptest.cpp', 'height_generator_map.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
 env.Default(geoclipmaptest)
+
+if ffmpeg_available:
+	env.Append(CPPPATH = '/usr/include/ffmpeg')
+	videoplaytest = env.Program('videoplaytest', ['videoplaytest.cpp', datadirsobj, filehelper_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs + ['avcodec', 'avformat'])
+	env.Default(videoplaytest)
 
 map_tiles = env.Program('map_tiles', ['map_tiles.cpp'], LIBS = alllibs)
 env.Default(map_tiles)

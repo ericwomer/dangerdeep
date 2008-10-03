@@ -160,8 +160,8 @@ videoplay::videoplay(const std::string& filename, unsigned queue_len)
 		}
 
 		if (avcodec_open(context, codec) < 0) {
-			// cleanup threads (avcodec_close does it else), fixme is this still needed?
-			//if (context->thread_opaque) avcodec_thread_free(context);
+			// cleanup threads (avcodec_close does it else)
+			if (context->thread_opaque) avcodec_thread_free(context);
 			throw error("avcodec_open() failed");
 		}
 	} catch (...) {
@@ -172,7 +172,7 @@ videoplay::videoplay(const std::string& filename, unsigned queue_len)
 
 videoplay::~videoplay()
 {
-	avcodec_close(ictx->streams[vstr_idx]->codec);
+	avcodec_close(ictx->streams[vstr_idx]->codec);	// also calls avcodec_thread_free()
 	av_freep(&picture);
 	av_close_input_file(ictx);
 	av_free_packet(&ipkt);

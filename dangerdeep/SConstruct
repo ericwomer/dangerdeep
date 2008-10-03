@@ -238,6 +238,7 @@ env.Append(LIBPATH = libpath)
 
 ################ configure
 conf = Configure(env)
+ffmpeg_available = False
 if (devel == 0):
 	for i in ['GL', 'GLU', 'SDL', 'SDL_image', 'SDL_mixer', 'fftw3', 'bz2']:
 		if not conf.CheckLib(i):
@@ -253,6 +254,9 @@ if (devel == 0):
 		conf.env.Append(CPPDEFINES = ['WITH_FLOAT_FFTW'])
 	else:
 		print 'fftw3 library does not support float type.'
+	if conf.CheckLibWithHeader('avutil', 'ffmpeg/libavutil/avutil.h', 'C'):
+		print 'libavutil found...'
+		ffmpeg_available = True
 else:
 	fftwlib = 'fftw3f'
 	conf.env.Append(CPPDEFINES = ['WITH_FLOAT_FFTW'])	# developers always use float...
@@ -282,7 +286,7 @@ f = open('version.txt', 'r')
 version = f.readlines()[0][:-1]
 f.close()
 
-Export('env', 'gfxlibs', 'alllibs', 'installbindir', 'datadir', 'version', 'osspecificsrc')
+Export('env', 'gfxlibs', 'alllibs', 'installbindir', 'datadir', 'version', 'osspecificsrc', 'ffmpeg_available')
 
 SConscript(source_base_dir + os.sep + 'SConscript', build_dir = target_dir, duplicate = 0)
 
