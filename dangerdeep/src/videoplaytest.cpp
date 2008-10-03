@@ -226,7 +226,13 @@ void videoplay::loop()
 		return;
 	}
 	++frame_nr;
-	stamp = *(double*)picture->opaque;
+	// do this only when pts reordering is needed (always except for AVIs and MP4s)
+	// or always use DTS, that is always linear
+	// can we request that modus from context->b_frame
+	//log_debug(ctx->max_b_frames<<","<<ctx->has_b_frames);
+	// with this tricks it works mostly
+	if (ctx->has_b_frames == 1)
+		stamp = *(double*)picture->opaque;
 
 	// wait for free buffer
 	int bufnr = -1;
@@ -286,7 +292,7 @@ void videoplay::display_loop(double delta_time)
 		if (!decoded_pictures.empty()) {
 			nr_full_buffers = decoded_pictures.size();
 			bufnr = decoded_pictures.front();
-			if (!playback_started && nr_full_buffers >= fb_queue.size() / 2) {
+			if (!playback_started && nr_full_buffers == fb_queue.size()) {
 				playback_starttime = fb_queue[bufnr].time_stamp;
 				playback_started = true;
 			}
