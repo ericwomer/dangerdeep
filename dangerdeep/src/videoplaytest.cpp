@@ -317,13 +317,14 @@ void videoplay::display(framebuffer& fb)
 	if (!tex_y.get()) {
 		tex_y.reset(new texture(fb.width, fb.height, GL_LUMINANCE, texture::LINEAR, texture::CLAMP_TO_EDGE));
 		// no UV filtering, so use nearest! - we could place UV in planes, not interleaved...
-		tex_uv.reset(new texture(fb.width, fb.height/2, GL_LUMINANCE_ALPHA, texture::NEAREST, texture::CLAMP_TO_EDGE));
+		tex_uv.reset(new texture(fb.width/2, fb.height/2, GL_LUMINANCE_ALPHA, texture::NEAREST, texture::CLAMP_TO_EDGE));
 	}
 	tex_y->sub_image(0, 0, fb.width, fb.height, fb.y, GL_LUMINANCE);
-	tex_uv->sub_image(0, 0, fb.width, fb.height/2, fb.uv, GL_LUMINANCE_ALPHA);
+	tex_uv->sub_image(0, 0, fb.width/2, fb.height/2, fb.uv, GL_LUMINANCE_ALPHA);
 	myshader.use();
 	myshader.set_gl_texture(*tex_y, loc_tex_y, 0);
 	myshader.set_gl_texture(*tex_uv, loc_tex_uv, 1);
+	glActiveTexture(GL_TEXTURE0);
 	// we assume square pixels for display
 	const unsigned sw = sys().get_res_x_2d(), sh = sys().get_res_y_2d();
 	double display_aspect_ratio = double(sw) / sh;
@@ -341,7 +342,7 @@ void videoplay::display(framebuffer& fb)
 		h = unsigned(sh * display_aspect_ratio / fb.aspect_ratio);
 		y = (sh - h) / 2;
 	}
-	tex_y->draw(x, y, w, h); //fixme with shaders
+	tex_y->draw(x, y, w, h);
 	myshader.use_fixed();
 }
 
@@ -436,7 +437,7 @@ int mymain(list<string>& args)
 	if (quit)
 		break;
 
-        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //glClear(GL_COLOR_BUFFER_BIT /*| GL_DEPTH_BUFFER_BIT*/);
 
         glColor4f(1, 1, 1, 1);
 

@@ -10,8 +10,8 @@ void main()
 	vec3 YUV;
 	YUV.x = texture2D(tex_y, texcoord0).x;
 	YUV.yz = texture2D(tex_uv, texcoord0).ra;
-
-	YUV -= vec3(16.0/256.0, 0.5, 0.5);
+	YUV -= vec3(1.0/16.0, 0.5, 0.5);
+	YUV.x = clamp(YUV.x, 0.0, 1.0);
 	const vec3 m0 = vec3(1.164,  0.0, 1.596);
 	const vec3 m1 = vec3(1.164, -0.391, -0.813);
 	const vec3 m2 = vec3(1.164,  2.018, 0.0);
