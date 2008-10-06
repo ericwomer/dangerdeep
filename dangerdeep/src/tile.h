@@ -124,7 +124,7 @@ template<class T>
 T tile<T>::get_value(vector2l coord) 
 {
 	last_access = clock() / (CLOCKS_PER_SEC/1000);
-	coord.y = tile_size-coord.y;
+	coord.y = tile_size-coord.y-1;
 
 	long morton_coord = coord_to_morton(coord);
 
