@@ -125,7 +125,7 @@ terrain<T>::terrain(const std::string& header_file, const std::string& data_dir,
 
     // heired from height_generator interface
     //sample_spacing = (SECOND_IN_METERS*resolution)/pow(2, num_levels-1);
-sample_spacing = 4.0;
+sample_spacing = 100.0;
 	m_tile_cache = std::auto_ptr<tile_cache<T> >(new tile_cache<T>(data_dir, bounds.y, bounds.x, 512, 0, 300000, min_height-1));
 }
 
@@ -144,7 +144,7 @@ void terrain<T>::compute_heights(int detail, const vector2i& coord_bl, const vec
 		for (int x = 0; x < coord_sz.x; ++x) {
 			*dest2 = v[vector2i(x, y)];
 			vector2i coord = coord_bl + vector2i(x, y);
-			//if (noise) *dest2 += pn2.valuef(coord.x, coord.y, num_levels - detail) * scale;
+			if (noise) *dest2 += pn2.valuef(coord.x<<detail, coord.y<<detail, num_levels - detail) * scale;
 			dest2 += stride;
 		}
 		dest += line_stride;
@@ -171,16 +171,6 @@ bivector<float> terrain<T>::generate_patch(int detail, const vector2i& coord_bl,
             for (int y = 0; y < coord_sz.y; y++) {
                 for (int x = 0; x < coord_sz.x; x++) {
                     vector2f coord = vector2f(((float)((coord_bl.x+x)<<detail))*sample_spacing, ((float)((coord_bl.y+y)<<detail))*sample_spacing);
-                    // dftd uses no real geographic coordinates atm (it uses a simple cartesian coordinate system) while the map uses real
-                    // gps coordines. but instead doing a real conversion from dftd coords to gps coords, we just use the
-                    // formula for arc length (l = r * alpha -> alpha = l / r)
-                    // with this, one meter in coord means one meter ON the earth surface, starting at 0°/0°
-
-                    //coord = vector2f(rad2deg(((float)coord.x)/EARTH_RADIUS)*3600.0/(float)resolution, 
-					//				 rad2deg(((float)coord.x)/EARTH_RADIUS)*3600.0/(float)resolution);
-
-                    //(coord.x < 0)?coord.x = floor(coord.x):coord.x = ceil(coord.x);
-                    //(coord.y < 0)?coord.y = floor(coord.y):coord.y = ceil(coord.y);
 
                     coord = vector2f((((float)coord.x)/SECOND_IN_METERS)/(float)resolution, 
 									 (((float)coord.y)/SECOND_IN_METERS)/(float)resolution);
