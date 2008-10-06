@@ -74,7 +74,7 @@ const unsigned SAVEVERSION = 1;
 const unsigned GAMETYPE = 0;//fixme, 0-mission , 1-patrol etc.
 
 #define ENEMYCONTACTLOST 50000.0	// meters
-
+#define TERRAIN_LEVEL 8
 
 const double game::TRAIL_TIME = 1.0;
 
@@ -195,8 +195,9 @@ game::game()
 	freezetime_start = 0;
 
 	mywater.reset(new water(0.0));
+	//myheightgen.reset(new height_generator_map("default.xml"));
 
-	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", 11));
+	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", TERRAIN_LEVEL));
 	
 #if 0
 	if (cfg::instance().geti("cpucores") > 1) {
@@ -267,8 +268,9 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	equipment_date = currentdate;	// fixme: another crude guess or hack
 
 	mywater.reset(new water(time));
+//myheightgen.reset(new height_generator_map("default.xml"));
 
-	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", 11));
+	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", TERRAIN_LEVEL));
 
 	// Convoy-constructor creates all the objects and spawns them in this game object.
 	// fixme: creation of convoys should be rather moved to this class, so object creation
@@ -388,7 +390,9 @@ game::game(const string& filename)
 	// set the same seed here again, so water is exactly like it was at game start.
 	mywater.reset(new water(time));
 
-	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", 11));
+	//myheightgen.reset(new height_generator_map("default.xml"));
+
+	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", TERRAIN_LEVEL));
 
 	// create empty objects so references can be filled.
 	// there must be ships in a mission...
