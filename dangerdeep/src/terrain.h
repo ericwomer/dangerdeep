@@ -61,10 +61,12 @@ protected:
 	perlinnoise pn2;
 	std::vector<uint8_t> ct[8];
 	std::vector<float> extrah;
+	std::fstream map_file;
 
 public:
 
 	terrain(const std::string&, const std::string&, unsigned);
+	bivector<float> generate_patch(int detail, const vector2i& coord_bl, const vector2i& coord_sz);
 	void compute_heights(int, const vector2i&, const vector2i&, float*, unsigned = 0, unsigned = 0, bool = true);
 	void compute_colors(int, const vector2i&, const vector2i&, Uint8*);
 	void get_min_max_height(double& minh, double& maxh) const
@@ -122,86 +124,74 @@ terrain<T>::terrain(const std::string& header_file, const std::string& data_dir,
 	origin.y = elem.attri("y");
 
     // heired from height_generator interface
-    sample_spacing = (SECOND_IN_METERS*resolution)/pow(2, num_levels-1);
-
-	m_tile_cache = std::auto_ptr<tile_cache<T> >(new tile_cache<T>(data_dir, bounds.y, bounds.x, 512, 4, 0, min_height-1));
-
- }
+    //sample_spacing = (SECOND_IN_METERS*resolution)/pow(2, num_levels-1);
+sample_spacing = 4.0;
+	m_tile_cache = std::auto_ptr<tile_cache<T> >(new tile_cache<T>(data_dir, bounds.y, bounds.x, 512, 0, 300000, min_height-1));
+}
 
 template <class T>
 void terrain<T>::compute_heights(int detail, const vector2i& coord_bl, const vector2i& coord_sz,
                                    float* dest, unsigned stride, unsigned line_stride, bool noise)
 {
-    float scale = 1.0;
-    if (!stride) stride = 1;
-    if (!line_stride) line_stride = coord_sz.x * stride;
+	float scale = 1.0;
+	if (!stride) stride = 1;
+	if (!line_stride) line_stride = coord_sz.x * stride;
 
-    if (detail >= 0) {
+	bivector<float> v = generate_patch(detail, coord_bl, coord_sz);
+
+	for (int y = 0; y < coord_sz.y; ++y) {
+		float* dest2 = dest;
+		for (int x = 0; x < coord_sz.x; ++x) {
+			*dest2 = v[vector2i(x, y)];
+			vector2i coord = coord_bl + vector2i(x, y);
+			//if (noise) *dest2 += pn2.valuef(coord.x, coord.y, num_levels - detail) * scale;
+			dest2 += stride;
+		}
+		dest += line_stride;
+	}
+}
+
+template <class T>
+bivector<float> terrain<T>::generate_patch(int detail, const vector2i& coord_bl, const vector2i& coord_sz)
+{
+	bivector<float> patch;
         if (detail < (num_levels - 1)) {
             // upsample from the next coarser level
-            bivector<float> lower(vector2i((coord_sz.x >> 1) + 1, (coord_sz.y >> 1) + 1));
-            compute_heights(detail + 1, vector2i((coord_bl.x >> 1) + 1, (coord_bl.y >> 1) + 1), vector2i((coord_sz.x >> 1) + 1, (coord_sz.y >> 1) + 1), lower.data_ptr(), 0, 0, false);
-            bivector<float> heights = lower.upsampled(false);
 
-            // copy the upsampled vector to dest
-            for (int y = 0; y < coord_sz.y; ++y) {
-                float* dest2 = dest;
-                for (int x = 0; x < coord_sz.x; ++x) {
-                    vector2i coord = coord_bl + vector2i(x, y);
+			vector2i coord_tr = coord_bl + coord_sz - vector2i(1, 1);
+			vector2i coord2_bl((coord_bl.x >> 1) - 1, (coord_bl.y >> 1) - 1);
+			vector2i coord2_tr(((coord_tr.x+1) >> 1) + 1, ((coord_tr.y+1) >> 1) + 1);
+			vector2i coord2_sz = coord2_tr - coord2_bl + vector2i(1, 1);
+			vector2i offset(2 + (coord_bl.x & 1), 2 + (coord_bl.y & 1));
 
-                    *dest2 = heights.at(x, y);
-                    if (noise) *dest2 += pn2.valuef(coord.x * int(1 << detail), coord.y * int(1 << detail), num_levels - detail) * scale;
-                    dest2 += stride;
-                }
-                dest += line_stride;
-            }
+			patch = generate_patch(detail+1, coord2_bl, coord2_sz).smooth_upsampled(true).sub_area(offset, coord_sz);
 
         } else if (detail == (num_levels - 1)) { // coarsest level - read from file
-
-            for (int y = 0; y < coord_sz.y; ++y) {
-                float* dest2 = dest;
-                for (int x = 0; x < coord_sz.x; ++x) {
-                    vector2i coord = coord_bl + vector2i(x, y);
-
+			patch.resize(coord_sz);
+            for (int y = 0; y < coord_sz.y; y++) {
+                for (int x = 0; x < coord_sz.x; x++) {
+                    vector2f coord = vector2f(((float)((coord_bl.x+x)<<detail))*sample_spacing, ((float)((coord_bl.y+y)<<detail))*sample_spacing);
                     // dftd uses no real geographic coordinates atm (it uses a simple cartesian coordinate system) while the map uses real
                     // gps coordines. but instead doing a real conversion from dftd coords to gps coords, we just use the
                     // formula for arc length (l = r * alpha -> alpha = l / r)
                     // with this, one meter in coord means one meter ON the earth surface, starting at 0°/0°
-                    vector2f coord_f = vector2f(rad2deg(coord.x/EARTH_RADIUS)*3600/resolution, rad2deg(coord.x/EARTH_RADIUS)*3600/resolution);
-                    (coord_f.x < 0)?coord_f.x = floor(coord_f.x):coord_f.x = ceil(coord_f.x);
-                    (coord_f.y < 0)?coord_f.y = floor(coord_f.y):coord_f.y = ceil(coord_f.y);
+
+                    //coord = vector2f(rad2deg(((float)coord.x)/EARTH_RADIUS)*3600.0/(float)resolution, 
+					//				 rad2deg(((float)coord.x)/EARTH_RADIUS)*3600.0/(float)resolution);
+
+                    //(coord.x < 0)?coord.x = floor(coord.x):coord.x = ceil(coord.x);
+                    //(coord.y < 0)?coord.y = floor(coord.y):coord.y = ceil(coord.y);
+
+                    coord = vector2f((((float)coord.x)/SECOND_IN_METERS)/(float)resolution, 
+									 (((float)coord.y)/SECOND_IN_METERS)/(float)resolution);
+
+					vector2l coord_l = vector2l(origin.x+coord.x, origin.y+coord.y);
 					
-					vector2l coord_l = vector2l(origin.x+coord_f.x, origin.y+coord_f.y);
-
-                    *dest2 = (float) m_tile_cache->get_value(coord_l);
-
-                    if (noise) *dest2 += pn2.valuef(coord.x * int(1 << detail), coord.y * int(1 << detail), num_levels - detail) * scale;
-                    dest2 += stride;
+					patch[vector2i(x, y)] = (float) m_tile_cache->get_value(coord_l);
                 }
-                dest += line_stride;
             }
         } else throw error("invalid detail level requested");
-
-    } else { // detail < 0
-        bivector<float> d0h(vector2i((coord_sz.x >> -detail) + 1, (coord_sz.y >> -detail) + 1));
-        compute_heights(0, vector2i(coord_bl.x >> -detail, coord_bl.y >> -detail),
-                        d0h.size(), d0h.data_ptr());
-        for (int z = detail; z < 0; ++z) {
-            bivector<float> tmp = d0h.upsampled(false);
-            tmp.swap(d0h);
-        }
-        for (int y = 0; y < coord_sz.y; ++y) {
-            float* dest2 = dest;
-            for (int x = 0; x < coord_sz.x; ++x) {
-                vector2i coord = coord_bl + vector2i(x, y);
-                float baseh = d0h[vector2i(x, y)];
-                baseh += extrah[(coord.y & 63)*64 + (coord.x & 63)]*0.25;
-                *dest2 = baseh;
-                dest2 += stride;
-            }
-            dest += line_stride;
-        }
-    }
+	return patch;
 }
 
 template <class T>
