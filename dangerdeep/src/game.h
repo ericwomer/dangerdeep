@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define PINGLENGTH 1000		// meters. for drawing
 #define ASDICRANGE 1500.0	// meters fixme: historic values?
 #define MAX_ACUSTIC_CONTACTS 5	// max. nr of simultaneous trackable acustic contacts
+#define TERRAIN_SAMPLE_SPACING 5.0
 
 #include <list>
 #include <vector>
@@ -231,6 +232,8 @@ protected:
 
 	player_info playerinfo;
 
+	unsigned terrain_levels;
+
 	/// check objects collide with any other object
 	void check_collisions();
 	bool check_collision_bboxes(const sea_object& a, const sea_object& b, vector3& collision_pos);
@@ -404,6 +407,8 @@ public:
 	unsigned get_freezetime() const { return freezetime; }
 	unsigned get_freezetime_start() const { return freezetime_start; }
 	unsigned process_freezetime() { unsigned f = freezetime; freezetime = 0; return f; }
+
+	unsigned get_terrain_levels() const { return terrain_levels; }
 
 	water& get_water() { return *mywater.get(); }
 	const water& get_water() const { return *mywater.get(); }
