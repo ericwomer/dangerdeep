@@ -87,6 +87,7 @@ void moon::display(const vector3 &moon_pos, const vector3 &sun_pos, double max_v
 	glActiveTextureARB(GL_TEXTURE0_ARB);
 	glEnable(GL_TEXTURE_2D);
 	map_normal.get()->set_gl_texture();
+	//fixme: remove all this stuff and replace it by a shader!!!
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
 	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_DOT3_RGB_ARB) ;
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
