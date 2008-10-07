@@ -59,6 +59,15 @@ texture::mapping_mode model::mapping = texture::LINEAR_MIPMAP_LINEAR;//texture::
 
 unsigned model::init_count = 0;
 
+/*
+fixme: possible cleanup/simplification of rendering EVERYWHERE:
+1) replace use of glTexEnv and use shaders for EVERYTHING, every primitive rendered
+2) replace glBegin/glEnd by vertex arrays for every primitive
+3) replace Matrix use (glPushMatrix/glPopMatrix, texture matrix switch etc.)
+4) maybe replace use of default attributes (would gain full OpenGl3.0 compatibility,
+   except the shader code).
+*/
+
 auto_ptr<glsl_shader_setup> model::glsl_plastic;
 auto_ptr<glsl_shader_setup> model::glsl_color;
 auto_ptr<glsl_shader_setup> model::glsl_color_normal;
