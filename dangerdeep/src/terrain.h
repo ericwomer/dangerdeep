@@ -38,6 +38,7 @@
 #include "bivector.h"
 #include "perlinnoise.h"
 #include "tile_cache.h"
+#include "game.h"
 
 
 #define rad2deg(x) ((x*180.0)/M_PI)
@@ -124,8 +125,7 @@ terrain<T>::terrain(const std::string& header_file, const std::string& data_dir,
 	origin.y = elem.attri("y");
 
     // heired from height_generator interface
-    //sample_spacing = (SECOND_IN_METERS*resolution)/pow(2, num_levels-1);
-sample_spacing = 100.0;
+	sample_spacing = 10.0;
 	m_tile_cache = std::auto_ptr<tile_cache<T> >(new tile_cache<T>(data_dir, bounds.y, bounds.x, 512, 0, 300000, min_height-1));
 }
 
@@ -133,7 +133,7 @@ template <class T>
 void terrain<T>::compute_heights(int detail, const vector2i& coord_bl, const vector2i& coord_sz,
                                    float* dest, unsigned stride, unsigned line_stride, bool noise)
 {
-	float scale = 1.0;
+	float scale = 2.0;
 	if (!stride) stride = 1;
 	if (!line_stride) line_stride = coord_sz.x * stride;
 
