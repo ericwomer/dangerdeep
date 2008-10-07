@@ -245,7 +245,7 @@ void glsl_program::use() const
 unsigned glsl_program::get_uniform_location(const std::string& name) const
 {
 	if (used_program != this)
-		throw runtime_error("glsl_program::set_gl_texture, program not bound!");
+		throw runtime_error("glsl_program::get_uniform_location, program not bound!");
 	return unsigned(glGetUniformLocation(id, name.c_str()));
 }
 

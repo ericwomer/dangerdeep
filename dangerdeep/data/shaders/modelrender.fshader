@@ -1,14 +1,23 @@
 // -*- mode: C; -*-
 
-// fixme: maybe lookup texmap is faster than pow(). Quick tests showed that this is not the case...
-
+#ifdef USE_COLORMAP
 uniform sampler2D tex_color;	// (diffuse) color map, RGB
-uniform sampler2D tex_normal;	// normal map, RGB   - fixme: try 2 component map (x/y) and compute z instead of normalize
+#endif
+#ifdef USE_NORMALMAP
+uniform sampler2D tex_normal;	// normal map, RGB
+#endif
 #ifdef USE_SPECULARMAP
 uniform sampler2D tex_specular;	// (if existent) specular map, LUMINANCE
 #endif
 
+#ifdef USE_COLORMAP
 varying vec2 texcoord;
+#else
+varying vec4 color;
+#endif
+#ifndef USE_NORMALMAP
+varying vec3 normal;
+#endif
 varying vec3 lightdir, halfangle;
 
 #ifdef USE_CAUSTIC
@@ -22,8 +31,12 @@ void main()
 	// get and normalize vector to light source
 	vec3 L = normalize(lightdir);
 
+#ifdef USE_NORMALMAP
 	// get and normalize normal vector from texmap
 	vec3 N = normalize(vec3(texture2D(tex_normal, texcoord.xy)) * 2.0 - 1.0);
+#else
+	vec3 N = normalize(normal);
+#endif
 
 	// compute specular color
 	// get and normalize half angle vector
@@ -33,8 +46,12 @@ void main()
 	vec3 specular_color = vec3(gl_FrontMaterial.specular) *
 		pow(max(dot(H, N), 0.0), gl_FrontMaterial.shininess);
 
+#ifdef USE_COLORMAP
 	// compute diffuse color
 	vec3 diffuse_color = vec3(texture2D(tex_color, texcoord.xy));
+#else
+	vec3 diffuse_color = color.xyz;
+#endif
 
 	// handle ambient
 	diffuse_color = diffuse_color * mix(max(dot(L, N), 0.0), 1.0, gl_LightSource[0].ambient.r);
@@ -46,7 +63,7 @@ void main()
 	// final color of fragment
 	vec3 final_color = (diffuse_color + specular_color) * vec3(gl_LightSource[0].diffuse /*light_color*/);
 #ifdef USE_CAUSTIC
-    final_color *= max(texture2D(tex_caustic, caustic_texcoord.xy).x *2.0, 0.5);
+	final_color *= max(texture2D(tex_caustic, caustic_texcoord.xy).x *2.0, 0.5);
 #endif
 
 	// add linear fog

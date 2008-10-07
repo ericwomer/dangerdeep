@@ -7,9 +7,17 @@
    tangentx_righthanded	(tangentx,righthanded-factor)
 */
 
+#ifdef USE_COLORMAP
 varying vec2 texcoord;
+#else
+varying vec4 color;
+#endif
 varying vec3 lightdir, halfangle;
+#ifdef USE_NORMALMAP
 attribute vec4 tangentx_righthanded;
+#else
+varying vec3 normal;
+#endif
 
 #ifdef USE_CAUSTIC
 varying vec2 caustic_texcoord;
@@ -29,10 +37,12 @@ void main()
    					  		calculate_caustic_coords(gl_Vertex.xyz, plane_t) );
 #endif
 
+#ifdef USE_NORMALMAP
 	// compute tangent space
 	// gl_Normal = tangentz
 	vec3 tangentx = vec3(tangentx_righthanded);
 	vec3 tangenty = cross(gl_Normal, tangentx) * tangentx_righthanded.w;
+#endif
 
 	// compute direction to light in object space (L)
 	// light.position.w is 0 or 1, 0 for directional light, 1 for point light
@@ -46,6 +56,7 @@ void main()
 	// compute halfangle vector (H = ||L+E||)
 	vec3 halfangle_obj = normalize(viewerdir_obj + lightdir_obj);
 
+#ifdef USE_NORMALMAP
 	// transform light direction to tangent space
 	lightdir.x = dot(tangentx, lightdir_obj);
 	lightdir.y = dot(tangenty, lightdir_obj);
@@ -54,9 +65,18 @@ void main()
 	halfangle.x = dot(tangentx, halfangle_obj);
 	halfangle.y = dot(tangenty, halfangle_obj);
 	halfangle.z = dot(gl_Normal /*tangentz*/, halfangle_obj);
+#else
+	lightdir = lightdir_obj;
+	halfangle = halfangle_obj;
+	normal = gl_Normal;
+#endif
 
+#ifdef USE_COLORMAP
 	// compute texture coordinates
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+#else
+	color = gl_Color;
+#endif
 
 	// finally compute position
 	gl_Position = ftransform();

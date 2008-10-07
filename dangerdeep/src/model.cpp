@@ -59,11 +59,14 @@ texture::mapping_mode model::mapping = texture::LINEAR_MIPMAP_LINEAR;//texture::
 
 unsigned model::init_count = 0;
 
+auto_ptr<glsl_shader_setup> model::glsl_plastic;
+auto_ptr<glsl_shader_setup> model::glsl_color;
 auto_ptr<glsl_shader_setup> model::glsl_color_normal;
 auto_ptr<glsl_shader_setup> model::glsl_color_normal_specular;
 auto_ptr<glsl_shader_setup> model::glsl_color_normal_caustic;
 auto_ptr<glsl_shader_setup> model::glsl_color_normal_specular_caustic;
 auto_ptr<glsl_shader_setup> model::glsl_mirror_clip;
+unsigned model::loc_c_tex_color;
 unsigned model::loc_cn_tex_normal;
 unsigned model::loc_cn_tex_color;
 unsigned model::loc_cnc_tex_normal;
@@ -191,21 +194,31 @@ void model::render_init()
 	//log_info("Using OpenGL GLSL shaders...");
 
 	glsl_shader::defines_list dl;
+	glsl_plastic.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
+						 get_shader_dir() + "modelrender.fshader"));
+	dl.push_back("USE_COLORMAP");
+	glsl_color.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
+					       get_shader_dir() + "modelrender.fshader"));
+	dl.push_back("USE_NORMALMAP");
 	glsl_color_normal.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
 						      get_shader_dir() + "modelrender.fshader"));
+	glsl_shader::defines_list dl2 = dl;
 	dl.push_back("USE_SPECULARMAP");
 	glsl_color_normal_specular.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
 							       get_shader_dir() + "modelrender.fshader", dl));
-	dl.clear(); dl.push_back("USE_CAUSTIC");
+	dl = dl2;
+	dl.push_back("USE_CAUSTIC");
 	glsl_color_normal_caustic.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
 							      get_shader_dir() + "modelrender.fshader", dl));
 	dl.push_back("USE_SPECULARMAP");
 	glsl_color_normal_specular_caustic.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
 								       get_shader_dir() + "modelrender.fshader", dl));
-	dl.clear();
+	dl = dl2;
 	glsl_mirror_clip.reset(new glsl_shader_setup(get_shader_dir() + "modelrender_mirrorclip.vshader",
 						     get_shader_dir() + "modelrender_mirrorclip.fshader", dl));
 	// request uniform locations
+	glsl_color->use();
+	loc_c_tex_color = glsl_color->get_uniform_location("tex_color");
 	glsl_color_normal->use();
 	loc_cn_tex_normal = glsl_color_normal->get_uniform_location("tex_normal");
 	loc_cn_tex_color = glsl_color_normal->get_uniform_location("tex_color");
@@ -1247,6 +1260,8 @@ model::material::material(const std::string& nm) : name(nm), shininess(50.0f), t
 
 void model::material::map::setup_glmatrix() const
 {
+	//fixme: isn't used everywhere, maybe obsolete! 3ds files can contain
+	//texture transformations, but we don't use them for ddxml, do we?!
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glTranslatef(this->uoffset, this->voffset, 0);
@@ -1338,31 +1353,16 @@ void model::material::set_gl_values(const texture *caustic_map) const
 				colormap->set_gl_texture(*glsl_color_normal_caustic, loc_cnc_tex_color, 0);
 			}
 		} else {
-			// just standard lighting, no need for shaders.
-			// Wrong! Shaders are needed for specular lighting.
-			// So give a texture with a normal of (0,0,1) to unit 1.
-			// (Color 128,128,255).
-			// fixme: stupid! we would need tangentsx/y too etc.
-			// better use another shader for this case.
-			// we can give a white texture as specular map or use a shader without specmap reading etc.
-			// same for texmap. Only shader with or without normalmap is much different!
-			glColor4f(1, 1, 1, 1);
-			glActiveTexture(GL_TEXTURE0);
-			colormap->set_gl_texture();
+			// just texture map and per-pixel lighting with vertex normals
+			glsl_color->use();
+			colormap->set_gl_texture(*glsl_color, loc_c_tex_color, 0);
 			colormap->setup_glmatrix();
-//			cout << "uv off " << colormap->uoffset << "," << colormap->voffset << " ang " << colormap->angle << " scal " << colormap->uscal << "," << colormap->vscal << "\n";
-			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		}
 		glMatrixMode(GL_MODELVIEW);
 	} else {
+		// just base color and per-pixel lighting with vertex normals
+		glsl_plastic->use();
 		diffuse.set_gl_color();
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }
 
@@ -1378,10 +1378,6 @@ void model::material::set_gl_values_mirror_clip() const
 		glColor4f(1, 1, 1, 1);
 		colormap->set_gl_texture(*glsl_mirror_clip, loc_mc_tex_color, 0);
 		colormap->setup_glmatrix();
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	}
 	glMatrixMode(GL_MODELVIEW);
 }

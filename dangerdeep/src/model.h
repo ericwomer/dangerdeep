@@ -335,11 +335,14 @@ protected:
 	static unsigned init_count;
 
 	// Shader programs
+	static std::auto_ptr<glsl_shader_setup> glsl_plastic;
+	static std::auto_ptr<glsl_shader_setup> glsl_color;
 	static std::auto_ptr<glsl_shader_setup> glsl_color_normal;
 	static std::auto_ptr<glsl_shader_setup> glsl_color_normal_caustic;
 	static std::auto_ptr<glsl_shader_setup> glsl_color_normal_specular;
 	static std::auto_ptr<glsl_shader_setup> glsl_color_normal_specular_caustic;
 	static std::auto_ptr<glsl_shader_setup> glsl_mirror_clip;
+	static unsigned loc_c_tex_color;
 	static unsigned loc_cn_tex_normal;
 	static unsigned loc_cn_tex_color;
 	static unsigned loc_cnc_tex_normal;
