@@ -186,7 +186,7 @@ void game::player_info::save(xml_elem& parent) const
 }
 
 
-game::game() : terrain_levels(1 + ulog2(unsigned(60000.0/(1 << cfg::instance().geti("terrain_detail"))/TERRAIN_SAMPLE_SPACING)))
+game::game()
 {
 	// empty, so that heirs can construct a game object. Needed for editor
 	freezetime = 0;
@@ -195,7 +195,7 @@ game::game() : terrain_levels(1 + ulog2(unsigned(60000.0/(1 << cfg::instance().g
 	mywater.reset(new water(0.0));
 	//myheightgen.reset(new height_generator_map("default.xml"));
 
-	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", terrain_levels+1));
+	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", TERRAIN_NR_LEVELS+1));
 	
 #if 0
 	if (cfg::instance().geti("cpucores") > 1) {
@@ -210,7 +210,7 @@ game::game() : terrain_levels(1 + ulog2(unsigned(60000.0/(1 << cfg::instance().g
 
 game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
 	   const date& timeperioddate, const player_info& pi, unsigned nr_of_players)
-	: playerinfo(pi), terrain_levels(1 + ulog2(unsigned(60000.0/(1 << cfg::instance().geti("terrain_detail"))/TERRAIN_SAMPLE_SPACING)))
+	: playerinfo(pi)
 {
 /****************************************************************
 	custom mission generation:
@@ -268,7 +268,7 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 	mywater.reset(new water(time));
 //myheightgen.reset(new height_generator_map("default.xml"));
 
-	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", terrain_levels+1));
+	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", TERRAIN_NR_LEVELS+1));
 
 	// Convoy-constructor creates all the objects and spawns them in this game object.
 	// fixme: creation of convoys should be rather moved to this class, so object creation
@@ -357,7 +357,7 @@ game::game(const string& subtype, unsigned cvsize, unsigned cvesc, unsigned time
 game::game(const string& filename)
 	: my_run_state(running), player(0),
 	  time(0), last_trail_time(0), max_view_dist(0), networktype(0), servercon(0),
-	  freezetime(0), freezetime_start(0), terrain_levels(1 + ulog2(unsigned(60000.0/(1 << cfg::instance().geti("terrain_detail"))/TERRAIN_SAMPLE_SPACING)))
+	  freezetime(0), freezetime_start(0)
 {
 	xml_doc doc(filename);
 	doc.load();
@@ -390,7 +390,7 @@ game::game(const string& filename)
 
 	//myheightgen.reset(new height_generator_map("default.xml"));
 
-	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", terrain_levels+1));
+	myheightgen.reset(new terrain<Sint16>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", TERRAIN_NR_LEVELS+1));
 
 	// create empty objects so references can be filled.
 	// there must be ships in a mission...
