@@ -61,7 +61,6 @@ using std::vector;
 
 
 
-class system* mysys;
 int res_x, res_y;
 font* font_arial = 0;
 font *font_vtremington12 = 0;
@@ -348,8 +347,8 @@ void view_model(const string& modelfilename, const string& datafilename)
 
 	unsigned frames = 1;
 	unsigned lastframes = 1;
-	double fpstime = mysys->millisec() / 1000.0;
-	double totaltime = mysys->millisec() / 1000.0;
+	double fpstime = sys().millisec() / 1000.0;
+	double totaltime = sys().millisec() / 1000.0;
 	double measuretime = 5;	// seconds
 
 	while (true) {
@@ -500,7 +499,7 @@ void view_model(const string& modelfilename, const string& datafilename)
 			glColor4f(1,1,1,1);
 		}
 
-		list<SDL_Event> events = mysys->poll_event_queue();
+		list<SDL_Event> events = sys().poll_event_queue();
 		for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
 			SDL_Event& event = *it;
 			if (event.type == SDL_KEYDOWN) {
@@ -590,7 +589,7 @@ void view_model(const string& modelfilename, const string& datafilename)
                                         smoke_pos.z = 0;
 			}
 		}
-		mysys->prepare_2d_drawing();
+		sys().prepare_2d_drawing();
 		vector3f minp = mdl->get_min(), maxp = mdl->get_max();
 		ostringstream os;
 		os << "A simple model viewer for Danger from the Deep.\n"
@@ -658,18 +657,18 @@ void view_model(const string& modelfilename, const string& datafilename)
 			}
 		}
 
-		mysys->unprepare_2d_drawing();
+		sys().unprepare_2d_drawing();
 
 		// record fps
 		++frames;
-		totaltime = mysys->millisec() / 1000.0;
+		totaltime = sys().millisec() / 1000.0;
 		if (totaltime - fpstime >= measuretime) {
 			fpstime = totaltime;
 			log_info("fps " << (frames - lastframes)/measuretime);
 			lastframes = frames;
 		}
 
-		mysys->swap_buffers();
+		sys().swap_buffers();
 	}
 
         delete msh;
