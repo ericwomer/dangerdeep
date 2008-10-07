@@ -269,7 +269,7 @@ user_interface::user_interface(game& gm) :
 
 	particle::init();
 
-	mygeoclipmap.reset(new geoclipmap(mygame->get_terrain_levels(), cfg::instance().geti("terrain_detail"), mygame->get_height_gen()));
+	mygeoclipmap.reset(new geoclipmap(TERRAIN_NR_LEVELS, cfg::instance().geti("terrain_detail"), mygame->get_height_gen()));
 
 	add_loading_screen("user interface initialized");
 }
