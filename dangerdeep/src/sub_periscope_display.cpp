@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "keys.h"
 #include "cfg.h"
 #include "global_data.h"
+#include "primitives.h"
 #include <iostream>
 using std::cout;
 
@@ -119,16 +120,8 @@ void sub_periscope_display::post_display(game& gm) const
 		glsl_blurview->set_gl_texture(*blurtex, loc_tex_blur, 1);
 		double blur_y_off = myfrac(gm.get_time() / 10.0);
 		glsl_blurview->set_uniform(loc_blur_texc_offset, vector3(blur_y_off, 0, 0));
-		glBegin(GL_QUADS);
-		glTexCoord2f(0.0f, 1.0f);
-		glVertex3f(-1.0f, 1.0f, 0.0f);
-		glTexCoord2f(0.0f, 0.0f);
-		glVertex3f(-1.0f, -1.0f, 0.0f);
-		glTexCoord2f(1.0f, 0.0f);
-		glVertex3f(1.0f, -1.0f, 0.0f);
-		glTexCoord2f(1.0f, 1.0f);
-		glVertex3f(1.0f, 1.0f, 0.0f);
-		glEnd();
+		primitives::textured_quad(vector2f(-1,-1), vector2f(1,1),
+					  vector2f(0,0), vector2f(1,1)).render();
 		// unbind shader
 		glsl_blurview->use_fixed();
 		glBindTexture(GL_TEXTURE_2D, 0);
