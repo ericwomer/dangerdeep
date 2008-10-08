@@ -376,7 +376,6 @@ void water::construction_threaded(ocean_wave_generator<float>& myowg, unsigned p
 void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& transl,
 			   bool under_water) const
 {
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
 
 	if (under_water) {
@@ -516,8 +515,6 @@ void water::cleanup_textures() const
 
 	glEnable(GL_LIGHTING);
 	glMatrixMode(GL_MODELVIEW);
-
-	glPopAttrib();
 }
 
 
