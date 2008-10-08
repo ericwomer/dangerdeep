@@ -83,6 +83,7 @@ dftdmediasources = Split("""
 	make_mesh.cpp
 	model.cpp
 	perlinnoise.cpp
+	primitives.cpp
 	shader.cpp
 	system.cpp
 	texture.cpp

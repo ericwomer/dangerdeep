@@ -34,6 +34,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "oglext/OglExt.h"
 #endif
 
+#include "primitives.h"
+
 template<class D>
 class polygon_t
 {
@@ -138,10 +140,10 @@ public:
 	/// render polygon
 	void draw() const
 	{
-		glBegin(GL_LINE_LOOP);
+		primitives p(GL_LINE_LOOP, false, false, false, points.size());
 		for (unsigned i = 0; i < points.size(); ++i)
-			glVertex3d(points[i].x, points[i].y, points[i].z);
-		glEnd();
+			p.vertices[i].assign(points[i]);
+		p.render();
 	}
 	/// compute plane that poly lies in
 	plane_t<D> get_plane() const {

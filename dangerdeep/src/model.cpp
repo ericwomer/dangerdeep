@@ -63,8 +63,9 @@ unsigned model::init_count = 0;
 fixme: possible cleanup/simplification of rendering EVERYWHERE:
 1) replace use of glTexEnv and use shaders for EVERYTHING, every primitive rendered
 2) replace glBegin/glEnd by vertex arrays for every primitive
-3) replace Matrix use (glPushMatrix/glPopMatrix, texture matrix switch etc.)
-4) maybe replace use of default attributes (would gain full OpenGl3.0 compatibility,
+3) use shaders for every rendered primitive, no more default fixed pipeline
+4) replace Matrix use (glPushMatrix/glPopMatrix, texture matrix switch etc.)
+5) maybe replace use of default attributes (would gain full OpenGl3.0 compatibility,
    except the shader code).
 */
 
