@@ -34,6 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <SDL_image.h>
 #include "vector3.h"
 #include "texture.h"
+#include "primitives.h"
 #include "log.h"
 #include <vector>
 #include <iostream>
@@ -815,16 +816,8 @@ void texture::draw(int x, int y, int w, int h) const
 	float u = float(width)/gl_width;
 	float v = float(height)/gl_height;
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
-	glBegin(GL_QUADS);
-	glTexCoord2f(0,0);
-	glVertex2i(x,y);
-	glTexCoord2f(0,v);
-	glVertex2i(x,y+h);
-	glTexCoord2f(u,v);
-	glVertex2i(x+w,y+h);
-	glTexCoord2f(u,0);
-	glVertex2i(x+w,y);
-	glEnd();
+	primitives::textured_quad(vector2f(x,y),vector2f(x+w,y+h),
+				  vector2f(0,0),vector2f(u,v)).render();
 }
 
 void texture::draw_hm(int x, int y, int w, int h) const
@@ -832,16 +825,8 @@ void texture::draw_hm(int x, int y, int w, int h) const
 	float u = float(width)/gl_width;
 	float v = float(height)/gl_height;
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
-	glBegin(GL_QUADS);
-	glTexCoord2f(u,0);
-	glVertex2i(x,y);
-	glTexCoord2f(u,v);
-	glVertex2i(x,y+h);
-	glTexCoord2f(0,v);
-	glVertex2i(x+w,y+h);
-	glTexCoord2f(0,0);
-	glVertex2i(x+w,y);
-	glEnd();
+	primitives::textured_quad(vector2f(x,y),vector2f(x+w,y+h),
+				  vector2f(u,0),vector2f(0,v)).render();
 }
 
 void texture::draw_vm(int x, int y, int w, int h) const
@@ -849,16 +834,8 @@ void texture::draw_vm(int x, int y, int w, int h) const
 	float u = float(width)/gl_width;
 	float v = float(height)/gl_height;
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
-	glBegin(GL_QUADS);
-	glTexCoord2f(0,v);
-	glVertex2i(x,y);
-	glTexCoord2f(0,0);
-	glVertex2i(x,y+h);
-	glTexCoord2f(u,0);
-	glVertex2i(x+w,y+h);
-	glTexCoord2f(u,v);
-	glVertex2i(x+w,y);
-	glEnd();
+	primitives::textured_quad(vector2f(x,y),vector2f(x+w,y+h),
+				  vector2f(0,v),vector2f(u,0)).render();
 }
 
 void texture::draw_rot(int x, int y, double angle) const
@@ -880,16 +857,8 @@ void texture::draw_tiles(int x, int y, int w, int h) const
 	float tilesx = float(w)/gl_width;
 	float tilesy = float(h)/gl_height;
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
-	glBegin(GL_QUADS);
-	glTexCoord2f(0,0);
-	glVertex2i(x,y);
-	glTexCoord2f(0,tilesy);
-	glVertex2i(x,y+h);
-	glTexCoord2f(tilesx,tilesy);
-	glVertex2i(x+w,y+h);
-	glTexCoord2f(tilesx,0);
-	glVertex2i(x+w,y);
-	glEnd();
+	primitives::textured_quad(vector2f(x,y),vector2f(x+w,y+h),
+				  vector2f(0,0),vector2f(tilesx,tilesy)).render();
 }
 
 void texture::draw_subimage(int x, int y, int w, int h, unsigned tx, unsigned ty,
@@ -900,16 +869,8 @@ void texture::draw_subimage(int x, int y, int w, int h, unsigned tx, unsigned ty
 	float x2 = float(tx+tw)/gl_width;
 	float y2 = float(ty+th)/gl_height;
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
-	glBegin(GL_QUADS);
-	glTexCoord2f(x1,y1);
-	glVertex2i(x,y);
-	glTexCoord2f(x1,y2);
-	glVertex2i(x,y+h);
-	glTexCoord2f(x2,y2);
-	glVertex2i(x+w,y+h);
-	glTexCoord2f(x2,y1);
-	glVertex2i(x+w,y);
-	glEnd();
+	primitives::textured_quad(vector2f(x,y),vector2f(x+w,y+h),
+				  vector2f(x1,y1),vector2f(x2,y2)).render();
 }
 
 unsigned texture::get_max_size()
