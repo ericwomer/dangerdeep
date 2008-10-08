@@ -329,6 +329,13 @@ void glsl_program::use_fixed()
 
 
 
+bool glsl_program::is_fixed_in_use()
+{
+	return used_program == 0;
+}
+
+
+
 glsl_shader_setup::glsl_shader_setup(const std::string& filename_vshader,
 				     const std::string& filename_fshader,
 				     const glsl_shader::defines_list& dl)

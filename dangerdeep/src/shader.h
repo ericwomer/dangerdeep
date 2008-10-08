@@ -96,6 +96,9 @@ class glsl_program
 	/// check if GLSL is supported
 	static bool supported();
 
+	/// check if a program is bound (more for debugging)
+	static bool is_fixed_in_use();
+
 	/// get location (number) of uniform value
 	unsigned get_uniform_location(const std::string& name) const;
 
