@@ -229,11 +229,7 @@ void sub_torpedo_display::display(class game& gm) const
 		torptex(torpedoes[torptranssrc].torp->get_specfilename()).draw(mx-124/2, my-12/2);
 		glColor4f(1,1,1,1);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glBegin(GL_LINES);
-		glVertex2i(tubecoords[torptranssrc].x+124/2,
-			tubecoords[torptranssrc].y+12/2);
-		glVertex2i(mx, my);
-		glEnd();
+		primitives::line(vector2f(tubecoords[torptranssrc].x+124/2,	tubecoords[torptranssrc].y+12/2), vector2f(mx, my)).render();
 	}
 
 	// draw information about torpedo in tube if needed

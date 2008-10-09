@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texture.h"
 #include "objcache.h"
 #include "log.h"
+#include "primitives.h"
 
 class sub_torpedo_display : public user_display
 {
