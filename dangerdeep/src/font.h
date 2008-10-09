@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector2.h"
 #include "color.h"
 #include "objcache.h"
+#include "primitives.h"
 
 
 class texture;

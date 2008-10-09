@@ -95,16 +95,7 @@ void font::print_text(int x, int y, const string& text, bool ignore_colors) cons
 			//int x2 = x + characters[t].left;
 			int y2 = y + base_height - characters[t].top;
 			glBindTexture(GL_TEXTURE_2D, characters[t].tex->get_opengl_name());
-		        glBegin(GL_QUADS);
-		        glTexCoord2f(0,0);
-		        glVertex2i(x,y2); 
-		        glTexCoord2f(0,v1);
-	        	glVertex2i(x,y2+characters[t].height);
-		        glTexCoord2f(u1,v1);
-		        glVertex2i(x+characters[t].width,y2+characters[t].height);
-		        glTexCoord2f(u1,0);
-	        	glVertex2i(x+characters[t].width,y2);
-		        glEnd();
+			primitives::textured_quad(vector2f(x,y2), vector2f(x+characters[t].width,y2+characters[t].height), vector2f(0,0), vector2f()).render(u1,v1);
 			x += characters[t].width + spacing;
 		} // else: just skip (unknown) character
 	}
