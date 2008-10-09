@@ -464,21 +464,6 @@ void system::screenshot(const std::string& filename)
 	log_info("screenshot taken as " << fn);
 }
 
-void system::draw_rectangle(int x, int y, int w, int h)
-{
-/*
-//doesn't work. why? fixme: see OpenGL redbook. coordinate offset for pixel drawing.
-			//this is the reason
-	glRecti(x, y, x+w, y+h);
-*/	
-	glBegin(GL_QUADS);
-	glVertex2i(x, y);
-	glVertex2i(x, y+h);
-	glVertex2i(x+w, y+h);
-	glVertex2i(x+w, y);
-	glEnd();
-}
-
 void system::gl_perspective_fovx(double fovx, double aspect, double znear, double zfar)
 {
 	double tanfovx2 = tan(M_PI*fovx/360.0);

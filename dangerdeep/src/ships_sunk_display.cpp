@@ -84,7 +84,7 @@ void ships_sunk_display::display ( class game& gm ) const
 		glColor3f ( 1.0f, 1.0f, 1.0f );
 		glBindTexture ( GL_TEXTURE_2D, 0 );
 		glBegin ( GL_QUADS );
-		sys().draw_rectangle ( x, y, 200, 150 );
+		//DEPRECATED, use primitives! sys().draw_rectangle ( x, y, 200, 150 );
 
 		// Print class name.
 		glPushMatrix ();

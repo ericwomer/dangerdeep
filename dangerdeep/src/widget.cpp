@@ -476,7 +476,7 @@ void widget::draw_area_col(int x, int y, int w, int h, bool out, color c) const
 {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	c.set_gl_color();
-	primitives::quad_2d(vector2f(x, y+h), vector2f(x+w, y));
+	primitives::quad(vector2f(x, y+h), vector2f(x+w, y));
 	draw_frame(x, y, w, h, out);
 }
 
@@ -1147,7 +1147,9 @@ void widget_edit::draw() const
 			vector2i sz = globaltheme->myfont->get_size(text.substr(0, cursorpos));
 			glBindTexture(GL_TEXTURE_2D, 0);
 			globaltheme->textcol.more_contrast(5).set_gl_color();
-			sys().draw_rectangle(p.x+fw+sz.x, p.y+size.y/8, std::max(fw/2, 2), size.y*3/4);
+			vector2f xy(p.x+fw+sz.x, p.y+size.y/8);
+			vector2f wh_m1(std::max(fw/2, 2) - 1, size.y*3/4 - 1);
+			primitives::quad(xy, xy + wh_m1).render();
 		}
 	}
 }
@@ -1373,12 +1375,10 @@ void widget_3dview::draw() const
 	glRotatef(x_angle, 1, 0, 0);
 	glColor4f(0, 0, 0, 1);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glBegin(GL_LINES);
-	glVertex3f(-bb.x*0.5, 0.0, -bb.z*0.5);
-	glVertex3f( bb.x*0.5, 0.0, -bb.z*0.5);
-	glVertex3f( 0.0,-bb.y*0.5, -bb.z*0.5);
-	glVertex3f( 0.0, bb.y*0.5, -bb.z*0.5);
-	glEnd();
+	primitives::line(vector3f(-bb.x*0.5, 0.0, -bb.z*0.5),
+			 vector3f( bb.x*0.5, 0.0, -bb.z*0.5)).render();
+	primitives::line(vector3f( 0.0,-bb.y*0.5, -bb.z*0.5),
+			 vector3f( 0.0, bb.y*0.5, -bb.z*0.5)).render();
 	glColor3f(1, 1, 1);
 	mdl->display();
 	glEnable(GL_LIGHTING);

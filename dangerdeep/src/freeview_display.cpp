@@ -565,16 +565,6 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		glClearColor(0.015, 0.01, 0.055, 0);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		glDisable(GL_SCISSOR_TEST);
-		/*
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glColor4f(1.015, 0.01, 0.055, 1.0);
-		glDisable(GL_DEPTH_TEST);
-		glDepthMask(GL_FALSE);
-		sys().draw_rectangle(pd.x, pd.y, pd.w, pd.h);
-		glDepthMask(GL_TRUE);
-		glEnable(GL_DEPTH_TEST);
-		//clear depth buffer too - glScissor is easier
-		*/
 	}
 
 	// set light!

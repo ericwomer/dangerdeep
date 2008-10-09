@@ -55,10 +55,10 @@ void primitives::render()
 
 
 
-primitive_tex<4> primitives::textured_quad_2d(const vector2f& xy0,
-					      const vector2f& xy1,
-					      const vector2f& texc0,
-					      const vector2f& texc1)
+primitive_tex<4> primitives::textured_quad(const vector2f& xy0,
+					   const vector2f& xy1,
+					   const vector2f& texc0,
+					   const vector2f& texc1)
 {
 	primitive_tex<4> result(GL_QUADS);
 	result.vertices[0].x = xy0.x;
@@ -82,8 +82,8 @@ primitive_tex<4> primitives::textured_quad_2d(const vector2f& xy0,
 
 
 
-primitive_tex<4> primitives::quad_2d(const vector2f& xy0,
-				     const vector2f& xy1)
+primitive_tex<4> primitives::quad(const vector2f& xy0,
+				  const vector2f& xy1)
 {
 	primitive_tex<4> result(GL_QUADS);
 	result.vertices[0].x = xy0.x;
@@ -106,6 +106,16 @@ primitive<2> primitives::line(const vector2f& xy0,
 	result.vertices[0].x = xy0.x;
 	result.vertices[0].y = xy0.y;
 	result.vertices[1].x = xy1.x;
-	result.vertices[1].y = xy0.y;
+	result.vertices[1].y = xy1.y;
+	return result;
+}
+
+
+primitive<2> primitives::line(const vector3f& xyz0,
+			      const vector3f& xyz1)
+{
+	primitive<2> result(GL_LINES);
+	result.vertices[0] = xyz0;
+	result.vertices[1] = xyz1;
 	return result;
 }

@@ -87,8 +87,6 @@ public:
 	void set_screenshot_directory(const std::string& s) { screenshot_dir = s; }
 	void screenshot(const std::string& filename = std::string());
 
-	void draw_rectangle(int x, int y, int w, int h);
-	
 	// takes effect only after next prepare_2d_drawing()
 	void set_res_2d(unsigned x, unsigned y) { res_x_2d = x; res_y_2d = y; }
 

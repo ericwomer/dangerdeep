@@ -125,14 +125,20 @@ class primitives
 		   unsigned size = 0);
 	void render();
 
-	static primitive_tex<4> textured_quad_2d(const vector2f& xy0,
-						 const vector2f& xy1,
-						 const vector2f& texc0,
-						 const vector2f& texc1);
-	static primitive_tex<4> quad_2d(const vector2f& xy0,
-					const vector2f& xy1);
+	/// render a 2d textured quad, face is back-sided
+	static primitive_tex<4> textured_quad(const vector2f& xy0,
+					      const vector2f& xy1,
+					      const vector2f& texc0,
+					      const vector2f& texc1);
+	/// render a 2d quad, face is back-sided
+	static primitive_tex<4> quad(const vector2f& xy0,
+				     const vector2f& xy1);
+	/// render a 2d line
 	static primitive<2> line(const vector2f& xy0,
 				 const vector2f& xy1);
+	/// render a 3d line
+	static primitive<2> line(const vector3f& xyz0,
+				 const vector3f& xyz1);
 
 	std::vector<vector3f> vertices;
 	std::vector<color> colors;
