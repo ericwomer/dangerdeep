@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texture.h"
 #include "model.h"
 #include "datadirs.h"
+#include "primitives.h"
 #include <set>
 #include <sstream>
 #include <algorithm>
@@ -452,10 +453,7 @@ void widget::draw_line(int x1, int y1, int x2, int y2)
 {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	globaltheme->textcol.set_gl_color();
-	glBegin(GL_LINES);
-	glVertex2i(x1, y1);
-	glVertex2i(x2, y2);
-	glEnd();
+	primitives::line(vector2f(x1, y1), vector2f(x2, y2));
 }
 
 
@@ -478,12 +476,7 @@ void widget::draw_area_col(int x, int y, int w, int h, bool out, color c) const
 {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	c.set_gl_color();
-	glBegin(GL_QUADS);
-	glVertex2i(x, y);
-	glVertex2i(x, y+h);
-	glVertex2i(x+w, y+h);
-	glVertex2i(x+w, y);
-	glEnd();
+	primitives::quad_2d(vector2f(x, y+h), vector2f(x+w, y));
 	draw_frame(x, y, w, h, out);
 }
 

@@ -402,7 +402,6 @@ void particle::display_all(const vector<particle*>& pts, const vector3& viewpos,
 	std::sort(pds.begin(), pds.end());
 
 	glDisable(GL_LIGHTING);
-	//glNormal3f(0, 0, 1);
 
 	// draw particles, generate coordinates on the fly
 	for (vector<particle_dist>::iterator it = pds.begin(); it != pds.end(); ++it) {

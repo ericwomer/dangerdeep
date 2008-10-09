@@ -527,7 +527,7 @@ void plant_set::display(const vector3& viewpos, float zang) const
 	glActiveTexture(GL_TEXTURE0);
 	planttex->set_gl_texture();
 	glColor4f(1,1,1,1);
-	glNormal3f(0, 0, 1);
+	glNormal3f(0, 0, 1);//fixme: later use shader, so this can be discarded
 
 	// fixme: cull invisible plants
 

@@ -816,8 +816,8 @@ void texture::draw(int x, int y, int w, int h) const
 	float u = float(width)/gl_width;
 	float v = float(height)/gl_height;
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
-	primitives::textured_quad(vector2f(x,y+h),vector2f(x+w,y),
-				  vector2f(0,v),vector2f(u,0)).render();
+	primitives::textured_quad_2d(vector2f(x,y),vector2f(x+w,y+h),
+				     vector2f(0,0),vector2f(u,v)).render();
 }
 
 void texture::draw_hm(int x, int y, int w, int h) const
@@ -825,8 +825,8 @@ void texture::draw_hm(int x, int y, int w, int h) const
 	float u = float(width)/gl_width;
 	float v = float(height)/gl_height;
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
-	primitives::textured_quad(vector2f(x,y+h),vector2f(x+w,y),
-				  vector2f(u,v),vector2f(0,0)).render();
+	primitives::textured_quad_2d(vector2f(x,y),vector2f(x+w,y+h),
+				     vector2f(u,0),vector2f(0,v)).render();
 }
 
 void texture::draw_vm(int x, int y, int w, int h) const
@@ -834,8 +834,8 @@ void texture::draw_vm(int x, int y, int w, int h) const
 	float u = float(width)/gl_width;
 	float v = float(height)/gl_height;
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
-	primitives::textured_quad(vector2f(x,y+h),vector2f(x+w,y),
-				  vector2f(0,0),vector2f(u,v)).render();
+	primitives::textured_quad_2d(vector2f(x,y),vector2f(x+w,y+h),
+				     vector2f(0,v),vector2f(u,0)).render();
 }
 
 void texture::draw_rot(int x, int y, double angle) const
@@ -857,8 +857,8 @@ void texture::draw_tiles(int x, int y, int w, int h) const
 	float tilesx = float(w)/gl_width;
 	float tilesy = float(h)/gl_height;
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
-	primitives::textured_quad(vector2f(x,y+h),vector2f(x+w,y),
-				  vector2f(0,tilesy),vector2f(tilesx,0)).render();
+	primitives::textured_quad_2d(vector2f(x,y),vector2f(x+w,y+h),
+				     vector2f(0,0),vector2f(tilesx,tilesy)).render();
 }
 
 void texture::draw_subimage(int x, int y, int w, int h, unsigned tx, unsigned ty,
@@ -869,8 +869,8 @@ void texture::draw_subimage(int x, int y, int w, int h, unsigned tx, unsigned ty
 	float x2 = float(tx+tw)/gl_width;
 	float y2 = float(ty+th)/gl_height;
 	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
-	primitives::textured_quad(vector2f(x,y+h),vector2f(x+w,y),
-				  vector2f(x1,y2),vector2f(x2,y1)).render();
+	primitives::textured_quad_2d(vector2f(x,y),vector2f(x+w,y+h),
+				     vector2f(x1,y1),vector2f(x2,y2)).render();
 }
 
 unsigned texture::get_max_size()

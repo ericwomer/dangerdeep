@@ -27,25 +27,116 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "color.h"
 #include <vector>
 
-/// this class models OpenGL primitives
-///@note needs OpenGL 2.0.
+
+
+/// this class models OpenGL primitives with fix vertex count
+template<unsigned size>
+class primitive
+{
+ public:
+	primitive(int type_ = GL_TRIANGLES) : type(type_) {}
+	void render() {
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
+		glDrawArrays(type, 0, size);
+		glDisableClientState(GL_VERTEX_ARRAY);
+	}
+
+	vector3f vertices[size];
+	int type;
+};
+
+/// this class models OpenGL primitives with fix vertex count and colors
+template<unsigned size>
+class primitive_col
+{
+ public:
+	primitive_col(int type_ = GL_TRIANGLES) : type(type_) {}
+	void render() {
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glColorPointer(4, GL_UNSIGNED_BYTE, 0, &colors[0]);
+		glDrawArrays(type, 0, size);
+		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);
+	}
+
+	vector3f vertices[size];
+	color colors[size];
+	int type;
+};
+
+/// this class models OpenGL primitives with fix vertex count and texcoords
+template<unsigned size>
+class primitive_tex
+{
+ public:
+	primitive_tex(int type_ = GL_TRIANGLES) : type(type_) {}
+	void render() {
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
+		glDrawArrays(type, 0, size);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);
+	}
+
+	vector3f vertices[size];
+	vector2f texcoords[size];
+	int type;
+};
+
+/// this class models OpenGL primitives with fix vertex count and colors + texcoords
+template<unsigned size>
+class primitive_coltex
+{
+ public:
+	primitive_coltex(int type_ = GL_TRIANGLES) : type(type_) {}
+	void render() {
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glColorPointer(4, GL_UNSIGNED_BYTE, 0, &colors[0]);
+		glDrawArrays(type, 0, size);
+		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);
+	}
+
+	vector3f vertices[size];
+	color colors[size];
+	vector2f texcoords[size];
+	int type;
+};
+
+
+
+/// this class models OpenGL primitives with variable vertex count
 class primitives
 {
  public:
 	primitives(int type = GL_TRIANGLES,
-		   bool with_colors = false, bool with_texcoords = false,
-		   bool with_normals = false, unsigned size = 0);
+		   bool with_colors = false,
+		   bool with_texcoords = false,
+		   unsigned size = 0);
 	void render();
 
-	static primitives textured_quad(const vector2f& xy0,
-					const vector2f& xy1,
-					const vector2f& texc0,
-					const vector2f& texc1);
+	static primitive_tex<4> textured_quad_2d(const vector2f& xy0,
+						 const vector2f& xy1,
+						 const vector2f& texc0,
+						 const vector2f& texc1);
+	static primitive_tex<4> quad_2d(const vector2f& xy0,
+					const vector2f& xy1);
+	static primitive<2> line(const vector2f& xy0,
+				 const vector2f& xy1);
 
 	std::vector<vector3f> vertices;
 	std::vector<color> colors;
 	std::vector<vector2f> texcoords;
-	std::vector<vector3f> normals;
 	int type;
 };
 

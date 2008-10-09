@@ -120,8 +120,8 @@ void sub_periscope_display::post_display(game& gm) const
 		glsl_blurview->set_gl_texture(*blurtex, loc_tex_blur, 1);
 		double blur_y_off = myfrac(gm.get_time() / 10.0);
 		glsl_blurview->set_uniform(loc_blur_texc_offset, vector3(blur_y_off, 0, 0));
-		primitives::textured_quad(vector2f(-1,-1), vector2f(1,1),
-					  vector2f(0,0), vector2f(1,1)).render();
+		primitives::textured_quad_2d(vector2f(-1,1), vector2f(1,-1),
+					     vector2f(0,1), vector2f(1,0)).render();
 		// unbind shader
 		glsl_blurview->use_fixed();
 		glBindTexture(GL_TEXTURE_2D, 0);
