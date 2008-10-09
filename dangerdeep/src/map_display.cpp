@@ -81,16 +81,8 @@ void map_display::draw_vessel_symbol(const vector2& offset, sea_object* so, colo
 
 	c.set_gl_color();
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glBegin(GL_QUADS);
-	glVertex2f(p.x - d.y*w, p.y - d.x*w);
-	glVertex2f(p.x - d.x*l, p.y + d.y*l);
-	glVertex2f(p.x + d.y*w, p.y + d.x*w);
-	glVertex2f(p.x + d.x*l, p.y - d.y*l);
-	glEnd();
-	glBegin(GL_LINES);
-	glVertex2f(p.x - d.x*l, p.y + d.y*l);
-	glVertex2f(p.x + d.x*l, p.y - d.y*l);
-	glEnd();
+	primitives::quad(vector2f(p.x - d.y*w, p.y - d.x*w), vector2f(p.x + d.y*w, p.y + d.x*w)).render();
+	primitives::line(vector2f(p.x - d.x*l, p.y + d.y*l), vector2f(p.x + d.x*l, p.y - d.y*l)).render();
 	glColor3f(1,1,1);
 }
 
@@ -174,10 +166,7 @@ void map_display::draw_sound_contact(class game& gm, const sea_object* player,
 			break;
 		}
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glBegin(GL_LINES);
-		glVertex2f(512+pos.x, 384-pos.y);
-		glVertex2f(512+pos.x+ldir.x, 384-pos.y-ldir.y);
-		glEnd();
+		primitives::line(vector2f(512+pos.x, 384-pos.y), vector2f(512+pos.x+ldir.x, 384-pos.y-ldir.y)).render();
 	}
 	glColor3f(1,1,1);
 }
@@ -216,10 +205,7 @@ void map_display::draw_sound_contact(game& gm, const submarine* player,
 			break;
 		}
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glBegin(GL_LINES);
-		glVertex2f(512+pos.x, 384-pos.y);
-		glVertex2f(512+pos.x+ldir.x, 384-pos.y-ldir.y);
-		glEnd();
+		primitives::line(vector2f(512+pos.x, 384-pos.y), vector2f(512+pos.x+ldir.x, 384-pos.y-ldir.y)).render();
 	}
 	glColor3f(1,1,1);
 }
@@ -605,18 +591,14 @@ void map_display::display(class game& gm) const
 	if (mapzoom >= 0.01) {
 		glColor3f(0.5, 0.5, 1);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glBegin(GL_LINES);
 		for (int i = 0; i < lx; ++i) {
-			glVertex2f(sx, 0);
-			glVertex2f(sx, 768);
+			primitives::line(vector2f(sx, 0), vector2f(sx, 768)).render();
 			sx += delta;
 		}
 		for (int i = 0; i < ly; ++i) {
-			glVertex2f(0, sy);
-			glVertex2f(1024, sy);
+			primitives::line(vector2f(0, sy), vector2f(1024, sy)).render();
 			sy -= delta;
 		}
-		glEnd();
 	}
 
 	// draw map

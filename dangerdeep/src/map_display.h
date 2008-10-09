@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector2.h"
 #include "color.h"
 #include "widget.h"
+#include "primitives.h"
 class game;
 class game_editor;
 class sea_object;
