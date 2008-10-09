@@ -924,7 +924,6 @@ void water::display(const vector3& viewpos, double max_view_dist, bool under_wat
 	glVertexAttribPointer(vattr_aof_index, 1, GL_FLOAT, GL_FALSE, nr_vert_attr*4, (float*)0 + 6);
 	glEnableVertexAttribArray(vattr_aof_index);
 	vertices.unbind();
-	glDisableClientState(GL_COLOR_ARRAY);
 
 	// innermost level is rendered always
 	patches[0]->render();

@@ -920,9 +920,6 @@ void geoclipmap::level::display(const frustum& f, bool is_mirror) const
 	glVertexAttribPointer(gcm.myshader_vattr_z_c_index[si], 1, GL_FLOAT, GL_FALSE, geoclipmap_fperv*4, (float*)0 + 3);
 	glEnableVertexAttribArray(gcm.myshader_vattr_z_c_index[si]);
 	vertices.unbind();
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
 	indices.bind();
 	// we always skip the first index here, because it is identical to the second,
 	// that is because of the line/patch transition code (it is easier)
@@ -932,7 +929,6 @@ void geoclipmap::level::display(const frustum& f, bool is_mirror) const
 			    nridx-1, GL_UNSIGNED_INT, (unsigned*)0 + 1); // skip first index
 	indices.unbind();
 	glDisableVertexAttribArray(gcm.myshader_vattr_z_c_index[si]);
-	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 
 #ifdef DEBUG_INDEX_USAGE

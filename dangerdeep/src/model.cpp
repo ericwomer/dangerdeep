@@ -1587,8 +1587,6 @@ void model::mesh::display(const texture *caustic_map) const
 		vbo_texcoords.bind();
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), 0);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	} else {
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 
 	// Using vertex and fragment programs.
@@ -1681,8 +1679,6 @@ void model::mesh::display_mirror_clip() const
 		vbo_texcoords.bind();
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), 0);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	} else {
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 
 	// unbind VBOs
