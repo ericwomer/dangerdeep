@@ -282,6 +282,7 @@ void system::prepare_2d_drawing()
 	glScalef(1, -1, 1);
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
+	glCullFace(GL_FRONT);
 	draw_2d = true;
 	glPixelZoom(float(res_x)/res_x_2d, -float(res_y)/res_y_2d);	// flip images
 }
@@ -297,6 +298,7 @@ void system::unprepare_2d_drawing()
 	glPopMatrix();
 	glEnable(GL_LIGHTING);
 	glEnable(GL_DEPTH_TEST);
+	glCullFace(GL_BACK);
 	draw_2d = false;
 }
 

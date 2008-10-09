@@ -128,8 +128,8 @@ class primitives
 	/// render a 2d textured quad, face is back-sided
 	static primitive_tex<4> textured_quad(const vector2f& xy0,
 					      const vector2f& xy1,
-					      const vector2f& texc0,
-					      const vector2f& texc1);
+					      const vector2f& texc0 = vector2f(0,0),
+					      const vector2f& texc1 = vector2f(1,1));
 	/// render a 2d quad, face is back-sided
 	static primitive_tex<4> quad(const vector2f& xy0,
 				     const vector2f& xy1);

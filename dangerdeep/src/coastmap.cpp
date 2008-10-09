@@ -224,8 +224,8 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detai
 	if (type == 1) {
 		vector2f tc0 = cm.segcoord_to_texc(x, y);
 		vector2f tc1 = cm.segcoord_to_texc(x+1, y+1);
-		primitives::textured_quad(vector2f(0,cm.segw_real), vector2f(cm.segw_real,0),
-					  vector2f(tc0.x,tc1.y), vector2f(tc1.x,tc0.y)).render();
+		primitives::textured_quad(vector2f(0,0), vector2f(cm.segw_real,cm.segw_real),
+					  tc0, tc1).render();
 	} else if (type > 1) {
 		vector2f tc0 = cm.segcoord_to_texc(x, y);
 		vector2f tc1 = cm.segcoord_to_texc(x+1, y+1);

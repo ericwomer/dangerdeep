@@ -39,6 +39,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "game.h"
 #include "matrix4.h"
 #include "cfg.h"
+#include "primitives.h"
 
 #include <iostream>
 using std::vector;
@@ -372,16 +373,7 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	matrix4 tmpmat = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	tmpmat.clear_rot();
 	tmpmat.set_gl(GL_MODELVIEW);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0,0);
-	glVertex3f(-suns, -suns, 0);
-	glTexCoord2f(1,0);
-	glVertex3f( suns, -suns, 0);
-	glTexCoord2f(1,1);
-	glVertex3f( suns,  suns, 0);
-	glTexCoord2f(0,1);
-	glVertex3f(-suns,  suns, 0);
-	glEnd();
+	primitives::textured_quad(vector2f(-suns,-suns), vector2f(suns,suns)).render();
 	glPopMatrix();
 
 	// ******** clouds ********************************************************************

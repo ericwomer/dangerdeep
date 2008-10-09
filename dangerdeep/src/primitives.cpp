@@ -62,21 +62,21 @@ primitive_tex<4> primitives::textured_quad(const vector2f& xy0,
 {
 	primitive_tex<4> result(GL_QUADS);
 	result.vertices[0].x = xy0.x;
-	result.vertices[0].y = xy1.y;
+	result.vertices[0].y = xy0.y;
 	result.vertices[1].x = xy1.x;
-	result.vertices[1].y = xy1.y;
+	result.vertices[1].y = xy0.y;
 	result.vertices[2].x = xy1.x;
-	result.vertices[2].y = xy0.y;
+	result.vertices[2].y = xy1.y;
 	result.vertices[3].x = xy0.x;
-	result.vertices[3].y = xy0.y;
+	result.vertices[3].y = xy1.y;
 	result.texcoords[0].x = texc0.x;
-	result.texcoords[0].y = texc1.y;
+	result.texcoords[0].y = texc0.y;
 	result.texcoords[1].x = texc1.x;
-	result.texcoords[1].y = texc1.y;
+	result.texcoords[1].y = texc0.y;
 	result.texcoords[2].x = texc1.x;
-	result.texcoords[2].y = texc0.y;
+	result.texcoords[2].y = texc1.y;
 	result.texcoords[3].x = texc0.x;
-	result.texcoords[3].y = texc0.y;
+	result.texcoords[3].y = texc1.y;
 	return result;
 }
 
@@ -87,13 +87,13 @@ primitive_tex<4> primitives::quad(const vector2f& xy0,
 {
 	primitive_tex<4> result(GL_QUADS);
 	result.vertices[0].x = xy0.x;
-	result.vertices[0].y = xy1.y;
+	result.vertices[0].y = xy0.y;
 	result.vertices[1].x = xy1.x;
-	result.vertices[1].y = xy1.y;
+	result.vertices[1].y = xy0.y;
 	result.vertices[2].x = xy1.x;
-	result.vertices[2].y = xy0.y;
+	result.vertices[2].y = xy1.y;
 	result.vertices[3].x = xy0.x;
-	result.vertices[3].y = xy0.y;
+	result.vertices[3].y = xy1.y;
 	return result;
 }
 
