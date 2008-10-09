@@ -608,7 +608,9 @@ void map_display::display(class game& gm) const
 	glScalef(mapzoom, mapzoom, 1);
 	glScalef(1,-1,1);
 	glTranslatef(-offset.x, -offset.y, 0);
+	glCullFace(GL_BACK);// we must render the map with front-faced tris
 	ui.get_coastmap().draw_as_map(offset, mapzoom);//, detl); // detail should depend on zoom, fixme
+	glCullFace(GL_FRONT);//clean up
 	glPopMatrix();
 	glBindTexture(GL_TEXTURE_2D, 0);
 
