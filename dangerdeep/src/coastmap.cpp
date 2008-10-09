@@ -224,15 +224,17 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detai
 	if (type == 1) {
 		vector2f tc0 = cm.segcoord_to_texc(x, y);
 		vector2f tc1 = cm.segcoord_to_texc(x+1, y+1);
-		primitives::textured_quad(vector2f(0,0), vector2f(cm.segw_real,cm.segw_real),
-					  tc0, tc1).render();
+		primitives::textured_quad(vector2f(0,cm.segw_real), vector2f(cm.segw_real,0),
+					  vector2f(tc0.x,tc1.y), vector2f(tc1.x,tc0.y)).render();
 	} else if (type > 1) {
-#if 1
 		vector2f tc0 = cm.segcoord_to_texc(x, y);
 		vector2f tc1 = cm.segcoord_to_texc(x+1, y+1);
 		generate_point_cache(cm, x, y, detail);
-//glColor3f(0,1,1);
-		glBegin(GL_TRIANGLES);
+		unsigned nrv = 0;
+		for (vector<cacheentry>::const_iterator cit = pointcache.begin(); cit != pointcache.end(); ++cit)
+			nrv += cit->indices.size();
+		primitives tris(GL_TRIANGLES, false, true, nrv);
+		nrv = 0;
 		for (vector<cacheentry>::const_iterator cit = pointcache.begin(); cit != pointcache.end(); ++cit) {
 			for (vector<unsigned>::const_iterator tit = cit->indices.begin(); tit != cit->indices.end(); ++tit) {
 				const vector2& v = cit->points[*tit];
@@ -241,79 +243,13 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detai
 				float ax = 1.0f - ex;
 				float ay = 1.0f - ey;
 				vector2f tc(tc0.x * ax + tc1.x * ex, tc0.y * ay + tc1.y * ey);
-				glTexCoord2fv(&tc.x);
-				glVertex2dv(&v.x);
+				tris.vertices[nrv].x = v.x;
+				tris.vertices[nrv].y = v.y;
+				tris.texcoords[nrv] = tc;
+				++nrv;
 			}
 		}
-		glEnd();
-#endif		
-#if 0
-		// test
-//		glBindTexture(GL_TEXTURE_2D, 0);
-		glBegin(GL_LINES);
-		for (unsigned i = 0; i < segcls.size(); ++i) {
-			vector2 p0 = cm.segcoord_to_real(x, y, segcls[i].points.front());
-			vector2 p1 = cm.segcoord_to_real(x, y, segcls[i].points.back());
-			glColor3f(1.0f, 1.0f, 0.0f);
-			glVertex2f(p0.x, p0.y);
-			glColor3f(1.0f, 0.0f, 1.0f);
-			glVertex2f(p1.x, p1.y);
-		}
-		glEnd();
-		glColor3f(1,1,1);
-#endif
-#if 0
-		// cl lines
-		double sc = cm.segw_real / SEGSCALE;
-		glColor3f(1,0.5,0.5);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		for (unsigned i = 0; i < segcls.size(); ++i) {
-			const segcl& scl = segcls[i];
-			glBegin(GL_LINE_STRIP);
-			for (unsigned j = 0; j < scl.points.size(); ++j) {
-				vector2 p = vector2(scl.points[j].x, scl.points[j].y) * sc;
-				glVertex2dv(&p.x);
-			}
-			glEnd();
-		}
-		glColor3f(0,0.5,0.5);
-#endif
-#if 0
-		// cl points
-		glColor3f(1,1,0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glPointSize(2.0);
-		for (unsigned i = 0; i < segcls.size(); ++i) {
-			const segcl& scl = segcls[i];
-			glBegin(GL_POINTS);
-			for (unsigned j = 0; j < scl.points.size(); ++j) {
-				vector2 p = vector2(scl.points[j].x, scl.points[j].y) * sc;
-				glVertex2dv(&p.x);
-			}
-			glEnd();
-		}
-		glColor3f(0,0.5,0.5);
-#endif
-#if 0
-		// triangle borders
-		glBegin(GL_LINES);
-		glColor3f(1,1,1);
-		for (vector<cacheentry>::const_iterator cit = pointcache.begin(); cit != pointcache.end(); ++cit) {
-			if (cit->indices.size() % 3 != 0) {printf("WARNING! can't draw triangles!\n");continue;}
-			for (vector<unsigned>::const_iterator tit = cit->indices.begin(); tit != cit->indices.end(); ) {
-				const vector2& v0 = cit->points[*tit]; ++tit;
-				const vector2& v1 = cit->points[*tit]; ++tit;
-				const vector2& v2 = cit->points[*tit]; ++tit;
-				glVertex2dv(&v0.x);
-				glVertex2dv(&v1.x);
-				glVertex2dv(&v1.x);
-				glVertex2dv(&v2.x);
-				glVertex2dv(&v2.x);
-				glVertex2dv(&v0.x);
-			}
-		}
-		glEnd();
-#endif		
+		tris.render();
 	}
 }
 
