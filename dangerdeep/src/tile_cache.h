@@ -55,7 +55,7 @@ public:
 	struct coord_compare
 	{
  		bool operator()(const vector2l& lhs, const vector2l& rhs) const {
-			return (lhs.x<rhs.x || lhs.y<rhs.y);
+			return (lhs.x<rhs.x && lhs.y<rhs.y);
 		}
 	};
 		
@@ -148,14 +148,14 @@ T tile_cache<T>::get_value(vector2l& coord)
 
 	/* wrap coordinates if needed */
 	if (coord.x >= configuration.overall_cols) coord.x-= configuration.overall_cols;
-	if (coord.y >= configuration.overall_cols) coord.y-= configuration.overall_cols;
+	if (coord.y >= configuration.overall_rows) coord.y-= configuration.overall_rows;
 	if (coord.x < 0) coord.x+= configuration.overall_cols;
-	if (coord.y < 0) coord.y+= configuration.overall_cols;
+	if (coord.y < 0) coord.y+= configuration.overall_rows;
 
 	vector2l tile_coord = coord_to_tile(coord);
 	tile_list_iterator it = tile_list.find(tile_coord);
-	
-	if(it->first == tile_coord) return_value = it->second.get_value(coord-tile_coord);
+
+	if(it != tile_list.end()) return_value = it->second.get_value(coord-tile_coord);
 	else {
 		if (configuration.slots>0 && tile_list.size()>=configuration.slots) 
 			free_slot();
@@ -195,11 +195,10 @@ inline void tile_cache<T>::erase_expired()
 {
 	if (configuration.expire>0) {
 		long time = clock() / (CLOCKS_PER_SEC/1000);
-		for (tile_list_iterator it = tile_list.begin(); it != tile_list.end(); it++) {
-			
-			if (time-it->second.get_last_access() >= configuration.expire) tile_list.erase(it);
-			
-		}
+		for (tile_list_iterator it = tile_list.begin(); it != tile_list.end(); it++)
+			if (time-it->second.get_last_access() >= configuration.expire) {
+				tile_list.erase(it);
+			}
 	}
 }
 
