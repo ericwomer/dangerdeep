@@ -81,7 +81,14 @@ void map_display::draw_vessel_symbol(const vector2& offset, sea_object* so, colo
 
 	c.set_gl_color();
 	glBindTexture(GL_TEXTURE_2D, 0);
-	primitives::quad(vector2f(p.x - d.y*w, p.y - d.x*w), vector2f(p.x + d.y*w, p.y + d.x*w)).render();
+//fixme: this:   is not the same as the prim::quad line below
+glBegin(GL_QUADS);
+glVertex2f(p.x - d.y*w, p.y - d.x*w);
+glVertex2f(p.x - d.x*l, p.y + d.y*l);
+glVertex2f(p.x + d.y*w, p.y + d.x*w);
+glVertex2f(p.x + d.x*l, p.y - d.y*l);
+glEnd();
+//	primitives::quad(vector2f(p.x - d.y*w, p.y - d.x*w), vector2f(p.x + d.y*w, p.y + d.x*w)).render();
 	primitives::line(vector2f(p.x - d.x*l, p.y + d.y*l), vector2f(p.x + d.x*l, p.y - d.y*l)).render();
 	glColor3f(1,1,1);
 }
