@@ -35,6 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texture.h"
 #include "font.h"
 #include "log.h"
+#include "primitives.h"
 
 #include <iostream>
 #include <sstream>
@@ -254,16 +255,8 @@ void system::draw_console()
 	if (console_background) {
 		glColor4f(1,1,1,0.75);
 		glBindTexture(GL_TEXTURE_2D, console_background->get_opengl_name());
-		glBegin(GL_QUADS);
-		glTexCoord2f(0,0);
-		glVertex2i(0,0);
-		glTexCoord2f(0,2);
-		glVertex2i(0,res_y_2d/2);
-		glTexCoord2f(4,2);
-		glVertex2i(res_x_2d,res_y_2d/2);
-		glTexCoord2f(4,0);
-		glVertex2i(res_x_2d,0);
-		glEnd();
+		primitives::textured_quad(vector2f(0,0), vector2f(res_x_2d,res_y_2d/2),
+					  vector2f(0,0), vector2f(4, 2)).render();
 	}
 	glColor4f(1,1,1,1);
 	
