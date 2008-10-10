@@ -895,30 +895,6 @@ void show_credits()
 				fadein_tex.reset();
 		}
 
-#if 0
-		if (use_shaders) {
-			glss->use();
-			glColor4f(0.2,0.8,1,1);
-			bkg->set_gl_texture();
-			glBegin(GL_QUADS);
-			glTexCoord2f(0+ctr,0);
-			glMultiTexCoord2f(GL_TEXTURE1_ARB, ctr, ctr*0.5);
-			glVertex2i(0,768);
-			glTexCoord2f(1.33333+ctr,0);
-			glMultiTexCoord2f(GL_TEXTURE1_ARB, ctr, ctr*0.5);
-			glVertex2i(1024,768);
-			glTexCoord2f(1.33333+ctr,1);
-			glMultiTexCoord2f(GL_TEXTURE1_ARB, ctr, ctr*0.5);
-			glVertex2i(1024,0);
-			glTexCoord2f(0+ctr,1);
-			glMultiTexCoord2f(GL_TEXTURE1_ARB, ctr, ctr*0.5);
-			glVertex2i(0,0);
-			glEnd();
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glss->use_fixed();
-		}
-#endif
-
 		for (int i = textpos; i <= textpos+lines_per_page; ++i) {
 			if (i >= 0 && i < textlines) {
 				int y = (i-textpos)*lineheight+int(-lineoffset*lineheight);

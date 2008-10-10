@@ -33,6 +33,7 @@ using namespace std;
 #include "sub_damage_display.h"
 #include "image.h"
 #include "game.h"
+#include "primitives.h"
 
 struct rect {
 	int x, y, w, h;
@@ -98,10 +99,7 @@ void sub_damage_display::display_popup (int x, int y, const string& text, bool a
 
 	glBindTexture ( GL_TEXTURE_2D, 0 );
 	color::red().set_gl_color();
-	glBegin(GL_LINES);
-	glVertex2f(x, y);
-	glVertex2f(posx+width/2, posy+height/2);
-	glEnd();
+	primitves::line(vector2f(x, y), vector2f(posx+width/2, posy+height/2)).render();
 
 	color::white().set_gl_color();
 	notepadsheet.get()->draw(posx, posy);

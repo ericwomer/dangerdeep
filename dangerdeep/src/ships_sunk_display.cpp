@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ships_sunk_display.h"
 #include "user_interface.h"
 #include "log.h"
+#include "primitives.h"
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -83,8 +84,7 @@ void ships_sunk_display::display ( class game& gm ) const
 		// Draw flag.
 		glColor3f ( 1.0f, 1.0f, 1.0f );
 		glBindTexture ( GL_TEXTURE_2D, 0 );
-		glBegin ( GL_QUADS );
-		//DEPRECATED, use primitives! sys().draw_rectangle ( x, y, 200, 150 );
+		primitives::quad(vector2f(x,y), vector2f(x+200,y+150)).render();
 
 		// Print class name.
 		glPushMatrix ();
@@ -121,7 +121,6 @@ void ships_sunk_display::display ( class game& gm ) const
 		}
 		glPopMatrix ();
 	}
-	glEnd ();
 
 	ui.draw_infopanel();
 
