@@ -39,6 +39,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "global_data.h"
 #include "model.h"
 #include "frustum.h"
+#include "primitives.h"
 #include <fstream>
 #include <algorithm>
 using std::vector;
@@ -619,13 +620,12 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		underwater_background->set_gl_texture();
 		const double underwater_bg_maxz = -40;
 		glDisable(GL_DEPTH_TEST);
-		glBegin(GL_TRIANGLE_FAN);
+		primitives trifan(GL_TRIANGLE_FAN, false, true, uwp.points.size());
 		for (unsigned i = 0; i < uwp.points.size(); ++i) {
-			const vector3& p = uwp.points[i];
-			glTexCoord2f(p.z/underwater_bg_maxz, 0);
-			glVertex3d(p.x, p.y, p.z);
+			trifan.vertices[i].assign(uwp.points[i]);
+			trifan.texcoords[i].x = uwp.points[i].z/underwater_bg_maxz;
 		}
-		glEnd();
+		trifan.render();
 		glEnable(GL_DEPTH_TEST);
 		glCullFace(GL_FRONT);
 		ui.get_water().display(viewpos, max_view_dist, true /* under water*/);
