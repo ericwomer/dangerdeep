@@ -100,9 +100,6 @@ oglextsources = Split("""
 	oglext/RenderingContext.cpp
 	oglext/RenderingContext.hpp""")
 
-viewmodelsources = Split("""
-        viewmodel.cpp""")
-
 # build objects for each member of osspecificsrc
 osspecificsrc_obj = [env.Object(source = x) for x in osspecificsrc]
 
@@ -115,7 +112,7 @@ globaldataobj = env.StaticObject('global_data.cpp', CPPDEFINES = [('VERSION', '\
 frustum_obj = env.Object(source = 'frustum.cpp')
 threads_obj = env.Object(source = Split('thread.cpp mutex.cpp condvar.cpp log.cpp'))
 binary = env.Program(target = 'dangerdeep', source = dftdsources + filehelper_obj + widget_obj + frustum_obj + datadirsobj + globaldataobj + osspecificsrc_obj + threads_obj, LIBS = alllibs)
-tool1 = env.Program(target = 'viewmodel', source = viewmodelsources + datadirsobj + filehelper_obj + widget_obj + osspecificsrc_obj + threads_obj, LIBS = alllibs)
+tool1 = env.Program(target = 'viewmodel', source = Split('viewmodel.cpp') + datadirsobj + filehelper_obj + widget_obj + osspecificsrc_obj + threads_obj, LIBS = alllibs)
 tool2 = env.Program(target = 'modelmeasure', source = Split('modelmeasure.cpp') + datadirsobj + filehelper_obj + threads_obj + osspecificsrc_obj, LIBS = alllibs)
 env.StaticLibrary(target = 'oglext', source = oglextsources)
 env.StaticLibrary(target = 'tinyxml', source = tinyxmlsources)
