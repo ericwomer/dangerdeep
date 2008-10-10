@@ -82,10 +82,10 @@ void map_display::draw_vessel_symbol(const vector2& offset, sea_object* so, colo
 	c.set_gl_color();
 	glBindTexture(GL_TEXTURE_2D, 0);
 	primitive<4> vesselshape(GL_QUADS);
-	vesselshape.vertices[0] = vector3f(p.x - d.y*w, p.y - d.x*w, 0);
-	vesselshape.vertices[1] = vector3f(p.x - d.x*l, p.y + d.y*l, 0);
-	vesselshape.vertices[2] = vector3f(p.x + d.y*w, p.y + d.x*w, 0);
-	vesselshape.vertices[3] = vector3f(p.x + d.x*l, p.y - d.y*l, 0);
+	vesselshape.vertices[3] = vector3f(p.x - d.y*w, p.y - d.x*w, 0);
+	vesselshape.vertices[2] = vector3f(p.x - d.x*l, p.y + d.y*l, 0);
+	vesselshape.vertices[1] = vector3f(p.x + d.y*w, p.y + d.x*w, 0);
+	vesselshape.vertices[0] = vector3f(p.x + d.x*l, p.y - d.y*l, 0);
 	vesselshape.render();
 	primitives::line(vector2f(p.x - d.x*l, p.y + d.y*l), vector2f(p.x + d.x*l, p.y - d.y*l)).render();
 	glColor3f(1,1,1);

@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "color.h"
 #include "objcache.h"
 #include "primitives.h"
+#include "ptrvector.h"
 
 
 class texture;
@@ -41,14 +42,13 @@ private:
 		unsigned width, height;	// real width/height
 		int left;	// offset
 		int top;	// offset
-		texture* tex;
-		character() : width(0), height(0), left(0), top(0), tex(0) {}
-		~character();
+		character() : width(0), height(0), left(0), top(0) {}
 	};
 	font();
 	font& operator=(const font& other);
 	font(const font& other);
 	std::vector<character> characters;
+	ptrvector<texture> character_textures;
 
 	unsigned first_char, last_char;	// codes
 	unsigned base_height, height;	// base height and real height

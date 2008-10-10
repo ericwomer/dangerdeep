@@ -43,11 +43,6 @@ using std::ifstream;
 */
 
 
-font::character::~character()
-{
-	delete tex;
-}
-
 void font::print_text(int x, int y, const string& text, bool ignore_colors) const
 {
 	glActiveTexture(GL_TEXTURE1);	// fixme: disable units where they are used!
@@ -88,14 +83,14 @@ void font::print_text(int x, int y, const string& text, bool ignore_colors) cons
 		} else if (unsigned(c) >= first_char && unsigned(c) <= last_char) {
 			unsigned t = unsigned(c) - first_char;
 			// fixme: we could use display lists here
-			float u1 = float(characters[t].width)/characters[t].tex->get_width();
-			float v1 = float(characters[t].height)/characters[t].tex->get_height();
+			float u1 = float(characters[t].width)/character_textures[t]->get_width();
+			float v1 = float(characters[t].height)/character_textures[t]->get_height();
 			//fixme: width in text is width+left, so advance x by that value
 			//and draw at x+left. must be changed everywhere
 			//int x2 = x + characters[t].left;
 			int y2 = y + base_height - characters[t].top;
-			glBindTexture(GL_TEXTURE_2D, characters[t].tex->get_opengl_name());
-			primitives::textured_quad(vector2f(x,y2), vector2f(x+characters[t].width,y2+characters[t].height), vector2f(0,0), vector2f(u1,v1)).render();
+			glBindTexture(GL_TEXTURE_2D, character_textures[t]->get_opengl_name());
+			primitives::textured_quad(vector2f(x,y2), vector2f(x+int(characters[t].width),y2+int(characters[t].height)), vector2f(0,0), vector2f(u1,v1)).render();
 			x += characters[t].width + spacing;
 		} // else: just skip (unknown) character
 	}
@@ -108,6 +103,7 @@ font::font(const string& basefilename, unsigned char_spacing)
 	metricfile >> first_char;
 	metricfile >> last_char;
 	characters.resize(last_char-first_char+1);
+	character_textures.resize(last_char-first_char+1);
 	for (unsigned i = first_char; i <= last_char; ++i) {
 		if (!metricfile.good())
 			throw error(string("error reading font metricfile for ")+basefilename);
@@ -159,8 +155,8 @@ font::font(const string& basefilename, unsigned char_spacing)
 			ptr += fontimage->pitch;
 		}
 		
-		characters[i].tex = new texture(tmpimage, w, h, GL_LUMINANCE_ALPHA,
-						texture::LINEAR, texture::CLAMP_TO_EDGE);
+		character_textures.reset(i, new texture(tmpimage, w, h, GL_LUMINANCE_ALPHA,
+							texture::LINEAR, texture::CLAMP_TO_EDGE));
 	}
 //	printf("wasted ca. %u bytes of video ram for font %s\n", waste, basefilename.c_str());
 	
