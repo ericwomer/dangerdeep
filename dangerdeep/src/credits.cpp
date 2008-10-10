@@ -788,19 +788,6 @@ void show_credits()
 
 	auto_ptr<texture> bkg;
 	auto_ptr<glsl_shader_setup> glss;
-#if 0
-	bool use_shaders = glsl_program::supported();
-	if (use_shaders) {
-		const unsigned sz = 16;
-		vector<Uint8> data(sz*sz);
-		for (unsigned y = 0; y < sz; ++y)
-			for (unsigned x = 0; x < sz; ++x)
-				data[y*sz+x] = rand() & 0xff;
-		bkg.reset(new texture(data, sz, sz, GL_LUMINANCE, texture::LINEAR, texture::REPEAT));
-		glss.reset(new glsl_shader_setup(get_shader_dir() + "credits.vshader",
-						 get_shader_dir() + "credits.fshader"));
-	}
-#endif
 
 	int lineheight = font_arial->get_height();
 	int lines_per_page = (768+lineheight-1)/lineheight;
