@@ -115,6 +115,8 @@ class bivector
 	///@note other bivector must have power of two dimensions for this!
 	bivector<T>& add_shifted(const bivector<T>& other, const vector2i& offset);
 
+	bivector<T>& insert(const bivector<T>& other, const vector2i& offset);
+
  protected:
 	vector2i datasize;
 	std::vector<T> data;
@@ -490,6 +492,90 @@ bivector<T>& bivector<T>::add_shifted(const bivector<T>& other, const vector2i& 
 	bivector_FOREACH_XY(at(x,y) += other.at((x+offset.x) & (other.datasize.x-1), (y+offset.y) & (other.datasize.y-1));)
 	return *this;
 }
+
+template <class T>
+bivector<T>& bivector<T>::insert(const bivector<T>& other, const vector2i& offset)
+{
+	for (int y=0; y<other.size().y; y++) {
+		for (int x=0; x<other.size().x; x++) {
+			at(offset+vector2i(x,y)) = other.at(x,y);
+		}
+	}
+	return *this;
+}
+
+template <class T>
+class toroidal_bivector : public bivector<T>
+{
+public:
+	toroidal_bivector() : bivector<T>() {}
+	toroidal_bivector(const vector2i& sz, const T& v = T()) : bivector<T>(sz, v) {}
+
+	toroidal_bivector(const bivector<T>& other) : bivector<T>(other.size()) {
+		for (int y=0; y < other.size().y; ++y)
+			for (int x=0; x < other.size().x; ++x)
+				at(x,y) = other.at(x, y);
+	}
+	toroidal_bivector(bivector<T>& other) : bivector<T>(other.size()) {
+		for (int y=0; y < other.size().y; ++y)
+			for (int x=0; x < other.size().x; ++x)
+				at(x,y) = other.at(x, y);
+	}
+
+	T& at(const vector2i& p) { 
+		vector2i pos(p);
+		if (pos.x>=bivector<T>::datasize.x)
+			pos.x-=bivector<T>::datasize.x*(pos.x/bivector<T>::datasize.x);
+		else if (pos.x<0) pos.x+=bivector<T>::datasize.x*(pos.x/bivector<T>::datasize.x);
+
+		if (pos.y>=bivector<T>::datasize.y)
+			pos.y-=bivector<T>::datasize.y*(pos.y/bivector<T>::datasize.y);
+		else if (pos.y<0) pos.y+=bivector<T>::datasize.y*(pos.y/bivector<T>::datasize.y);
+		return bivector<T>::data[pos.x + pos.y*bivector<T>::datasize.x]; 
+	}
+	const T& at(const vector2i& p) const { 
+		vector2i pos(p);
+		if (pos.x>=bivector<T>::datasize.x)
+			pos.x-=bivector<T>::datasize.x*(pos.x/bivector<T>::datasize.x);
+		else if (pos.x<0) pos.x+=bivector<T>::datasize.x*(pos.x/bivector<T>::datasize.x);
+
+		if (pos.y>=bivector<T>::datasize.y)
+			pos.y-=bivector<T>::datasize.y*(pos.y/bivector<T>::datasize.y);
+		else if (pos.y<0) pos.y+=bivector<T>::datasize.y*(pos.y/bivector<T>::datasize.y);
+		return bivector<T>::data[pos.x + pos.y*bivector<T>::datasize.x]; 
+	}
+	T& at(int x, int y) { 
+		vector2i pos(x,y);
+		if (pos.x>=bivector<T>::datasize.x)
+			pos.x-=bivector<T>::datasize.x*(pos.x/bivector<T>::datasize.x);
+		else if (pos.x<0) pos.x+=bivector<T>::datasize.x*(pos.x/bivector<T>::datasize.x);
+
+		if (pos.y>=bivector<T>::datasize.y)
+			pos.y-=bivector<T>::datasize.y*(pos.y/bivector<T>::datasize.y);
+		else if (pos.y<0) pos.y+=bivector<T>::datasize.y*(pos.y/bivector<T>::datasize.y);
+		return bivector<T>::data[pos.x + pos.y*bivector<T>::datasize.x]; 
+	}
+	const T& at(int x, int y) const { 
+		vector2i pos(x,y);
+		if (pos.x>=bivector<T>::datasize.x)
+			pos.x-=bivector<T>::datasize.x*(pos.x/bivector<T>::datasize.x);
+		else if (pos.x<0) pos.x+=bivector<T>::datasize.x*(pos.x/bivector<T>::datasize.x);
+
+		if (pos.y>=bivector<T>::datasize.y)
+			pos.y-=bivector<T>::datasize.y*(pos.y/bivector<T>::datasize.y);
+		else if (pos.y<0) pos.y+=bivector<T>::datasize.y*(pos.y/bivector<T>::datasize.y);
+		return bivector<T>::data[pos.x + pos.y*bivector<T>::datasize.x]; 
+	}
+	bivector<T> sub_area(const vector2i& offset, const vector2i& sz) const
+	{
+		bivector<T> result(sz);
+		for (int y=0; y < result.size().y; ++y)
+			for (int x=0; x < result.size().x; ++x)
+				result.at(x,y) = at(offset.x+x, offset.y+y);
+		return result;
+	}
+
+};
 
 #undef bivector_FOREACH
 #undef bivector_FOREACH_XY
