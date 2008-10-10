@@ -99,7 +99,7 @@ void sub_damage_display::display_popup (int x, int y, const string& text, bool a
 
 	glBindTexture ( GL_TEXTURE_2D, 0 );
 	color::red().set_gl_color();
-	primitves::line(vector2f(x, y), vector2f(posx+width/2, posy+height/2)).render();
+	primitives::line(vector2f(x, y), vector2f(posx+width/2, posy+height/2)).render();
 
 	color::white().set_gl_color();
 	notepadsheet.get()->draw(posx, posy);
