@@ -133,9 +133,18 @@ class primitives
 	/// render a 2d quad, face is back-sided
 	static primitive_tex<4> quad(const vector2f& xy0,
 				     const vector2f& xy1);
+	/// render a 2d rectangle
+	static primitive_tex<4> rectangle(const vector2f& xy0,
+					  const vector2f& xy1);
+	/// render a 2d diamond
+	static primitive_tex<4> diamond(const vector2f& xy,
+					float r);
 	/// render a 2d line
 	static primitive<2> line(const vector2f& xy0,
 				 const vector2f& xy1);
+	/// render a 2d circle
+	static primitives circle(const vector2f& xy,
+				 float radius);
 	/// render a 3d line
 	static primitive<2> line(const vector3f& xyz0,
 				 const vector3f& xyz1);

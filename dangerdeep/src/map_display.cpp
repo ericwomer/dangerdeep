@@ -81,14 +81,12 @@ void map_display::draw_vessel_symbol(const vector2& offset, sea_object* so, colo
 
 	c.set_gl_color();
 	glBindTexture(GL_TEXTURE_2D, 0);
-//fixme: this:   is not the same as the prim::quad line below
-glBegin(GL_QUADS);
-glVertex2f(p.x - d.y*w, p.y - d.x*w);
-glVertex2f(p.x - d.x*l, p.y + d.y*l);
-glVertex2f(p.x + d.y*w, p.y + d.x*w);
-glVertex2f(p.x + d.x*l, p.y - d.y*l);
-glEnd();
-//	primitives::quad(vector2f(p.x - d.y*w, p.y - d.x*w), vector2f(p.x + d.y*w, p.y + d.x*w)).render();
+	primitive<4> vesselshape(GL_QUADS);
+	vesselshape.vertices[0] = vector3f(p.x - d.y*w, p.y - d.x*w, 0);
+	vesselshape.vertices[1] = vector3f(p.x - d.x*l, p.y + d.y*l, 0);
+	vesselshape.vertices[2] = vector3f(p.x + d.y*w, p.y + d.x*w, 0);
+	vesselshape.vertices[3] = vector3f(p.x + d.x*l, p.y - d.y*l, 0);
+	vesselshape.render();
 	primitives::line(vector2f(p.x - d.x*l, p.y + d.y*l), vector2f(p.x + d.x*l, p.y - d.y*l)).render();
 	glColor3f(1,1,1);
 }
@@ -105,17 +103,21 @@ void map_display::draw_trail(sea_object* so, const vector2& offset) const
 		if (l.empty()) return;
 		glColor4f(1,1,1,1);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glBegin(GL_LINE_STRIP);
 		vector2 p = (shp->get_pos().xy() + offset)*mapzoom;
-		glVertex2f(512+p.x, 384-p.y);
+		primitives tr(GL_LINE_STRIP, false, false, l.size() + 1);
+		tr.vertices[0].x = 512+p.x;
+		tr.vertices[0].y = 384-p.y;
 		float la = 1.0/float(l.size()), lc = 0;
+		unsigned trc = 1;
 		for (list<ship::prev_pos>::const_iterator it = l.begin(); it != l.end(); ++it) {
 			glColor4f(1,1,1,1-lc);
 			vector2 p = (it->pos + offset)*mapzoom;
-			glVertex2f(512+p.x, 384-p.y);
+			tr.vertices[trc].x = 512+p.x;
+			tr.vertices[trc].y = 384-p.y;
 			lc += la;
+			++trc;
 		}
-		glEnd();
+		tr.render();
 		glColor4f(1,1,1,1);
 	}
 }
@@ -133,13 +135,17 @@ void map_display::draw_pings(class game& gm, const vector2& offset) const
 		vector2 p1 = (p.pos + offset)*mapzoom;
 		vector2 p2 = p1 + (p.dir + p.ping_angle).direction() * p.range * mapzoom;
 		vector2 p3 = p1 + (p.dir - p.ping_angle).direction() * p.range * mapzoom;
-		glBegin(GL_TRIANGLES);
-		glColor4f(0.5,0.5,0.5,1);
-		glVertex2f(512+p1.x, 384-p1.y);
-		glColor4f(0.5,0.5,0.5,0);
-		glVertex2f(512+p2.x, 384-p2.y);
-		glVertex2f(512+p3.x, 384-p3.y);
-		glEnd();
+		primitive_col<3> tri(GL_TRIANGLES);
+		tri.vertices[0].x = 512+p1.x;
+		tri.vertices[0].y = 384-p1.y;
+		tri.colors[0] = colorf(0.5,0.5,0.5,1).to_uint8();
+		tri.vertices[1].x = 512+p2.x;
+		tri.vertices[1].y = 384-p2.y;
+		tri.colors[1] = colorf(0.5,0.5,0.5,0).to_uint8();
+		tri.vertices[2].x = 512+p3.x;
+		tri.vertices[2].y = 384-p3.y;
+		tri.colors[2] = colorf(0.5,0.5,0.5,0).to_uint8();
+		tri.render();
 		glColor4f(1,1,1,1);
 	}
 }
@@ -265,15 +271,10 @@ void map_display::draw_square_mark ( class game& gm,
 {
 	c.set_gl_color ();
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glBegin ( GL_LINE_LOOP );
 	vector2 p = ( mark_pos + offset ) * mapzoom;
 	int x = int ( round ( p.x ) );
 	int y = int ( round ( p.y ) );
-	glVertex2i ( 512-4+x,384-4-y );
-	glVertex2i ( 512+4+x,384-4-y );
-	glVertex2i ( 512+4+x,384+4-y );
-	glVertex2i ( 512-4+x,384+4-y );
-	glEnd ();
+	primitives::rectangle(vector2f(512-4+x,384-4-y), vector2f(512+4+x,384+4-y)).render();
 }
 
 
@@ -286,18 +287,8 @@ void map_display::draw_square_mark_special ( class game& gm,
 	vector2 p = ( mark_pos + offset ) * mapzoom;
 	int x = int ( round ( p.x ) );
 	int y = int ( round ( p.y ) );
-	glBegin ( GL_LINE_LOOP );
-	glVertex2i ( 512-8+x,384-8-y );
-	glVertex2i ( 512+8+x,384-8-y );
-	glVertex2i ( 512+8+x,384+8-y );
-	glVertex2i ( 512-8+x,384+8-y );
-	glEnd ();
-	glBegin ( GL_LINE_LOOP );
-	glVertex2i ( 512-8+x,384  -y );
-	glVertex2i ( 512  +x,384-8-y );
-	glVertex2i ( 512+8+x,384  -y );
-	glVertex2i ( 512  +x,384+8-y );
-	glEnd ();
+	primitives::rectangle(vector2f(512-8+x,384-8-y), vector2f(512+8+x,384+8-y)).render();
+	primitives::diamond(vector2f(512+x,384-y), 8).render();
 }
 
 
@@ -628,14 +619,15 @@ void map_display::display(class game& gm) const
 		bsplinet<vector2> bsp(n, cvroute);
 		const unsigned detail = 10000;
 		glColor3f(1,0.6,0.2);
-		glBegin(GL_LINE_STRIP);
+		primitives cvr(GL_LINE_STRIP, false, false, detail+1);
 		for (unsigned i = 0; i <= detail; ++i) {
 			double j = double(i)/detail;
 			vector2 p = bsp.value(j);
 			p = (p - offset) * mapzoom;
-			glVertex2d(512 + p.x, 384 - p.y);
+			cvr.vertices[i].x = 512 + p.x;
+			cvr.vertices[i].y = 384 - p.y;
 		}
-		glEnd();
+		cvr.render();
 	}
 	for (unsigned i = 0; i < cvroute.size(); ++i) {
 		draw_square_mark(gm, cvroute[i], -offset, color(255, 0, 255));
@@ -662,13 +654,8 @@ void map_display::display(class game& gm) const
 	// draw view range
 	glColor3f(1,0,0);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glBegin(GL_LINE_LOOP);
-	for (int i = 0; i < 512; ++i) {
-		float a = i*2*M_PI/512;
-		glVertex2f(512+(sin(a)*max_view_dist-mapoffset.x)*mapzoom,
-			   384-(cos(a)*max_view_dist-mapoffset.y)*mapzoom);
-	}
-	glEnd();
+	primitives::circle(vector2f(512-mapoffset.x*mapzoom,384+mapoffset.y*mapzoom),
+			   max_view_dist*mapzoom).render();
 	glColor3f(1,1,1);
 
 	sea_object* target = gm.get_player()->get_target();
@@ -729,28 +716,27 @@ void map_display::display(class game& gm) const
 	}
 	// render the strengths as circles with various colors
 	glBindTexture(GL_TEXTURE_2D, 0);
+	primitives circle(GL_LINE_LOOP, false, false, signal_res);
 	for (unsigned j = 0; j < noise::NR_OF_FREQUENCY_BANDS; ++j) {
 		float f = 1.0f - float(j)/noise::NR_OF_FREQUENCY_BANDS;
 		glColor3f(f,f,f*0.5f);
-		glBegin(GL_LINE_LOOP);
 		for (unsigned i = 0; i < signal_res; ++i) {
 			angle a = angle(360.0*i/signal_res) + sub_player->get_heading();
 			double r = signal_strengths[i].second.frequencies[j] * 15;
 			vector2 p = (sub_player->get_pos().xy() - offset + a.direction() * r) * mapzoom;
-			glVertex2f(512+p.x, 384-p.y);
+			circle.vertices[i] = vector2f(512+p.x, 384-p.y).xy0();
 		}
-		glEnd ();
+		circle.render();
 	}
 	// draw total signal strength
 	glColor3f(1.0,0.5,0.5);
-	glBegin(GL_LINE_LOOP);
 	for (unsigned i = 0; i < signal_res; ++i) {
 		angle a = angle(360.0*i/signal_res) + sub_player->get_heading();
 		double r = signal_strengths[i].first * 15;
 		vector2 p = (sub_player->get_pos().xy() - offset + a.direction() * r) * mapzoom;
-		glVertex2f(512+p.x, 384-p.y);
+		circle.vertices[i] = vector2f(512+p.x, 384-p.y).xy0();
 	}
-	glEnd ();
+	circle.render();
 	glColor3f(1,1,1);
 //	for (int i = 0; i <= 179; ++i) {
 //		printf("test[%i]=%f\n",
@@ -797,12 +783,7 @@ void map_display::display(class game& gm) const
 				int y1 = std::min(my_down, my_curr);
 				int x2 = std::max(mx_down, mx_curr);
 				int y2 = std::max(my_down, my_curr);
-				glBegin(GL_LINE_LOOP);
-				glVertex2i(x1, y1);
-				glVertex2i(x1, y2);
-				glVertex2i(x2, y2);
-				glVertex2i(x2, y1);
-				glEnd();
+				primitives::rectangle(vector2f(x1,y1), vector2f(x2,y2)).render();
 				glColor3f(1,1,1);
 			}
 			// selected objects

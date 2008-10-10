@@ -99,6 +99,55 @@ primitive_tex<4> primitives::quad(const vector2f& xy0,
 
 
 
+primitive_tex<4> primitives::rectangle(const vector2f& xy0,
+				       const vector2f& xy1)
+{
+	primitive_tex<4> result(GL_LINE_LOOP);
+	result.vertices[0].x = xy0.x;
+	result.vertices[0].y = xy0.y;
+	result.vertices[1].x = xy1.x;
+	result.vertices[1].y = xy0.y;
+	result.vertices[2].x = xy1.x;
+	result.vertices[2].y = xy1.y;
+	result.vertices[3].x = xy0.x;
+	result.vertices[3].y = xy1.y;
+	return result;
+}
+
+
+
+primitive_tex<4> primitives::diamond(const vector2f& xy,
+				     float r)
+{
+	primitive_tex<4> result(GL_LINE_LOOP);
+	result.vertices[0].x = xy.x;
+	result.vertices[0].y = xy.y+r;
+	result.vertices[1].x = xy.x+r;
+	result.vertices[1].y = xy.y;
+	result.vertices[2].x = xy.x;
+	result.vertices[2].y = xy.y-r;
+	result.vertices[3].x = xy.x-r;
+	result.vertices[3].y = xy.y;
+	return result;
+}
+
+
+
+primitives primitives::circle(const vector2f& xy,
+			      float radius)
+{
+	// use 2 pixels per line each
+	primitives result(GL_LINE_LOOP, false, false, unsigned(floor(M_PI * radius)));
+	for (int i = 0; i < result.vertices.size(); ++i) {
+		float a = i*2*M_PI/result.vertices.size();
+		result.vertices[i].x = xy.x + sin(a)*radius;
+		result.vertices[i].y = xy.y + cos(a)*radius;
+	}
+	return result;
+}
+
+
+
 primitive<2> primitives::line(const vector2f& xy0,
 			      const vector2f& xy1)
 {
