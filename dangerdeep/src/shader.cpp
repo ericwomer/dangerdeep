@@ -17,12 +17,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-// OpenGL GLSL shaders
+// OpenGL GLSL shaders - do NOT use class system in here!
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
 #include "shader.h"
 #include "oglext/OglExt.h"
-#include "system.h"
 #include "texture.h"
 #include "error.h"
 #include "log.h"
@@ -42,35 +41,92 @@ to get ASM source.
 */
 
 bool glsl_shader::enable_hqsfx = false;
-
-int glsl_program::glsl_supported = -1;
-bool glsl_program::supported()
-{
-	if (glsl_supported < 0) {
-		glsl_supported = (sys().extension_supported("GL_ARB_fragment_shader") &&
-				  sys().extension_supported("GL_ARB_shader_objects") &&
-				  /* sys().extension_supported("GL_ARB_shading_language_100") && */
-				  sys().extension_supported("GL_ARB_vertex_shader")) ? 1 : 0;
-	}
-	return glsl_supported == 1;
-}
-
-
+bool glsl_shader::is_nvidia_card = false;
 
 const glsl_program* glsl_program::used_program = 0;
 
+
+std::auto_ptr<glsl_shader_setup> glsl_shader_setup::default_opaque;
+std::auto_ptr<glsl_shader_setup> glsl_shader_setup::default_col;
+std::auto_ptr<glsl_shader_setup> glsl_shader_setup::default_tex;
+std::auto_ptr<glsl_shader_setup> glsl_shader_setup::default_coltex;
+unsigned glsl_shader_setup::loc_t_tex_color = 0;
+unsigned glsl_shader_setup::loc_ct_tex_color = 0;
+
+void glsl_shader_setup::default_init()
+{
+	// not as external files since this would add a file/compile dependency
+	// hmm we always handle the vertex color here, its either constant or per-vertex...
+	static const char* vs =
+		"#ifdef USE_TEX\n"
+		"varying vec2 texcoord;\n"
+		"#endif\n"
+		//"#ifdef USE_COL\n"
+		"varying vec4 color;\n"
+		//"#endif\n"
+		"void main(){\n"
+		"#ifdef USE_TEX\n"
+		"texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;\n"
+		"#endif\n"
+		//"#ifdef USE_COL\n"
+		"color = gl_Color;\n"
+		//"#endif\n"
+		"gl_Position = ftransform();\n"
+		"}\n";
+	static const char* fs =
+		"uniform sampler2D tex_col;\n"
+		"#ifdef USE_TEX\n"
+		"varying vec2 texcoord;\n"
+		"#endif\n"
+		//"#ifdef USE_COL\n"
+		"varying vec4 color;\n"
+		//"#endif\n"
+		"void main(){\n"
+		"vec4 c = color;\n"
+		"#ifdef USE_TEX\n"
+		"c *= texture2D(tex_col, texcoord.xy);\n"
+		"#endif\n"
+		"gl_FragColor = c;\n"
+		"}\n";
+
+	std::string vss(vs);
+	std::string fss(fs);
+	glsl_shader::defines_list dl;
+	default_opaque.reset(new glsl_shader_setup(vss, fss, dl, true));
+	dl.push_back("USE_COL");
+	default_col.reset(new glsl_shader_setup(vss, fss, dl, true));
+	dl.push_back("USE_TEX");
+	default_coltex.reset(new glsl_shader_setup(vss, fss, dl, true));
+	default_coltex->use();
+	loc_ct_tex_color = default_coltex->get_uniform_location("tex_col");
+	dl.pop_front();
+	default_tex.reset(new glsl_shader_setup(vss, fss, dl, true));
+	default_tex->use();
+	loc_t_tex_color = default_tex->get_uniform_location("tex_col");
+	use_fixed();
+}
+
+void glsl_shader_setup::default_deinit()
+{
+	default_opaque.reset();
+	default_col.reset();
+	default_tex.reset();
+	default_coltex.reset();
+	loc_t_tex_color = 0;
+	loc_ct_tex_color = 0;
+}
 
 
 glsl_shader::glsl_shader(const string& filename, type stype, const glsl_shader::defines_list& dl)
 	: id(0)
 {
-	if (!glsl_program::supported())
-		throw std::runtime_error("GLSL shaders are not supported!");
 	switch (stype) {
 	case VERTEX:
+	case VERTEX_IMMEDIATE:
 		id = glCreateShader(GL_VERTEX_SHADER);
 		break;
 	case FRAGMENT:
+	case FRAGMENT_IMMEDIATE:
 		id = glCreateShader(GL_FRAGMENT_SHADER);
 		break;
 	default:
@@ -80,9 +136,12 @@ glsl_shader::glsl_shader(const string& filename, type stype, const glsl_shader::
 		throw runtime_error("can't create glsl shader");
 	try {
 		// read shader source
-		ifstream ifprg(filename.c_str(), ios::in);
-		if (ifprg.fail())
-			throw file_read_error(filename);
+		std::auto_ptr<ifstream> ifprg;
+		if (stype == VERTEX || stype == FRAGMENT) {
+			ifprg.reset(new ifstream(filename.c_str(), ios::in));
+			if (ifprg->fail())
+				throw file_read_error(filename);
+		}
 
 		// the program as string
 		string prg;
@@ -91,8 +150,7 @@ glsl_shader::glsl_shader(const string& filename, type stype, const glsl_shader::
 		prg += "#version 110\n";
 
 		// add special optimizations for Nvidia cards
-		if (sys().extension_supported("GL_NV_texture_env_combine4")) {
-			// we have an Nvidia card (most probably)
+		if (is_nvidia_card) {
 			// add some more performance boost stuff if requested
 			if (1) { // fixme: later add cfg-switch for it
 				prg += "#pragma optionNV(fastmath on)\n"
@@ -114,10 +172,14 @@ glsl_shader::glsl_shader(const string& filename, type stype, const glsl_shader::
 		}
 
 		// read lines.
-		while (!ifprg.eof()) {
-			string s;
-			getline(ifprg, s);
-			prg += s + "\n";
+		if (ifprg.get()) {
+			while (!ifprg->eof()) {
+				string s;
+				getline(*ifprg, s);
+				prg += s + "\n";
+			}
+		} else {
+			prg += filename;
 		}
 
 		const char* prg_cstr = prg.c_str();
@@ -162,8 +224,6 @@ glsl_shader::~glsl_shader()
 glsl_program::glsl_program()
 	: id(0), linked(false)
 {
-	if (!supported())
-		throw std::runtime_error("GLSL programs are not supported!");
 	id = glCreateProgram();
 	if (id == 0)
 		throw runtime_error("can't create glsl program");
@@ -338,9 +398,10 @@ bool glsl_program::is_fixed_in_use()
 
 glsl_shader_setup::glsl_shader_setup(const std::string& filename_vshader,
 				     const std::string& filename_fshader,
-				     const glsl_shader::defines_list& dl)
-	: vs(filename_vshader, glsl_shader::VERTEX, dl),
-	  fs(filename_fshader, glsl_shader::FRAGMENT, dl)
+				     const glsl_shader::defines_list& dl,
+				     bool immediate)
+	: vs(filename_vshader, immediate ? glsl_shader::VERTEX_IMMEDIATE : glsl_shader::VERTEX, dl),
+	  fs(filename_fshader, immediate ? glsl_shader::FRAGMENT_IMMEDIATE : glsl_shader::FRAGMENT, dl)
 {
 	prog.attach(vs);
 	prog.attach(fs);

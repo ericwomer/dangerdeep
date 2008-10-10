@@ -25,10 +25,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <windows.h>
 #endif
 
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <SDL.h>
-
 #include <sstream>
 #include <map>
 #include <set>
@@ -43,6 +39,9 @@ using std::set;
 #include "texts.h"
 #include "image.h"
 #include "command.h"
+#include <GL/glu.h>
+#include <SDL.h>
+
 //#include "widget.h"
 
 airplane_interface::airplane_interface(airplane* player_plane, game& gm) : 

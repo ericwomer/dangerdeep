@@ -25,11 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <windows.h>
 #endif
 
-#ifdef USE_NATIVE_GL
-#include <gl.h>
-#else
 #include "oglext/OglExt.h"
-#endif
 #include <glu.h>
 #include <SDL.h>
 #include <SDL_net.h>

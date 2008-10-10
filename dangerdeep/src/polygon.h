@@ -27,13 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "plane.h"
 #include <vector>
 #include <iostream>
-
-#ifdef USE_NATIVE_GL
-#include <gl.h>
-#else
 #include "oglext/OglExt.h"
-#endif
-
 #include "primitives.h"
 
 template<class D>

@@ -23,11 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef FRAMEBUFFEROBJECT_H
 #define FRAMEBUFFEROBJECT_H
 
-#ifdef USE_NATIVE_GL
-#include <gl.h>
-#else
 #include "oglext/OglExt.h"
-#endif
 
 /// this class handles a OpenGL Frame Buffer Object
 ///@note needs the GL_EXT_framebuffer_object extension, that is available on

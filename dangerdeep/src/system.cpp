@@ -36,6 +36,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "font.h"
 #include "log.h"
 #include "primitives.h"
+#include "shader.h"
 
 #include <iostream>
 #include <sstream>
@@ -171,10 +172,28 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 		 << "GL maximum viewport dimensions : " << maxviewportdims[0] << "x" << maxviewportdims[1] << "\n"
 		 << "GL depth bits (current) : " << depthbits << "\n"
 		 << "Supported GL extensions :\n" << extensions << "\n");
+
+	bool glsl_supported = extension_supported("GL_ARB_fragment_shader") &&
+		extension_supported("GL_ARB_shader_objects") &&
+		/* sys().extension_supported("GL_ARB_shading_language_100") && */
+		extension_supported("GL_ARB_vertex_shader");
+	if (!glsl_supported) {
+		throw std::runtime_error("GLSL shaders are not supported!");
+	}
+	if (extension_supported("GL_NV_texture_env_combine4"))
+		// we have an Nvidia card (most probably)
+		glsl_shader::is_nvidia_card = true;
+	glsl_shader_setup::default_init();
+}
+
+system::system()
+{
+	throw std::runtime_error("default constructor of system class forbidden!");
 }
 
 system::~system()
 {
+	glsl_shader_setup::default_deinit();
 	SDL_Quit();
 }
 

@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "vector3.h"
 #include "color.h"
+#include "shader.h"
+#include "oglext/OglExt.h"
 #include <vector>
 
 
@@ -38,8 +40,10 @@ class primitive
 	void render() {
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
+		glsl_shader_setup::default_opaque->use();
 		glDrawArrays(type, 0, size);
 		glDisableClientState(GL_VERTEX_ARRAY);
+		glsl_shader_setup::use_fixed();//fixme replace later, when everything is rendered with shaders
 	}
 
 	vector3f vertices[size];
@@ -57,9 +61,11 @@ class primitive_col
 		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
 		glEnableClientState(GL_COLOR_ARRAY);
 		glColorPointer(4, GL_UNSIGNED_BYTE, 0, &colors[0]);
+		glsl_shader_setup::default_col->use();
 		glDrawArrays(type, 0, size);
 		glDisableClientState(GL_COLOR_ARRAY);
 		glDisableClientState(GL_VERTEX_ARRAY);
+		glsl_shader_setup::use_fixed();//fixme replace later, when everything is rendered with shaders
 	}
 
 	vector3f vertices[size];
@@ -78,9 +84,13 @@ class primitive_tex
 		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
+		glsl_shader_setup::default_tex->use();
+		glUniform1i(3, 7);
+		glUniform1i(glsl_shader_setup::loc_t_tex_color, 0);
 		glDrawArrays(type, 0, size);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		glDisableClientState(GL_VERTEX_ARRAY);
+		glsl_shader_setup::use_fixed();//fixme replace later, when everything is rendered with shaders
 	}
 
 	vector3f vertices[size];
@@ -101,10 +111,13 @@ class primitive_coltex
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
 		glEnableClientState(GL_COLOR_ARRAY);
 		glColorPointer(4, GL_UNSIGNED_BYTE, 0, &colors[0]);
+		glsl_shader_setup::default_coltex->use();
+		glUniform1i(glsl_shader_setup::loc_ct_tex_color, 0);
 		glDrawArrays(type, 0, size);
 		glDisableClientState(GL_COLOR_ARRAY);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		glDisableClientState(GL_VERTEX_ARRAY);
+		glsl_shader_setup::use_fixed();//fixme replace later, when everything is rendered with shaders
 	}
 
 	vector3f vertices[size];

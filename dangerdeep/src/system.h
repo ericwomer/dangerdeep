@@ -110,7 +110,10 @@ public:
 	bool is_fullscreen_mode() const { return is_fullscreen; }
 	
 private:
-	system() {}
+	system();
+	system(const system& );
+	system& operator= (const system& );
+
 	unsigned res_x, res_y;		// virtual resolution (fixed for project)
 	double nearz, farz;
 	bool is_fullscreen;

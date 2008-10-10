@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "matrix4.h"
 #include <string>
 #include <list>
+#include <memory>
 
 /// this class handles an OpenGL GLSL Shader
 ///@note needs OpenGL 2.0.
@@ -38,7 +39,9 @@ class glsl_shader
 	/// type of shader (vertex or fragment, later maybe geometry shader with GF8800+)
 	enum type {
 		VERTEX,
-		FRAGMENT
+		FRAGMENT,
+		VERTEX_IMMEDIATE,	// source instead of filename
+		FRAGMENT_IMMEDIATE	// source instead of filename
 	};
 
 	/// a list of strings with shader preprocessor defines
@@ -46,6 +49,9 @@ class glsl_shader
 
 	/// use a default define HQSFX everywhere if enabled
 	static bool enable_hqsfx;
+
+	/// use for some specific shader optimizations
+	static bool is_nvidia_card;
 
 	/// create a shader
 	glsl_shader(const std::string& filename, type stype, const defines_list& dl = defines_list());
@@ -93,9 +99,6 @@ class glsl_program
 	/// use fixed function pipeline instead of particular program
 	static void use_fixed();
 
-	/// check if GLSL is supported
-	static bool supported();
-
 	/// check if a program is bound (more for debugging)
 	static bool is_fixed_in_use();
 
@@ -126,7 +129,6 @@ class glsl_program
  protected:
 	unsigned id;
 	bool linked;
-	static int glsl_supported;
 	std::list<glsl_shader*> attached_shaders;
 	static const glsl_program* used_program;
 
@@ -144,7 +146,8 @@ class glsl_shader_setup
 	/// create shader setup of two shaders
 	glsl_shader_setup(const std::string& filename_vshader,
 			  const std::string& filename_fshader,
-			  const glsl_shader::defines_list& dl = glsl_shader::defines_list());
+			  const glsl_shader::defines_list& dl = glsl_shader::defines_list(),
+			  bool immediate = false);
 
 	/// use this setup
 	void use() const;
@@ -191,6 +194,15 @@ class glsl_shader_setup
 	unsigned get_vertex_attrib_index(const std::string& name) const {
 		return prog.get_vertex_attrib_index(name);
 	}
+
+	static std::auto_ptr<glsl_shader_setup> default_opaque;
+	static std::auto_ptr<glsl_shader_setup> default_col;
+	static std::auto_ptr<glsl_shader_setup> default_tex;
+	static std::auto_ptr<glsl_shader_setup> default_coltex;
+	static unsigned loc_t_tex_color;
+	static unsigned loc_ct_tex_color;
+	static void default_init();
+	static void default_deinit();
 
  protected:
 	glsl_shader vs, fs;

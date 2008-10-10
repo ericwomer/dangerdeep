@@ -26,10 +26,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define DATADIR "./data/"
 #endif
 
-#include <gl.h>
-#include <glu.h>
-#include <SDL.h>
-
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -48,6 +44,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "widget.h"
 #include "objcache.h"
 #include "log.h"
+#include <glu.h>
+#include <SDL.h>
+
 #define VIEWMODEL
 
 #include "mymain.cpp"

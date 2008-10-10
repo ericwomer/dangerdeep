@@ -25,17 +25,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <windows.h>
 #endif
 
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <SDL.h>
-
-
 #include <sstream>
 #include "ship_interface.h"
 #include "system.h"
 #include "game.h"
 #include "texts.h"
 #include "command.h"
+
+#include <GL/glu.h>
+#include <SDL.h>
 
 ship_interface::ship_interface(ship* player_ship, game& gm) :
 	user_interface( player_ship, gm )

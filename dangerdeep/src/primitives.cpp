@@ -42,15 +42,26 @@ void primitives::render()
 	if (!colors.empty()) {
 		glEnableClientState(GL_COLOR_ARRAY);
 		glColorPointer(4, GL_UNSIGNED_BYTE, 0, &colors[0]);
-	}
-	if (!texcoords.empty()) {
+		glsl_shader_setup::default_col->use();
+	} else if (!texcoords.empty()) {
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
+		//fixme: set uniform location to texture unit 0, or better current active unit
+		if (colors.empty()) {
+			glsl_shader_setup::default_tex->use();
+			glUniform1i(glsl_shader_setup::loc_t_tex_color, 0);
+		} else {
+			glsl_shader_setup::default_coltex->use();
+			glUniform1i(glsl_shader_setup::loc_ct_tex_color, 0);
+		}
+	} else {
+		glsl_shader_setup::default_opaque->use();
 	}
 	glDrawArrays(type, 0, vertices.size());
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glsl_shader_setup::use_fixed();//fixme replace later, when everything is rendered with shaders
 }
 
 
@@ -138,7 +149,7 @@ primitives primitives::circle(const vector2f& xy,
 {
 	// use 2 pixels per line each
 	primitives result(GL_LINE_LOOP, false, false, unsigned(floor(M_PI * radius)));
-	for (int i = 0; i < result.vertices.size(); ++i) {
+	for (unsigned i = 0; i < result.vertices.size(); ++i) {
 		float a = i*2*M_PI/result.vertices.size();
 		result.vertices[i].x = xy.x + sin(a)*radius;
 		result.vertices[i].y = xy.y + cos(a)*radius;
