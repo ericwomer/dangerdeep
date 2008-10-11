@@ -238,7 +238,7 @@ void sub_periscope_display::process_input(class game& gm, const SDL_Event& event
                 } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
                         zoomed = false;
                 }
-                break;
+                return;
 	case SDL_MOUSEMOTION:
 		if (event.motion.state & SDL_BUTTON_LMASK) {
 			if (event.motion.yrel != 0) {
