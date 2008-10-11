@@ -26,54 +26,28 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "global_constants.h"
 
 void water_splash::render_cylinder(double radius_bottom, double radius_top, double height,
-				   double alpha, double u_scal, unsigned nr_segs)
+				   double alpha, const texture& tex,
+				   double u_scal, unsigned nr_segs)
 {
-	glBegin(GL_QUAD_STRIP);
-	glColor4f(1, 1, 1, alpha);
+	primitives splash(GL_QUAD_STRIP, (nr_segs+1)*2, tex);
+	color col(255, 255, 255, 255);
 	double us = u_scal / nr_segs;
 	//fixme: use different alpha for bottom? like always full alpha?
 	for (unsigned i = 0; i <= nr_segs; ++i) {
 		double a = -2*M_PI*i/nr_segs;
 		double sa = sin(a);
 		double ca = cos(a);
-		glColor4f(1,1,1,0.5+0.5*alpha);
-		glTexCoord2f(i * us, 1);
+		col.a = Uint8(128 + 127*alpha);
+		splash.colors[2*i] = col;
+		col.a = Uint8(255*alpha);
+		splash.colors[2*i+1] = col;
+		splash.texcoords[2*i] = vector2f(i * us, 1);
+		splash.texcoords[2*i+1] = vector2f(i * us, 0);
 		// compensate tide! so set z_lower to -1.5
-		glVertex3f(radius_bottom * ca, radius_bottom * sa, -1.5);
-		glColor4f(1, 1, 1, alpha);
-		glTexCoord2f(i * us, 0);
-		glVertex3f(radius_top * ca, radius_top * sa, height);
+		splash.vertices[2*i] = vector3f(radius_bottom * ca, radius_bottom * sa, -1.5);
+		splash.vertices[2*i+1] = vector3f(radius_top * ca, radius_top * sa, height);
 	}
-	glEnd();
-
-
-/* test code: render billboard sprite in the center of the cylinder - doesn't work
-	matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
-	vector3 mvtrans = -mv.inverse().column3(3);
-
-	const vector3& z = mvtrans;
-	vector3 y = vector3(0, 0, 1);
-	vector3 x = y.cross(z).normal();
-	double w2 = radius_bottom/2;
-	double h = height;
-	double hb = -h*0.5, ht = h*0.5;
-	vector3 pp;
-	vector3 coord;
-	glBegin(GL_QUADS);
-	coord = pp + x * -w2 + y * ht;
-	glTexCoord2f(0, 0);
-	glVertex3dv(&coord.x);
-	coord = pp + x * -w2 + y * hb;
-	glTexCoord2f(0, 1);
-	glVertex3dv(&coord.x);
-	coord = pp + x * w2 + y * hb;
-	glTexCoord2f(1, 1);
-	glVertex3dv(&coord.x);
-	coord = pp + x * w2 + y * ht;
-	glTexCoord2f(1, 0);
-	glVertex3dv(&coord.x);
-	glEnd();
-*/
+	splash.render();
 }
 
 
@@ -139,7 +113,7 @@ void water_splash::simulate(double delta_time)
 
 void water_splash::display() const
 {
-	texturecache().find("splashring.png")->set_gl_texture();
+	const texture& tex = *texturecache().find("splashring.png");
 
 	//glTranslate
 	//render two cylinders...
@@ -150,14 +124,14 @@ void water_splash::display() const
 			double rt = bradius_top->value(t) * 0.8;
 			double rb = bradius_bottom->value(t) * 0.8;
 			double a = balpha->value(t);
-			render_cylinder(rb, rt, compute_height(lifetime - resttime - 0.5) * 1.2, a);
+			render_cylinder(rb, rt, compute_height(lifetime - resttime - 0.5) * 1.2, a, tex);
 		}
 		if (resttime > 0) {
 			double t = (lifetime - resttime)/lifetime;
 			double rt = bradius_top->value(t);
 			double rb = bradius_bottom->value(t);
 			double a = balpha->value(t);
-			render_cylinder(rb, rt, compute_height(lifetime - resttime), a);
+			render_cylinder(rb, rt, compute_height(lifetime - resttime), a, tex);
 		}
 	}
 	catch (std::exception& e) {

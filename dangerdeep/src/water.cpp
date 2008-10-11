@@ -583,7 +583,7 @@ void water::draw_foam_for_ship(const game& gm, const ship* shp, const vector3& v
 		// move p to viewer space
 		vector2 pl = p - nrml * foamwidth;
 		vector2 pr = p + nrml * foamwidth;
-		col.a = Uint8(foamamount/255);
+		col.a = Uint8(foamamount*255);
 		foamtrail.colors[pitc] = col;
 		foamtrail.colors[pitc+1] = col;
 		//y-coord depends on total length somehow, rather on distance between two points.

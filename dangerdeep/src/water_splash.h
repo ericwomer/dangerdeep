@@ -43,7 +43,8 @@ class water_splash : public sea_object
 	std::auto_ptr<bspline> balpha;
 
 	static void render_cylinder(double radius_bottom, double radius_top, double height,
-				    double alpha, double u_scal = 2.0, unsigned nr_segs = 16);
+				    double alpha, const texture& tex,
+				    double u_scal = 2.0, unsigned nr_segs = 16);
 
 	double compute_height(double t) const;
 
