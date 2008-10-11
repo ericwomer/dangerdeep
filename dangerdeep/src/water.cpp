@@ -527,22 +527,11 @@ void water::draw_foam_for_ship(const game& gm, const ship* shp, const vector3& v
 	float sw = shp->get_width();
 
 	// draw foam caused by hull.
-	glColor4f(1, 1, 1, 1);
-	foamperimetertex->set_gl_texture();
-	glBegin(GL_QUADS);
-	glTexCoord2f(0, 0);
-	vector2 pp = spos + sdir * (sl*0.5) + pdir * (sw*-0.5);
-	glVertex3d(pp.x, pp.y, -viewpos.z);
-	glTexCoord2f(0, 1);
-	pp += pdir * sw;
-	glVertex3d(pp.x, pp.y, -viewpos.z);
-	glTexCoord2f(1, 1);
-	pp -= sdir * sl;
-	glVertex3d(pp.x, pp.y, -viewpos.z);
-	glTexCoord2f(1, 0);
-	pp -= pdir * sw;
-	glVertex3d(pp.x, pp.y, -viewpos.z);
-	glEnd();
+	primitives::textured_quad((spos + sdir * (sl* 0.5) + pdir * (sw*-0.5)).xyz(-viewpos.z),
+				  (spos + sdir * (sl* 0.5) + pdir * (sw* 0.5)).xyz(-viewpos.z),
+				  (spos + sdir * (sl*-0.5) + pdir * (sw* 0.5)).xyz(-viewpos.z),
+				  (spos + sdir * (sl*-0.5) + pdir * (sw*-0.5)).xyz(-viewpos.z),
+				  *foamperimetertex).render();
 
 	double tm = gm.get_time();
 
@@ -552,25 +541,27 @@ void water::draw_foam_for_ship(const game& gm, const ship* shp, const vector3& v
 	if (prevposn.empty())
 		return;
 
-	foamamounttrail->set_gl_texture();
-	glBegin(GL_QUAD_STRIP);
+	primitives foamtrail(GL_QUAD_STRIP, 2 + prevposn.size()*2, *foamamounttrail);
+	color col(255, 255, 255, 255);
 
 	// first position is current position and thus special.
 	vector2 foamstart = shp->get_pos().xy() + sdir * (sl*0.5);
 	vector2 pl = foamstart - viewpos.xy();
 	vector2 pr = foamstart - viewpos.xy();
-	glColor4f(1, 1, 1, 1.0);
+	foamtrail.colors[0] = col;
+	foamtrail.colors[1] = col;
 	double yc = myfmod(tm * 0.1, 3600);
-	glTexCoord2f(0, yc);
-	glVertex3d(pl.x, pl.y, -viewpos.z);
-	glTexCoord2f(1, yc);
-	glVertex3d(pr.x, pr.y, -viewpos.z);
+	foamtrail.texcoords[0] = vector2f(0, yc);
+	foamtrail.texcoords[1] = vector2f(1, yc);
+	foamtrail.vertices[0] = vector3f(pl.x, pl.y, -viewpos.z);
+	foamtrail.vertices[1] = vector3f(pr.x, pr.y, -viewpos.z);
 
 	// iterate over stored positions, compute normal for trail for each position and width
 	list<ship::prev_pos>::const_iterator pit = prevposn.begin();
 	//double dist = 0;
 // 	cout << "new trail\n";
 // 	int ctr=0;
+	unsigned pitc = 2;
 	while (pit != prevposn.end()) {
 		vector2 p = pit->pos + (pit->dir * (sl*0.5)) - viewpos.xy();
 		vector2 nrml = pit->dir.orthogonal();
@@ -592,18 +583,21 @@ void water::draw_foam_for_ship(const game& gm, const ship* shp, const vector3& v
 		// move p to viewer space
 		vector2 pl = p - nrml * foamwidth;
 		vector2 pr = p + nrml * foamwidth;
-		glColor4f(1, 1, 1, foamamount);
+		col.a = Uint8(foamamount/255);
+		foamtrail.colors[pitc] = col;
+		foamtrail.colors[pitc+1] = col;
 		//y-coord depends on total length somehow, rather on distance between two points.
 		//but it should be fix for any position on the foam, or the edge of the foam
 		//will "jump", an ugly effect - we use a workaround here to use time as fake
 		//distance and take mod 3600 to keep fix y coords.
 		double yc = myfmod((tm - age) * 0.1, 3600);
-		glTexCoord2f(0, yc); // dist * 0.02);	// v=1 for 50m distance
-		glVertex3d(pl.x, pl.y, -viewpos.z);
-		glTexCoord2f(1, yc); // dist * 0.02);
-		glVertex3d(pr.x, pr.y, -viewpos.z);
+		foamtrail.texcoords[pitc] = vector2f(0, yc);
+		foamtrail.texcoords[pitc+1] = vector2f(1, yc);
+		foamtrail.vertices[pitc] = vector3f(pl.x, pl.y, -viewpos.z);
+		foamtrail.vertices[pitc+1] = vector3f(pr.x, pr.y, -viewpos.z);
+		pitc += 2;
 	}
-	glEnd();
+	foamtrail.render();
 }
 
 
