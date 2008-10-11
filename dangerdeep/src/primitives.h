@@ -145,7 +145,23 @@ class primitive_coltex
 
 
 /// this class models OpenGL primitives with variable vertex count
-class primitives
+class primitives_plain
+{
+	primitives_plain();
+ public:
+	primitives_plain(int type, unsigned size, bool with_colors = false, bool with_tex = false);
+	void render();
+
+	int type;
+	std::vector<vector3f> vertices;
+	std::vector<color> colors;
+	std::vector<vector2f> texcoords;
+};
+
+
+
+/// this class models OpenGL primitives with variable vertex count and default shaders
+class primitives : public primitives_plain
 {
 	primitives();
  public:
@@ -154,6 +170,7 @@ class primitives
 	primitives(int type, unsigned size, const colorf& col, const texture& tex); // uni-color + tex
 	primitives(int type, unsigned size, const texture& tex); // per-vertex colors, texcoords
 	void render();
+	void render_plain() { primitives_plain::render(); }
 
 	/// render a 2d textured quad, face is back-sided
 	static primitive_tex<4> textured_quad(const vector2f& xy0,
@@ -186,13 +203,18 @@ class primitives
 	static primitive<2> line(const vector3f& xyz0,
 				 const vector3f& xyz1,
 				 const colorf& col);
+	/// render a 3d textured quad
+	static primitive_tex<4> textured_quad(const vector3f& xyz0,
+					      const vector3f& xyz1,
+					      const vector3f& xyz2,
+					      const vector3f& xyz3,
+					      const texture& tex,
+					      const vector2f& texc0 = vector2f(0,0),
+					      const vector2f& texc1 = vector2f(1,1),
+					      const colorf& col = colorf(1,1,1,1));
 
-	int type;
 	colorf col;
 	const texture* tex;
-	std::vector<vector3f> vertices;
-	std::vector<color> colors;
-	std::vector<vector2f> texcoords;
 };
 
 #endif

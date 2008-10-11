@@ -113,7 +113,7 @@ public:
 	virtual bool is_defunct() const { return life <= 0.0; }
 	
 	// set opengl texture by particle type or e.g. game time etc.
-	virtual void set_texture(game& gm, const colorf& light_color) const = 0;
+	virtual const texture& get_tex_and_col(game& gm, const colorf& light_color, colorf& col) const = 0;
 
 	virtual double get_life_time() const = 0;
 };
@@ -129,7 +129,7 @@ public:
 	smoke_particle(const vector3& pos);//set velocity by wind, fixme
 	double get_width() const;
 	double get_height() const;
-	void set_texture(game& gm, const colorf& light_color) const;
+	const texture& get_tex_and_col(game& gm, const colorf& light_color, colorf& col) const;
 	double get_life_time() const;
 	static double get_produce_time();
 };
@@ -155,7 +155,7 @@ public:
 	explosion_particle(const vector3& pos);
 	double get_width() const;
 	double get_height() const;
-	void set_texture(game& gm, const colorf& light_color) const;
+	const texture& get_tex_and_col(game& gm, const colorf& light_color, colorf& col) const;
 	double get_life_time() const;
 };
 
@@ -170,7 +170,7 @@ public:
 	void simulate(game& gm, double delta_t);
 	double get_width() const;
 	double get_height() const;
-	void set_texture(game& gm, const colorf& light_color) const;
+	const texture& get_tex_and_col(game& gm, const colorf& light_color, colorf& col) const;
 	double get_life_time() const;
 };
 
@@ -183,7 +183,7 @@ public:
 	spray_particle(const vector3& pos, const vector3& velo);
 	double get_width() const;
 	double get_height() const;
-	void set_texture(game& gm, const colorf& light_color) const;
+	const texture& get_tex_and_col(game& gm, const colorf& light_color, colorf& col) const;
 	double get_life_time() const;
 };
 
@@ -209,7 +209,7 @@ public:
 	fireworks_particle(const vector3& pos);
 	double get_width() const { return 0; } // not needed
 	double get_height() const { return 0; } // not needed
-	void set_texture(game& gm, const colorf& light_color) const {} // not needed
+	const texture& get_tex_and_col(game& gm, const colorf& light_color, colorf& col) const;
 	double get_life_time() const;
 };
 
@@ -222,7 +222,7 @@ public:
 	marker_particle(const vector3& pos);
 	double get_width() const;
 	double get_height() const;
-	void set_texture(game& gm, const colorf& light_color) const;
+	const texture& get_tex_and_col(game& gm, const colorf& light_color, colorf& col) const;
 	double get_life_time() const;
 };
 

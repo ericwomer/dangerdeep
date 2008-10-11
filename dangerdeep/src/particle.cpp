@@ -24,9 +24,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texture.h"
 #include "oglext/OglExt.h"
 #include <algorithm>
-
-
-#include "global_data.h" //for smoke texture, fixme
+#include "primitives.h"
+#include "global_data.h"	// for myfrac etc.
 #include "datadirs.h"
 
 #ifdef WIN32
@@ -432,27 +431,21 @@ void particle::display_all(const vector<particle*>& pts, const vector3& viewpos,
 		vector3 pp = part.get_pos() - viewpos;
 		vector3 coord;
 		// fixme: grouping particles would be better to avoid unnecessary
-		// set_texture and glBegin/glEnd calls.
+		// set_texture and "primitives" calls.
 		// writing coordinates to VBOs could also be faster, but only
 		// if we have large batches of particles with same texture.
-		part.set_texture(gm, light_color);//not valid between glBegin and glEnd
-		glBegin(GL_QUADS);
-		coord = pp + x * -w2 + y * ht;
-		glTexCoord2f(0, 0);
-		glVertex3dv(&coord.x);
-		coord = pp + x * -w2 + y * hb;
-		glTexCoord2f(0, 1);
-		glVertex3dv(&coord.x);
-		coord = pp + x * w2 + y * hb;
-		glTexCoord2f(1, 1);
-		glVertex3dv(&coord.x);
-		coord = pp + x * w2 + y * ht;
-		glTexCoord2f(1, 0);
-		glVertex3dv(&coord.x);
-		glEnd();
+		colorf col;
+		const texture& tex = part.get_tex_and_col(gm, light_color, col);
+		primitives::textured_quad(vector3f(pp - x*w2 + y*ht),
+					  vector3f(pp + x*w2 + y*ht),
+					  vector3f(pp + x*w2 + y*hb),
+					  vector3f(pp - x*w2 + y*hb),
+					  tex,
+					  vector2f(0,0),
+					  vector2f(1,1),
+					  col);
 	}
 
-	glColor4f(1,1,1,1);
 	glEnable(GL_LIGHTING);
 	glDepthMask(GL_TRUE);
 }
@@ -495,10 +488,10 @@ double smoke_particle::get_height() const
 
 
 
-void smoke_particle::set_texture(class game& gm, const colorf& light_color) const
+const texture& smoke_particle::get_tex_and_col(game& gm, const colorf& light_color, colorf& col) const
 {
-	(colorf(0.5f, 0.5f, 0.5f, life) * light_color).set_gl_color();
-	tex_smoke[texnr]->set_gl_texture();
+	col = colorf(0.5f, 0.5f, 0.5f, life) * light_color;
+	return *tex_smoke[texnr];
 }
 
 
@@ -567,13 +560,13 @@ double explosion_particle::get_height() const
 
 
 
-void explosion_particle::set_texture(class game& gm, const colorf& /*light_color*/) const
+const texture& explosion_particle::get_tex_and_col(game& gm, const colorf& /*light_color*/, colorf& col) const
 {
-	glColor4f(1, 1, 1, 1);
+	col = colorf(1,1,1,1);
 	unsigned f = unsigned(EXPL_FRAMES * (1.0 - life));
 	if (f < 0 || f >= EXPL_FRAMES) f = EXPL_FRAMES-1;
 	// switch on type, fixme
-	explosionbig[f]->set_gl_texture();
+	return *explosionbig[f];
 }
 
 
@@ -622,11 +615,11 @@ double fire_particle::get_height() const
 
 
 
-void fire_particle::set_texture(class game& gm, const colorf& /*light_color*/) const
+const texture& fire_particle::get_tex_and_col(game& gm, const colorf& /*light_color*/, colorf& col) const
 {
-	glColor4f(1, 1, 1, 1);
+	col = colorf(1,1,1,1);
 	unsigned i = unsigned(tex_fire.size() * (1.0 - life));
-	tex_fire[i]->set_gl_texture();
+	return *tex_fire[i];
 }
 
 
@@ -660,10 +653,10 @@ double spray_particle::get_height() const
 
 
 
-void spray_particle::set_texture(class game& gm, const colorf& light_color) const
+const texture& spray_particle::get_tex_and_col(game& gm, const colorf& light_color, colorf& col) const
 {
-	(colorf(1.0f, 1.0f, 1.0f, life) * light_color).set_gl_color();
-	tex_spray->set_gl_texture();
+	col = colorf(1.0f, 1.0f, 1.0f, life) * light_color;
+	return *tex_spray;
 }
 
 
@@ -702,7 +695,6 @@ void fireworks_particle::simulate(game& gm, double delta_t)
 
 void fireworks_particle::custom_display(const vector3& viewpos, const vector3& dx, const vector3& dy) const
 {
-	tex_fireworks->set_gl_texture();
 	// particle lives 6 seconds:
 	// 2 seconds raise to sky (100m height)
 	// 2 seconds explode (later 1?)
@@ -710,43 +702,42 @@ void fireworks_particle::custom_display(const vector3& viewpos, const vector3& d
 	// so partitions: 0.666, 0.333
 	if (life > 2.0/3) {
 		// ascension
-		glColor4f(1,1,1,1);
-		glBegin(GL_LINES);
+		primitive_tex<2> lines(GL_LINES, colorf(1,1,1,1), *tex_fireworks);
+		lines.texcoords[0] = vector2f(1.0, 0.75f);
 		vector3 p = position - viewpos;
-		glTexCoord2f(1.0, 0.75f);
-		glVertex3dv(&p.x);
+		lines.vertices[0].assign(p);
 		double lifefac = 1.0 - (life * 3.0 - 2.0);
 		p.z -= fmin(50.0 * lifefac, 10.0); // 25m/s, max. 10m length
-		glTexCoord2f(0.0f, 0.75f);
-		glVertex3dv(&p.x);
-		glEnd();
+		lines.texcoords[1] = vector2f(0.0, 0.75f);
+		lines.vertices[1].assign(p);
+		lines.render();
 	} else {
 		// explosion/decay
 		double decayfac = (life > 1.0/3) ? 1.0 : life*3.0;
-		glColor4f(1,1,1,decayfac);
 		//fixme: fire from raise does not vanish... but doesnt hurt
 		double lifefac2 = life*3.0 - 1.0;
 		lifefac2 = 1.0 - lifefac2*lifefac2;
 		if (life <= 1.0/3) lifefac2 = 1.0;
 		double lifefac = 1.0 - (life * 3.0 - 1.0);
 		// draw glowing lines from center to flares
-		glBegin(GL_LINES);
+		primitives flarelines(GL_LINES, 2*flares.size(), colorf(1,1,1,decayfac), *tex_fireworks);
 		for (unsigned i = 0; i < flares.size(); ++i) {
 			const flare& f = flares[i];
-			glTexCoord2f(-lifefac, 0.25f);
+			flarelines.texcoords[2*i] = vector2f(-lifefac, 0.25f);
 			vector3 p = position - viewpos;
-			glVertex3dv(&p.x);
-			glTexCoord2f(1.5f-lifefac, 0.25f);
+			flarelines.vertices[2*i].assign(p);
+			flarelines.texcoords[2*i+1] = vector2f(1.5f-lifefac, 0.25f);
 			p = p + dx * (f.velocity.x * lifefac2 * 2.0)
 				+ dy * (f.velocity.y * lifefac2 * 2.0);
-			glVertex3dv(&p.x);
+			flarelines.vertices[2*i+1].assign(p);
 		}
-		glEnd();
+		flarelines.render();
 		// draw flares
 		tex_fireworks_flare->set_gl_texture();
 		glEnable(GL_POINT_SPRITE);//fixme: move to display_all
 		glPointSize(4);
 		glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);//could be done once...
+		glColor4f(1,1,1,decayfac);
 		glBegin(GL_POINTS);
 		for (unsigned i = 0; i < flares.size(); ++i) {
 			const flare& f = flares[i];
@@ -759,6 +750,13 @@ void fireworks_particle::custom_display(const vector3& viewpos, const vector3& d
 		glPointSize(1);
 		glDisable(GL_POINT_SPRITE);
 	}
+}
+
+
+
+const texture& fireworks_particle::get_tex_and_col(game& /*gm*/, const colorf& /*light_color*/, colorf& /*col*/) const
+{
+	throw error("invalid call");
 }
 
 
@@ -793,10 +791,10 @@ double marker_particle::get_height() const
 
 
 
-void marker_particle::set_texture(class game& /*gm*/, const colorf& /*light_color*/) const
+const texture& marker_particle::get_tex_and_col(game& gm, const colorf& /*light_color*/, colorf& col) const
 {
-	glColor4f(1, 1, 1, 1);
-	tex_marker->set_gl_texture();
+	col = colorf(1, 1, 1, 1);
+	return *tex_marker;
 }
 
 

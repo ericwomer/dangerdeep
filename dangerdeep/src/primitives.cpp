@@ -22,44 +22,65 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "primitives.h"
 
-primitives::primitives(int type_, unsigned size, const colorf& col_)
+primitives_plain::primitives_plain(int type_, unsigned size, bool with_colors, bool with_tex)
 	: type(type_),
+	  vertices(size)
+{
+	if (with_colors) colors.resize(size);
+	if (with_tex) texcoords.resize(size);
+}
+
+
+
+void primitives_plain::render()
+{
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
+	if (!colors.empty()) {
+		glEnableClientState(GL_COLOR_ARRAY);
+		glColorPointer(4, GL_UNSIGNED_BYTE, 0, &colors[0]);
+	} else if (!texcoords.empty()) {
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
+	}
+	glDrawArrays(type, 0, vertices.size());
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
+
+
+primitives::primitives(int type_, unsigned size, const colorf& col_)
+	: primitives_plain(type_, size, false, false),
 	  col(col_),
 	  tex(0)
 {
-	vertices.resize(size);
 }
 
 
 
 primitives::primitives(int type_, unsigned size)
-	: type(type_),
+	: primitives_plain(type_, size, true, false),
 	  tex(0)
 {
-	vertices.resize(size);
-	colors.resize(size);
 }
 
 
 
 primitives::primitives(int type_, unsigned size, const colorf& col_, const texture& tex_)
-	: type(type_),
+	: primitives_plain(type_, size, false, true),
 	  col(col_),
 	  tex(&tex_)
 {
-	vertices.resize(size);
-	texcoords.resize(size);
 }
 
 
 
 primitives::primitives(int type_, unsigned size, const texture& tex_)
-	: type(type_),
+	: primitives_plain(type_, size, true, true),
 	  tex(&tex_)
 {
-	vertices.resize(size);
-	colors.resize(size);
-	texcoords.resize(size);
 }
 
 
@@ -215,5 +236,32 @@ primitive<2> primitives::line(const vector3f& xyz0,
 	primitive<2> result(GL_LINES, col);
 	result.vertices[0] = xyz0;
 	result.vertices[1] = xyz1;
+	return result;
+}
+
+
+
+primitive_tex<4> primitives::textured_quad(const vector3f& xyz0,
+					   const vector3f& xyz1,
+					   const vector3f& xyz2,
+					   const vector3f& xyz3,
+					   const texture& tex,
+					   const vector2f& texc0,
+					   const vector2f& texc1,
+					   const colorf& col)
+{
+	primitive_tex<4> result(GL_QUADS, col, tex);
+	result.vertices[0] = xyz0;
+	result.vertices[1] = xyz1;
+	result.vertices[2] = xyz2;
+	result.vertices[3] = xyz3;
+	result.texcoords[0].x = texc0.x;
+	result.texcoords[0].y = texc0.y;
+	result.texcoords[1].x = texc1.x;
+	result.texcoords[1].y = texc0.y;
+	result.texcoords[2].x = texc1.x;
+	result.texcoords[2].y = texc1.y;
+	result.texcoords[3].x = texc0.x;
+	result.texcoords[3].y = texc1.y;
 	return result;
 }
