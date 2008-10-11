@@ -258,7 +258,6 @@ void sub_torpsetup_display::display(class game& gm) const
 	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 
 	sys().prepare_2d_drawing();
-	glColor3f(1,1,1);
 
 #if 0
 	bool is_day = gm.is_day_mode();

@@ -115,7 +115,6 @@ void logbook_display::display(class game& gm) const
 	// for current page... note: older entries may wrap, argh!
 
 	sys().prepare_2d_drawing();
-	glColor4f(1,1,1,1);
 	background->draw(0, 0);
 
 	// print rest of part from previous double page, if available

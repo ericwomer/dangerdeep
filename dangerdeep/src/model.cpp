@@ -1328,21 +1328,10 @@ void model::material::set_gl_values(const texture *caustic_map) const
 	if (colormap.get()) {
 		glMatrixMode(GL_TEXTURE);
 		if (normalmap.get()) {
-			// no opengl lighting in normal map mode.
-			glDisable(GL_LIGHTING);
-			// set primary color alpha to one.
-			glColor4f(1, 1, 1, 1);
-
 			// texture units / coordinates:
 			// tex0: color map / matching texcoords
 			// tex1: normal map / texcoords show vector to light
 			// tex2: specular map / texcoords show vector to viewer, if available
-
-			GLfloat coltmp[4];
-			specular.store_rgba(coltmp);
-			glMaterialfv(GL_FRONT, GL_SPECULAR, coltmp);
-			glMaterialf(GL_FRONT, GL_SHININESS, shininess);
-
 			if (specularmap.get() && !caustic_map) {
 				glsl_color_normal_specular->use();
 				specularmap->set_gl_texture(*glsl_color_normal_specular, loc_cns_tex_specular, 2);
@@ -1374,7 +1363,7 @@ void model::material::set_gl_values(const texture *caustic_map) const
 	} else {
 		// just base color and per-pixel lighting with vertex normals
 		glsl_plastic->use();
-		diffuse.set_gl_color();
+		diffuse.set_gl_color(); // fixme: give color as uniform to shader!
 	}
 }
 
@@ -1387,7 +1376,6 @@ void model::material::set_gl_values_mirror_clip() const
 	if (colormap.get()) {
 		glMatrixMode(GL_TEXTURE);
 		// plain texture mapping with diffuse lighting only, but with shaders
-		glColor4f(1, 1, 1, 1);
 		colormap->set_gl_texture(*glsl_mirror_clip, loc_mc_tex_color, 0);
 		colormap->setup_glmatrix();
 	}
@@ -1559,7 +1547,6 @@ void model::mesh::display(const texture *caustic_map) const
 		}
 	} else {
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glColor3f(0.5,0.5,0.5);
 	}
 
 	// local transformation matrix.
@@ -1642,7 +1629,6 @@ void model::mesh::display(const texture *caustic_map) const
 	glPopMatrix();
 
 	// clean up for material
-	glEnable(GL_LIGHTING);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
@@ -1662,7 +1648,6 @@ void model::mesh::display_mirror_clip() const
 		mymaterial->set_gl_values_mirror_clip();
 	} else {
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glColor3f(0.5,0.5,0.5);
 		glsl_mirror_clip->use();
 	}
 
@@ -1693,7 +1678,6 @@ void model::mesh::display_mirror_clip() const
 
 	glsl_shader_setup::use_fixed();
 
-	glEnable(GL_LIGHTING);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
@@ -1746,7 +1730,6 @@ void model::display(const texture *caustic_map) const
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
-	glColor4f(1,1,1,1);
 	glMatrixMode(GL_MODELVIEW);
 }
 
@@ -1776,7 +1759,6 @@ void model::display_mirror_clip() const
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glLoadIdentity();
-	glColor4f(1,1,1,1);
 	glMatrixMode(GL_MODELVIEW);
 }
 

@@ -621,7 +621,6 @@ public:
 		vector2i p = get_pos();
 		int bw = int(background->get_width());
 		int bh = int(background->get_height());
-		glColor4f(1, 1, 1, 1);
 		background->draw(p.x + size.x/2 - bw/2, p.y + size.y/2 - bh/2);
 	}
 	virtual void select_by_nr(unsigned n)
@@ -671,11 +670,10 @@ public:
 		int bw = int(background->get_width());
 		int bh = int(background->get_height());
 		
-		if (mouseover==this)
-			glColor4f(1.0, 1.0, 1.0, 1.0);
-		else
-			glColor4f(1.0, 1.0, 1.0, 0.75);
-		background->draw(p.x + size.x/2 - bw/2, p.y + size.y/2 - bh/2);
+		colorf col = colorf(1.0, 1.0, 1.0, 1.0);
+		if (mouseover != this)
+			col = colorf(1.0, 1.0, 1.0, 0.75);
+		background->draw(p.x + size.x/2 - bw/2, p.y + size.y/2 - bh/2, col);
 		
 	}
 	void on_release ()
@@ -1845,7 +1843,6 @@ int mymain(list<string>& args)
 				glClearColor(0, 0, 1, 0);
 				glClear(GL_COLOR_BUFFER_BIT);
 				sys().prepare_2d_drawing();
-				glColor4f(1, 1, 1, 1);
 				font_arial->print(0, 0, str_problems.str());
 				sys().unprepare_2d_drawing();
 				sys().swap_buffers();

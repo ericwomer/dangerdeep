@@ -108,7 +108,6 @@ void sub_damage_display::display ( class game& gm ) const
 	sys().prepare_2d_drawing();
 
 	int ydrawdiff = (damage_screen_background->get_height()-sub_damage_scheme_all->get_height())/2;
-	glColor4f(1,1,1,1);
 	damage_screen_background->draw(0, 0);
 	sub_damage_scheme_all->draw(0, ydrawdiff);
 

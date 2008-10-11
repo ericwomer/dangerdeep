@@ -47,7 +47,6 @@ polygon frustum::clip(polygon p) const
 /*
 void frustum::draw() const
 {
-	glColor3f(0,1,0);
 	viewwindow.draw();
 }
 

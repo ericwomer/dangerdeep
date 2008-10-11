@@ -115,7 +115,8 @@ void glsl_shader_setup::default_init()
 	loc_t_color = default_tex->get_uniform_location("color");
 	loc_t_tex = default_tex->get_uniform_location("tex");
 
-	use_fixed();
+	default_opaque->use(); // use opaque shader as default
+	default_opaque->set_uniform(loc_o_color, colorf(1,1,1,1));
 }
 
 void glsl_shader_setup::default_deinit()

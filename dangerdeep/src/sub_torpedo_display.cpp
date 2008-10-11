@@ -188,8 +188,6 @@ void sub_torpedo_display::display(class game& gm) const
 
 	double hours = 0.0, minutes = 0.0, seconds = 0.0;
 
-	// draw display without display color.
-	glColor4f(1,1,1,1);
 	// draw background
 	sys().prepare_2d_drawing();
 
@@ -264,14 +262,12 @@ void sub_torpedo_display::display(class game& gm) const
             // torpedo reload remaning time
 			if (torpedoes[tb].status == submarine::stored_torpedo::st_reloading ||
 			    torpedoes[tb].status == submarine::stored_torpedo::st_unloading) {
-				glColor4f(1,1,1,1);
 				notepadsheet.get()->draw(mx, my);
 				font_vtremington12->print(mx+32, my+50, texts::get(211) +
 						  get_time_string(torpedoes[tb].remaining_time), color(32,0,0));
 			}
 		}
 	}
-	glColor4f(1,1,1,1);
 	pointer_seconds.draw(floor(seconds)*6);
 	pointer_minutes.draw(minutes*6);
 	pointer_hours.draw(hours*30);

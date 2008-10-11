@@ -41,11 +41,10 @@ void sub_recogmanual_display::widget_button_next::draw() const
 	int bw = int(background->get_width());
 	int bh = int(background->get_height());
 
-	if (mouseover==this)
-		glColor4f(1.0, 1.0, 1.0, 1.0);
-	else
-		glColor4f(1.0, 1.0, 1.0, 0.75);
-	background->draw(p.x + size.x/2 - bw/2, p.y + size.y/2 - bh/2);
+	colorf col = colorf(1.0, 1.0, 1.0, 1.0);
+	if (mouseover != this)
+		col = colorf(1.0, 1.0, 1.0, 0.75);
+	background->draw(p.x + size.x/2 - bw/2, p.y + size.y/2 - bh/2, col);
 
 }
 
@@ -69,8 +68,6 @@ void sub_recogmanual_display::display(class game& gm) const
 	int step_y = 199;
 	int step_x = 450;
 	
-	// draw display without display color.
-	glColor4f(1,1,1,1);
 	// draw background
 	sys().prepare_2d_drawing();
 
@@ -81,9 +78,7 @@ void sub_recogmanual_display::display(class game& gm) const
 			off_x += step_x;
 			off_text_x += step_x;
 		}
-		glColor4f(1.0, 1.0, 1.0, 0.75);
-		silhouettes[i]->draw(off_x,off_y+step_y*(i%3));
-		glColor4f(1.0, 1.0, 1.0, 1.0);
+		silhouettes[i]->draw(off_x,off_y+step_y*(i%3), colorf(1.0, 1.0, 1.0, 0.75));
 		
 		//fixme: change this after the authentic overlay is implemented
 		font_vtremington12->print(off_text_x, off_text_y+step_y*(i%3), classes[i]->c_str(), color(0, 0, 0));

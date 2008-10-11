@@ -50,7 +50,7 @@ public:
 	image(const std::string& s);
 
 	/// draw image at position
-	void draw(int x, int y) const;
+	void draw(int x, int y, const colorf& col = colorf(1,1,1,1)) const;
 
 	unsigned get_width() const { return width; };
 	unsigned get_height() const { return height; };

@@ -111,7 +111,7 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 	glClearDepth(1.0);
 	glDepthFunc(GL_LEQUAL);
 	glShadeModel(GL_SMOOTH);
-	glEnable(GL_LIGHTING);
+	glDisable(GL_LIGHTING); // we use shaders for everything
 	glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_NORMALIZE);	// fixme!!!! why was that turned on?! we don't need it! it doesn't hurt much though...
 	glEnable(GL_TEXTURE_2D);
@@ -120,8 +120,7 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_COLOR_MATERIAL);
-	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
-	glColor3f(1, 1, 1);
+	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE); // should be obsolete
 	// set up some things for drawing pixels
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glReadBuffer(GL_BACK);
@@ -298,7 +297,6 @@ void system::prepare_2d_drawing()
 	glLoadIdentity();
 	glTranslatef(0, res_y_2d, 0);
 	glScalef(1, -1, 1);
-	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
 	glCullFace(GL_FRONT);
 	draw_2d = true;
@@ -314,7 +312,6 @@ void system::unprepare_2d_drawing()
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
-	glEnable(GL_LIGHTING);
 	glEnable(GL_DEPTH_TEST);
 	glCullFace(GL_BACK);
 	draw_2d = false;

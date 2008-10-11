@@ -94,7 +94,6 @@ void display_loading_screen()
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	sys().prepare_2d_drawing();
-	glColor4f(1, 1, 1, 1);
 
 	// display a nice loading image in the background
 	image* background;

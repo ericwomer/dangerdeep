@@ -88,8 +88,6 @@ void sub_captainscabin_display::display(class game& gm) const
 {
 //	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 
-	// draw display without display color.
-	glColor4f(1,1,1,1);
 	// draw background
 	sys().prepare_2d_drawing();
 

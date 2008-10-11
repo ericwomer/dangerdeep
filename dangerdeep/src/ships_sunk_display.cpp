@@ -65,8 +65,6 @@ void ships_sunk_display::display ( class game& gm ) const
 {
 	sys().prepare_2d_drawing();
 
-	glColor3f ( 1.0f, 1.0f, 1.0f );
-
 	// Draw background image.
 	cloudsbackgr->draw_tiles(0, 0, 1024, 768);
 

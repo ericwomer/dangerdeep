@@ -526,7 +526,7 @@ void plant_set::display(const vector3& viewpos, float zang) const
 
 	glActiveTexture(GL_TEXTURE0);
 	planttex->set_gl_texture();
-	glColor4f(1,1,1,1);
+	glColor4f(1,1,1,1);//fixme: later use shader, so this can be discarded
 	glNormal3f(0, 0, 1);//fixme: later use shader, so this can be discarded
 
 	// fixme: cull invisible plants
@@ -849,7 +849,6 @@ void show_credits()
 		render_bobs(*sph, sys().millisec() - tm0, sys().millisec() - tm);
 #endif
 
-		glColor4f(1,1,1,1);
 		glPushMatrix();
 		glLoadIdentity();
 		float zang = 360.0/40 * (sys().millisec() - tm0)/1000;

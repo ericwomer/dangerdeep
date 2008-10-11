@@ -220,8 +220,6 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 
 	sea_object* player = gm.get_player();
 
-	glColor3f(1,1,1);
-
 	for (vector<sea_object*>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
 		bool istorp = (dynamic_cast<const torpedo*>(*it) != 0);
 		if (istorp && !withunderwaterweapons)
@@ -427,7 +425,6 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		glPopMatrix();
 
 		//   terrain - it handles z-flipping itself
-		glColor4f(1,1,1,1);//fixme: fog is missing
 		ui.draw_terrain(viewpos_mirror, ui.get_absolute_bearing(), max_view_dist, true/*mirrored*/);
 
 		glPushMatrix();
@@ -661,7 +658,6 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	}
 
 	glDisable(GL_FOG);	
-	glColor4f(1,1,1,1);
 
 	ui.draw_weather_effects();
 }

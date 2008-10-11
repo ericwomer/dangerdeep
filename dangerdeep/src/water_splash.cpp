@@ -141,7 +141,6 @@ void water_splash::display() const
 {
 	texturecache().find("splashring.png")->set_gl_texture();
 
-	glDisable(GL_LIGHTING);
 	//glTranslate
 	//render two cylinders...
 	//alpha 0% at end, increase radius on fade, widen more
@@ -164,7 +163,6 @@ void water_splash::display() const
 	catch (std::exception& e) {
 		// do nothing.
 	}
-	glEnable(GL_LIGHTING);
 }
 
 

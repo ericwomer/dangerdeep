@@ -189,7 +189,6 @@ void sub_kdb_display::display(game& gm) const
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 
 	sys().prepare_2d_drawing();
-	glColor3f(1,1,1);
 
 	// get hearing device angle from submarine, if it has one
 

@@ -354,7 +354,6 @@ void widget::on_wheel(int wd)
 
 void widget::draw_frame(int x, int y, int w, int h, bool out)
 {
-	glColor4f(1,1,1,1);
 	std::auto_ptr<texture>* frelem = (out ? globaltheme->frame : globaltheme->frameinv);
 	int fw = globaltheme->frame_size();
 	frelem[0]->draw(x, y);
@@ -440,7 +439,6 @@ bool widget::check_for_mouse_event(const SDL_Event& event)
 
 void widget::draw_rect(int x, int y, int w, int h, bool out)
 {
-	glColor4f(1,1,1,1);
 	if (out)
 		globaltheme->backg->draw(x, y, w, h);
 	else
@@ -542,7 +540,6 @@ int widget::run(unsigned timeout, bool do_stacking, widget* focussed_at_begin)
 		inited = true;
 		glClear(GL_COLOR_BUFFER_BIT);
 		sys().prepare_2d_drawing();
-		glColor4f(1,1,1,1);
 		if (do_stacking) {
 			for (list<widget*>::iterator it = widgets.begin(); it != widgets.end();
 			     ++it)
@@ -813,7 +810,6 @@ void widget_scrollbar::compute_scrollbarpixelpos()
 void widget_scrollbar::draw_area(int x, int y, int w, int h, bool out) const
 {
 	/* this is:  draw_rect_scrollbar(x+fw, y+fw, w-2*fw, h-2*fw, out); */
-	glColor4f(1,1,1,1);
 	if (out)
 		globaltheme->sbarsurf->draw(x, y, w, h);
 	else
@@ -1072,7 +1068,6 @@ void widget_list::draw() const
 			int width = size.x-2*fw;
 			if (scrollbarvisible)
 				width -= 3*fw+globaltheme->icons[0]->get_width();
-			color::white().set_gl_color();
 			globaltheme->backg.get()->draw(p.x+fw, p.y + fw + lp*globaltheme->myfont->get_height(), width, globaltheme->myfont->get_height());
 		}
 		// optionally split string into columns
@@ -1354,7 +1349,6 @@ void widget_3dview::draw() const
 	backgrcol.store_rgba(clr);
 	glClearColor(clr[0], clr[1], clr[2], clr[3]);
 	glClear(GL_DEPTH_BUFFER_BIT /* | GL_COLOR_BUFFER_BIT*/);
-	glEnable(GL_LIGHTING);
 	glLightfv(GL_LIGHT0, GL_POSITION, &lightdir.x);
 	GLfloat diffcolor[4];
 	lightcol.store_rgba(diffcolor);
@@ -1372,7 +1366,6 @@ void widget_3dview::draw() const
 	primitives::line(vector3f( 0.0,-bb.y*0.5, -bb.z*0.5),
 			 vector3f( 0.0, bb.y*0.5, -bb.z*0.5), color::black()).render();
 	mdl->display();
-	glEnable(GL_LIGHTING);
 
 	sys().prepare_2d_drawing();
 }

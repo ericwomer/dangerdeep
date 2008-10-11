@@ -291,7 +291,6 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 
 	// FIXME for reflections this is wrong, so get LIGHT_POS!
 
-	glDisable(GL_LIGHTING);
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_FOG); // no fog on the sky, sun, moon
@@ -374,7 +373,7 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	glPopMatrix();
 
 	// ******** clouds ********************************************************************
-	lightcolor.set_gl_color();	// cloud color depends on day time
+	lightcolor.set_gl_color();	// cloud color depends on day time, fixme DEPRACTED USE!
 	//printf("sunpos.z = %f\n", sunpos.z);
 
 	// FIXME cloud color varies with direction to sun (clouds aren't flat, but round, so
@@ -411,7 +410,6 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 
 	glDepthMask(GL_TRUE);
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
 	glEnable(GL_FOG);
 }
 

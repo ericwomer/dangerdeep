@@ -376,8 +376,6 @@ void water::construction_threaded(ocean_wave_generator<float>& myowg, unsigned p
 void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& transl,
 			   bool under_water) const
 {
-	glDisable(GL_LIGHTING);
-
 	if (under_water) {
 		glsl_under_water->use();
 	} else {
@@ -502,8 +500,6 @@ void water::cleanup_textures() const
 {
 	glsl_program::use_fixed();
 	
-	glColor4f(1,1,1,1);
-
 	glActiveTexture(GL_TEXTURE0);
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
@@ -513,7 +509,6 @@ void water::cleanup_textures() const
 	glLoadIdentity();
 	glActiveTexture(GL_TEXTURE0);
 
-	glEnable(GL_LIGHTING);
 	glMatrixMode(GL_MODELVIEW);
 }
 
@@ -652,12 +647,10 @@ void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpo
 */
 //	glBindTexture(GL_TEXTURE_2D, 0);
 //	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_LIGHTING);
 	// fixme: texture mapping seems to be wrong.
 	for (vector<ship*>::const_iterator it = allships.begin(); it != allships.end(); ++it) {
 		draw_foam_for_ship(gm, *it, viewpos);
 	}
-	glEnable(GL_LIGHTING);
 //	glEnable(GL_TEXTURE_2D);
 //	glEnable(GL_CULL_FACE);
 	// ship->get_heading(),
@@ -731,7 +724,6 @@ void water::display(const vector3& viewpos, double max_view_dist, bool under_wat
 		glsl_water->set_uniform(loc_w_viewpos, viewpos);
 	}
 	setup_textures(reflection_projmvmat, transl, under_water);
-	glColor4f(1,1,1,1);
 
 	bool recompute_vertices = rerender_new_wtp
 		|| (rerender_viewpos.square_distance(viewpos) > 0.0001);

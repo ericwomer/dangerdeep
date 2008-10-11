@@ -114,7 +114,6 @@ void sub_ghg_display::process_input(class game& gm, const SDL_Event& event)
 void sub_ghg_display::display(class game& gm) const
 {
 	sys().prepare_2d_drawing();
-	glColor3f(1,1,1);
 
 	// get hearing device angle from submarine, if it has one
 

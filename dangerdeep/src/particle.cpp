@@ -400,8 +400,6 @@ void particle::display_all(const vector<particle*>& pts, const vector3& viewpos,
 	//performance.
 	std::sort(pds.begin(), pds.end());
 
-	glDisable(GL_LIGHTING);
-
 	// draw particles, generate coordinates on the fly
 	for (vector<particle_dist>::iterator it = pds.begin(); it != pds.end(); ++it) {
 		const particle& part = *(it->pt);
@@ -446,7 +444,6 @@ void particle::display_all(const vector<particle*>& pts, const vector3& viewpos,
 					  col);
 	}
 
-	glEnable(GL_LIGHTING);
 	glDepthMask(GL_TRUE);
 }
 

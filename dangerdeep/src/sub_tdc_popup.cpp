@@ -58,7 +58,6 @@ bool sub_tdc_popup::process_input(class game& gm, const SDL_Event& event)
 void sub_tdc_popup::display(class game& gm) const
 {
 	sys().prepare_2d_drawing();
-	glColor3f(1,1,1);
 
 	bool is_day = gm.is_day_mode();
 	if (is_day)

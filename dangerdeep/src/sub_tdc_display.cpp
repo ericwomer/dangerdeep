@@ -206,7 +206,6 @@ void sub_tdc_display::display(class game& gm) const
 	submarine* player = dynamic_cast<submarine*>(gm.get_player());
 
 	sys().prepare_2d_drawing();
-	glColor3f(1,1,1);
 
 	const tdc& TDC = player->get_tdc();
 

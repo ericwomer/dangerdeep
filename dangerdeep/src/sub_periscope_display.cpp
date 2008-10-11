@@ -144,7 +144,6 @@ void sub_periscope_display::post_display(game& gm) const
 	}
 
 	sys().prepare_2d_drawing();
-	glColor4f(1,1,1,1);
 
 	// draw compass bar. at most 230 pixel can be seen (of 1878 total width), center is at x=667 on screen
 	// so 360*230/1878 = 44.1 degrees can be seen

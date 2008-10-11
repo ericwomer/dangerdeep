@@ -82,7 +82,7 @@ image::image(const string& s) :
 
 
 
-void image::draw(int x, int y) const
+void image::draw(int x, int y, const colorf& col) const
 {
 	unsigned texptr = 0;
 	int yp = y;
@@ -90,7 +90,7 @@ void image::draw(int x, int y) const
 		int xp = x;
 		unsigned h = textures[texptr]->get_height();
 		for (unsigned xx = 0; xx < gltx; ++xx) {
-			textures[texptr]->draw(xp, yp);
+			textures[texptr]->draw(xp, yp, col);
 			xp += textures[texptr]->get_width();
 			++texptr;
 		}
