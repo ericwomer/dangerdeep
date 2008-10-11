@@ -96,6 +96,13 @@ void sub_bridge_display::process_input(class game& gm, const SDL_Event& event)
 			default: break;
 			}
 		}
+        case SDL_MOUSEBUTTONDOWN:
+                if (event.button.button == SDL_BUTTON_WHEELUP) {
+			return;
+                } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
+			return;
+                }
+                break;
 	default: break;
 	}
 	freeview_display::process_input(gm, event);
