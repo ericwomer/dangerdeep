@@ -142,7 +142,7 @@ void ship_interface::draw_vessel_symbol(const vector2& offset, const sea_object*
 	vector2 p = (so->get_pos().xy() + offset) * mapzoom;
 	p.x += 512;
 	p.y = 384 - p.y;
-	c.set_gl_color();
+	//c.set_gl_color();//deprecated!!!
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBegin(GL_QUADS);
 	glVertex2f(p.x - d.y*w, p.y - d.x*w);

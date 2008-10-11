@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "stars.h"
 #include "datadirs.h"
 #include "log.h"
+#include "shader.h"
 
 
 
@@ -151,7 +152,7 @@ void stars::display(const float max_view_dist) const
 	star_colors_VBO.init_data(star_colors.size() * sizeof(colorf), &star_colors[0], GL_STREAM_DRAW);
 	star_colors_VBO.bind();
 	glColorPointer(4, GL_FLOAT, 0, 0);
-	//fixme: use shader!
+	glsl_shader_setup::default_col->use();
 	glDrawArrays(GL_POINTS, 0, star_count);
 	
 	star_positions.unbind();

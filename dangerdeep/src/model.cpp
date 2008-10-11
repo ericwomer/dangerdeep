@@ -1362,7 +1362,8 @@ void model::material::set_gl_values(const texture *caustic_map) const
 	} else {
 		// just base color and per-pixel lighting with vertex normals
 		glsl_plastic->use();
-		diffuse.set_gl_color(); // fixme: give color as uniform to shader!
+		// fixme: better give color as uniform to shader!
+		glColor4ub(diffuse.r, diffuse.g, diffuse.b, diffuse.a);
 	}
 }
 

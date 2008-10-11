@@ -320,7 +320,6 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	glScaled(scale, scale, scale);
 
 	// render sky
-	glBindTexture(GL_TEXTURE_2D, 0);
 	glEnableClientState(GL_COLOR_ARRAY);
 	sky_colors.bind();
 	glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0);
@@ -329,7 +328,7 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
 	sky_vertices.unbind();
 	sky_indices.bind();
-	//fixme: use shader!
+	glsl_shader_setup::default_col->use();
 	glDrawRangeElements(GL_QUAD_STRIP, 0, nr_sky_vertices-1, nr_sky_indices, GL_UNSIGNED_INT, 0);
 	sky_indices.unbind();
 	glDisableClientState(GL_VERTEX_ARRAY);
@@ -374,7 +373,6 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	glPopMatrix();
 
 	// ******** clouds ********************************************************************
-	lightcolor.set_gl_color();	// cloud color depends on day time, fixme DEPRACTED USE!
 	//printf("sunpos.z = %f\n", sunpos.z);
 
 	// FIXME cloud color varies with direction to sun (clouds aren't flat, but round, so
@@ -390,6 +388,9 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	glScalef(10000, 10000, 3330);	// bottom of cloud layer has altitude of 3km., fixme varies with weather
 	glsl_clouds->use();
 	glsl_clouds->set_gl_texture(*clouds, loc_cloudstex, 0);
+	// cloud color depends on day time
+	// fixme: better give color as uniform to shader!
+	glColor4ub(lightcolor.r, lightcolor.g, lightcolor.b, lightcolor.a);
 	sky_vertices.bind();
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
