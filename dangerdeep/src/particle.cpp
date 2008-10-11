@@ -733,20 +733,19 @@ void fireworks_particle::custom_display(const vector3& viewpos, const vector3& d
 		}
 		flarelines.render();
 		// draw flares
-		tex_fireworks_flare->set_gl_texture();
 		glEnable(GL_POINT_SPRITE);//fixme: move to display_all
 		glPointSize(4);
 		glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);//could be done once...
-		glColor4f(1,1,1,decayfac);
-		glBegin(GL_POINTS);
+		// texcoords are not needed for points, so this is a bit waste...
+		primitives pts(GL_POINTS, flares.size(), colorf(1,1,1,decayfac), *tex_fireworks_flare);
 		for (unsigned i = 0; i < flares.size(); ++i) {
 			const flare& f = flares[i];
 			vector3 p = position - viewpos
 				+ dx * (f.velocity.x * lifefac2 * 2.0)
 				+ dy * (f.velocity.y * lifefac2 * 2.0);
-			glVertex3dv(&p.x);
+			pts.vertices[i].assign(p);
 		}
-		glEnd();
+		pts.render();
 		glPointSize(1);
 		glDisable(GL_POINT_SPRITE);
 	}
