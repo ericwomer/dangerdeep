@@ -33,11 +33,10 @@ void sub_recogmanual_popup::widget_button_next::draw() const
 	int bw = int(background->get_width());
 	int bh = int(background->get_height());
 
-	if (mouseover==this)
-		glColor4f(1.0, 1.0, 1.0, 1.0);
-	else
-		glColor4f(1.0, 1.0, 1.0, 0.75);
-	background->draw(p.x + size.x/2 - bw/2, p.y + size.y/2 - bh/2);
+	colorf col(1.0, 1.0, 1.0, 1.0);
+	if (mouseover!=this)
+		col = colorf(1.0, 1.0, 1.0, 1.0);
+	background->draw(p.x + size.x/2 - bw/2, p.y + size.y/2 - bh/2, col);
 
 }
 
@@ -87,7 +86,6 @@ bool sub_recogmanual_popup::process_input(class game& gm, const SDL_Event& event
 void sub_recogmanual_popup::display(class game& gm) const
 {
 	sys().prepare_2d_drawing();
-	glColor3f(1,1,1);
 
 	bool is_day = gm.is_day_mode();
 	if (is_day)
@@ -103,9 +101,7 @@ void sub_recogmanual_popup::display(class game& gm) const
 
 	for (int i=page*3; (i<page*3+3)&&(i<(int)silhouettes.size()); i++) {
 
-		glColor4f(1.0, 1.0, 1.0, 0.75);
-		silhouettes[i]->draw(off_x,off_y+step_y*(i%3));
-		glColor4f(1.0, 1.0, 1.0, 1.0);
+		silhouettes[i]->draw(off_x,off_y+step_y*(i%3), colorf(1,1,1,0.75));
 		
 		//fixme: change this after the authentic overlay is implemented
 		font_vtremington12->print(off_text_x, off_text_y+step_y*(i%3), classes[i], color(0, 0, 0));
