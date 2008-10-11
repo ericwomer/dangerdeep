@@ -451,9 +451,7 @@ void widget::draw_rect(int x, int y, int w, int h, bool out)
 
 void widget::draw_line(int x1, int y1, int x2, int y2)
 {
-	glBindTexture(GL_TEXTURE_2D, 0);
-	globaltheme->textcol.set_gl_color();
-	primitives::line(vector2f(x1, y1), vector2f(x2, y2));
+	primitives::line(vector2f(x1, y1), vector2f(x2, y2), globaltheme->textcol);
 }
 
 
@@ -474,9 +472,7 @@ void widget::draw_area(int x, int y, int w, int h, bool out) const
 
 void widget::draw_area_col(int x, int y, int w, int h, bool out, color c) const
 {
-	glBindTexture(GL_TEXTURE_2D, 0);
-	c.set_gl_color();
-	primitives::quad(vector2f(x, y+h), vector2f(x+w, y));
+	primitives::quad(vector2f(x, y+h), vector2f(x+w, y), c);
 	draw_frame(x, y, w, h, out);
 }
 
@@ -1145,11 +1141,9 @@ void widget_edit::draw() const
 		Uint32 tm = sys().millisec();
 		if (tm / 500 & 1) {
 			vector2i sz = globaltheme->myfont->get_size(text.substr(0, cursorpos));
-			glBindTexture(GL_TEXTURE_2D, 0);
-			globaltheme->textcol.more_contrast(5).set_gl_color();
 			vector2f xy(p.x+fw+sz.x, p.y+size.y/8);
 			vector2f wh_m1(std::max(fw/2, 2) - 1, size.y*3/4 - 1);
-			primitives::quad(xy, xy + wh_m1).render();
+			primitives::quad(xy, xy + wh_m1, globaltheme->textcol.more_contrast(5)).render();
 		}
 	}
 }
@@ -1373,13 +1367,10 @@ void widget_3dview::draw() const
 	glRotatef(-80, 1, 0, 0);
 	glRotatef(z_angle, 0, 0, 1);
 	glRotatef(x_angle, 1, 0, 0);
-	glColor4f(0, 0, 0, 1);
-	glBindTexture(GL_TEXTURE_2D, 0);
 	primitives::line(vector3f(-bb.x*0.5, 0.0, -bb.z*0.5),
-			 vector3f( bb.x*0.5, 0.0, -bb.z*0.5)).render();
+			 vector3f( bb.x*0.5, 0.0, -bb.z*0.5), color::black()).render();
 	primitives::line(vector3f( 0.0,-bb.y*0.5, -bb.z*0.5),
-			 vector3f( 0.0, bb.y*0.5, -bb.z*0.5)).render();
-	glColor3f(1, 1, 1);
+			 vector3f( 0.0, bb.y*0.5, -bb.z*0.5), color::black()).render();
 	mdl->display();
 	glEnable(GL_LIGHTING);
 

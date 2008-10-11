@@ -225,6 +225,7 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detai
 		vector2f tc0 = cm.segcoord_to_texc(x, y);
 		vector2f tc1 = cm.segcoord_to_texc(x+1, y+1);
 		primitives::textured_quad(vector2f(0,0), vector2f(cm.segw_real,cm.segw_real),
+					  *atlanticmap,
 					  tc0, tc1).render();
 	} else if (type > 1) {
 		vector2f tc0 = cm.segcoord_to_texc(x, y);
@@ -233,7 +234,7 @@ void coastsegment::draw_as_map(const class coastmap& cm, int x, int y, int detai
 		unsigned nrv = 0;
 		for (vector<cacheentry>::const_iterator cit = pointcache.begin(); cit != pointcache.end(); ++cit)
 			nrv += cit->indices.size();
-		primitives tris(GL_TRIANGLES, false, true, nrv);
+		primitives tris(GL_TRIANGLES, nrv, color::white(), *atlanticmap);
 		nrv = 0;
 		for (vector<cacheentry>::const_iterator cit = pointcache.begin(); cit != pointcache.end(); ++cit) {
 			for (vector<unsigned>::const_iterator tit = cit->indices.begin(); tit != cit->indices.end(); ++tit) {
@@ -951,7 +952,6 @@ vector2f coastmap::segcoord_to_texc(int segx, int segy) const
 
 // load from xml description file
 coastmap::coastmap(const string& filename)
-	: terraintex(texturecache(), "terrain.jpg")
 {
 	atlanticmap.reset(new texture(get_texture_dir() + "atlanticmap.jpg", texture::LINEAR, texture::CLAMP_TO_EDGE));
 
@@ -1042,6 +1042,8 @@ void coastmap::construction_threaded()
 {
 	// they are filled in by process_coastline
 	coastsegments.resize(segsx*segsy);
+	for (unsigned i = 0; i < coastsegments.size(); ++i)
+		coastsegments[i].atlanticmap = & *atlanticmap;
 
 	// find coastlines
 	// when to start processing: all patterns, except: 0,5,10,15

@@ -31,7 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <windows.h>
 #endif
 
-#include "oglext/OglExt.h"
+#include "oglext/OglExt.h"//DEPRECATED!
 #include <SDL_types.h>
 
 //#include <iostream>
@@ -40,8 +40,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 struct color {
 	Uint8 r, g, b, a;
 	color(Uint8 r_ = 0, Uint8 g_ = 0, Uint8 b_ = 0, Uint8 a_ = 255) : r(r_), g(g_), b(b_), a(a_) {};
-	void set_gl_color() const { glColor4ub(r, g, b, a); }
-	void set_gl_color(Uint8 alpha) const { glColor4ub(r, g, b, alpha); }
+	void set_gl_color() const { glColor4ub(r, g, b, a); }//DEPRECATED!
+	void set_gl_color(Uint8 alpha) const { glColor4ub(r, g, b, alpha); }//DEPRECATED!
 	color(const color& c1, const color &c2, float scal) {
 		r = (Uint8)(c1.r*(1-scal) + c2.r*scal);
 		g = (Uint8)(c1.g*(1-scal) + c2.g*scal);
@@ -101,8 +101,8 @@ struct colorf {
 	colorf(const color& c)
 		: r(c.r * 0.003921569f), g(c.g * 0.003921569f),
 		  b(c.b * 0.003921569f), a(c.a * 0.003921569f) {} // 0.003921569 = 1/255
-	void set_gl_color() const { glColor4f(r, g, b, a); }
-	void set_gl_color(float alpha) const { glColor4f(r, g, b, alpha); }
+	void set_gl_color() const { glColor4f(r, g, b, a); }//DEPRECATED!
+	void set_gl_color(float alpha) const { glColor4f(r, g, b, alpha); }//DEPRECATED!
 	colorf(const colorf& c1, const colorf& c2, float scal) {
 		r = (c1.r*(1-scal) + c2.r*scal);
 		g = (c1.g*(1-scal) + c2.g*scal);

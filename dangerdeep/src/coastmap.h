@@ -59,6 +59,7 @@ public:
 
 	unsigned type;	// 0 - sea, 1 - land, 2 mixed
 	std::vector<segcl> segcls;
+	class texture* atlanticmap;
 
 	// terrain elevation (no matter if land or sea, total elevation in meters)
 	// user for computation of water depth or terrain height (not yet)
@@ -79,7 +80,7 @@ public:
 
 	void push_back_segcl(const segcl& scl);	// avoids segcls with < 2 points.
 
-	coastsegment(/*unsigned topon, const std::vector<float>& topod*/) : type(0), /*topo(topon, topod),*/ pointcachedetail(0) {}
+	coastsegment(/*unsigned topon, const std::vector<float>& topod*/) : type(0), /*topo(topon, topod),*/ atlanticmap(0), pointcachedetail(0) {}
 	
 	void draw_as_map(const class coastmap& cm, int x, int y, int detail = 0) const;
 };
@@ -128,8 +129,6 @@ class coastmap
 
 	std::auto_ptr<texture> atlanticmap;
 	
-	objcachet<texture>::reference terraintex; //fixme: remove soon
-
 	coastmap();
 	coastmap(const coastmap& );
 	coastmap& operator= (const coastmap& );

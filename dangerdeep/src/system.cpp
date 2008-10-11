@@ -272,12 +272,11 @@ void system::draw_console()
 {
 	prepare_2d_drawing();
 	if (console_background) {
-		glColor4f(1,1,1,0.75);
-		glBindTexture(GL_TEXTURE_2D, console_background->get_opengl_name());
 		primitives::textured_quad(vector2f(0,0), vector2f(res_x_2d,res_y_2d/2),
-					  vector2f(0,0), vector2f(4, 2)).render();
+					  *console_background,
+					  vector2f(0,0), vector2f(4, 2),
+					  colorf(1,1,1,0.75)).render();
 	}
-	glColor4f(1,1,1,1);
 	
 	unsigned fh = console_font->get_height();
 	unsigned lines = res_y/(2*fh)-2;

@@ -50,8 +50,10 @@ std::auto_ptr<glsl_shader_setup> glsl_shader_setup::default_opaque;
 std::auto_ptr<glsl_shader_setup> glsl_shader_setup::default_col;
 std::auto_ptr<glsl_shader_setup> glsl_shader_setup::default_tex;
 std::auto_ptr<glsl_shader_setup> glsl_shader_setup::default_coltex;
-unsigned glsl_shader_setup::loc_t_tex_color = 0;
-unsigned glsl_shader_setup::loc_ct_tex_color = 0;
+unsigned glsl_shader_setup::loc_o_color = 0;
+unsigned glsl_shader_setup::loc_t_tex = 0;
+unsigned glsl_shader_setup::loc_t_color = 0;
+unsigned glsl_shader_setup::loc_ct_tex = 0;
 
 void glsl_shader_setup::default_init()
 {
@@ -61,30 +63,32 @@ void glsl_shader_setup::default_init()
 		"#ifdef USE_TEX\n"
 		"varying vec2 texcoord;\n"
 		"#endif\n"
-		//"#ifdef USE_COL\n"
+		"#ifdef USE_COL\n"
 		"varying vec4 color;\n"
-		//"#endif\n"
+		"#endif\n"
 		"void main(){\n"
 		"#ifdef USE_TEX\n"
 		"texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;\n"
 		"#endif\n"
-		//"#ifdef USE_COL\n"
+		"#ifdef USE_COL\n"
 		"color = gl_Color;\n"
-		//"#endif\n"
+		"#endif\n"
 		"gl_Position = ftransform();\n"
 		"}\n";
 	static const char* fs =
-		"uniform sampler2D tex_col;\n"
+		"uniform sampler2D tex;\n"
 		"#ifdef USE_TEX\n"
 		"varying vec2 texcoord;\n"
 		"#endif\n"
-		//"#ifdef USE_COL\n"
+		"#ifdef USE_COL\n"
 		"varying vec4 color;\n"
-		//"#endif\n"
+		"#else\n"
+		"uniform vec4 color;\n"
+		"#endif\n"
 		"void main(){\n"
 		"vec4 c = color;\n"
 		"#ifdef USE_TEX\n"
-		"c *= texture2D(tex_col, texcoord.xy);\n"
+		"c *= texture2D(tex, texcoord.xy);\n"
 		"#endif\n"
 		"gl_FragColor = c;\n"
 		"}\n";
@@ -92,17 +96,25 @@ void glsl_shader_setup::default_init()
 	std::string vss(vs);
 	std::string fss(fs);
 	glsl_shader::defines_list dl;
+
 	default_opaque.reset(new glsl_shader_setup(vss, fss, dl, true));
+	default_opaque->use();
+	loc_o_color = default_opaque->get_uniform_location("color");
+
 	dl.push_back("USE_COL");
 	default_col.reset(new glsl_shader_setup(vss, fss, dl, true));
+
 	dl.push_back("USE_TEX");
 	default_coltex.reset(new glsl_shader_setup(vss, fss, dl, true));
 	default_coltex->use();
-	loc_ct_tex_color = default_coltex->get_uniform_location("tex_col");
+	loc_ct_tex = default_coltex->get_uniform_location("tex");
+
 	dl.pop_front();
 	default_tex.reset(new glsl_shader_setup(vss, fss, dl, true));
 	default_tex->use();
-	loc_t_tex_color = default_tex->get_uniform_location("tex_col");
+	loc_t_color = default_tex->get_uniform_location("color");
+	loc_t_tex = default_tex->get_uniform_location("tex");
+
 	use_fixed();
 }
 
@@ -112,8 +124,10 @@ void glsl_shader_setup::default_deinit()
 	default_col.reset();
 	default_tex.reset();
 	default_coltex.reset();
-	loc_t_tex_color = 0;
-	loc_ct_tex_color = 0;
+	loc_o_color = 0;
+	loc_t_tex = 0;
+	loc_t_color = 0;
+	loc_ct_tex = 0;
 }
 
 
@@ -311,7 +325,7 @@ unsigned glsl_program::get_uniform_location(const std::string& name) const
 
 
 
-void glsl_program::set_gl_texture(texture& tex, unsigned loc, unsigned texunit) const
+void glsl_program::set_gl_texture(const texture& tex, unsigned loc, unsigned texunit) const
 {
 	if (used_program != this)
 		throw runtime_error("glsl_program::set_gl_texture, program not bound!");
@@ -367,6 +381,24 @@ void glsl_program::set_uniform(unsigned loc, const matrix4& value) const
 	for (int i = 0; i < 16; ++i)
 		tmp[i] = float(ea[i]);
 	glUniformMatrix4fv(loc, 1, GL_TRUE, tmp);
+}
+
+
+
+void glsl_program::set_uniform(unsigned loc, const vector4f& value) const
+{
+	if (used_program != this)
+		throw runtime_error("glsl_program::set_uniform, program not bound!");
+	glUniform4f(loc, value.x, value.y, value.z, value.w);
+}
+
+
+
+void glsl_program::set_uniform(unsigned loc, const colorf& value) const
+{
+	if (used_program != this)
+		throw runtime_error("glsl_program::set_uniform, program not bound!");
+	glUniform4f(loc, value.r, value.g, value.b, value.a);
 }
 
 

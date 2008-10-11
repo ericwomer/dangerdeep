@@ -616,11 +616,9 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		// clip far plane frustum polygon with z=0 plane (water surface)
 		polygon uwp = viewwindow_far.clip(plane(vector3(0, 0, -1), 0));
 		// render polygon with tri-fan
-		glColor4f(1,1,1,1);
-		underwater_background->set_gl_texture();
 		const double underwater_bg_maxz = -40;
 		glDisable(GL_DEPTH_TEST);
-		primitives trifan(GL_TRIANGLE_FAN, false, true, uwp.points.size());
+		primitives trifan(GL_TRIANGLE_FAN, uwp.points.size(), *underwater_background);
 		for (unsigned i = 0; i < uwp.points.size(); ++i) {
 			trifan.vertices[i].assign(uwp.points[i]);
 			trifan.texcoords[i].x = uwp.points[i].z/underwater_bg_maxz;

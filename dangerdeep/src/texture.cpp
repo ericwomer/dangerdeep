@@ -796,81 +796,76 @@ void texture::set_gl_texture() const
 }
 
 // draw_image
-void texture::draw(int x, int y) const
+void texture::draw(int x, int y, const colorf& col) const
 {
-	draw(x, y, width, height);
+	draw(x, y, width, height, col);
 }
 
-void texture::draw_hm(int x, int y) const
+void texture::draw_hm(int x, int y, const colorf& col) const
 {
-	draw_hm(x, y, width, height);
+	draw_hm(x, y, width, height, col);
 }
 
-void texture::draw_vm(int x, int y) const
+void texture::draw_vm(int x, int y, const colorf& col) const
 {
-	draw_vm(x, y, width, height);
+	draw_vm(x, y, width, height, col);
 }
 
-void texture::draw(int x, int y, int w, int h) const
-{
-	float u = float(width)/gl_width;
-	float v = float(height)/gl_height;
-	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
-	primitives::textured_quad(vector2f(x,y),vector2f(x+w,y+h),
-				  vector2f(0,0),vector2f(u,v)).render();
-}
-
-void texture::draw_hm(int x, int y, int w, int h) const
+void texture::draw(int x, int y, int w, int h, const colorf& col) const
 {
 	float u = float(width)/gl_width;
 	float v = float(height)/gl_height;
-	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
-	primitives::textured_quad(vector2f(x,y),vector2f(x+w,y+h),
-				  vector2f(u,0),vector2f(0,v)).render();
+	primitives::textured_quad(vector2f(x,y),vector2f(x+w,y+h), *this,
+				  vector2f(0,0),vector2f(u,v), col).render();
 }
 
-void texture::draw_vm(int x, int y, int w, int h) const
+void texture::draw_hm(int x, int y, int w, int h, const colorf& col) const
 {
 	float u = float(width)/gl_width;
 	float v = float(height)/gl_height;
-	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
-	primitives::textured_quad(vector2f(x,y),vector2f(x+w,y+h),
-				  vector2f(0,v),vector2f(u,0)).render();
+	primitives::textured_quad(vector2f(x,y),vector2f(x+w,y+h), *this,
+				  vector2f(u,0),vector2f(0,v), col).render();
 }
 
-void texture::draw_rot(int x, int y, double angle) const
+void texture::draw_vm(int x, int y, int w, int h, const colorf& col) const
 {
-	draw_rot(x, y, angle, get_width()/2, get_height()/2);
+	float u = float(width)/gl_width;
+	float v = float(height)/gl_height;
+	primitives::textured_quad(vector2f(x,y),vector2f(x+w,y+h), *this,
+				  vector2f(0,v),vector2f(u,0), col).render();
 }
 
-void texture::draw_rot(int x, int y, double angle, int tx, int ty) const
+void texture::draw_rot(int x, int y, double angle, const colorf& col) const
+{
+	draw_rot(x, y, angle, get_width()/2, get_height()/2, col);
+}
+
+void texture::draw_rot(int x, int y, double angle, int tx, int ty, const colorf& col) const
 {
 	glPushMatrix();
 	glTranslatef(x, y, 0);
 	glRotatef(angle, 0, 0, 1);
-	draw(-tx, -ty);
+	draw(-tx, -ty, col);
 	glPopMatrix();
 }
 
-void texture::draw_tiles(int x, int y, int w, int h) const
+void texture::draw_tiles(int x, int y, int w, int h, const colorf& col) const
 {
 	float tilesx = float(w)/gl_width;
 	float tilesy = float(h)/gl_height;
-	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
-	primitives::textured_quad(vector2f(x,y),vector2f(x+w,y+h),
-				  vector2f(0,0),vector2f(tilesx,tilesy)).render();
+	primitives::textured_quad(vector2f(x,y),vector2f(x+w,y+h), *this,
+				  vector2f(0,0),vector2f(tilesx,tilesy), col).render();
 }
 
 void texture::draw_subimage(int x, int y, int w, int h, unsigned tx, unsigned ty,
-	unsigned tw, unsigned th) const
+			    unsigned tw, unsigned th, const colorf& col) const
 {
 	float x1 = float(tx)/gl_width;
 	float y1 = float(ty)/gl_height;
 	float x2 = float(tx+tw)/gl_width;
 	float y2 = float(ty+th)/gl_height;
-	glBindTexture(GL_TEXTURE_2D, get_opengl_name());
-	primitives::textured_quad(vector2f(x,y),vector2f(x+w,y+h),
-				  vector2f(x1,y1),vector2f(x2,y2)).render();
+	primitives::textured_quad(vector2f(x,y),vector2f(x+w,y+h), *this,
+				  vector2f(x1,y1),vector2f(x2,y2), col).render();
 }
 
 unsigned texture::get_max_size()

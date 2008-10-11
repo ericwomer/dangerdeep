@@ -28,7 +28,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector2.h"
 #include "color.h"
 #include "objcache.h"
-#include "primitives.h"
 #include "ptrvector.h"
 
 
@@ -57,7 +56,7 @@ private:
 
 	static unsigned next_p2(unsigned i) { unsigned p = 1; while (p < i) p <<= 1; return p; }
 	
-	void print_text(int x, int y, const std::string& text, bool ignore_colors = false) const;
+	void print_text(int x, int y, const std::string& text, const color& col_, bool ignore_colors = false) const;
 
 public:
 	font(const std::string& basefilename, unsigned char_spacing = 1);

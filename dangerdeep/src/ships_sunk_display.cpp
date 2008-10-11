@@ -82,9 +82,7 @@ void ships_sunk_display::display ( class game& gm ) const
 		unsigned y = 40 + 200 * ( i % 3 );
 
 		// Draw flag.
-		glColor3f ( 1.0f, 1.0f, 1.0f );
-		glBindTexture ( GL_TEXTURE_2D, 0 );
-		primitives::quad(vector2f(x,y), vector2f(x+200,y+150)).render();
+		primitives::quad(vector2f(x,y), vector2f(x+200,y+150), colorf(1,1,1)).render();
 
 		// Print class name.
 		glPushMatrix ();

@@ -42,6 +42,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "error.h"
 #include "vector3.h"
+#include "color.h"
 
 /// wrapper for SDL_Surface/SDL_images to make memory management automatic
 class sdl_image
@@ -193,21 +194,21 @@ public:
 	unsigned get_gl_height() const { return gl_height; }
 
 	// 2d drawing must be turned on for this functions
-	void draw(int x, int y) const;
-	void draw_hm(int x, int y) const;	// horizontally mirrored
-	void draw_vm(int x, int y) const;	// vertically mirrored
-	void draw(int x, int y, int w, int h) const;
-	void draw_hm(int x, int y, int w, int h) const;	// horizontally mirrored
-	void draw_vm(int x, int y, int w, int h) const;	// vertically mirrored
+	void draw(int x, int y, const colorf& col = colorf(1,1,1,1)) const;
+	void draw_hm(int x, int y, const colorf& col = colorf(1,1,1,1)) const;	// horizontally mirrored
+	void draw_vm(int x, int y, const colorf& col = colorf(1,1,1,1)) const;	// vertically mirrored
+	void draw(int x, int y, int w, int h, const colorf& col = colorf(1,1,1,1)) const;
+	void draw_hm(int x, int y, int w, int h, const colorf& col = colorf(1,1,1,1)) const;	// horizontally mirrored
+	void draw_vm(int x, int y, int w, int h, const colorf& col = colorf(1,1,1,1)) const;	// vertically mirrored
 	// draw rotated image around x,y (global)
-	void draw_rot(int x, int y, double angle) const;
+	void draw_rot(int x, int y, double angle, const colorf& col = colorf(1,1,1,1)) const;
 	// draw rotated image around x,y (global), rotate around local tx,ty
-	void draw_rot(int x, int y, double angle, int tx, int ty) const;
+	void draw_rot(int x, int y, double angle, int tx, int ty, const colorf& col = colorf(1,1,1,1)) const;
 	// repeat texture in tiles in the given screen rectangle
-	void draw_tiles(int x, int y, int w, int h) const;
+	void draw_tiles(int x, int y, int w, int h, const colorf& col = colorf(1,1,1,1)) const;
 	// draw a sub image given by the tx,ty,tw,th values to a screen rectangle x,y,w,h
 	void draw_subimage(int x, int y, int w, int h, unsigned tx, unsigned ty,
-		unsigned tw, unsigned th) const;
+		unsigned tw, unsigned th, const colorf& col = colorf(1,1,1,1)) const;
 
 	static unsigned get_max_size();
 

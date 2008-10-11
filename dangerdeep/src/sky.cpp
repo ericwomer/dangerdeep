@@ -365,15 +365,12 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	// draw sun, fixme draw flares/halo
 	vector3 sunpos = sundir * (0.96 * max_view_dist);
 	double suns = max_view_dist/20; // was 10, 17x17px, needs to be smaller
-	glColor4f(1,1,1,1);
-	//glColor4f(1,1,1,0.25);
-	sunglow /*suntex*/->set_gl_texture();
 	glPushMatrix();
 	glTranslated(sunpos.x, sunpos.y, sunpos.z);
 	matrix4 tmpmat = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	tmpmat.clear_rot();
 	tmpmat.set_gl(GL_MODELVIEW);
-	primitives::textured_quad(vector2f(-suns,-suns), vector2f(suns,suns)).render();
+	primitives::textured_quad(vector2f(-suns,-suns), vector2f(suns,suns), *sunglow).render();
 	glPopMatrix();
 
 	// ******** clouds ********************************************************************

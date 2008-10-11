@@ -23,11 +23,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef SHADER_H
 #define SHADER_H
 
-#include "vector3.h"
+#include "vector4.h"
 #include "matrix4.h"
+#include "color.h"
 #include <string>
 #include <list>
 #include <memory>
+
+class texture;
 
 /// this class handles an OpenGL GLSL Shader
 ///@note needs OpenGL 2.0.
@@ -106,9 +109,9 @@ class glsl_program
 	unsigned get_uniform_location(const std::string& name) const;
 
 	/// set up texture for a particular shader name
-	void set_gl_texture(class texture& tex, unsigned loc, unsigned texunit) const;
+	void set_gl_texture(const texture& tex, unsigned loc, unsigned texunit) const;
 
-	/// set uniform variable
+	/// set uniform variable (vec3)
 	void set_uniform(unsigned loc, const vector3f& value) const;
 
 	/// set uniform variable (vec2)
@@ -122,6 +125,12 @@ class glsl_program
 
 	/// set uniform variable (matrix4)
 	void set_uniform(unsigned loc, const matrix4& value) const;
+
+	/// set uniform variable (vec4)
+	void set_uniform(unsigned loc, const vector4f& value) const;
+
+	/// set uniform variable (vec4)
+	void set_uniform(unsigned loc, const colorf& value) const;
 
 	/// get vertex attribute index
 	unsigned get_vertex_attrib_index(const std::string& name) const;
@@ -161,7 +170,7 @@ class glsl_shader_setup
 	}
 
 	/// set up texture for a particular shader name
-	void set_gl_texture(class texture& tex, unsigned loc, unsigned texunitnr) const {
+	void set_gl_texture(const texture& tex, unsigned loc, unsigned texunitnr) const {
 		prog.set_gl_texture(tex, loc, texunitnr);
 	}
 
@@ -190,6 +199,16 @@ class glsl_shader_setup
 		prog.set_uniform(loc, value);
 	}
 
+	/// set uniform variable (vec4)
+	void set_uniform(unsigned loc, const vector4f& value) const {
+		prog.set_uniform(loc, value);
+	}
+
+	/// set uniform variable (vec4)
+	void set_uniform(unsigned loc, const colorf& value) const {
+		prog.set_uniform(loc, value);
+	}
+
 	/// get vertex attribute index
 	unsigned get_vertex_attrib_index(const std::string& name) const {
 		return prog.get_vertex_attrib_index(name);
@@ -199,8 +218,10 @@ class glsl_shader_setup
 	static std::auto_ptr<glsl_shader_setup> default_col;
 	static std::auto_ptr<glsl_shader_setup> default_tex;
 	static std::auto_ptr<glsl_shader_setup> default_coltex;
-	static unsigned loc_t_tex_color;
-	static unsigned loc_ct_tex_color;
+	static unsigned loc_o_color;
+	static unsigned loc_t_tex;
+	static unsigned loc_t_color;
+	static unsigned loc_ct_tex;
 	static void default_init();
 	static void default_deinit();
 

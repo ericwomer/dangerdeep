@@ -134,7 +134,7 @@ public:
 	/// render polygon
 	void draw() const
 	{
-		primitives p(GL_LINE_LOOP, false, false, false, points.size());
+		primitives p(GL_LINE_LOOP, points.size(), color::white());
 		for (unsigned i = 0; i < points.size(); ++i)
 			p.vertices[i].assign(points[i]);
 		p.render();

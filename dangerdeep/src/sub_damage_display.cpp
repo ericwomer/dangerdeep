@@ -97,15 +97,10 @@ void sub_damage_display::display_popup (int x, int y, const string& text, bool a
 {
 	int posx = atleft ? 100 : 604, posy = atbottom ? 480 : 30, width = 320, height = 140;
 
-	glBindTexture ( GL_TEXTURE_2D, 0 );
-	color::red().set_gl_color();
-	primitives::line(vector2f(x, y), vector2f(posx+width/2, posy+height/2)).render();
+	primitives::line(vector2f(x, y), vector2f(posx+width/2, posy+height/2), color::red()).render();
 
-	color::white().set_gl_color();
 	notepadsheet.get()->draw(posx, posy);
 	font_vtremington12->print_wrapped(posx+8, posy+45, 256-16, 20, text, color(0,0,128));
-	
-	color::white().set_gl_color();
 }
 
 void sub_damage_display::display ( class game& gm ) const

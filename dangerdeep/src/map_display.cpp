@@ -79,16 +79,13 @@ void map_display::draw_vessel_symbol(const vector2& offset, sea_object* so, colo
 	p.x += 512;
 	p.y = 384 - p.y;
 
-	c.set_gl_color();
-	glBindTexture(GL_TEXTURE_2D, 0);
-	primitive<4> vesselshape(GL_QUADS);
+	primitive<4> vesselshape(GL_QUADS, c);
 	vesselshape.vertices[3] = vector3f(p.x - d.y*w, p.y - d.x*w, 0);
 	vesselshape.vertices[2] = vector3f(p.x - d.x*l, p.y + d.y*l, 0);
 	vesselshape.vertices[1] = vector3f(p.x + d.y*w, p.y + d.x*w, 0);
 	vesselshape.vertices[0] = vector3f(p.x + d.x*l, p.y - d.y*l, 0);
 	vesselshape.render();
-	primitives::line(vector2f(p.x - d.x*l, p.y + d.y*l), vector2f(p.x + d.x*l, p.y - d.y*l)).render();
-	glColor3f(1,1,1);
+	primitives::line(vector2f(p.x - d.x*l, p.y + d.y*l), vector2f(p.x + d.x*l, p.y - d.y*l), c).render();
 }
 
 
@@ -101,16 +98,15 @@ void map_display::draw_trail(sea_object* so, const vector2& offset) const
 	if (shp) {
 		const list<ship::prev_pos>& l = shp->get_previous_positions();
 		if (l.empty()) return;
-		glColor4f(1,1,1,1);
-		glBindTexture(GL_TEXTURE_2D, 0);
 		vector2 p = (shp->get_pos().xy() + offset)*mapzoom;
-		primitives tr(GL_LINE_STRIP, false, false, l.size() + 1);
+		primitives tr(GL_LINE_STRIP, l.size() + 1);
 		tr.vertices[0].x = 512+p.x;
 		tr.vertices[0].y = 384-p.y;
+		tr.colors[0] = colorf(1,1,1,1).to_uint8();
 		float la = 1.0/float(l.size()), lc = 0;
 		unsigned trc = 1;
 		for (list<ship::prev_pos>::const_iterator it = l.begin(); it != l.end(); ++it) {
-			glColor4f(1,1,1,1-lc);
+			tr.colors[trc] = colorf(1,1,1,1-lc).to_uint8();
 			vector2 p = (it->pos + offset)*mapzoom;
 			tr.vertices[trc].x = 512+p.x;
 			tr.vertices[trc].y = 384-p.y;
@@ -118,7 +114,6 @@ void map_display::draw_trail(sea_object* so, const vector2& offset) const
 			++trc;
 		}
 		tr.render();
-		glColor4f(1,1,1,1);
 	}
 }
 
@@ -146,7 +141,6 @@ void map_display::draw_pings(class game& gm, const vector2& offset) const
 		tri.vertices[2].y = 384-p3.y;
 		tri.colors[2] = colorf(0.5,0.5,0.5,0).to_uint8();
 		tri.render();
-		glColor4f(1,1,1,1);
 	}
 }
 
@@ -160,28 +154,27 @@ void map_display::draw_sound_contact(class game& gm, const sea_object* player,
 		vector2 ldir = it->pos - player->get_pos().xy();
 		ldir = ldir.normal() * 0.666666 * max_view_dist*mapzoom;
 		vector2 pos = (player->get_pos().xy() + offset) * mapzoom;
+		colorf col;
 		switch (it->type) {
 		case MERCHANT:
-			glColor3f(0,0,0);
+			col = colorf(0,0,0);
 			break;
 		case WARSHIP:
-			glColor3f(0,0.5,0);
+			col = colorf(0,0.5,0);
 			break;
 		case ESCORT:
-			glColor3f(1,0,0);
+			col = colorf(1,0,0);
 			break;
 		case SUBMARINE:
-			glColor3f(1,0,0.5);
+			col = colorf(1,0,0.5);
 			break;
 		default:
 			// unknown object, not used yet
-			glColor3f(0,0.5,0.5);
+			col = colorf(0,0.5,0.5);
 			break;
 		}
-		glBindTexture(GL_TEXTURE_2D, 0);
-		primitives::line(vector2f(512+pos.x, 384-pos.y), vector2f(512+pos.x+ldir.x, 384-pos.y-ldir.y)).render();
+		primitives::line(vector2f(512+pos.x, 384-pos.y), vector2f(512+pos.x+ldir.x, 384-pos.y-ldir.y), col).render();
 	}
-	glColor3f(1,1,1);
 }
 
 
@@ -197,30 +190,29 @@ void map_display::draw_sound_contact(game& gm, const submarine* player,
 		vector2 ldir = angle(it->first).direction()
 			* lng * mapzoom;
 		vector2 pos = (player->get_pos().xy() + offset) * mapzoom;
+		colorf col;
 		switch (it->second.type) {
 		case MERCHANT:
-			glColor3f(0,0,0);
+			col = colorf(0,0,0);
 			break;
 		case WARSHIP:
-			glColor3f(0,0.5,0);
+			col = colorf(0,0.5,0);
 			break;
 		case ESCORT:
-			glColor3f(1,0,0);
+			col = colorf(1,0,0);
 			break;
 		case SUBMARINE:
-			glColor3f(1,0,0.5);
+			col = colorf(1,0,0.5);
 			break;
 		case NONE:
 		default:
 			// unknown object, not used yet
-			glColor3f(0,0.5,0.5);
-			//glColor3f(0.75,0.75,0.2);
+			col = colorf(0,0.5,0.5);
+			//col = colorf(0.75,0.75,0.2);
 			break;
 		}
-		glBindTexture(GL_TEXTURE_2D, 0);
-		primitives::line(vector2f(512+pos.x, 384-pos.y), vector2f(512+pos.x+ldir.x, 384-pos.y-ldir.y)).render();
+		primitives::line(vector2f(512+pos.x, 384-pos.y), vector2f(512+pos.x+ldir.x, 384-pos.y-ldir.y), col).render();
 	}
-	glColor3f(1,1,1);
 }
 
 
@@ -269,12 +261,10 @@ void map_display::draw_radar_contacts(class game& gm,
 void map_display::draw_square_mark ( class game& gm,
 	const vector2& mark_pos, const vector2& offset, const color& c ) const
 {
-	c.set_gl_color ();
-	glBindTexture(GL_TEXTURE_2D, 0);
 	vector2 p = ( mark_pos + offset ) * mapzoom;
 	int x = int ( round ( p.x ) );
 	int y = int ( round ( p.y ) );
-	primitives::rectangle(vector2f(512-4+x,384-4-y), vector2f(512+4+x,384+4-y)).render();
+	primitives::rectangle(vector2f(512-4+x,384-4-y), vector2f(512+4+x,384+4-y), c).render();
 }
 
 
@@ -282,13 +272,11 @@ void map_display::draw_square_mark ( class game& gm,
 void map_display::draw_square_mark_special ( class game& gm,
 	const vector2& mark_pos, const vector2& offset, const color& c ) const
 {
-	c.set_gl_color ();
-	glBindTexture(GL_TEXTURE_2D, 0);
 	vector2 p = ( mark_pos + offset ) * mapzoom;
 	int x = int ( round ( p.x ) );
 	int y = int ( round ( p.y ) );
-	primitives::rectangle(vector2f(512-8+x,384-8-y), vector2f(512+8+x,384+8-y)).render();
-	primitives::diamond(vector2f(512+x,384-y), 8).render();
+	primitives::rectangle(vector2f(512-8+x,384-8-y), vector2f(512+8+x,384+8-y), c).render();
+	primitives::diamond(vector2f(512+x,384-y), 8, c).render();
 }
 
 
@@ -587,20 +575,18 @@ void map_display::display(class game& gm) const
 
 	// draw grid
 	if (mapzoom >= 0.01) {
-		glColor3f(0.5, 0.5, 1);
-		glBindTexture(GL_TEXTURE_2D, 0);
+		colorf col(0.5, 0.5, 1);
 		for (int i = 0; i < lx; ++i) {
-			primitives::line(vector2f(sx, 0), vector2f(sx, 768)).render();
+			primitives::line(vector2f(sx, 0), vector2f(sx, 768), col).render();
 			sx += delta;
 		}
 		for (int i = 0; i < ly; ++i) {
-			primitives::line(vector2f(0, sy), vector2f(1024, sy)).render();
+			primitives::line(vector2f(0, sy), vector2f(1024, sy), col).render();
 			sy -= delta;
 		}
 	}
 
 	// draw map
-	glColor3f(1,1,1);
 	glPushMatrix();
 	glTranslatef(512, 384, 0);
 	glScalef(mapzoom, mapzoom, 1);
@@ -610,7 +596,6 @@ void map_display::display(class game& gm) const
 	ui.get_coastmap().draw_as_map(offset, mapzoom);//, detl); // detail should depend on zoom, fixme
 	glCullFace(GL_FRONT);//clean up
 	glPopMatrix();
-	glBindTexture(GL_TEXTURE_2D, 0);
 
 #ifdef CVEDIT
 	// draw convoy route points and route
@@ -618,8 +603,7 @@ void map_display::display(class game& gm) const
 		unsigned n = std::min(unsigned(3), cvroute.size()-1);
 		bsplinet<vector2> bsp(n, cvroute);
 		const unsigned detail = 10000;
-		glColor3f(1,0.6,0.2);
-		primitives cvr(GL_LINE_STRIP, false, false, detail+1);
+		primitives cvr(GL_LINE_STRIP, detail+1, colorf(1,0.6,0.2));
 		for (unsigned i = 0; i <= detail; ++i) {
 			double j = double(i)/detail;
 			vector2 p = bsp.value(j);
@@ -637,26 +621,20 @@ void map_display::display(class game& gm) const
 	// draw city names
 	const list<pair<vector2, string> >& cities = ui.get_coastmap().get_city_list();
 	for (list<pair<vector2, string> >::const_iterator it = cities.begin(); it != cities.end(); ++it) {
-		glBindTexture(GL_TEXTURE_2D, 0);
 		draw_square_mark(gm, it->first, -offset, color(255, 0, 0));
 		vector2 pos = (it->first - offset) * mapzoom;
 		font_vtremington12->print(int(512 + pos.x), int(384 - pos.y), it->second);
 	}
 
 	// draw convoy positions	fixme: should be static and fade out after some time
-	glColor3f(1,1,1);
 	vector<vector2> convoy_pos = gm.convoy_positions();
 	for (vector<vector2>::iterator it = convoy_pos.begin(); it != convoy_pos.end(); ++it) {
 		draw_square_mark_special ( gm, (*it), -offset, color ( 0, 0, 0 ) );
 	}
-	glColor3f(1,1,1);
 
 	// draw view range
-	glColor3f(1,0,0);
-	glBindTexture(GL_TEXTURE_2D, 0);
 	primitives::circle(vector2f(512-mapoffset.x*mapzoom,384+mapoffset.y*mapzoom),
-			   max_view_dist*mapzoom).render();
-	glColor3f(1,1,1);
+			   max_view_dist*mapzoom, colorf(1,0,0)).render();
 
 	sea_object* target = gm.get_player()->get_target();
 
@@ -687,7 +665,6 @@ void map_display::display(class game& gm) const
 			{
 				draw_square_mark ( gm, target->get_pos ().xy (), -offset,
 					color ( 255, 0, 0 ) );
-				glColor3f ( 1.0f, 1.0f, 1.0f );
 			}
 		}
 	} 
@@ -701,7 +678,6 @@ void map_display::display(class game& gm) const
 		{
 			draw_square_mark ( gm, target->get_pos ().xy (), -offset,
 				color ( 255, 0, 0 ) );
-			glColor3f ( 1.0f, 1.0f, 1.0f );
 		}
 	}
 
@@ -715,11 +691,10 @@ void map_display::display(class game& gm) const
 		signal_strengths[i] = gm.sonar_listen_ships(sub_player, a);
 	}
 	// render the strengths as circles with various colors
-	glBindTexture(GL_TEXTURE_2D, 0);
-	primitives circle(GL_LINE_LOOP, false, false, signal_res);
+	primitives circle(GL_LINE_LOOP, signal_res, colorf(1,1,1,1));
 	for (unsigned j = 0; j < noise::NR_OF_FREQUENCY_BANDS; ++j) {
 		float f = 1.0f - float(j)/noise::NR_OF_FREQUENCY_BANDS;
-		glColor3f(f,f,f*0.5f);
+		circle.col = colorf(f,f,f*0.5f);
 		for (unsigned i = 0; i < signal_res; ++i) {
 			angle a = angle(360.0*i/signal_res) + sub_player->get_heading();
 			double r = signal_strengths[i].second.frequencies[j] * 15;
@@ -729,7 +704,7 @@ void map_display::display(class game& gm) const
 		circle.render();
 	}
 	// draw total signal strength
-	glColor3f(1.0,0.5,0.5);
+	circle.col = colorf(1.0,0.5,0.5);
 	for (unsigned i = 0; i < signal_res; ++i) {
 		angle a = angle(360.0*i/signal_res) + sub_player->get_heading();
 		double r = signal_strengths[i].first * 15;
@@ -737,7 +712,6 @@ void map_display::display(class game& gm) const
 		circle.vertices[i] = vector2f(512+p.x, 384-p.y).xy0();
 	}
 	circle.render();
-	glColor3f(1,1,1);
 //	for (int i = 0; i <= 179; ++i) {
 //		printf("test[%i]=%f\n",
 //		       i,
@@ -777,14 +751,11 @@ void map_display::display(class game& gm) const
 		} else {
 			// selection rectangle
 			if (mx_down >= 0 && my_down >= 0) {
-				glBindTexture(GL_TEXTURE_2D, 0);
-				glColor4f(1,1,0,1);
 				int x1 = std::min(mx_down, mx_curr);
 				int y1 = std::min(my_down, my_curr);
 				int x2 = std::max(mx_down, mx_curr);
 				int y2 = std::max(my_down, my_curr);
-				primitives::rectangle(vector2f(x1,y1), vector2f(x2,y2)).render();
-				glColor3f(1,1,1);
+				primitives::rectangle(vector2f(x1,y1), vector2f(x2,y2), colorf(1,1,0,1)).render();
 			}
 			// selected objects
 			for (std::set<sea_object*>::const_iterator it = selection.begin();

@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "user_interface.h"
 #include "global_data.h"
 #include "log.h"
+#include "primitives.h"
 #include <sstream>
 #include <fstream>
 #include <iomanip>
@@ -225,11 +226,11 @@ void sub_torpedo_display::display(class game& gm) const
 	// draw transfer graphics if needed
 	if (torptranssrc != ILLEGAL_TUBE && torpedoes[torptranssrc].status ==
 	    submarine::stored_torpedo::st_loaded) {
-		glColor4f(1,1,1,0.5);
-		torptex(torpedoes[torptranssrc].torp->get_specfilename()).draw(mx-124/2, my-12/2);
-		glColor4f(1,1,1,1);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		primitives::line(vector2f(tubecoords[torptranssrc].x+124/2,	tubecoords[torptranssrc].y+12/2), vector2f(mx, my)).render();
+		torptex(torpedoes[torptranssrc].torp->get_specfilename()).draw(mx-124/2, my-12/2,
+									       colorf(1,1,1,0.5));
+		primitives::line(vector2f(tubecoords[torptranssrc].x+124/2,
+					  tubecoords[torptranssrc].y+12/2),
+				 vector2f(mx, my), color::white()).render();
 	}
 
 	// draw information about torpedo in tube if needed

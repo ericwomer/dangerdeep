@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texture.h"
 #include "system.h"
 #include "oglext/OglExt.h"
+#include "primitives.h"
 #include <SDL.h>
 #include <SDL_image.h>
 #include <sstream>
@@ -43,11 +44,9 @@ using std::ifstream;
 */
 
 
-void font::print_text(int x, int y, const string& text, bool ignore_colors) const
+void font::print_text(int x, int y, const string& text, const color& col_, bool ignore_colors) const
 {
-	glActiveTexture(GL_TEXTURE1);	// fixme: disable units where they are used!
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE0);
+	color col = col_;
 	int xs = x;
 	for (unsigned ti = 0; ti < text.length(); ti = character_right(text, ti)) {
 		// read next unicode character
@@ -79,7 +78,7 @@ void font::print_text(int x, int y, const string& text, bool ignore_colors) cons
 			}
 			--ti;	// compensate for(...++ti)
 			if (!ignore_colors)
-				glColor3ub(nr[0]*16+nr[1], nr[2]*16+nr[3], nr[4]*16+nr[5]);
+				col = color(nr[0]*16+nr[1], nr[2]*16+nr[3], nr[4]*16+nr[5]);
 		} else if (unsigned(c) >= first_char && unsigned(c) <= last_char) {
 			unsigned t = unsigned(c) - first_char;
 			// fixme: we could use display lists here
@@ -89,8 +88,7 @@ void font::print_text(int x, int y, const string& text, bool ignore_colors) cons
 			//and draw at x+left. must be changed everywhere
 			//int x2 = x + characters[t].left;
 			int y2 = y + base_height - characters[t].top;
-			glBindTexture(GL_TEXTURE_2D, character_textures[t]->get_opengl_name());
-			primitives::textured_quad(vector2f(x,y2), vector2f(x+int(characters[t].width),y2+int(characters[t].height)), vector2f(0,0), vector2f(u1,v1)).render();
+			primitives::textured_quad(vector2f(x,y2), vector2f(x+int(characters[t].width),y2+int(characters[t].height)), *character_textures[t], vector2f(0,0), vector2f(u1,v1), col).render();
 			x += characters[t].width + spacing;
 		} // else: just skip (unknown) character
 	}
@@ -168,11 +166,9 @@ font::font(const string& basefilename, unsigned char_spacing)
 void font::print(int x, int y, const string& text, color col, bool with_shadow) const
 {
 	if (with_shadow) {
-		glColor4ub(0,0,0,col.a);
-		print_text(x+2, y+2, text, true);
+		print_text(x+2, y+2, text, color(0,0,0,col.a), true);
 	}
-	col.set_gl_color();
-	print_text(x, y, text);
+	print_text(x, y, text, col);
 }
 
 void font::print_hc(int x, int y, const string& text, color col, bool with_shadow) const

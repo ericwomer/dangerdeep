@@ -22,15 +22,44 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "primitives.h"
 
-primitives::primitives(int type_,
-		       bool with_colors,
-		       bool with_texcoords,
-		       unsigned size)
-	: type(type_)
+primitives::primitives(int type_, unsigned size, const colorf& col_)
+	: type(type_),
+	  col(col_),
+	  tex(0)
 {
 	vertices.resize(size);
-	if (with_colors) colors.resize(size);
-	if (with_texcoords) texcoords.resize(size);
+}
+
+
+
+primitives::primitives(int type_, unsigned size)
+	: type(type_),
+	  tex(0)
+{
+	vertices.resize(size);
+	colors.resize(size);
+}
+
+
+
+primitives::primitives(int type_, unsigned size, const colorf& col_, const texture& tex_)
+	: type(type_),
+	  col(col_),
+	  tex(&tex_)
+{
+	vertices.resize(size);
+	texcoords.resize(size);
+}
+
+
+
+primitives::primitives(int type_, unsigned size, const texture& tex_)
+	: type(type_),
+	  tex(&tex_)
+{
+	vertices.resize(size);
+	colors.resize(size);
+	texcoords.resize(size);
 }
 
 
@@ -46,16 +75,17 @@ void primitives::render()
 	} else if (!texcoords.empty()) {
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
-		//fixme: set uniform location to texture unit 0, or better current active unit
 		if (colors.empty()) {
 			glsl_shader_setup::default_tex->use();
-			glUniform1i(glsl_shader_setup::loc_t_tex_color, 0);
+			glsl_shader_setup::default_tex->set_uniform(glsl_shader_setup::loc_t_color, col);
+			glsl_shader_setup::default_tex->set_gl_texture(*tex, glsl_shader_setup::loc_t_tex, 0);
 		} else {
 			glsl_shader_setup::default_coltex->use();
-			glUniform1i(glsl_shader_setup::loc_ct_tex_color, 0);
+			glsl_shader_setup::default_coltex->set_gl_texture(*tex, glsl_shader_setup::loc_ct_tex, 0);
 		}
 	} else {
 		glsl_shader_setup::default_opaque->use();
+		glsl_shader_setup::default_opaque->set_uniform(glsl_shader_setup::loc_o_color, col);
 	}
 	glDrawArrays(type, 0, vertices.size());
 	glDisableClientState(GL_VERTEX_ARRAY);
@@ -68,10 +98,12 @@ void primitives::render()
 
 primitive_tex<4> primitives::textured_quad(const vector2f& xy0,
 					   const vector2f& xy1,
+					   const texture& tex,
 					   const vector2f& texc0,
-					   const vector2f& texc1)
+					   const vector2f& texc1,
+					   const colorf& col)
 {
-	primitive_tex<4> result(GL_QUADS);
+	primitive_tex<4> result(GL_QUADS, col, tex);
 	result.vertices[0].x = xy0.x;
 	result.vertices[0].y = xy0.y;
 	result.vertices[1].x = xy1.x;
@@ -93,10 +125,11 @@ primitive_tex<4> primitives::textured_quad(const vector2f& xy0,
 
 
 
-primitive_tex<4> primitives::quad(const vector2f& xy0,
-				  const vector2f& xy1)
+primitive<4> primitives::quad(const vector2f& xy0,
+			      const vector2f& xy1,
+			      const colorf& col)
 {
-	primitive_tex<4> result(GL_QUADS);
+	primitive<4> result(GL_QUADS, col);
 	result.vertices[0].x = xy0.x;
 	result.vertices[0].y = xy0.y;
 	result.vertices[1].x = xy1.x;
@@ -110,10 +143,11 @@ primitive_tex<4> primitives::quad(const vector2f& xy0,
 
 
 
-primitive_tex<4> primitives::rectangle(const vector2f& xy0,
-				       const vector2f& xy1)
+primitive<4> primitives::rectangle(const vector2f& xy0,
+				   const vector2f& xy1,
+				   const colorf& col)
 {
-	primitive_tex<4> result(GL_LINE_LOOP);
+	primitive<4> result(GL_LINE_LOOP, col);
 	result.vertices[0].x = xy0.x;
 	result.vertices[0].y = xy0.y;
 	result.vertices[1].x = xy1.x;
@@ -127,10 +161,11 @@ primitive_tex<4> primitives::rectangle(const vector2f& xy0,
 
 
 
-primitive_tex<4> primitives::diamond(const vector2f& xy,
-				     float r)
+primitive<4> primitives::diamond(const vector2f& xy,
+				 float r,
+				 const colorf& col)
 {
-	primitive_tex<4> result(GL_LINE_LOOP);
+	primitive<4> result(GL_LINE_LOOP, col);
 	result.vertices[0].x = xy.x;
 	result.vertices[0].y = xy.y+r;
 	result.vertices[1].x = xy.x+r;
@@ -145,10 +180,11 @@ primitive_tex<4> primitives::diamond(const vector2f& xy,
 
 
 primitives primitives::circle(const vector2f& xy,
-			      float radius)
+			      float radius,
+			      const colorf& col)
 {
 	// use 2 pixels per line each
-	primitives result(GL_LINE_LOOP, false, false, unsigned(floor(M_PI * radius)));
+	primitives result(GL_LINE_LOOP, unsigned(floor(M_PI * radius)), col);
 	for (unsigned i = 0; i < result.vertices.size(); ++i) {
 		float a = i*2*M_PI/result.vertices.size();
 		result.vertices[i].x = xy.x + sin(a)*radius;
@@ -160,9 +196,10 @@ primitives primitives::circle(const vector2f& xy,
 
 
 primitive<2> primitives::line(const vector2f& xy0,
-			      const vector2f& xy1)
+			      const vector2f& xy1,
+			      const colorf& col)
 {
-	primitive<2> result(GL_LINES);
+	primitive<2> result(GL_LINES, col);
 	result.vertices[0].x = xy0.x;
 	result.vertices[0].y = xy0.y;
 	result.vertices[1].x = xy1.x;
@@ -172,9 +209,10 @@ primitive<2> primitives::line(const vector2f& xy0,
 
 
 primitive<2> primitives::line(const vector3f& xyz0,
-			      const vector3f& xyz1)
+			      const vector3f& xyz1,
+			      const colorf& col)
 {
-	primitive<2> result(GL_LINES);
+	primitive<2> result(GL_LINES, col);
 	result.vertices[0] = xyz0;
 	result.vertices[1] = xyz1;
 	return result;
