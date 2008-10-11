@@ -309,6 +309,8 @@ void glsl_program::link()
 
 void glsl_program::use() const
 {
+	if (used_program == this)
+		return;
 	if (!linked)
 		throw runtime_error("glsl_program::use() : program not linked");
 	glUseProgram(id);
