@@ -164,6 +164,23 @@ primitive<4> primitives::quad(const vector2f& xy0,
 
 
 
+primitive<3> primitives::triangle(const vector2f& xy0,
+				  const vector2f& xy1,
+				  const vector2f& xy2,
+				  const colorf& col)
+{
+	primitive<3> result(GL_TRIANGLES, col);
+	result.vertices[0].x = xy0.x;
+	result.vertices[0].y = xy0.y;
+	result.vertices[1].x = xy1.x;
+	result.vertices[1].y = xy1.y;
+	result.vertices[2].x = xy2.x;
+	result.vertices[2].y = xy2.y;
+	return result;
+}
+
+
+
 primitive<4> primitives::rectangle(const vector2f& xy0,
 				   const vector2f& xy1,
 				   const colorf& col)

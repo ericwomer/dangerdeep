@@ -179,10 +179,15 @@ class primitives : public primitives_plain
 					      const vector2f& texc0 = vector2f(0,0),
 					      const vector2f& texc1 = vector2f(1,1),
 					      const colorf& col = colorf(1,1,1,1));
-	/// render a 2d quad, face is back-sided
+	/// render a 2d quad
 	static primitive<4> quad(const vector2f& xy0,
 				 const vector2f& xy1,
 				 const colorf& col);
+	/// render a 2d triangle
+	static primitive<3> triangle(const vector2f& xy0,
+				     const vector2f& xy1,
+				     const vector2f& xy2,
+				     const colorf& col);
 	/// render a 2d rectangle
 	static primitive<4> rectangle(const vector2f& xy0,
 				      const vector2f& xy1,

@@ -366,7 +366,6 @@ void user_interface::display() const
 	// draw screen selector if visible
 	if (screen_selector_visible) {
 		sys().prepare_2d_drawing();
-		glColor3f(1,1,1);
 		screen_selector->draw();
 		sys().unprepare_2d_drawing();
 	}
@@ -374,7 +373,6 @@ void user_interface::display() const
 	// draw music playlist if visible
 	if (playlist_visible) {
 		sys().prepare_2d_drawing();
-		glColor3f(1,1,1);
 		music_playlist->draw();
 		sys().unprepare_2d_drawing();
 	}
@@ -382,7 +380,6 @@ void user_interface::display() const
 	// draw main_menu if visible
 	if (main_menu_visible) {
 		sys().prepare_2d_drawing();
-		glColor3f(1,1,1);
 		main_menu->draw();
 		sys().unprepare_2d_drawing();
 	}
@@ -526,15 +523,11 @@ void user_interface::show_target(double vx, double vy, double w, double h, const
 			double y = sys().get_res_y_2d()
 				- ((0.5 * tgtscr.y / tgtscr.w + 0.5) * h + vy);
 			sys().prepare_2d_drawing();
-			glColor4f(1,0,0,0.5);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glBegin(GL_TRIANGLES);
-			glVertex2f(x-10, y+20);
-			glVertex2f(x+10, y+20);
-			glVertex2f(x   , y+10);
-			glEnd();
+			primitives::triangle(vector2f(x-10, y+20),
+					     vector2f(x   , y+10),
+					     vector2f(x+10, y+20),
+					     colorf(1,0,0,0.5)).render();
 			sys().unprepare_2d_drawing();
-			glColor4f(1,1,1,1);
 		}
 	}
 }
@@ -570,34 +563,32 @@ void user_interface::draw_weather_effects() const
 	// get projection from frustum to view
 	matrix4 c2w = (matrix4::get_gl(GL_PROJECTION_MATRIX) * matrix4::get_gl(GL_MODELVIEW_MATRIX)).inverse();
 	// draw planes between z-near and z-far with ascending distance and 2d texture with flakes/strains
-	glDisable(GL_LIGHTING);//fixme: it has to be turned on again below!!!!!!!!!!
+	texture* tex = 0;
 #ifdef RAIN
 	unsigned sf = unsigned(mygame->get_time() * NR_OF_RAIN_FRAMES) % NR_OF_RAIN_FRAMES;
-	raintex[sf]->set_gl_texture();
+	tex = raintex[sf];
 #endif
 #ifdef SNOW
 	unsigned sf = unsigned(mygame->get_time() * NR_OF_SNOW_FRAMES) % NR_OF_SNOW_FRAMES;
-	snowtex[sf]->set_gl_texture();
+	tex = snowtex[sf];
 #endif
 	//pd.near_z,pd.far_z
 	double zd[3] = { 0.3, 0.9, 0.7 };
-	glBegin(GL_QUADS);
 	//fixme: planes should be orthogonal to z=0 plane (xy billboarding)
 	for (unsigned i = 0; i < 1; ++i) {
 		vector3 p0 = c2w * vector3(-1,  1, zd[i]);
 		vector3 p1 = c2w * vector3(-1, -1, zd[i]);
 		vector3 p2 = c2w * vector3( 1, -1, zd[i]);
 		vector3 p3 = c2w * vector3( 1,  1, zd[i]);
-		glTexCoord2f(0, 0);	//fixme: uv size changes with depth
-		glVertex3dv(&p0.x);
-		glTexCoord2f(0, 3);
-		glVertex3dv(&p1.x);
-		glTexCoord2f(3, 3);
-		glVertex3dv(&p2.x);
-		glTexCoord2f(3, 0);
-		glVertex3dv(&p3.x);
+		primitives::textured_quad(vector3f(p1),
+					  vector3f(p2),
+					  vector3f(p3),
+					  vector3f(p0),
+					  *tex,
+					  vector2f(0, 3),
+					  vector2f(3, 0));
+		//fixme: uv size changes with depth
 	}
-	glEnd();
 #endif
 }
 
@@ -671,7 +662,6 @@ void user_interface::draw_infopanel(bool onlytexts) const
 		font_vtremington12->print(0, y, it->second, color(255,255,255,Uint8(255*alpha)), true);
 		y -= font_vtremington12->get_height();
 	}
-	glColor4f(1,1,1,1);
 }
 
 
