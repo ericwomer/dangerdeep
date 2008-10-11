@@ -115,27 +115,19 @@ void water_splash::display() const
 {
 	const texture& tex = *texturecache().find("splashring.png");
 
-	//glTranslate
-	//render two cylinders...
-	//alpha 0% at end, increase radius on fade, widen more
-	try {
-		if (lifetime - resttime > 0.5) {
-			double t = (lifetime - resttime - 0.5)/lifetime;
-			double rt = bradius_top->value(t) * 0.8;
-			double rb = bradius_bottom->value(t) * 0.8;
-			double a = balpha->value(t);
-			render_cylinder(rb, rt, compute_height(lifetime - resttime - 0.5) * 1.2, a, tex);
-		}
-		if (resttime > 0) {
-			double t = (lifetime - resttime)/lifetime;
-			double rt = bradius_top->value(t);
-			double rb = bradius_bottom->value(t);
-			double a = balpha->value(t);
-			render_cylinder(rb, rt, compute_height(lifetime - resttime), a, tex);
-		}
+	if (lifetime - resttime > 0.5) {
+		double t = (lifetime - resttime - 0.5)/lifetime;
+		double rt = bradius_top->value(t) * 0.8;
+		double rb = bradius_bottom->value(t) * 0.8;
+		double a = balpha->value(t);
+		render_cylinder(rb, rt, compute_height(lifetime - resttime - 0.5) * 1.2, a, tex);
 	}
-	catch (std::exception& e) {
-		// do nothing.
+	if (resttime > 0) {
+		double t = (lifetime - resttime)/lifetime;
+		double rt = bradius_top->value(t);
+		double rb = bradius_bottom->value(t);
+		double a = balpha->value(t);
+		render_cylinder(rb, rt, compute_height(lifetime - resttime), a, tex);
 	}
 }
 
