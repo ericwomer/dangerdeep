@@ -523,12 +523,12 @@ void sky::rebuild_colors(const vector3& sunpos_, const vector3& moonpos_, const 
 		std::vector<color>::iterator skycolor = skycolors.begin();
 		while (skyangle != skyangles.end()) {
 #if 0	//	debug (angles mapped on hemisphere)
-			*skycolor = colorf( skyangle->x/(M_PI*2), skyangle->y/(M_PI/2.0f), 0, sky_alpha ).to_uint8();
+			*skycolor = colorf( skyangle->x/(M_PI*2), skyangle->y/(M_PI/2.0f), 0, sky_alpha );
 #else
 			colorf c = skycol.get_color(skyangle->x, skyangle->y, sun_elevation);
 			c.a = sky_alpha;
 			if(c.r>1.0) c.r=1.0; if(c.g>1.0) c.g=1.0; if(c.b>1.0) c.b=1.0;
-			*skycolor = c.to_uint8();
+			*skycolor = c;
 #endif
 
 			skycolor++; skyangle++;

@@ -174,12 +174,6 @@ void geoclipmap::display(const frustum& f, const vector3& view_delta, bool is_mi
 	if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// display levels from inside to outside
 	//unsigned min_level = unsigned(std::max(floor(log2(new_viewpos.z/(0.4*resolution*L))), 0.0));
-	glActiveTexture(GL_TEXTURE1);
-	glEnable(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE2);
-	glEnable(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE3);
-	glEnable(GL_TEXTURE_2D);
 	unsigned si = is_mirror ? 1 : 0;
 	myshader[si]->use();
 	glPushMatrix();
@@ -200,13 +194,6 @@ void geoclipmap::display(const frustum& f, const vector3& view_delta, bool is_mi
 		levels[lvl]->display(f2, is_mirror);
 	}
 	glPopMatrix();
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE0);
 	myshader[si]->use_fixed();
 	if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }

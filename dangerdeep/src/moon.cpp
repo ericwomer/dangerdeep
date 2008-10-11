@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "matrix4.h"
 #include "texture.h"
 #include "datadirs.h"
-
+#include "primitives.h"
 #include "global_data.h"
 
 
@@ -65,6 +65,12 @@ moon::moon()
 		}
 	}
 	map_normal = texture::ptr(new texture(mnp, mns, mns, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
+	glsl_moon.reset(new glsl_shader_setup(get_shader_dir() + "moon.vshader",
+					      get_shader_dir() + "moon.fshader"));
+	glsl_moon->use();
+	loc_diffcol = glsl_moon->get_uniform_location("tex_diff");
+	loc_nrml = glsl_moon->get_uniform_location("tex_nrml");
+	loc_lightdir = glsl_moon->get_uniform_location("light_dir");
 
 #if 0
 	// Test code:
@@ -83,65 +89,34 @@ void moon::display(const vector3 &moon_pos, const vector3 &sun_pos, double max_v
 	float moon_azimuth = atan2(-moon_dir.y, moon_dir.x);
 	float moon_elevation = asin(moon_dir.z);
 
-	//	bind normal map
-	glActiveTextureARB(GL_TEXTURE0_ARB);
-	glEnable(GL_TEXTURE_2D);
-	map_normal.get()->set_gl_texture();
-	//fixme: remove all this stuff and replace it by a shader!!!
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
-	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_DOT3_RGB_ARB) ;
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PRIMARY_COLOR_ARB) ;
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, 2);	//	make moon brighter
-
-	//	bind diffuse map
-	glActiveTextureARB(GL_TEXTURE1_ARB);
-	glEnable(GL_TEXTURE_2D);
-	map_diffuse.get()->set_gl_texture();
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
-	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE) ;	
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+	glsl_moon->use();
+	glsl_moon->set_gl_texture(*map_diffuse, loc_diffcol, 0);
+	glsl_moon->set_gl_texture(*map_normal, loc_nrml, 1);
 	//	transform light into object space
 	matrix4 roth = matrix4::rot_z(-RAD_TO_DEG(moon_azimuth));
 	matrix4 rotv = matrix4::rot_y(-RAD_TO_DEG(moon_elevation));
 	matrix4 model_mat = roth*rotv;
 	vector3 l = model_mat.inverse() * sun_pos;
 	vector3 nl = vector3(-l.y, l.z, -l.x).normal();	//	OpenGL coordinates
-	nl += vector3(1,1,1);
-	nl = nl*0.5;
-	glColor3f(nl.x, nl.y, nl.z);
+	glsl_moon->set_uniform(loc_lightdir, nl);
 
 	//	render moon
 	glPushMatrix();
 	model_mat.multiply_gl();
 	glTranslated(0.95*max_view_dist, 0, 0);
-	
-	glBegin(GL_QUADS);
-	glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 1, 1);
-	glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 1, 1);
-	glVertex3f( 0, -moon_size, -moon_size);
-	glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 1, 0);
-	glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 1, 0);
-	glVertex3f( 0, -moon_size, moon_size);
-	glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 0, 0);
-	glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 0, 0);
-	glVertex3f( 0,  moon_size, moon_size);
-	glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 0, 1);
-	glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 0, 1);
-	glVertex3f( 0,  moon_size, -moon_size);
-	glEnd();
-	glPopMatrix();
 
-	// reset textures
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, 1); // clean up!
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	primitive_tex<4> tq = primitives::textured_quad(vector3f( 0,  moon_size,  moon_size),
+							vector3f( 0, -moon_size,  moon_size),
+							vector3f( 0, -moon_size, -moon_size),
+							vector3f( 0,  moon_size, -moon_size),
+							*map_diffuse);
+	// render quad with own shader
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &tq.vertices[0]);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &tq.texcoords[0]);
+	glDrawArrays(tq.type, 0, 4);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glPopMatrix();
 }

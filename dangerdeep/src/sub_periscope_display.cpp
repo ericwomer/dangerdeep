@@ -110,10 +110,6 @@ void sub_periscope_display::post_display(game& gm) const
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
 		glLoadIdentity();
-		glActiveTexture(GL_TEXTURE0);
-		viewtex->set_gl_texture();
-		glActiveTexture(GL_TEXTURE1);
-		blurtex->set_gl_texture();
 		// bind shader...
 		glsl_blurview->use();
 		glsl_blurview->set_gl_texture(*viewtex, loc_tex_view, 0);
@@ -132,7 +128,6 @@ void sub_periscope_display::post_display(game& gm) const
 		// unbind shader
 		glsl_blurview->use_fixed();
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glActiveTexture(GL_TEXTURE0);
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();

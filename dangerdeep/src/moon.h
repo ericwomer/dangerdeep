@@ -22,21 +22,23 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
 #include "vector3.h"
-
-
 #include "texture.h"
+#include "shader.h"
 
 
 ///\brief Moon rendering.
 class moon
 {
-	private:
-		texture::ptr map_diffuse;
-		texture::ptr map_normal;
-	public:
-		moon();
+ private:
+	texture::ptr map_diffuse;
+	texture::ptr map_normal;
+	std::auto_ptr<glsl_shader_setup> glsl_moon;
+	unsigned loc_diffcol, loc_nrml, loc_lightdir;
 
-		void display(const vector3 &moon_pos, const vector3 &sun_pos, double max_view_dist) const;
+ public:
+	moon();
+
+	void display(const vector3 &moon_pos, const vector3 &sun_pos, double max_view_dist) const;
 };
 
 #endif

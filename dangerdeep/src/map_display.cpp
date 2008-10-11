@@ -102,11 +102,11 @@ void map_display::draw_trail(sea_object* so, const vector2& offset) const
 		primitives tr(GL_LINE_STRIP, l.size() + 1);
 		tr.vertices[0].x = 512+p.x;
 		tr.vertices[0].y = 384-p.y;
-		tr.colors[0] = colorf(1,1,1,1).to_uint8();
+		tr.colors[0] = colorf(1,1,1,1);
 		float la = 1.0/float(l.size()), lc = 0;
 		unsigned trc = 1;
 		for (list<ship::prev_pos>::const_iterator it = l.begin(); it != l.end(); ++it) {
-			tr.colors[trc] = colorf(1,1,1,1-lc).to_uint8();
+			tr.colors[trc] = colorf(1,1,1,1-lc);
 			vector2 p = (it->pos + offset)*mapzoom;
 			tr.vertices[trc].x = 512+p.x;
 			tr.vertices[trc].y = 384-p.y;
@@ -133,13 +133,13 @@ void map_display::draw_pings(class game& gm, const vector2& offset) const
 		primitive_col<3> tri(GL_TRIANGLES);
 		tri.vertices[0].x = 512+p1.x;
 		tri.vertices[0].y = 384-p1.y;
-		tri.colors[0] = colorf(0.5,0.5,0.5,1).to_uint8();
+		tri.colors[0] = colorf(0.5,0.5,0.5,1);
 		tri.vertices[1].x = 512+p2.x;
 		tri.vertices[1].y = 384-p2.y;
-		tri.colors[1] = colorf(0.5,0.5,0.5,0).to_uint8();
+		tri.colors[1] = colorf(0.5,0.5,0.5,0);
 		tri.vertices[2].x = 512+p3.x;
 		tri.vertices[2].y = 384-p3.y;
-		tri.colors[2] = colorf(0.5,0.5,0.5,0).to_uint8();
+		tri.colors[2] = colorf(0.5,0.5,0.5,0);
 		tri.render();
 	}
 }

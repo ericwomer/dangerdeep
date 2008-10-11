@@ -182,6 +182,13 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 	if (extension_supported("GL_NV_texture_env_combine4"))
 		// we have an Nvidia card (most probably)
 		glsl_shader::is_nvidia_card = true;
+
+	// enable texturing on all units
+	for (unsigned i = 0; i < std::min(4U, unsigned(nrtexunits)); ++i) {
+		glActiveTexture(GL_TEXTURE0 + i);
+		glEnable(GL_TEXTURE_2D);
+	}
+
 	glsl_shader_setup::default_init();
 }
 

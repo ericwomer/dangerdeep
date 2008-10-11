@@ -118,8 +118,6 @@ struct colorf
 	// transform color to grey value (model of human vision, 29.9% to 58.7% to 11.4% RGB)
 	float brightness() const { return (r*0.299+g*0.587+b*0.114); }
 	colorf grey_value() const { float c = (r*0.299+g*0.587+b*0.114); return colorf(c, c, c, a); }
-
-	color to_uint8() const { return color(Uint8(r*255), Uint8(g*255), Uint8(b*255), Uint8(a*255)); };
 };
 
 inline color::color(const colorf& c)

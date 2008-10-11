@@ -389,7 +389,6 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 	// tex1: reflection map / matching texcoords
 	// tex2: foam
 	// tex3: amount of foam
-	glActiveTexture(GL_TEXTURE0);
 
 	// set up scale/translation of foam and noise maps
 	// we do not use the texture matrix here, as this would be overkill
