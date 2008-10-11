@@ -62,10 +62,9 @@ unsigned model::init_count = 0;
 /*
 fixme: possible cleanup/simplification of rendering EVERYWHERE:
 1) replace use of glTexEnv and use shaders for EVERYTHING, every primitive rendered
-2) replace glBegin/glEnd by vertex arrays for every primitive
-3) use shaders for every rendered primitive, no more default fixed pipeline
-   IMPORTANT: make sure that texunit #0 is ActiveTexture after each non-standard shader,
-   or the default shaders will fail to render correctly!
+   [DONE] except shaders missing in sky.cpp, stars.cpp, moon.cpp
+2) replace glBegin/glEnd by vertex arrays for every primitive [DONE] except moon.cpp
+3) use shaders for every rendered primitive, no more default fixed pipeline [mostly DONE]
 4) replace Matrix use (glPushMatrix/glPopMatrix, texture matrix switch etc.)
 5) maybe replace use of default attributes (would gain full OpenGl3.0 compatibility,
    except the shader code).

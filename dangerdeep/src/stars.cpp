@@ -151,6 +151,7 @@ void stars::display(const float max_view_dist) const
 	star_colors_VBO.init_data(star_colors.size() * sizeof(colorf), &star_colors[0], GL_STREAM_DRAW);
 	star_colors_VBO.bind();
 	glColorPointer(4, GL_FLOAT, 0, 0);
+	//fixme: use shader!
 	glDrawArrays(GL_POINTS, 0, star_count);
 	
 	star_positions.unbind();
