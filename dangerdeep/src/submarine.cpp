@@ -307,6 +307,9 @@ submarine::submarine(game& gm_, const xml_elem& parent)
 			ballast_tank_capacity += tanks.back().get_volume();
 		}
 	}
+
+	diveplane_1_id = mymodel->get_object_id_by_name("diveplane_1");
+	diveplane_2_id = mymodel->get_object_id_by_name("diveplane_2");
 }
 
 
@@ -463,6 +466,10 @@ int submarine::find_stored_torpedo(bool usebow)
 
 void submarine::simulate(double delta_time)
 {
+	// diveplane animation
+	if (diveplane_1_id >= 0) mymodel->set_object_angle(diveplane_1_id, bow_depth_rudder.angle);
+	if (diveplane_2_id >= 0) mymodel->set_object_angle(diveplane_2_id, stern_depth_rudder.angle);
+
 	// simulate all tanks (flooding) and recompute mass_flooded_tanks here
 	mass_flooded_tanks = 0;
 	for (std::vector<tank>::iterator it = tanks.begin(); it != tanks.end(); ++it) {

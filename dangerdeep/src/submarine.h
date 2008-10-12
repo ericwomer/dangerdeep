@@ -214,6 +214,8 @@ protected:
 
 	std::vector<tank> tanks;
 
+	int diveplane_1_id, diveplane_2_id; // for display()
+
 public:
 	// there were more types, I, X (mine layer), XIV (milk cow), VIIf, (and VIId)
 	// and some experimental types. (VIIc42, XVIIa/b)

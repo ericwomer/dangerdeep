@@ -308,6 +308,8 @@ protected:
 		bool set_translation(float value);
 		object* find(unsigned id);
 		object* find(const std::string& name);
+		const object* find(unsigned id) const;
+		const object* find(const std::string& name) const;
 		void display(const texture *caustic_map = 0) const;
 		void display_mirror_clip() const;
 		void compute_bounds(vector3f& min, vector3f& max, const matrix4f& transmat) const;
@@ -484,6 +486,9 @@ public:
 	// get min/max translation values of an object. returns 0/0 if object does not exist
 	vector2f get_object_translation_constraints(unsigned objid);
 	vector2f get_object_translation_constraints(const std::string& objname);
+
+	// find object with certain name, -1 if not found
+	int get_object_id_by_name(const std::string& name) const;
 
 	void register_layout(const std::string& name = default_layout);
 	void unregister_layout(const std::string& name = default_layout);

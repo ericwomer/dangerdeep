@@ -272,6 +272,11 @@ ship::ship(game& gm_, const xml_elem& parent)
 	// set up rudder values
 	rudder.pos.y = -size3d.y*0.5;
 	rudder.area = 4;
+
+	propeller_1_id = mymodel->get_object_id_by_name("propeller_1");
+	propeller_2_id = mymodel->get_object_id_by_name("propeller_2");
+	rudder_1_id = mymodel->get_object_id_by_name("rudder_1");
+	rudder_2_id = mymodel->get_object_id_by_name("rudder_2");
 }
 
 
@@ -548,6 +553,18 @@ void ship::save(xml_elem& parent) const
 void ship::simulate(double delta_time)
 {
 	sea_object::simulate(delta_time);
+
+	// screw animation
+	if (throttle != 0) {
+		double screw_ang = myfrac(gm.get_time() * get_throttle_speed() * 0.5) * 360.0;
+		mymodel->set_object_angle(propeller_1_id, screw_ang);
+		if (propeller_2_id >= 0)
+			mymodel->set_object_angle(propeller_2_id, screw_ang);
+	}
+
+	// rudder animation
+	if (rudder_1_id >= 0) mymodel->set_object_angle(rudder_1_id, rudder.angle);
+	if (rudder_2_id >= 0) mymodel->set_object_angle(rudder_2_id, rudder.angle);
 
 	if ( myai.get() )
 		myai->act(gm, delta_time);

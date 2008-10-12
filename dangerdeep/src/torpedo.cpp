@@ -292,6 +292,8 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	mass_inv = 1.0/mass;
 	inertia_tensor = mymodel->get_base_mesh().inertia_tensor * mass;
 	inertia_tensor_inv = inertia_tensor.inverse();
+	propeller_1_id = mymodel->get_object_id_by_name("propeller_1");
+	propeller_2_id = mymodel->get_object_id_by_name("propeller_2");
 
 	log_debug("torpedo mass now " << mass);
 }
@@ -365,8 +367,8 @@ void torpedo::simulate(double delta_time)
 
 	// simulate screw turning. one model for all torps, but this doesnt matter
 	double screw_ang = myfrac(gm.get_time() * 4) * 360.0;
-	mymodel->set_object_angle(1, screw_ang);
-	mymodel->set_object_angle(2, screw_ang);
+	mymodel->set_object_angle(propeller_1_id, screw_ang);
+	mymodel->set_object_angle(propeller_2_id, screw_ang);
 
 	double old_run_length = run_length;
 	run_length += get_speed() * delta_time;

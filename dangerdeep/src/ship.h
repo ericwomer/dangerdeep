@@ -252,6 +252,9 @@ class ship : public sea_object
 	typedef std::list<struct gun_barrel>::const_iterator const_gun_barrel_itr;	
 	double maximum_gun_range;
 	
+	int propeller_1_id, propeller_2_id; // for display()
+	int rudder_1_id, rudder_2_id; // for display()
+
 	bool is_target_in_blindspot(const struct gun_turret *gun, angle bearingToTarget);
 	bool calculate_gun_angle(const double distance, angle &elevation, const double initial_velocity);
 	void calc_max_gun_range(double initial_velocity);

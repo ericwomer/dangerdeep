@@ -143,6 +143,30 @@ model::object* model::object::find(const std::string& name_)
 
 
 
+const model::object* model::object::find(unsigned id_) const
+{
+	if (id == id_) return this;
+	for (vector<object>::const_iterator it = children.begin(); it != children.end(); ++it) {
+		const object* obj = it->find(id_);
+		if (obj) return obj;
+	}
+	return 0;
+}
+
+
+
+const model::object* model::object::find(const std::string& name_) const
+{
+	if (name == name_) return this;
+	for (vector<object>::const_iterator it = children.begin(); it != children.end(); ++it) {
+		const object* obj = it->find(name_);
+		if (obj) return obj;
+	}
+	return 0;
+}
+
+
+
 void model::object::display(const texture *caustic_map) const
 {
 	glPushMatrix();
@@ -1244,6 +1268,15 @@ void model::material::map::set_layout(const std::string& layout)
 	} else {
 		tex = mytexture.get();
 	}
+}
+
+
+
+int model::get_object_id_by_name(const std::string& name) const
+{
+	const object* obj = scene.find(name);
+	if (!obj) return -1;
+	return int(obj->id);
 }
 
 
