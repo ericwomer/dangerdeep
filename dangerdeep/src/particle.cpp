@@ -668,7 +668,7 @@ double spray_particle::get_life_time() const
 // fireworks
 
 fireworks_particle::fireworks_particle(const vector3& pos)
-	: particle(pos, vector3(0, 0, 25)), // pos, velocity
+	: particle(pos, vector3(0, 0, 50)), // pos, velocity
 	  flares(300)
 {
 	const double flare_speed = 20/2; // meters/second
@@ -684,8 +684,12 @@ fireworks_particle::fireworks_particle(const vector3& pos)
 void fireworks_particle::simulate(game& gm, double delta_t)
 {
 	particle::simulate(gm, delta_t);
-	if (life <= 2.0/3)
-		velocity.z = -life * 0.5 * 9.81; // gravity, although only 50% effect, looks better
+	if (life <= 0.666) {
+		double t = (0.666 - life) * get_life_time();
+		position.z = explosion_z - t*t*0.5;
+	} else {
+		explosion_z = position.z;
+	}
 }
 
 
@@ -697,7 +701,7 @@ void fireworks_particle::custom_display(const vector3& viewpos, const vector3& d
 	// 2 seconds explode (later 1?)
 	// 2 seconds glowing/fading
 	// so partitions: 0.666, 0.333
-	if (life > 2.0/3) {
+	if (life > 0.666) {
 		// ascension
 		primitive_tex<2> lines(GL_LINES, colorf(1,1,1,1), *tex_fireworks);
 		lines.texcoords[0] = vector2f(1.0, 0.75f);
@@ -717,16 +721,26 @@ void fireworks_particle::custom_display(const vector3& viewpos, const vector3& d
 		if (life <= 1.0/3) lifefac2 = 1.0;
 		double lifefac = 1.0 - (life * 3.0 - 1.0);
 		// draw glowing lines from center to flares
-		primitives flarelines(GL_LINES, 2*flares.size(), colorf(1,1,1,decayfac), *tex_fireworks);
+		const unsigned fls = 8;
+		primitives flarelines(GL_LINES, 2*flares.size()*fls, colorf(1,1,1,decayfac), *tex_fireworks);
 		for (unsigned i = 0; i < flares.size(); ++i) {
 			const flare& f = flares[i];
-			flarelines.texcoords[2*i] = vector2f(-lifefac, 0.25f);
-			vector3 p = position - viewpos;
-			flarelines.vertices[2*i].assign(p);
-			flarelines.texcoords[2*i+1] = vector2f(1.5f-lifefac, 0.25f);
-			p = p + dx * (f.velocity.x * lifefac2 * 2.0)
-				+ dy * (f.velocity.y * lifefac2 * 2.0);
-			flarelines.vertices[2*i+1].assign(p);
+			for (unsigned k = 0; k < fls; ++k) {
+				flarelines.texcoords[2*(i*fls+k)] = vector2f(1.5*k/fls-lifefac, 0.25f);
+				flarelines.texcoords[2*(i*fls+k)+1] = vector2f(1.5*(k+1)/fls-lifefac, 0.25f);
+				double lifefac3 = lifefac2 * k / fls;
+				vector3 p = position - viewpos + dx * (f.velocity.x * lifefac3 * 2.0)
+					+ dy * (f.velocity.y * lifefac3 * 2.0);
+				double t = (0.666 - life) * get_life_time() * k/fls;
+				p.z += explosion_z - position.z - 9.81 * 0.5 * t * t;
+				flarelines.vertices[2*(i*fls+k)].assign(p);
+				lifefac3 += lifefac2 / fls;
+				p = position - viewpos + dx * (f.velocity.x * lifefac3 * 2.0)
+					+ dy * (f.velocity.y * lifefac3 * 2.0);
+				t = (0.666 - life) * get_life_time() * (k+1)/fls;
+				p.z += explosion_z - position.z - 9.81 * 0.5 * t * t;
+				flarelines.vertices[2*(i*fls+k)+1].assign(p);
+			}
 		}
 		flarelines.render();
 		// draw flares
@@ -735,11 +749,13 @@ void fireworks_particle::custom_display(const vector3& viewpos, const vector3& d
 		glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);//could be done once...
 		// texcoords are not needed for points, so this is a bit waste...
 		primitives pts(GL_POINTS, flares.size(), colorf(1,1,1,decayfac), *tex_fireworks_flare);
+		double t = (0.666 - life) * get_life_time();
 		for (unsigned i = 0; i < flares.size(); ++i) {
 			const flare& f = flares[i];
 			vector3 p = position - viewpos
 				+ dx * (f.velocity.x * lifefac2 * 2.0)
 				+ dy * (f.velocity.y * lifefac2 * 2.0);
+			p.z += explosion_z - position.z - 9.81 * 0.5 * t * t;
 			pts.vertices[i].assign(p);
 		}
 		pts.render();

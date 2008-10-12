@@ -202,6 +202,7 @@ class fireworks_particle : public particle
 	};
 
 	std::vector<flare> flares;
+	double explosion_z;
 
 	void simulate(game& gm, double delta_t);
 
