@@ -39,6 +39,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <glu.h>
 #include <SDL.h>
 #include "mymain.cpp"
+#include "primitives.h"
 
 using namespace std;
 
@@ -87,13 +88,6 @@ void draw_model(double angle)
 	glRotated(-90.0, 1, 0, 0);
 	mdl->display();
 	glPopMatrix();
-
-// 	glColor3f(1,0,0);
-// 	glBegin(GL_LINES);
-// 	glVertex2d(0,0);
-// 	glVertex2d(10,10);
-// 	glEnd();
-// 	glColor3f(1,1,1);
 }
 
 void measure_model(double angle, ostringstream& osscs)
@@ -267,8 +261,8 @@ int mymain(list<string>& args)
 
 	res_y = res_x*3/4;
 
-	class system mysys(1.0, 1000.0, res_x, res_y, fullscreen);
-	mysys.set_res_2d(1024, 768);
+	system::create_instance(new class system(1.0, 1000.0, res_x, res_y, fullscreen));
+	sys().set_res_2d(1024, 768);
 
 	// prepare output data file
 	string::size_type st = modelfilename.rfind(".");
@@ -293,8 +287,6 @@ int mymain(list<string>& args)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glClearColor(0,0,0,0);
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
 
 	mdl = new model(modelfilename, false);
@@ -331,7 +323,7 @@ int mymain(list<string>& args)
 	for (unsigned i = 0; i < ANGLES; ++i) {
 		double angle = 360.0 * i / ANGLES;
 		measure_model(angle, osscs);
-		mysys.poll_event_queue();
+		sys().poll_event_queue();
 	}
 	physcs.add_child_text(osscs.str());
 
@@ -355,18 +347,19 @@ int mymain(list<string>& args)
 		sys().prepare_2d_drawing();
 		while (ctr > 0) {
 			int w = res_x - res_x * ctr / (resolution.z * resolution.y);
-			glBegin(GL_QUADS);
-			glColor3f(1, 0, 0);
-			glVertex2i(0, 0);
-			glVertex2i(0, res_y/10);
-			glColor3f(0, 0, 1);
-			glVertex2i(w, res_y/10);
-			glVertex2i(w, 0);
-			glEnd();
+			primitive_col<4> qd(GL_QUADS);
+			qd.vertices[3] = vector3f(0, 0, 0);
+			qd.vertices[2] = vector3f(0, res_y/10, 0);
+			qd.vertices[1] = vector3f(w, res_y/10, 0);
+			qd.vertices[0] = vector3f(w, 0, 0);
+			qd.colors[3] = colorf(1, 0, 0);
+			qd.colors[2] = colorf(1, 0, 0);
+			qd.colors[1] = colorf(0, 0, 1);
+			qd.colors[0] = colorf(0, 0, 1);
+			qd.render();
 			sys().swap_buffers();
 			thread::sleep(100);
 		}
-		glColor3f(1, 1, 1);
 		sys().unprepare_2d_drawing();
 	}
 	cout << "\n";
