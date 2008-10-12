@@ -46,16 +46,13 @@ class primitive
  public:
 	primitive(int type_, const colorf& col_) : type(type_), col(col_) {}
 	void render_plain() {
-		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
 		glDrawArrays(type, 0, size);
-		glDisableClientState(GL_VERTEX_ARRAY);
 	}
 	void render() {
 		glsl_shader_setup::default_opaque->use();
 		glsl_shader_setup::default_opaque->set_uniform(glsl_shader_setup::loc_o_color, col);
 		render_plain();
-		glsl_shader_setup::use_fixed();//fixme replace later, when everything is rendered with shaders
 	}
 
 	int type;
@@ -71,18 +68,15 @@ class primitive_col
  public:
 	primitive_col(int type_) : type(type_) {}
 	void render_plain() {
-		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
 		glEnableClientState(GL_COLOR_ARRAY);
 		glColorPointer(4, GL_UNSIGNED_BYTE, 0, &colors[0]);
 		glDrawArrays(type, 0, size);
 		glDisableClientState(GL_COLOR_ARRAY);
-		glDisableClientState(GL_VERTEX_ARRAY);
 	}
 	void render() {
 		glsl_shader_setup::default_col->use();
 		render_plain();
-		glsl_shader_setup::use_fixed();//fixme replace later, when everything is rendered with shaders
 	}
 
 	int type;
@@ -98,20 +92,17 @@ class primitive_tex
  public:
 	primitive_tex(int type_, const colorf& col_, const texture& tex_) : type(type_), col(col_), tex(tex_) {}
 	void render_plain() {
-		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
 		glDrawArrays(type, 0, size);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_VERTEX_ARRAY);
 	}
 	void render() {
 		glsl_shader_setup::default_tex->use();
 		glsl_shader_setup::default_tex->set_uniform(glsl_shader_setup::loc_t_color, col);
 		glsl_shader_setup::default_tex->set_gl_texture(tex, glsl_shader_setup::loc_t_tex, 0);
 		render_plain();
-		glsl_shader_setup::use_fixed();//fixme replace later, when everything is rendered with shaders
 	}
 
 	int type;
@@ -129,7 +120,6 @@ class primitive_coltex
  public:
 	primitive_coltex(int type_, const texture& tex_) : type(type_), tex(tex_) {}
 	void render_plain() {
-		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
@@ -138,13 +128,11 @@ class primitive_coltex
 		glDrawArrays(type, 0, size);
 		glDisableClientState(GL_COLOR_ARRAY);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_VERTEX_ARRAY);
 	}
 	void render() {
 		glsl_shader_setup::default_coltex->use();
 		glsl_shader_setup::default_coltex->set_gl_texture(tex, glsl_shader_setup::loc_ct_tex, 0);
 		render_plain();
-		glsl_shader_setup::use_fixed();//fixme replace later, when everything is rendered with shaders
 	}
 
 	int type;

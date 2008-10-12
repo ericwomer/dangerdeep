@@ -102,7 +102,6 @@ std::auto_ptr<model> tree_generator::generate() const
 	gss.use();
 	int loc_depth_factor = gss.get_uniform_location("depth_factor");
 	gss.set_uniform(loc_depth_factor, float(0.002));
-	gss.use_fixed();
 
 	//mat->specularmap.reset(smap);
 	//mat->colormap.reset(dmap);

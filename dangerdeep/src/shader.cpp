@@ -249,8 +249,8 @@ glsl_program::glsl_program()
 glsl_program::~glsl_program()
 {
 	if (used_program == this) {
-		// rather use some kind of "bug!"-exception here
-		log_warning("deleting bound glsl program!");
+		// can happen now that we use shaders for everything - but it is no problem
+		//log_warning("deleting bound glsl program!");
 		use_fixed();
 	}
 	// if shaders are still attached, it is rather a bug...

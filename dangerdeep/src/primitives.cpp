@@ -34,7 +34,6 @@ primitives_plain::primitives_plain(int type_, unsigned size, bool with_colors, b
 
 void primitives_plain::render()
 {
-	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
 	if (!colors.empty()) {
 		glEnableClientState(GL_COLOR_ARRAY);
@@ -44,7 +43,6 @@ void primitives_plain::render()
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
 	}
 	glDrawArrays(type, 0, vertices.size());
-	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
@@ -87,7 +85,6 @@ primitives::primitives(int type_, unsigned size, const texture& tex_)
 
 void primitives::render()
 {
-	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
 	if (!colors.empty()) {
 		glEnableClientState(GL_COLOR_ARRAY);
@@ -109,10 +106,8 @@ void primitives::render()
 		glsl_shader_setup::default_opaque->set_uniform(glsl_shader_setup::loc_o_color, col);
 	}
 	glDrawArrays(type, 0, vertices.size());
-	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glsl_shader_setup::use_fixed();//fixme replace later, when everything is rendered with shaders
 }
 
 

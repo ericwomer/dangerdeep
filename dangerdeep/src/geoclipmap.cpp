@@ -104,7 +104,6 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 		myshader[i]->set_uniform(loc_w_rcp[i], 1.0f/(resolution_vbo * w_fac));
 		myshader[i]->set_uniform(loc_N_rcp[i], 1.0f/resolution_vbo);
 	}
-	myshader[0]->use_fixed();
 	// set a texture for normals outside coarsest level, just 0,0,1
 	std::vector<Uint8> pxl(3, 128);
 	pxl[2] = 255;
@@ -164,7 +163,6 @@ void geoclipmap::set_viewerpos(const vector3& new_viewpos)
 	myshader[1]->use();
 	myshader[1]->set_uniform(loc_viewpos[1], new_viewpos - base_viewpos.xy0());
 	myshader[1]->set_uniform(loc_viewpos_offset[1], new_viewpos);
-	myshader[1]->use_fixed();
 }
 
 
@@ -194,7 +192,6 @@ void geoclipmap::display(const frustum& f, const vector3& view_delta, bool is_mi
 		levels[lvl]->display(f2, is_mirror);
 	}
 	glPopMatrix();
-	myshader[si]->use_fixed();
 	if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
@@ -902,7 +899,6 @@ void geoclipmap::level::display(const frustum& f, bool is_mirror) const
 	// render the data
 	if (nridx < 4) return; // first index is remove always, and we need at least 3 for one triangle
 	vertices.bind();
-	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, geoclipmap_fperv*4, (float*)0 + 0);
 	glVertexAttribPointer(gcm.myshader_vattr_z_c_index[si], 1, GL_FLOAT, GL_FALSE, geoclipmap_fperv*4, (float*)0 + 3);
 	glEnableVertexAttribArray(gcm.myshader_vattr_z_c_index[si]);
@@ -916,7 +912,6 @@ void geoclipmap::level::display(const frustum& f, bool is_mirror) const
 			    nridx-1, GL_UNSIGNED_INT, (unsigned*)0 + 1); // skip first index
 	indices.unbind();
 	glDisableVertexAttribArray(gcm.myshader_vattr_z_c_index[si]);
-	glDisableClientState(GL_VERTEX_ARRAY);
 
 #ifdef DEBUG_INDEX_USAGE
 	unsigned s=gcm.idxscratchbuf.size();

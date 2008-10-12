@@ -127,7 +127,6 @@ videoplay::videoplay(const std::string& filename, unsigned queue_len)
 	myshader.use();
 	loc_tex_y = myshader.get_uniform_location("tex_y");
 	loc_tex_uv = myshader.get_uniform_location("tex_uv");
-	myshader.use_fixed();
 
 	// open file
 	avcodec_init();
@@ -370,7 +369,6 @@ void videoplay::display(framebuffer& fb)
 		y = (sh - h) / 2;
 	}
 	tex_y->draw(x, y, w, h);
-	myshader.use_fixed();
 }
 
 int videoplay::call_get_buffer(struct AVCodecContext *c, AVFrame *pic)

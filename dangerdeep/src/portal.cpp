@@ -467,7 +467,6 @@ void run()
 	loc_tex_color = glsl_reliefmapping->get_uniform_location("tex_color");
 	vertex_attrib_index = glsl_reliefmapping->get_vertex_attrib_index("tangentx");
 	loc_depth_factor = glsl_reliefmapping->get_uniform_location("depth_factor");
-	glsl_shader_setup::use_fixed();
 
 	vector<sector> sectors(LVL_X * LVL_Y * LVL_Z);
 	for (int z = 0; z < LVL_Z; ++z) {
@@ -571,7 +570,6 @@ void run()
 		for (unsigned i = 0; i < sectors.size(); ++i)
 			sectors[i].displayed = false;
 		currsector->display(viewfrustum);
-		glsl_shader_setup::use_fixed();
 
 		vector3 oldpos = pos;
 		const double movesc = 0.25;

@@ -191,7 +191,7 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 
 	// since we use vertex arrays for every primitive, we can enable it
 	// here and leave it enabled forever
-	//glEnableClientState(GL_VERTEX_ARRAY); <- uncomment when all glBegin's are gone
+	glEnableClientState(GL_VERTEX_ARRAY);
 
 	glsl_shader_setup::default_init();
 }

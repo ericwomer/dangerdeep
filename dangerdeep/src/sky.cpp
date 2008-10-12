@@ -126,7 +126,6 @@ sky::sky(const double tm, const unsigned int sectors_h, const unsigned int secto
 						get_shader_dir() + "clouds.fshader"));
 	glsl_clouds->use();
 	loc_cloudstex = glsl_clouds->get_uniform_location("tex_cloud");
-	glsl_clouds->use_fixed();
 }
 
 
@@ -323,7 +322,6 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	glEnableClientState(GL_COLOR_ARRAY);
 	sky_colors.bind();
 	glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0);
-	glEnableClientState(GL_VERTEX_ARRAY);
 	sky_vertices.bind();
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
 	sky_vertices.unbind();
@@ -331,7 +329,6 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	glsl_shader_setup::default_col->use();
 	glDrawRangeElements(GL_QUAD_STRIP, 0, nr_sky_vertices-1, nr_sky_indices, GL_UNSIGNED_INT, 0);
 	sky_indices.unbind();
-	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 
 	glPopMatrix(); // sky scale
@@ -392,7 +389,6 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	// fixme: better give color as uniform to shader!
 	glColor4ub(lightcolor.r, lightcolor.g, lightcolor.b, lightcolor.a);
 	sky_vertices.bind();
-	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	clouds_texcoords.bind();
@@ -404,10 +400,8 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	sky_indices.bind();
 	glDrawRangeElements(GL_QUAD_STRIP, 0, nr_sky_vertices-1, nr_sky_indices, GL_UNSIGNED_INT, 0);
 	sky_indices.unbind();
-	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
-	glsl_clouds->use_fixed();
 	glPopMatrix();
 
 	glDepthMask(GL_TRUE);

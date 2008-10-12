@@ -118,7 +118,6 @@ void sub_periscope_display::post_display(game& gm) const
 		glsl_blurview->set_uniform(loc_blur_texc_offset, vector3(blur_y_off, 0, 0));
 		primitives::textured_quad(vector2f(-1,-1), vector2f(2,2), *viewtex).render_plain();
 		// unbind shader
-		glsl_blurview->use_fixed();
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
@@ -182,7 +181,6 @@ sub_periscope_display::sub_periscope_display(user_interface& ui_)
 	loc_blur_texc_offset = glsl_blurview->get_uniform_location("blur_texc_offset");
 	loc_tex_view = glsl_blurview->get_uniform_location("tex_view");
 	loc_tex_blur = glsl_blurview->get_uniform_location("tex_blur");
-	glsl_blurview->use_fixed();
 	/* Note 2007/05/08:
 	   we can have a better Blur texture if we generate it at runtime.
 	   What makes up the blur texture?

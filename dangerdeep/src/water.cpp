@@ -268,7 +268,6 @@ water::water(double tm) :
 	loc_uw_upwellbot = glsl_under_water->get_uniform_location("upwellbot");
 	loc_uw_upwelltopbot = glsl_under_water->get_uniform_location("upwelltopbot");
 	loc_uw_tex_normal = glsl_under_water->get_uniform_location("tex_normal");
-	glsl_water->use_fixed();
 
 	foamtex.reset(new texture(get_texture_dir() + "foam.png", texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
 	foamamounttex.reset(new texture(FOAMAMOUNTRES, FOAMAMOUNTRES, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
@@ -497,8 +496,6 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 
 void water::cleanup_textures() const
 {
-	glsl_program::use_fixed();
-	
 	glActiveTexture(GL_TEXTURE0);
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
@@ -891,7 +888,6 @@ void water::display(const vector3& viewpos, double max_view_dist, bool under_wat
 
 	// as first, map buffers correctly.
 	vertices.bind();
-	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, nr_vert_attr*4, (float*)0 + 0);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glNormalPointer(GL_FLOAT, nr_vert_attr*4, (float*)0 + 3);
@@ -969,7 +965,6 @@ void water::display(const vector3& viewpos, double max_view_dist, bool under_wat
 	// unmap, cleanup
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableVertexAttribArray(vattr_aof_index);
-	glDisableClientState(GL_VERTEX_ARRAY);
 
 	// clean up textures
 	cleanup_textures();
@@ -1355,7 +1350,6 @@ void water::set_refraction_color(const colorf& light_color)
 	glsl_under_water->set_uniform(loc_uw_upwelltop, upwelltop);
 	glsl_under_water->set_uniform(loc_uw_upwellbot, upwellbot);
 	glsl_under_water->set_uniform(loc_uw_upwelltopbot, upwelltopbot);
-	glsl_water->use_fixed();
 
 	for (unsigned s = 0; s < REFRAC_COLOR_RES; ++s) {
 		float fs = float(s)/(REFRAC_COLOR_RES-1);

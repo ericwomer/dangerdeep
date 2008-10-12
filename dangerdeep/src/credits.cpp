@@ -313,7 +313,6 @@ canyon::canyon(unsigned w, unsigned h)
 	loc_texsandrock = myshader.get_uniform_location("texsandrock");
 	loc_texnoise = myshader.get_uniform_location("texnoise");
 	loc_texgrass = myshader.get_uniform_location("texgrass");
-	myshader.use_fixed();
 }
 
 
@@ -331,7 +330,6 @@ void canyon::canyon_material::set_gl_values(const texture* /* unused */) const
 void canyon::display() const
 {
 	mymesh->display();
-	myshader.use_fixed();
 }
 
 
@@ -471,7 +469,6 @@ plant_set::plant_set(vector<float>& heightdata, unsigned nr, unsigned w, unsigne
 		vertexdata[6*(4*i + 3) + 5] = -p.size.x * 0.5;
 	}
 	plantvertexdata.unmap();
-	myshader.use_fixed();
 }
 
 
@@ -531,7 +528,6 @@ void plant_set::display(const vector3& viewpos, float zang) const
 	myshader.set_uniform(loc_windmovement, myfrac(sys().millisec()/4000.0));
 
 	plantvertexdata.bind();
-	glEnableClientState(GL_VERTEX_ARRAY);
 	glClientActiveTexture(GL_TEXTURE0);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 6*4, (float*)0 + 0);
@@ -546,11 +542,9 @@ void plant_set::display(const vector3& viewpos, float zang) const
 #else
 	glDrawRangeElements(GL_QUADS, 0, plants.size()*4 - 1, plants.size() * 4, GL_UNSIGNED_INT, &pidat[0]);
 #endif
-	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableVertexAttribArray(vattr_treesize_idx);
 	glDepthMask(GL_TRUE);
-	myshader.use_fixed();
 }
 
 

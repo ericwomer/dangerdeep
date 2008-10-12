@@ -202,7 +202,6 @@ void run()
 		glsl_shader_setup& gss = leafmat.get_shadersetup();
 		gss.use();
 		gss.set_uniform(gss.get_uniform_location("wind_movement"), wind_movement);
-		gss.use_fixed();
 
 		vector3 oldpos = pos;
 		const double movesc = 0.25;

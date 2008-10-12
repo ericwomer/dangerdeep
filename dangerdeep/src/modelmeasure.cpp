@@ -283,6 +283,7 @@ int mymain(list<string>& args)
 	glLoadIdentity();
 	gluOrtho2D(0,res_x, 0,res_y);
 	glDisable(GL_LIGHTING);
+	glDisable(GL_TEXTURE_2D); // trick to render it correctly
 	glDisable(GL_DEPTH_TEST);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

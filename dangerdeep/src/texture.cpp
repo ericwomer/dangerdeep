@@ -1034,13 +1034,11 @@ void texture3d::draw(int x, int y, int w, int h,
 	tc0.to_mem(&data[3*5+2]);
 	glBindTexture(GL_TEXTURE_2D, 0); // important
 	glBindTexture(GL_TEXTURE_3D, opengl_name);
-	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(2, GL_FLOAT, 4*5, &data[0]);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glTexCoordPointer(3, GL_FLOAT, 4*5, &data[2]);
 	Uint8 idx[4] = { 0, 1, 2, 3 };
 	glDrawRangeElements(GL_QUADS, 0, 3, 4, GL_UNSIGNED_BYTE, &idx[0]);
-	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glBindTexture(GL_TEXTURE_3D, 0);
 }

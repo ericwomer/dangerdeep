@@ -137,7 +137,6 @@ void stars::display(const float max_view_dist) const
 	glPushMatrix();
 	glScalef(max_view_dist * 0.95, max_view_dist * 0.95, max_view_dist * 0.95);
 
-	glEnableClientState(GL_VERTEX_ARRAY);
 	star_positions.bind();
 	glVertexPointer(3, GL_FLOAT, 0, 0);
 	glEnableClientState(GL_COLOR_ARRAY);
@@ -155,7 +154,6 @@ void stars::display(const float max_view_dist) const
 	glDrawArrays(GL_POINTS, 0, star_count);
 	
 	star_positions.unbind();
-	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 
 	glPopMatrix();

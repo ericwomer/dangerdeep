@@ -61,12 +61,11 @@ unsigned model::init_count = 0;
 
 /*
 fixme: possible cleanup/simplification of rendering EVERYWHERE:
-1) enable vertex arrays always, skip the enable/disable code
-2) reduce use of glActiveTexture, is rarely needed, now only for setting the
+1) reduce use of glActiveTexture, is rarely needed, now only for setting the
    right texture matrix, which can be surpassed by using uniforms and setting
    a matrix directly in the shader, not using the default texture matrices
-3) replace Matrix use (glPushMatrix/glPopMatrix, texture matrix switch etc.)
-4) maybe replace use of default attributes (would gain full OpenGl3.0 compatibility,
+2) replace Matrix use (glPushMatrix/glPopMatrix, texture matrix switch etc.)
+3) maybe replace use of default attributes (would gain full OpenGl3.0 compatibility,
    except the shader code).
 */
 
@@ -248,14 +247,12 @@ void model::render_init()
 	loc_cnsc_tex_caustic = glsl_color_normal_specular_caustic->get_uniform_location("tex_caustic");
 	glsl_mirror_clip->use();
 	loc_mc_tex_color = glsl_mirror_clip->get_uniform_location("tex_color");
-	glsl_mirror_clip->use_fixed();
 }
 
 
 
 void model::render_deinit()
 {
-	glsl_program::use_fixed();
 	glsl_color_normal.reset();
 	glsl_color_normal_caustic.reset();
 	glsl_color_normal_specular.reset();
@@ -768,7 +765,6 @@ void model::mesh::compile()
 			glsl_shader_setup& gss = mymaterial->specularmap.get() ? *glsl_color_normal_specular : *glsl_color_normal;
 			gss.use();
 			vertex_attrib_index = gss.get_vertex_attrib_index("tangentx_righthanded");
-			gss.use_fixed();
 		} else {
 			vbo_tangents_righthanded.init_data(3 * sizeof(float) * vs, 0, GL_STATIC_DRAW);
 			float* xdata = (float*) vbo_tangents_righthanded.map(GL_WRITE_ONLY);
@@ -782,7 +778,6 @@ void model::mesh::compile()
 			glsl_shader_setup& gss = static_cast<material_glsl*>(mymaterial)->get_shadersetup();
 			gss.use();
 			vertex_attrib_index = gss.get_vertex_attrib_index("tangentx");
-			gss.use_fixed();
 		}
 	}
 
@@ -1321,8 +1316,6 @@ void model::material::map::set_texture(texture* t)
 
 void model::material::set_gl_values(const texture *caustic_map) const
 {
-	glsl_program::use_fixed();
-
 	glActiveTexture(GL_TEXTURE0);
 	if (colormap.get()) {
 		glMatrixMode(GL_TEXTURE);
@@ -1461,7 +1454,6 @@ void model::material_glsl::compute_texloc()
 		if (loc_texunit[i] == unsigned(-1))
 			throw error(std::string("unable to lookup uniform location of shader for material_glsl, texname=") + texnames[i]);
 	}
-	shadersetup.use_fixed();
 }
 
 
@@ -1545,6 +1537,10 @@ void model::mesh::display(const texture *caustic_map) const
 		if (mymaterial->two_sided) {
 			glDisable(GL_CULL_FACE);
 		}
+	} else {
+		glsl_shader_setup::default_opaque->use();
+		glsl_shader_setup::default_opaque->set_uniform(glsl_shader_setup::loc_o_color,
+							       colorf(1,1,1,1));
 	}
 
 	// local transformation matrix.
@@ -1561,7 +1557,6 @@ void model::mesh::display(const texture *caustic_map) const
 	// set up vertex data.
 	vbo_positions.bind();
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
-	glEnableClientState(GL_VERTEX_ARRAY);
 
 	// set up normals (only used with shaders or for plain rendering without normal maps).
 	vbo_normals.bind();
@@ -1603,9 +1598,7 @@ void model::mesh::display(const texture *caustic_map) const
 	// maybe: add code to show normals as Lines
 
 	// cleanup
-	glsl_shader_setup::use_fixed();
 	glDisableVertexAttribArray(vertex_attrib_index);
-	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glClientActiveTexture(GL_TEXTURE1);
@@ -1643,7 +1636,6 @@ void model::mesh::display_mirror_clip() const
 
 	vbo_positions.bind();
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
-	glEnableClientState(GL_VERTEX_ARRAY);
 
 	// basic lighting, we need normals
 	vbo_normals.bind();
@@ -1666,9 +1658,6 @@ void model::mesh::display_mirror_clip() const
 	glDrawRangeElements(gl_primitive_type(), 0, vertices.size()-1, indices.size(), GL_UNSIGNED_INT, 0);
 	index_data.unbind();
 
-	glsl_shader_setup::use_fixed();
-
-	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glClientActiveTexture(GL_TEXTURE1);
