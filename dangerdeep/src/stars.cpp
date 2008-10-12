@@ -130,10 +130,9 @@ stars::stars(const float max_magnitude)
 
 void stars::display(const float max_view_dist) const
 {
-	// render stars
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glEnable(GL_POINT_SMOOTH);
+	//fixme: this halves the performance!! don't use it.
+	//glEnable(GL_POINT_SMOOTH);
+	glPointSize(1);
 
 	glPushMatrix();
 	glScalef(max_view_dist * 0.95, max_view_dist * 0.95, max_view_dist * 0.95);

@@ -629,17 +629,6 @@ void water::compute_amount_of_foam_texture(const game& gm, const vector3& viewpo
 	// indicates foam at high waves.
 //	glDisable(GL_CULL_FACE);
 	// as first trails of all ships
-/*
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE0);
-*/
-//	glBindTexture(GL_TEXTURE_2D, 0);
-//	glDisable(GL_TEXTURE_2D);
 	// fixme: texture mapping seems to be wrong.
 	for (vector<ship*>::const_iterator it = allships.begin(); it != allships.end(); ++it) {
 		draw_foam_for_ship(gm, *it, viewpos);

@@ -189,6 +189,10 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 		glEnable(GL_TEXTURE_2D);
 	}
 
+	// since we use vertex arrays for every primitive, we can enable it
+	// here and leave it enabled forever
+	//glEnableClientState(GL_VERTEX_ARRAY); <- uncomment when all glBegin's are gone
+
 	glsl_shader_setup::default_init();
 }
 

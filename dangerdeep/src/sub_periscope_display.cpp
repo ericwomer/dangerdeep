@@ -127,7 +127,6 @@ void sub_periscope_display::post_display(game& gm) const
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		// unbind shader
 		glsl_blurview->use_fixed();
-		glBindTexture(GL_TEXTURE_2D, 0);
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();

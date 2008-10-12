@@ -1124,7 +1124,6 @@ void coastmap::draw_as_map(const vector2& droff, double mapzoom, int detail) con
 /*
 	// draw cities, fixme move to coastmap
 	for (list<pair<vector2, string> >::const_iterator it = cities.begin(); it != cities.end(); ++it) {
-		glBindTexture(GL_TEXTURE_2D, 0);
 		draw_square_mark(gm, it->first, -offset, color(255, 0, 0));
 		vector2 pos = (it->first - offset) * mapzoom;
 		font_arial->print(int(512 + pos.x), int(384 - pos.y), it->second);

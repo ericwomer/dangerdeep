@@ -61,11 +61,12 @@ unsigned model::init_count = 0;
 
 /*
 fixme: possible cleanup/simplification of rendering EVERYWHERE:
-1) reduce use of glActiveTexture, is rarely needed, now only for setting the
+1) enable vertex arrays always, skip the enable/disable code
+2) reduce use of glActiveTexture, is rarely needed, now only for setting the
    right texture matrix, which can be surpassed by using uniforms and setting
    a matrix directly in the shader, not using the default texture matrices
-2) replace Matrix use (glPushMatrix/glPopMatrix, texture matrix switch etc.)
-3) maybe replace use of default attributes (would gain full OpenGl3.0 compatibility,
+3) replace Matrix use (glPushMatrix/glPopMatrix, texture matrix switch etc.)
+4) maybe replace use of default attributes (would gain full OpenGl3.0 compatibility,
    except the shader code).
 */
 
@@ -1544,8 +1545,6 @@ void model::mesh::display(const texture *caustic_map) const
 		if (mymaterial->two_sided) {
 			glDisable(GL_CULL_FACE);
 		}
-	} else {
-		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
 	// local transformation matrix.
@@ -1646,7 +1645,6 @@ void model::mesh::display_mirror_clip() const
 		has_texture_u0 = mymaterial->needs_texcoords();
 		mymaterial->set_gl_values_mirror_clip();
 	} else {
-		glBindTexture(GL_TEXTURE_2D, 0);
 		glsl_mirror_clip->use();
 	}
 
@@ -1722,11 +1720,9 @@ void model::display(const texture *caustic_map) const
 
 	// reset texture units
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, 0);
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 0);
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
@@ -1751,12 +1747,8 @@ void model::display_mirror_clip() const
 	// reset texture units
 	glMatrixMode(GL_TEXTURE);
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glLoadIdentity();
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 }
