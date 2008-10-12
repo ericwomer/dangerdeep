@@ -105,18 +105,10 @@ void moon::display(const vector3 &moon_pos, const vector3 &sun_pos, double max_v
 	model_mat.multiply_gl();
 	glTranslated(0.95*max_view_dist, 0, 0);
 
-	primitive_tex<4> tq = primitives::textured_quad(vector3f( 0,  moon_size,  moon_size),
-							vector3f( 0, -moon_size,  moon_size),
-							vector3f( 0, -moon_size, -moon_size),
-							vector3f( 0,  moon_size, -moon_size),
-							*map_diffuse);
-	// render quad with own shader
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &tq.vertices[0]);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &tq.texcoords[0]);
-	glDrawArrays(tq.type, 0, 4);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	primitives::textured_quad(vector3f( 0,  moon_size,  moon_size),
+				  vector3f( 0, -moon_size,  moon_size),
+				  vector3f( 0, -moon_size, -moon_size),
+				  vector3f( 0,  moon_size, -moon_size),
+				  *map_diffuse).render_plain();
 	glPopMatrix();
 }
