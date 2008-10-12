@@ -906,7 +906,6 @@ void run()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glColor4f(1, 1, 1, 1);
         glPushMatrix();
         glLoadIdentity();
         float zang = 360.0 / 40 * (sys().millisec() - tm0) / 1000;
@@ -935,7 +934,6 @@ void run()
         glFogf(GL_FOG_DENSITY, 0.0008);
 
         gcm.set_viewerpos(campos);
-        glColor4f(1, 0, 0, 1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, 0);
         glActiveTexture(GL_TEXTURE0);
@@ -943,7 +941,6 @@ void run()
 
         frustum viewfrustum = frustum::from_opengl();
 
-        glColor4f(1, 1, 1, 1);
         gcm.display(viewfrustum);
 
         // record fps

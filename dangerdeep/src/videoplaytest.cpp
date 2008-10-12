@@ -482,8 +482,6 @@ int mymain(list<string>& args)
 
         //glClear(GL_COLOR_BUFFER_BIT /*| GL_DEPTH_BUFFER_BIT*/);
 
-        glColor4f(1, 1, 1, 1);
-
         sys().prepare_2d_drawing();
 
 	// render...
