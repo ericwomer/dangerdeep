@@ -169,8 +169,6 @@ void model::object::display_mirror_clip() const
 		it->display_mirror_clip();
 	}
 
-	glActiveTexture(GL_TEXTURE1);
-	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();
 }
 
@@ -1316,9 +1314,14 @@ void model::material::map::set_texture(texture* t)
 
 void model::material::set_gl_values(const texture *caustic_map) const
 {
-	glActiveTexture(GL_TEXTURE0);
+	// set some values to be used in shader - should better be done with uniforms
+	// to leave out this fixed-pipeline stuff, fixme
+	GLfloat coltmp[4];
+	specular.store_rgba(coltmp);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, coltmp);
+	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+
 	if (colormap.get()) {
-		glMatrixMode(GL_TEXTURE);
 		if (normalmap.get()) {
 			// texture units / coordinates:
 			// tex0: color map / matching texcoords
@@ -1351,7 +1354,6 @@ void model::material::set_gl_values(const texture *caustic_map) const
 			colormap->set_gl_texture(*glsl_color, loc_c_tex_color, 0);
 			colormap->setup_glmatrix();
 		}
-		glMatrixMode(GL_MODELVIEW);
 	} else {
 		// just base color and per-pixel lighting with vertex normals
 		glsl_plastic->use();
@@ -1367,12 +1369,10 @@ void model::material::set_gl_values_mirror_clip() const
 	glsl_mirror_clip->use();
 
 	if (colormap.get()) {
-		glMatrixMode(GL_TEXTURE);
 		// plain texture mapping with diffuse lighting only, but with shaders
 		colormap->set_gl_texture(*glsl_mirror_clip, loc_mc_tex_color, 0);
 		colormap->setup_glmatrix();
 	}
-	glMatrixMode(GL_MODELVIEW);
 }
 
 
@@ -1461,17 +1461,13 @@ void model::material_glsl::compute_texloc()
 void model::material_glsl::set_gl_values(const texture * /*caustic_map*/) const
 {
 	shadersetup.use();
-	glMatrixMode(GL_TEXTURE);
 	// set up up to four tex units
 	for (unsigned i = 0; i < 4; ++i) {
 		if (texmaps[i].get()) {
 			glActiveTexture(GL_TEXTURE0 + i);
-			//glEnable(GL_TEXTURE_2D);
 			texmaps[i]->set_gl_texture(shadersetup, loc_texunit[i], i);
 		}
 	}
-	glMatrixMode(GL_MODELVIEW);
-	glActiveTexture(GL_TEXTURE0);
 }
 
 
@@ -1623,8 +1619,6 @@ void model::mesh::display_mirror_clip() const
 	// matrix mode is GL_MODELVIEW and active texture is GL_TEXTURE1 here
 	glPushMatrix();
 	transformation.multiply_glf();
-	glMatrixMode(GL_MODELVIEW);
-	glActiveTexture(GL_TEXTURE0);
 
 	bool has_texture_u0 = false;
 	if (mymaterial != 0) {
@@ -1666,8 +1660,6 @@ void model::mesh::display_mirror_clip() const
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glActiveTexture(GL_TEXTURE1);
-	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();
 }
 
@@ -1715,8 +1707,6 @@ void model::display(const texture *caustic_map) const
 void model::display_mirror_clip() const
 {
 	// set up a object->worldspace transformation matrix in tex unit#1 matrix.
-	glActiveTexture(GL_TEXTURE1);
-	glMatrixMode(GL_TEXTURE);
 	if (scene.children.size() == 0) {
 		// default scene: no objects, just draw all meshes.
 		for (vector<model::mesh*>::const_iterator it = meshes.begin(); it != meshes.end(); ++it) {
