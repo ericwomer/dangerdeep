@@ -1604,13 +1604,6 @@ void model::mesh::display(const texture *caustic_map) const
 
 	// cleanup
 	glsl_shader_setup::use_fixed();
-	glActiveTexture(GL_TEXTURE3);
-	glDisable(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE2);
-	glDisable(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE1);
-	glDisable(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE0);
 	glDisableVertexAttribArray(vertex_attrib_index);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
