@@ -44,6 +44,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "widget.h"
 #include "objcache.h"
 #include "log.h"
+#include "primitives.h"
 #include <glu.h>
 #include <SDL.h>
 
@@ -383,81 +384,77 @@ void view_model(const string& modelfilename, const string& datafilename)
 		lightsphere->display();
 		glPopMatrix();
 
-		glBegin(GL_LINES);
-		glVertex3f(0,0,0);
-		glVertex3fv(&lposition.x);
-		glEnd();
+		primitives::line(vector3f(0,0,0), vector3f(lposition.x,lposition.y,lposition.z), colorf(1, 1, 1)).render();
 
-		glBegin(GL_LINES);
-		glColor3f(1,0,0);
-		glVertex3f(0,0,0);
-		glVertex3f(1,0,0);
-		glColor3f(1,1,0);
-		glVertex3f(0,0,0);
-		glVertex3f(0,1,0);
-		glColor3f(0,1,0);
-		glVertex3f(0,0,0);
-		glVertex3f(0,0,1);
-		glColor3f(1,1,1);
-		glEnd();
+		primitives::line(vector3f(0,0,0), vector3f(1,0,0), colorf(1,0,0)).render();
+		primitives::line(vector3f(0,0,0), vector3f(0,1,0), colorf(1,1,0)).render();
+		primitives::line(vector3f(0,0,0), vector3f(0,0,1), colorf(0,1,0)).render();
+
+
 
 		if (coordinatesystem) {
 			glDisable(GL_LIGHTING);
-			glBegin(GL_LINES);
-			glColor4f(1,0,0,1);
 			vector3f min = mdl->get_min();
 			vector3f max = mdl->get_max();
 			float h = max.z;
 			float w = max.x;
-			glVertex3f(-30, 0, h);
-			glVertex3f(30, 0, h);
-			glVertex3f(-30, 0, -h);
-			glVertex3f(30, 0, -h);
+			int c = 0;
+			primitive<244> coord1(GL_LINES, colorf(1,0,0,1));
+ 			coord1.vertices[c++] = vector3f(-30, 0, h);
+			coord1.vertices[c++] = vector3f(30, 0, h);
+			coord1.vertices[c++] = vector3f(-30, 0, -h);
+			coord1.vertices[c++] = vector3f(30, 0, -h);
 			for (int i = 0; i <= 30; ++i) {
 				int l = scalelength(i);
-				glVertex3f(i, 0, h);
-				glVertex3f(i, 0, h+l);
-				glVertex3f(-i, 0, h);
-				glVertex3f(-i, 0, h+l);
-				glVertex3f(i, 0, -h);
-				glVertex3f(i, 0, -h+l);
-				glVertex3f(-i, 0, -h);
-				glVertex3f(-i, 0, -h+l);
+				coord1.vertices[c++] = vector3f(i, 0, h);
+				coord1.vertices[c++] = vector3f(i, 0, h+l);
+				coord1.vertices[c++] = vector3f(-i, 0, h);
+				coord1.vertices[c++] = vector3f(-i, 0, h+l);
+				coord1.vertices[c++] = vector3f(i, 0, -h);
+				coord1.vertices[c++] = vector3f(i, 0, -h+l);
+				coord1.vertices[c++] = vector3f(-i, 0, -h);
+				coord1.vertices[c++] = vector3f(-i, 0, -h+l);
 			}
-			glColor4f(0,1,0,1);
-			glVertex3f(0, -150, h);
-			glVertex3f(0, 150, h);
-			glVertex3f(0, -150, -h);
-			glVertex3f(0, 150, -h);
+			coord1.render();
+
+			c = 0;
+			primitive<1204> coord2(GL_LINES, colorf(0,1,0,1));
+			coord2.vertices[c++] = vector3f(0, -150, h);
+			coord2.vertices[c++] = vector3f(0, 150, h);
+			coord2.vertices[c++] = vector3f(0, -150, -h);
+			coord2.vertices[c++] = vector3f(0, 150, -h);
 			for (int i = 0; i <= 150; ++i) {
 				int l = scalelength(i);
-				glVertex3f(0, i, h);
-				glVertex3f(0, i, h+l);
-				glVertex3f(0, -i, h);
-				glVertex3f(0, -i, h+l);
-				glVertex3f(0, i, -h);
-				glVertex3f(0, i, -h+l);
-				glVertex3f(0, -i, -h);
-				glVertex3f(0, -i, -h+l);
+				coord2.vertices[c++] = vector3f(0, i, h);
+				coord2.vertices[c++] = vector3f(0, i, h+l);
+				coord2.vertices[c++] = vector3f(0, -i, h);
+				coord2.vertices[c++] = vector3f(0, -i, h+l);
+				coord2.vertices[c++] = vector3f(0, i, -h);
+				coord2.vertices[c++] = vector3f(0, i, -h+l);
+				coord2.vertices[c++] = vector3f(0, -i, -h);
+				coord2.vertices[c++] = vector3f(0, -i, -h+l);
 			}
-			glColor4f(1,1,0,1);
-			glVertex3f(w, 0, 30);
-			glVertex3f(w, 0, -30);
-			glVertex3f(-w, 0, 30);
-			glVertex3f(-w, 0, -30);
+			coord2.render();
+
+			c = 0;
+			primitive<244> coord3(GL_LINES, colorf(1,1,0,1));
+ 			coord3.vertices[c++] = vector3f(w, 0, 30);
+			coord3.vertices[c++] = vector3f(w, 0, -30);
+			coord3.vertices[c++] = vector3f(-w, 0, 30);
+			coord3.vertices[c++] = vector3f(-w, 0, -30);
 			for (int i = 0; i <= 30; ++i) {
 				int l = scalelength(i);
-				glVertex3f(w, 0, i);
-				glVertex3f(w+l, 0, i);
-				glVertex3f(w, 0, -i);
-				glVertex3f(w+l, 0, -i);
-				glVertex3f(-w, 0, i);
-				glVertex3f(-w+l, 0, i);
-				glVertex3f(-w, 0, -i);
-				glVertex3f(-w+l, 0, -i);
+				coord3.vertices[c++] = vector3f(w, 0, i);
+				coord3.vertices[c++] = vector3f(w+l, 0, i);
+				coord3.vertices[c++] = vector3f(w, 0, -i);
+				coord3.vertices[c++] = vector3f(w+l, 0, -i);
+				coord3.vertices[c++] = vector3f(-w, 0, i);
+				coord3.vertices[c++] = vector3f(-w+l, 0, i);
+				coord3.vertices[c++] = vector3f(-w, 0, -i);
+				coord3.vertices[c++] = vector3f(-w+l, 0, -i);
 			}
-			glEnd();
-			glColor4f(1,1,1,0.5);
+			coord3.render();
+
 			glEnable(GL_LIGHTING);
 		}
 
@@ -476,15 +473,16 @@ void view_model(const string& modelfilename, const string& datafilename)
                 if (smoke && smoke_display) {
                         glDisable(GL_LIGHTING);
                         glDisable(GL_DEPTH_TEST);
-                        glBegin(GL_LINES);
-                        glColor3f(1,0,0);
-                        glVertex3f(smoke_pos.x-1, smoke_pos.y, smoke_pos.z);
-                        glVertex3f(smoke_pos.x+1, smoke_pos.y, smoke_pos.z);
-                        glVertex3f(smoke_pos.x, smoke_pos.y-1, smoke_pos.z);
-                        glVertex3f(smoke_pos.x, smoke_pos.y+1, smoke_pos.z);
-                        glVertex3f(smoke_pos.x, smoke_pos.y, smoke_pos.z-1);
-                        glVertex3f(smoke_pos.x, smoke_pos.y, smoke_pos.z+1);
-                        glEnd();
+
+						primitive<6> origin(GL_LINES, colorf(1,0,0));
+ 						origin.vertices[0] = vector3f(smoke_pos.x-1, smoke_pos.y, smoke_pos.z);
+						origin.vertices[1] = vector3f(smoke_pos.x+1, smoke_pos.y, smoke_pos.z);
+						origin.vertices[2] = vector3f(smoke_pos.x, smoke_pos.y-1, smoke_pos.z);
+						origin.vertices[3] = vector3f(smoke_pos.x, smoke_pos.y+1, smoke_pos.z);
+						origin.vertices[4] = vector3f(smoke_pos.x, smoke_pos.y, smoke_pos.z-1);
+						origin.vertices[5] = vector3f(smoke_pos.x, smoke_pos.y, smoke_pos.z+1);
+						origin.render();
+
                         glEnable(GL_DEPTH_TEST);
                         glEnable(GL_LIGHTING);
                 }
