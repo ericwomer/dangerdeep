@@ -45,7 +45,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "fpsmeasure.h"
 #include "log.h"
 #include "mymain.cpp"
-
+#include "primitives.h"
 #include "tree_generator.h"
 
 #include <time.h>
@@ -159,7 +159,6 @@ void run()
 		tm0 = tm1;
 
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// compute mvp etc. for user
 		glLoadIdentity();
@@ -192,20 +191,11 @@ void run()
 		wind_movement.z = cos(tm1/2000.0f * M_PI) * 0.01;
 
 		// render ground plane
-		glColor4f(0.5,0.8,0.5,1);
-		terraintex->set_gl_texture();
-		glBegin(GL_QUADS);
 		float tc = 600, vc = 3000;
-		glTexCoord2f(-tc,-tc);
-		glVertex3f(-vc,-vc,0);
-		glTexCoord2f(+tc,-tc);
-		glVertex3f(+vc,-vc,0);
-		glTexCoord2f(+tc,+tc);
-		glVertex3f(+vc,+vc,0);
-		glTexCoord2f(-tc,+tc);
-		glVertex3f(-vc,+vc,0);
-		glEnd();
-		glColor4f(1,1,1,1);
+		primitives::textured_quad(vector2f(-vc,-vc), vector2f(vc,vc),
+					  *terraintex,
+					  vector2f(-tc,-tc), vector2f(tc, tc),
+					  colorf(0.5,0.8,0.5,1)).render();
 
 		treemdl->display();
 		model::material_glsl& leafmat = dynamic_cast<model::material_glsl&>(treemdl->get_material(1));
