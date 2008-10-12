@@ -91,11 +91,11 @@
         <translation vector="0.708165 -30.623018 -1.921126"/>
 	<rotation axis="0 0 1" angle="0" minangle="-35" maxangle="35" />
       </object>
-      <object id="5" name="diveplane_1" mesh="5">
+      <object id="5" name="diveplane_2" mesh="5">
         <translation vector="0.001004 -29.081356 -3.206917"/>
 	<rotation axis="1 0 0" angle="0" minangle="-35" maxangle="35" />
       </object>
-      <object id="6" name="diveplane_2" mesh="6">
+      <object id="6" name="diveplane_1" mesh="6">
         <translation vector="0.001004 25.363058 -3.442892"/>
 	<rotation axis="1 0 0" angle="0" minangle="-35" maxangle="35" />
       </object>
