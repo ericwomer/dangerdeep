@@ -133,8 +133,6 @@ class torpedo : public ship
 
 	generic_rudder dive_planes;
 
-	int propeller_1_id, propeller_2_id; // for display()
-
 	// specific damage here:
 //	virtual void create_sensor_array ( types t );
 	
