@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "primitives.h"
 #include "global_data.h"	// for myfrac etc.
 #include "datadirs.h"
+#include "global_constants.h"
 
 #ifdef WIN32
 
@@ -668,7 +669,7 @@ double spray_particle::get_life_time() const
 // fireworks
 
 fireworks_particle::fireworks_particle(const vector3& pos)
-	: particle(pos, vector3(0, 0, 50)), // pos, velocity
+	: particle(pos, vector3(0, 0, 30)), // pos, velocity
 	  flares(300)
 {
 	const double flare_speed = 20/2; // meters/second
@@ -681,15 +682,22 @@ fireworks_particle::fireworks_particle(const vector3& pos)
 
 
 
+double fireworks_particle::get_z(double life_fac) const
+{
+	double z = 30 * (1.0 - life_fac) * get_life_time();
+	if (life_fac <= 2.0/3) {
+		double t = (2.0/3 - life_fac) * get_life_time();
+		z -= GRAVITY * 0.5 * t*t + 15 * (2.0/3 - life_fac) * get_life_time();
+	}
+	return z;
+}
+
+
+
 void fireworks_particle::simulate(game& gm, double delta_t)
 {
 	particle::simulate(gm, delta_t);
-	if (life <= 0.666) {
-		double t = (0.666 - life) * get_life_time();
-		position.z = explosion_z - t*t*0.5;
-	} else {
-		explosion_z = position.z;
-	}
+	position.z = get_z(life);
 }
 
 
@@ -707,8 +715,8 @@ void fireworks_particle::custom_display(const vector3& viewpos, const vector3& d
 		lines.texcoords[0] = vector2f(1.0, 0.75f);
 		vector3 p = position - viewpos;
 		lines.vertices[0].assign(p);
-		double lifefac = 1.0 - (life * 3.0 - 2.0);
-		p.z -= fmin(50.0 * lifefac, 10.0); // 25m/s, max. 10m length
+		double lifefac = 1.0 - (1.0 - life) * 0.5;
+		p.z = get_z(lifefac) - viewpos.z;
 		lines.texcoords[1] = vector2f(0.0, 0.75f);
 		lines.vertices[1].assign(p);
 		lines.render();
@@ -723,6 +731,7 @@ void fireworks_particle::custom_display(const vector3& viewpos, const vector3& d
 		// draw glowing lines from center to flares
 		const unsigned fls = 8;
 		primitives flarelines(GL_LINES, 2*flares.size()*fls, colorf(1,1,1,decayfac), *tex_fireworks);
+		double t0 = 2.0/3 - (2.0/3-life)/2.0;
 		for (unsigned i = 0; i < flares.size(); ++i) {
 			const flare& f = flares[i];
 			for (unsigned k = 0; k < fls; ++k) {
@@ -731,14 +740,16 @@ void fireworks_particle::custom_display(const vector3& viewpos, const vector3& d
 				double lifefac3 = lifefac2 * k / fls;
 				vector3 p = position - viewpos + dx * (f.velocity.x * lifefac3 * 2.0)
 					+ dy * (f.velocity.y * lifefac3 * 2.0);
-				double t = (0.666 - life) * get_life_time() * k/fls;
-				p.z += explosion_z - position.z - 9.81 * 0.5 * t * t;
+				float kk = float(k)/fls;
+				double t = t0 * (1.0 - kk) + life * kk;
+				p.z += get_z(t) - position.z;
 				flarelines.vertices[2*(i*fls+k)].assign(p);
 				lifefac3 += lifefac2 / fls;
 				p = position - viewpos + dx * (f.velocity.x * lifefac3 * 2.0)
 					+ dy * (f.velocity.y * lifefac3 * 2.0);
-				t = (0.666 - life) * get_life_time() * (k+1)/fls;
-				p.z += explosion_z - position.z - 9.81 * 0.5 * t * t;
+				kk += 1.f/fls;
+				t = t0 * (1.0 - kk) + life * kk;
+				p.z += get_z(t) - position.z;
 				flarelines.vertices[2*(i*fls+k)+1].assign(p);
 			}
 		}
@@ -749,13 +760,11 @@ void fireworks_particle::custom_display(const vector3& viewpos, const vector3& d
 		glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);//could be done once...
 		// texcoords are not needed for points, so this is a bit waste...
 		primitives pts(GL_POINTS, flares.size(), colorf(1,1,1,decayfac), *tex_fireworks_flare);
-		double t = (0.666 - life) * get_life_time();
 		for (unsigned i = 0; i < flares.size(); ++i) {
 			const flare& f = flares[i];
 			vector3 p = position - viewpos
 				+ dx * (f.velocity.x * lifefac2 * 2.0)
 				+ dy * (f.velocity.y * lifefac2 * 2.0);
-			p.z += explosion_z - position.z - 9.81 * 0.5 * t * t;
 			pts.vertices[i].assign(p);
 		}
 		pts.render();
