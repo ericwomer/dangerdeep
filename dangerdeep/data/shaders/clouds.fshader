@@ -81,7 +81,7 @@ void main()
     float rim = smoothstep(0.25, 1.0, 1.0-dot(normalize(-L+E), N));
     
     /* base cloud color, always multiplied by light color */
-    const vec3 cloudcol = vec3(.86, .85, .89) * lightcolor;
+    vec3 cloudcol = vec3(.86, .85, .89) * lightcolor;
     
     /* final mix - first component should have shadow color from sky color */
     vec3 final_color = mix( cloudcol * c + lightcolor * rim, lightcolor, 
