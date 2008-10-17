@@ -25,6 +25,7 @@
 #include <sstream>
 #include "tile.h"
 #include "vector2.h"
+#include "system.h"
 
 /* A simple tile cache.
  * 
@@ -179,7 +180,7 @@ T tile_cache<T>::get_value(vector2l& coord)
 template<class T>
 inline void tile_cache<T>::free_slot() 
 {
-	unsigned long min = clock() / (CLOCKS_PER_SEC/1000);
+	unsigned long min = sys().millisec();
 	vector2l min_key;
 	for (tile_list_iterator it = tile_list.begin(); it != tile_list.end(); it++) {
 		if (it->second.get_last_access()<=min) {
@@ -194,7 +195,7 @@ template<class T>
 inline void tile_cache<T>::erase_expired() 
 {
 	if (configuration.expire>0) {
-		long time = clock() / (CLOCKS_PER_SEC/1000);
+		long time = sys().millisec();
 		for (tile_list_iterator it = tile_list.begin(); it != tile_list.end(); it++)
 			if (time-it->second.get_last_access() >= configuration.expire) {
 				tile_list.erase(it);

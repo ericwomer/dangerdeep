@@ -24,6 +24,7 @@
 #include <string>
 #include "time.h"
 #include "vector2.h"
+#include "system.h"
 
 /* A simple macro that determines if we are on a Big-Endian system */
 #ifndef IS_BENDIAN
@@ -105,7 +106,7 @@ protected:
 template<class T>
 tile<T>::tile(std::string _filename, vector2l& _bottom_left, int size, T _no_data, std::vector<long>& _morton_x, std::vector<long>& _morton_y) 
 : instream(std::auto_ptr<std::ifstream>(new std::ifstream(_filename.c_str(), std::ios::binary | std::ios::in))), filename(_filename), data_vector(size*size, _no_data), 
-	bottom_left(_bottom_left), tile_size(size), last_access(clock() / (CLOCKS_PER_SEC/1000)), no_data(_no_data), morton_x(_morton_x), morton_y(_morton_y)
+  bottom_left(_bottom_left), tile_size(size), last_access(sys().millisec()), no_data(_no_data), morton_x(_morton_x), morton_y(_morton_y)
 {
 	if (!instream->is_open()) throw std::ios::failure("Could not open file: " + std::string(filename));	
 }
@@ -123,7 +124,7 @@ no_data(rhs.get_no_data()), morton_x(rhs.get_morton_x()), morton_y(rhs.get_morto
 template<class T>
 T tile<T>::get_value(vector2l coord) 
 {
-	last_access = clock() / (CLOCKS_PER_SEC/1000);
+	last_access = sys().millisec();
 	coord.y = tile_size-coord.y-1;
 
 	long morton_coord = coord_to_morton(coord);
