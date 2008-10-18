@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "global_data.h"
 
 sub_gauges_display::indicator::indicator(const sdl_image& s, unsigned x_, unsigned y_, unsigned w_, unsigned h_)
-	: mytex(s, x_, y_, w_, h_, texture::LINEAR, texture::CLAMP_TO_EDGE),
+	: mytex(s, x_, y_, w_, h_, texture::LINEAR, texture::CLAMP),
 	  x(x_), y(y_), w(w_), h(h_)
 {
 }

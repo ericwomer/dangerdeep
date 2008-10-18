@@ -418,7 +418,7 @@ plant_set::plant_set(vector<float>& heightdata, unsigned nr, unsigned w, unsigne
 				       vector2f(treewidth + tw, treeheight + th),
 				       rnd(plant::nr_plant_types)));
 	}
-	planttex.reset(new texture(get_texture_dir() + "plants.png", texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP_TO_EDGE));
+	planttex.reset(new texture(get_texture_dir() + "plants.png", texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP));
 
 	// set up sorting indices
 	sortindices.resize(plants.size());
@@ -669,7 +669,7 @@ auto_ptr<model::mesh> generate_trees(vector<float>& heightdata, unsigned nr = 20
 	}
 	m->mymaterial = new model::material();
 	m->mymaterial->colormap.reset(new model::material::map());
-//	m->mymaterial->colormap->set_texture(new texture(get_texture_dir() + "tree1.png", texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP_TO_EDGE));
+//	m->mymaterial->colormap->set_texture(new texture(get_texture_dir() + "tree1.png", texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP));
 	m->mymaterial->specular = color(0, 0, 0);
 	m->compile();
 	return m;

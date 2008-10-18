@@ -43,7 +43,7 @@ image::image(const string& s) :
 		gltx = glty = 1;
 		textures.resize(1);
 		textures.reset(0, new texture(img, 0, 0, width, height,
-					      texture::NEAREST, texture::CLAMP_TO_EDGE));
+					      texture::NEAREST, texture::CLAMP));
 	} else {
 		std::vector<unsigned> widths, heights;
 		unsigned maxs = texture::get_max_size();
@@ -72,7 +72,7 @@ image::image(const string& s) :
 			for (unsigned x = 0; x < gltx; ++x) {
 				textures.reset(y*gltx+x, new texture(img, cw, ch,
 								     widths[x], heights[y],
-								     texture::NEAREST, texture::CLAMP_TO_EDGE));
+								     texture::NEAREST, texture::CLAMP));
 				cw += widths[x];
 			}
 			ch += heights[y];

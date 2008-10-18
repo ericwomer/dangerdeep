@@ -100,7 +100,6 @@ public:
 	enum clamping_mode {
 		REPEAT,
 		CLAMP,
-		CLAMP_TO_EDGE,
 		NR_OF_CLAMPING_MODES
 	};
 
@@ -117,7 +116,7 @@ protected:
 	std::string texfilename;
 	int format;	// GL_RGB, GL_RGBA, etc.
 	mapping_mode mapping; // how GL draws the texture (GL_NEAREST, GL_LINEAR, etc.)
-	clamping_mode clamping; // how GL handles the border (GL_REPEAT, GL_CLAMP, GL_CLAMP_TO_EDGE)
+	clamping_mode clamping; // how GL handles the border (GL_REPEAT, GL_CLAMP_TO_EDGE)
 	
 	void sdl_init(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
 		      bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);

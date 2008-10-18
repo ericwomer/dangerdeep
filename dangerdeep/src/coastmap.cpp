@@ -953,7 +953,7 @@ vector2f coastmap::segcoord_to_texc(int segx, int segy) const
 // load from xml description file
 coastmap::coastmap(const string& filename)
 {
-	atlanticmap.reset(new texture(get_texture_dir() + "atlanticmap.jpg", texture::LINEAR, texture::CLAMP_TO_EDGE));
+	atlanticmap.reset(new texture(get_texture_dir() + "atlanticmap.jpg", texture::LINEAR, texture::CLAMP));
 
 	global_clnr = 0;
 

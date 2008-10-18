@@ -1215,7 +1215,7 @@ void model::material::map::register_layout(const std::string& name,
 		if (it->second.ref_count == 0) {
 			// load texture. Skins are expected in the same path as the model
 			// itself.
-			it->second.mytexture = new texture(basepath + it->second.filename, mapping, texture::CLAMP_TO_EDGE,
+			it->second.mytexture = new texture(basepath + it->second.filename, mapping, texture::CLAMP,
 							   makenormalmap, detailh, rgb2grey);
 		}
 		++(it->second.ref_count);
@@ -1223,11 +1223,11 @@ void model::material::map::register_layout(const std::string& name,
 		if (ref_count == 0) {
 			// load texture
 			try {
-				mytexture.reset(new texture(basepath + filename, mapping, texture::CLAMP_TO_EDGE,
+				mytexture.reset(new texture(basepath + filename, mapping, texture::CLAMP,
 							    makenormalmap, detailh, rgb2grey));
 			}
 			catch (std::exception& e) {
-				mytexture.reset(new texture(get_texture_dir() + filename, mapping, texture::CLAMP_TO_EDGE,
+				mytexture.reset(new texture(get_texture_dir() + filename, mapping, texture::CLAMP,
 							    makenormalmap, detailh, rgb2grey));
 			}
 		}
@@ -2233,7 +2233,7 @@ model::material::map::map(const xml_elem& parent, bool withtrans)
 		skin& s = insok.first->second;
 		s.filename = it.elem().attr("filename");
 		// load textures in init() function.
-// 		new texture(basepath + filename, mapping, texture::CLAMP_TO_EDGE,
+// 		new texture(basepath + filename, mapping, texture::CLAMP,
 // 			    makenormalmap, detailh, rgb2grey));
 	}
 }

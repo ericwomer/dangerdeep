@@ -113,7 +113,7 @@ void measure_mass_distribution(const std::string& massmapfn, const vector3i& res
 			       vector<float>& mass_part, const vector<float>& is_inside)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
-	texture massmap(massmapfn, texture::LINEAR, texture::CLAMP_TO_EDGE);
+	texture massmap(massmapfn, texture::LINEAR, texture::CLAMP);
 	glEnable(GL_TEXTURE_2D);
 	sys().prepare_2d_drawing();
 	massmap.draw(0, 0, res_x, res_y);

@@ -112,7 +112,7 @@ void sub_bridge_display::process_input(class game& gm, const SDL_Event& event)
 
 void sub_bridge_display::enter(bool is_day)
 {
-	glasses_tex.reset(new texture(get_texture_dir() + "glasses.png", texture::LINEAR, texture::CLAMP_TO_EDGE));
+	glasses_tex.reset(new texture(get_texture_dir() + "glasses.png", texture::LINEAR, texture::CLAMP));
 }
 
 

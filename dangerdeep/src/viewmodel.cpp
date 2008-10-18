@@ -320,8 +320,8 @@ void view_model(const string& modelfilename, const string& datafilename)
 	for (unsigned i = 0; i < 32*32; ++i) { bumps[i] = 0; } //(((i/32)%8)<7 && ((i%32)%8)<7)?255:0; }
 	model::material::map* dmap = new model::material::map();
 	model::material::map* bmap = new model::material::map();
-	dmap->set_texture(new texture(pixels, 32, 32, GL_RGB, texture::NEAREST, texture::CLAMP_TO_EDGE));
-	bmap->set_texture(new texture(bumps, 32, 32, GL_LUMINANCE, texture::LINEAR, texture::CLAMP_TO_EDGE, true));
+	dmap->set_texture(new texture(pixels, 32, 32, GL_RGB, texture::NEAREST, texture::CLAMP));
+	bmap->set_texture(new texture(bumps, 32, 32, GL_LUMINANCE, texture::LINEAR, texture::CLAMP, true));
 	model::material* mat = new model::material();
 	mat->specular = color::white();
 	mat->colormap.reset(dmap);

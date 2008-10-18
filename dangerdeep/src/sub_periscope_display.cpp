@@ -174,7 +174,7 @@ sub_periscope_display::sub_periscope_display(user_interface& ui_)
 	drawbridge = false;
 
 	use_hqsfx = cfg::instance().getb("use_hqsfx");
-	viewtex.reset(new texture(512, 512, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
+	viewtex.reset(new texture(512, 512, GL_RGB, texture::LINEAR, texture::CLAMP));
 	glsl_blurview.reset(new glsl_shader_setup(get_shader_dir() + "blurview.vshader",
 						  get_shader_dir() + "blurview.fshader"));
 	glsl_blurview->use();
@@ -272,7 +272,7 @@ void sub_periscope_display::enter(bool is_day)
 	clock_minutes_pointer = texture::ptr(new texture(get_image_dir() + "clock_minutes_pointer.png"));
 	clock_hours_pointer = texture::ptr(new texture(get_image_dir() + "clock_hours_pointer.png"));
 
-	compassbar_tex.reset(new texture(get_image_dir() + "periscope_compassbar.png", texture::NEAREST, texture::CLAMP_TO_EDGE));
+	compassbar_tex.reset(new texture(get_image_dir() + "periscope_compassbar.png", texture::NEAREST, texture::CLAMP));
 }
 
 

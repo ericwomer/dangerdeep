@@ -154,7 +154,7 @@ font::font(const string& basefilename, unsigned char_spacing)
 		}
 		
 		character_textures.reset(i, new texture(tmpimage, w, h, GL_LUMINANCE_ALPHA,
-							texture::LINEAR, texture::CLAMP_TO_EDGE));
+							texture::LINEAR, texture::CLAMP));
 	}
 //	printf("wasted ca. %u bytes of video ram for font %s\n", waste, basefilename.c_str());
 	

@@ -64,7 +64,7 @@ moon::moon()
 			mnpc += 3;
 		}
 	}
-	map_normal = texture::ptr(new texture(mnp, mns, mns, GL_RGB, texture::LINEAR, texture::CLAMP_TO_EDGE));
+	map_normal = texture::ptr(new texture(mnp, mns, mns, GL_RGB, texture::LINEAR, texture::CLAMP));
 	glsl_moon.reset(new glsl_shader_setup(get_shader_dir() + "moon.vshader",
 					      get_shader_dir() + "moon.fshader"));
 	glsl_moon->use();

@@ -115,7 +115,7 @@ freeview_display::freeview_display(user_interface& ui_) :
 	conning_tower->set_layout();
 	add_loading_screen("conning tower model loaded");
 	// valgrind reports lost memory in the following line, but why?!
-	std::auto_ptr<texture> uwbt(new texture(get_texture_dir() + "underwater_background.png", texture::LINEAR, texture::CLAMP_TO_EDGE));
+	std::auto_ptr<texture> uwbt(new texture(get_texture_dir() + "underwater_background.png", texture::LINEAR, texture::CLAMP));
 	texturecache().ref("underwater_background.png", uwbt.get());
 	underwater_background = uwbt.release();
 }

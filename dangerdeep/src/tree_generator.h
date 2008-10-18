@@ -113,9 +113,9 @@ std::auto_ptr<model> tree_generator::generate() const
 	mdl->add_material(mat2);
 
 	dmap = new model::material::map();
-	dmap->set_texture(new texture(get_texture_dir() + "leaves.png", texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP_TO_EDGE));
+	dmap->set_texture(new texture(get_texture_dir() + "leaves.png", texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP));
 #if 0
-	dmap->set_texture(new texture(get_texture_dir() + "leaves_log.png", texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP_TO_EDGE));
+	dmap->set_texture(new texture(get_texture_dir() + "leaves_log.png", texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP));
 #endif
 	model::material_glsl* mat = new model::material_glsl("leaf", "treeleaves.vshader", "treeleaves.fshader");
 	mat->nrtex = 1;

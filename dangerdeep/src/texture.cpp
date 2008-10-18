@@ -94,7 +94,6 @@ static GLuint magfilter[texture::NR_OF_MAPPING_MODES] = {
 
 static GLuint clampmodes[texture::NR_OF_CLAMPING_MODES] = {
 	GL_REPEAT,
-	GL_CLAMP,
 	GL_CLAMP_TO_EDGE
 };
 // --------------------------------------------------
