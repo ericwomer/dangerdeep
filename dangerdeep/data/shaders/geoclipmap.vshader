@@ -34,6 +34,15 @@ void main()
 	alpha = max(d.x, d.y);
 	vpos.z = mix(vpos.z, z_c, alpha);
 
+#if 0
+	// simulate earth curvature
+	const float earth_radius = 6371000.8;
+	float vd = length(vpos.xy - viewpos.xy);
+	float r = vd / earth_radius;
+	float dz = - r * r;
+	vpos.z += dz;
+#endif
+
 	// shift is 0.5 texel, so it is 1/texres * 0.5
 	texcoordnormal = vpos.xy * L_l_rcp * N_rcp + texcshift;
 	texcoordnormal_c = vpos.xy * L_l_rcp * 0.5 * N_rcp + texcshift2;

@@ -49,7 +49,18 @@ void main()
 	viewerdir = vec3(gl_ModelViewMatrixInverse[3]) - vec3(gl_Vertex);
 
 	// transform vertex to projection space (clip coordinates)
+#if 0
+	// simulate earth curvature
+	const float earth_radius = 6371000.8;
+	vec4 vpos = gl_Vertex;
+	float vd = length(vpos.xy - viewpos.xy);
+	float r = vd / earth_radius;
+	float dz = - r * r;
+	vpos.z += dz;
+	gl_Position = gl_ModelViewProjectionMatrix * vpos;
+#else
 	gl_Position = ftransform();
+#endif
 
 	// set fog coordinate
 	gl_FogFragCoord = gl_Position.z;
