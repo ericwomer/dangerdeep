@@ -527,7 +527,6 @@ void plant_set::display(const vector3& viewpos, float zang) const
 	myshader.set_uniform(loc_windmovement, myfrac(sys().millisec()/4000.0));
 
 	plantvertexdata.bind();
-	glClientActiveTexture(GL_TEXTURE0);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 6*4, (float*)0 + 0);
 	glTexCoordPointer(2, GL_FLOAT, 6*4, (float*)0 + 3);

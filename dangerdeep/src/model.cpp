@@ -1593,7 +1593,6 @@ void model::mesh::display(const texture *caustic_map) const
 	glEnableClientState(GL_NORMAL_ARRAY);
 
 	// without pixel shaders texture coordinates must be set for both texture units and are the same.
-	glClientActiveTexture(GL_TEXTURE0);
 	if (has_texture_u0 && texcoords.size() == vertices.size()) {
 		vbo_texcoords.bind();
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), 0);
@@ -1630,9 +1629,6 @@ void model::mesh::display(const texture *caustic_map) const
 	glDisableVertexAttribArray(vertex_attrib_index);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
-	glClientActiveTexture(GL_TEXTURE1);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex1
-	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
 	if (mymaterial != 0 && mymaterial->two_sided) {
 		glEnable(GL_CULL_FACE);
@@ -1670,7 +1666,6 @@ void model::mesh::display_mirror_clip() const
 	glEnableClientState(GL_NORMAL_ARRAY);
 
 	// and texture coordinates
-	glClientActiveTexture(GL_TEXTURE0);
 	if (has_texture_u0 && texcoords.size() == vertices.size()) {
 		vbo_texcoords.bind();
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), 0);
@@ -1687,9 +1682,6 @@ void model::mesh::display_mirror_clip() const
 
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
-	glClientActiveTexture(GL_TEXTURE1);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex1
-	glClientActiveTexture(GL_TEXTURE0);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
