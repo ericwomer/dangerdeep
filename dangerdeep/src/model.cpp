@@ -65,8 +65,9 @@ fixme: possible cleanup/simplification of rendering EVERYWHERE:
    right texture matrix, which can be surpassed by using uniforms and setting
    a matrix directly in the shader, not using the default texture matrices
 2) replace Matrix use (glPushMatrix/glPopMatrix, texture matrix switch etc.)
-   at least replace texture matrix use. Many shaders use them although there
-   is nothing explicitly set - a waste of performance.
+   at least replace texture matrix use. At the moment only matrix for unit #1
+   is used to implement a clipping plane for non-hqsfx modes, this can be done
+   in different other ways (arbitrary plane clipping as best)
 3) maybe replace use of default attributes (would gain full OpenGl3.0 compatibility).
    But this would mean to use VBO only.
 */
