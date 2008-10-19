@@ -65,8 +65,10 @@ fixme: possible cleanup/simplification of rendering EVERYWHERE:
    right texture matrix, which can be surpassed by using uniforms and setting
    a matrix directly in the shader, not using the default texture matrices
 2) replace Matrix use (glPushMatrix/glPopMatrix, texture matrix switch etc.)
-3) maybe replace use of default attributes (would gain full OpenGl3.0 compatibility,
-   except the shader code).
+   at least replace texture matrix use. Many shaders use them although there
+   is nothing explicitly set - a waste of performance.
+3) maybe replace use of default attributes (would gain full OpenGl3.0 compatibility).
+   But this would mean to use VBO only.
 */
 
 auto_ptr<glsl_shader_setup> model::glsl_plastic;
