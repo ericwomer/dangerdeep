@@ -350,7 +350,6 @@ void videoplay::display(framebuffer& fb)
 	myshader.use();
 	myshader.set_gl_texture(*tex_y, loc_tex_y, 0);
 	myshader.set_gl_texture(*tex_uv, loc_tex_uv, 1);
-	glActiveTexture(GL_TEXTURE0);
 	// we assume square pixels for display
 	const unsigned sw = sys().get_res_x_2d(), sh = sys().get_res_y_2d();
 	double display_aspect_ratio = double(sw) / sh;

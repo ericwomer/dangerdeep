@@ -934,10 +934,6 @@ void run()
         glFogf(GL_FOG_DENSITY, 0.0008);
 
         gcm.set_viewerpos(campos);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, 0);
 
         frustum viewfrustum = frustum::from_opengl();
 

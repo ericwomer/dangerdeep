@@ -144,6 +144,8 @@ protected:
 	unsigned loc_w_tex_reflection;
 	unsigned loc_w_tex_foam;
 	unsigned loc_w_tex_foamamount;
+	unsigned loc_w_foam_transform;
+	unsigned loc_w_reflection_transform;
 
 	// indices for vertex attributes
 	unsigned vattr_aof_index;

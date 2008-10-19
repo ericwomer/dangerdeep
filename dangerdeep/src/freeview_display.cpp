@@ -252,6 +252,16 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 			// orientation affects tex#1 matrix, for the code below
 			glActiveTexture(GL_TEXTURE1);
 			glMatrixMode(GL_TEXTURE);
+			//fixme: this influences only model rendering or should at least
+			//do only so. replace texture matrix use here!
+			//this isn't easy as the texture matrix is silently set up as
+			//modelview-like matrix and any commands to the modelview transform
+			//that display() could call, go to the texture matrix.
+			//the matrix is used for a double modelview transform, to transform
+			//from object space to clip space via texture matrix, and from there
+			//to eye space with the modelview matrix. we could implement generic
+			//plane clipping and spare the matrix there...
+			//hmm it inflicts geoclipmap rendering as well...
 			glTranslated(0, 0, pos.z);
 		} else {
 			vector3 pos = (*it)->get_pos() - viewpos;
@@ -267,10 +277,14 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 			// rendered for mirror images
 			if (!istorp) {
 				// finished modifying tex#1 matrix
-				glActiveTexture(GL_TEXTURE0);
 				glMatrixMode(GL_MODELVIEW);
 				(*it)->display_mirror_clip();
 			}
+			// cleanup
+			glActiveTexture(GL_TEXTURE1);
+			glMatrixMode(GL_TEXTURE);
+			glLoadIdentity();
+			glMatrixMode(GL_MODELVIEW);
 		} else {
 			(*it)->display(under_water ? ui.get_caustics().get_map() : NULL);
 		}

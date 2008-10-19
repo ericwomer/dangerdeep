@@ -260,6 +260,8 @@ water::water(double tm) :
 	loc_w_tex_reflection = glsl_water->get_uniform_location("tex_reflection");
 	loc_w_tex_foam = glsl_water->get_uniform_location("tex_foam");
 	loc_w_tex_foamamount = glsl_water->get_uniform_location("tex_foamamount");
+	loc_w_foam_transform = glsl_water->get_uniform_location("foam_transform");
+	loc_w_reflection_transform = glsl_water->get_uniform_location("reflection_transform");
 	glsl_under_water->use();
 	loc_uw_noise_xform_0 = glsl_under_water->get_uniform_location("noise_xform_0");
 	loc_uw_noise_xform_1 = glsl_under_water->get_uniform_location("noise_xform_1");
@@ -444,16 +446,15 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 	}
 
 	// set up texture matrix, so that texture coordinates can be computed from position.
-	//fixme: use uniform here as well.
-	glMatrixMode(GL_TEXTURE);
-	glLoadIdentity();
-	float noisetilescale = 32.0f;//meters (128/16=8, 8tex/m).
-	// fixme 32m wide noise is a good compromise, that would be a noise
-	// sample every 12.5cm. But it works only if the noise map
-	// has high frequencies in it... this noise map has to few details
-	glScalef(1.0f/noisetilescale,1.0f/noisetilescale,1);	// fixme adjust scale
-	glTranslatef(transl.x, transl.y, 0);
-	glMatrixMode(GL_MODELVIEW);
+	if (!under_water) {
+		// fixme 32m wide noise is a good compromise, that would be a noise
+		// sample every 12.5cm. But it works only if the noise map
+		// has high frequencies in it... this noise map has to few details
+		const float noisetilescale = 32.0f;//meters (128/16=8, 8tex/m).
+		glsl_water->set_uniform(loc_w_foam_transform,
+					matrix4::diagonal(1.0f/noisetilescale,1.0f/noisetilescale,1) *
+					matrix4::trans(transl.x, transl.y, 0));
+	}
 
 	/* 2005/06/28:
 	   fixme: with shaders there are some errors, reflections look strange (dark blue
@@ -474,36 +475,21 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 
 	if (!under_water) {
 		glsl_water->set_gl_texture(*reflectiontex, loc_w_tex_reflection, 1);
+		matrix4 refl_trans = matrix4::trans(0.5, 0.5, 0.0)
+			* matrix4::diagonal(0.5, 0.5, 1.0)
+			* reflection_projmvmat;
+		glsl_water->set_uniform(loc_w_reflection_transform, refl_trans);
+		if (use_hqsfx) {
+			// here get result and give it to the fragment shader
+			glsl_water->set_uniform(loc_w_reflection_mvp, refl_trans);
+		}
 	}
-	glMatrixMode(GL_TEXTURE);
-	glLoadIdentity();
-	// rescale coordinates [-1,1] to [0,1]
-	glTranslated(0.5,0.5,0);
-	glScaled(0.5,0.5,1.0);
-	reflection_projmvmat.multiply_gl();
-	if (use_hqsfx && !under_water) {
-		// here get result and give it to the fragment shader
-		glsl_water->set_uniform(loc_w_reflection_mvp,
-					matrix4::trans(0.5, 0.5, 0.0) * matrix4::diagonal(0.5, 0.5, 1.0)
-					* reflection_projmvmat);
-	}
-	glMatrixMode(GL_MODELVIEW);
 }
 
 
 
 void water::cleanup_textures() const
 {
-	glActiveTexture(GL_TEXTURE0);
-	glMatrixMode(GL_TEXTURE);
-	glLoadIdentity();
-
-	glActiveTexture(GL_TEXTURE1);
-	glMatrixMode(GL_TEXTURE);
-	glLoadIdentity();
-	glActiveTexture(GL_TEXTURE0);
-
-	glMatrixMode(GL_MODELVIEW);
 }
 
 

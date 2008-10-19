@@ -1189,8 +1189,7 @@ matrix3 model::mesh::compute_inertia_tensor(const matrix4f& transmat) const
 
 
 model::material::map::map()
-	: uscal(1.0f), vscal(1.0f), uoffset(0.0f), voffset(0.0f), angle(0.0f),
-	  tex(0), ref_count(0)
+	: tex(0), ref_count(0)
 {
 }
 
@@ -1297,20 +1296,6 @@ model::material::material(const std::string& nm) : name(nm), shininess(50.0f), t
 
 
 
-void model::material::map::setup_glmatrix() const
-{
-	//fixme: isn't used everywhere, maybe obsolete! 3ds files can contain
-	//texture transformations, but we don't use them for ddxml, do we?!
-	glMatrixMode(GL_TEXTURE);
-	glLoadIdentity();
-	glTranslatef(this->uoffset, this->voffset, 0);
-	glRotatef(this->angle, 0, 0, 1);
-	glScalef(this->uscal, this->vscal, 1);
-	glMatrixMode(GL_MODELVIEW);
-}
-
-
-
 void model::material::map::set_gl_texture() const
 {
 	if (tex)
@@ -1387,7 +1372,6 @@ void model::material::set_gl_values(const texture *caustic_map) const
 			// just texture map and per-pixel lighting with vertex normals
 			glsl_color->use();
 			colormap->set_gl_texture(*glsl_color, loc_c_tex_color, 0);
-			colormap->setup_glmatrix();
 		}
 	} else {
 		// just base color and per-pixel lighting with vertex normals
@@ -1406,7 +1390,6 @@ void model::material::set_gl_values_mirror_clip() const
 	if (colormap.get()) {
 		// plain texture mapping with diffuse lighting only, but with shaders
 		colormap->set_gl_texture(*glsl_mirror_clip, loc_mc_tex_color, 0);
-		colormap->setup_glmatrix();
 	}
 }
 
@@ -1718,15 +1701,6 @@ void model::display(const texture *caustic_map) const
 	} else {
 		scene.display(caustic_map);
 	}
-
-	// reset texture units
-	glActiveTexture(GL_TEXTURE1);
-	glMatrixMode(GL_TEXTURE);
-	glLoadIdentity();
-	glActiveTexture(GL_TEXTURE0);
-	glMatrixMode(GL_TEXTURE);
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
 }
 
 
@@ -1742,14 +1716,6 @@ void model::display_mirror_clip() const
 	} else {
 		scene.display_mirror_clip();
 	}
-
-	// reset texture units
-	glMatrixMode(GL_TEXTURE);
-	glActiveTexture(GL_TEXTURE1);
-	glLoadIdentity();
-	glActiveTexture(GL_TEXTURE0);
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
 }
 
 
@@ -2043,7 +2009,7 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 				m->normalmap->write_to_dftd_model_file(mat, "normal");
 			}
 			if (m->specularmap.get()) {
-				m->specularmap->write_to_dftd_model_file(mat, "specular", false);
+				m->specularmap->write_to_dftd_model_file(mat, "specular");
 			}
 		}
 	}
@@ -2173,19 +2139,12 @@ color model::read_color_from_dftd_model_file(const xml_elem& parent, const std::
 
 
 void model::material::map::write_to_dftd_model_file(xml_elem& parent,
-						    const std::string& type, bool withtrans) const
+						    const std::string& type) const
 {
 	xml_elem mmap = parent.add_child("map");
 	// write here possible skin children, fixme
 	mmap.set_attr(type, "type");
 	mmap.set_attr(filename, "filename");
-	if (withtrans) {
-		mmap.set_attr(uscal, "uscal");
-		mmap.set_attr(vscal, "vscal");
-		mmap.set_attr(uoffset, "uoffset");
-		mmap.set_attr(voffset, "voffset");
-		mmap.set_attr(angle, "angle");
-	}
 	// skins
 	for (std::map<string, skin>::const_iterator it = skins.begin(); it != skins.end(); ++it) {
 		xml_elem s = mmap.add_child("skin");
@@ -2196,26 +2155,12 @@ void model::material::map::write_to_dftd_model_file(xml_elem& parent,
 
 
 
-model::material::map::map(const xml_elem& parent, bool withtrans)
-	: uscal(1.0f), vscal(1.0f),
-	  uoffset(0.0f), voffset(0.0f), angle(0.0f),
-	  tex(0), ref_count(0)
+model::material::map::map(const xml_elem& parent)
+	: tex(0), ref_count(0)
 {
 	if (!parent.has_attr("filename"))
 		throw xml_error("no filename given for materialmap!", parent.doc_name());
 	filename = parent.attr("filename");
-	if (withtrans) {
-		if (parent.has_attr("uscal"))
-			uscal = parent.attrf("uscal");
-		if (parent.has_attr("vscal"))
-			vscal = parent.attrf("vscal");
-		if (parent.has_attr("uoffset"))
-			uoffset = parent.attrf("uoffset");
-		if (parent.has_attr("voffset"))
-			voffset = parent.attrf("voffset");
-		if (parent.has_attr("angle"))
-			angle = parent.attrf("angle");
-	}
 
 	// skins
 	for (xml_elem::iterator it = parent.iterate("skin"); !it.end(); it.next()) {
@@ -2497,25 +2442,24 @@ void model::m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, mod
 				m->filename = tolower(m3ds_read_string(in, ch));
 				break;
 			case M3DS_MATMAP1OVERU_SCAL:
-				m->uscal = 1.0f/read_float(in);
+				/* m->uscal = 1.0f/  */ read_float(in);
 				ch.bytes_read += 4;
 				break;
 			case M3DS_MATMAP1OVERV_SCAL:
-				m->vscal = -1.0f/read_float(in);
+				/* m->vscal = -1.0f/  */ read_float(in);
 				ch.bytes_read += 4;
 				break;
 			case M3DS_MATMAPUOFFSET:
-				m->uoffset = read_float(in);
+				/* m->uoffset = */ read_float(in);
 				ch.bytes_read += 4;
 				break;
 			case M3DS_MATMAPVOFFSET:
-				m->voffset = read_float(in);
+				/* m->voffset = */ read_float(in);
 				ch.bytes_read += 4;
 				break;
 			case M3DS_MATMAPANG:
-				m->angle = -read_float(in);
+				/* m->angle = - */ read_float(in);
 				ch.bytes_read += 4;
-//			printf("angle %f\n",m->angle);
 				break;
 //			case M3DS_MATMAPAMOUNTBUMP://see above
 		}
@@ -2747,7 +2691,7 @@ void model::read_dftd_model_file(const std::string& filename)
 				} else if (type == "normal") {
 					mat->normalmap.reset(new material::map(emap));
 				} else if (type == "specular") {
-					mat->specularmap.reset(new material::map(emap, false));
+					mat->specularmap.reset(new material::map(emap));
 				} else {
 					throw xml_error(string("unknown material map type ") + type, emap.doc_name());
 				}

@@ -34,7 +34,7 @@ void main()
 	reflectdir.z = dot(tmpvec, normal);
 
 	/* compute texture coordinates */
-	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	texcoord = gl_MultiTexCoord0.xy;
 
 	/* compute position */
 	gl_Position = ftransform();

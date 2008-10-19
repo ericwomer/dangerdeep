@@ -42,7 +42,7 @@ void main()
 	halfangle.z = dot(gl_Normal /*tangentz*/, halfangle_obj);
 
 	// compute texture coordinates
-	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	texcoord = gl_MultiTexCoord0.xy;
 
 	// wind factor
 	float wind_factor = 1.0 - gl_MultiTexCoord0.y;

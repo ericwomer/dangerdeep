@@ -22,6 +22,12 @@ void main()
 	// transform vertex to projection space (clip coordinates)
 	// transform to clip space (only transform x/y/z as w is one and clip3 is 0,0,0,1)
 	vec4 vertex_worldspace = (gl_TextureMatrix[1] * gl_Vertex);
+	/*
+	vec4 clipplane; // <- uniform
+	float clip_d = dot(gl_Vertex.xyz, clipplane.xyz) + clipplane.w;
+	clip_d = min(0.0, clip_d);
+	vec4 vpos = clipplane.xyz * (clip_d - clipplane.w);
+	*/
 #ifndef HQSFX
 	vertex_worldspace.z = max(vertex_worldspace.z, 0.0);
 #endif
@@ -32,5 +38,5 @@ void main()
 	gl_FogFragCoord = gl_Position.z;
 
 	// compute texture coordinates
-	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	texcoord = gl_MultiTexCoord0.xy;
 }

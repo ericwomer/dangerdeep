@@ -52,8 +52,6 @@ public:
 			map& operator= (const map& );
 		public:
 			std::string filename;	// also in mytexture, a bit redundant
-			float uscal, vscal, uoffset, voffset;
-			float angle;	// uv rotation angle;
 
 		protected:
 			texture* tex;	// set by set_layout
@@ -75,11 +73,10 @@ public:
 		public:
 			map();
 			~map();
-			void write_to_dftd_model_file(xml_elem& parent, const std::string& type, bool withtrans = true) const;
+			void write_to_dftd_model_file(xml_elem& parent, const std::string& type) const;
 			// read and construct from dftd model file
-			map(const xml_elem& parent, bool withtrans = true);
+			map(const xml_elem& parent);
 			// set up opengl texture matrix with map transformation values
-			void setup_glmatrix() const;
 			void set_gl_texture() const;
  			void set_gl_texture(const glsl_program& prog, unsigned loc, unsigned texunitnr) const;
  			void set_gl_texture(const glsl_shader_setup& gss, unsigned loc, unsigned texunitnr) const;

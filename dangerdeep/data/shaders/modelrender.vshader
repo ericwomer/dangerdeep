@@ -73,7 +73,7 @@ void main()
 
 #ifdef USE_COLORMAP
 	// compute texture coordinates
-	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	texcoord = gl_MultiTexCoord0.xy;
 #else
 	color = gl_Color;
 #endif

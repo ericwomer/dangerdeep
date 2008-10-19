@@ -20,6 +20,8 @@ uniform vec3 upwellbot;
 uniform vec3 upwelltopbot;
 uniform vec3 noise_xform_0;
 uniform vec3 noise_xform_1;
+uniform mat4 foam_transform;
+uniform mat4 reflection_transform;
 
 attribute float amount_of_foam;
 
@@ -74,8 +76,7 @@ void main()
 	noise_texc_1 = vec2(gl_Vertex) * noise_xform_1.z + noise_xform_1.xy;
 
 	// transform inputpos.xy with texture matrix to get texture coodinates
-	//fixme: use uniforms here as well, no tex matrix.
-	foamtexcoord = vec3((gl_TextureMatrix[0] * gl_Vertex).xy, amount_of_foam);
+	foamtexcoord = vec3((foam_transform * gl_Vertex).xy, amount_of_foam);
 
 #ifdef HQSFX
 	realcoordinates = vec3(gl_Vertex);
@@ -88,9 +89,9 @@ void main()
 	// after that mulitply with texture matrix!
 	vec3 texc = N * (virtualplane_height * N.z) + vec3(gl_Vertex);
 	texc.z -= virtualplane_height;
-	reflectiontexcoord = gl_TextureMatrix[1] * vec4(texc, 1.0);
+	reflectiontexcoord = reflection_transform * vec4(texc, 1.0);
 #endif
 
 	// compute texture coordinates for foam-amount texture
-	foamamounttexcoord = gl_TextureMatrix[1] * vec4(vec2(gl_Vertex), vec2(-viewpos.z, 1.0));
+	foamamounttexcoord = reflection_transform * vec4(vec2(gl_Vertex), vec2(-viewpos.z, 1.0));
 }

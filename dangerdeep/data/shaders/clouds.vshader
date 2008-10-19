@@ -8,7 +8,7 @@ varying float horizon_alpha;
 
 void main()
 {
-	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	texcoord = gl_MultiTexCoord0.xy;
 
 	float d = 1.0 - length(gl_Vertex.xy);
 	horizon_alpha = max(1.0 - exp(-d*5.0), 0.0);
