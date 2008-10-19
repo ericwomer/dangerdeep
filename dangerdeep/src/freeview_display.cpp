@@ -45,6 +45,23 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 using std::vector;
 
 
+/* idea about depth fog:
+   every parts below water surface should be rendered with fog, but fog color
+   variies with depth (and daytime in general).
+   To render fog with variable color, we would need one more texture unit.
+   Models use already 4, although we could combine specular map and normal map
+   to one unit, and then have one free unit.
+   Fog above water surface would have different color by direction (sky color)
+   and variies a bit with height, underwater fog depends only on depth, so
+   we need a 2d texmap with colors.
+   Problem is the geoclipmap rendering, it already uses 4 units with 3 channels each.
+   We could combine it to 3 units with 4 channels to have one free unit, but then
+   we would force normal resolution to be equal to color resolution, which is not
+   very easy to have.
+   A simple color gradient for depth fog can be made in the shaders without extra
+   texture map, but it costs some shader instructions.
+*/
+
 void freeview_display::pre_display(game& gm) const
 {
 }
@@ -614,6 +631,10 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		polygon uwp = viewwindow_far.clip(plane(vector3(0, 0, -1), 0));
 		// render polygon with tri-fan
 		const double underwater_bg_maxz = -40;
+		/*
+		primitives::cylinder_z(200.0, 200.0, 0.0, -1000.0, 1.0, *underwater_background,
+				       1.0, 64).render();
+		*/
 		glDisable(GL_DEPTH_TEST);
 		primitives trifan(GL_TRIANGLE_FAN, uwp.points.size(), *underwater_background);
 		for (unsigned i = 0; i < uwp.points.size(); ++i) {

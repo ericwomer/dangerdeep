@@ -38,7 +38,8 @@ void primitives_plain::render()
 	if (!colors.empty()) {
 		glEnableClientState(GL_COLOR_ARRAY);
 		glColorPointer(4, GL_UNSIGNED_BYTE, 0, &colors[0]);
-	} else if (!texcoords.empty()) {
+	}
+	if (!texcoords.empty()) {
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
 	}
@@ -86,11 +87,16 @@ primitives::primitives(int type_, unsigned size, const texture& tex_)
 void primitives::render()
 {
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
-	if (!colors.empty()) {
-		glEnableClientState(GL_COLOR_ARRAY);
-		glColorPointer(4, GL_UNSIGNED_BYTE, 0, &colors[0]);
-		glsl_shader_setup::default_col->use();
-	} else if (!texcoords.empty()) {
+	if (texcoords.empty()) {
+		if (colors.empty()) {
+			glsl_shader_setup::default_opaque->use();
+			glsl_shader_setup::default_opaque->set_uniform(glsl_shader_setup::loc_o_color, col);
+		} else {
+			glEnableClientState(GL_COLOR_ARRAY);
+			glColorPointer(4, GL_UNSIGNED_BYTE, 0, &colors[0]);
+			glsl_shader_setup::default_col->use();
+		}
+	} else {
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
 		if (colors.empty()) {
@@ -101,9 +107,6 @@ void primitives::render()
 			glsl_shader_setup::default_coltex->use();
 			glsl_shader_setup::default_coltex->set_gl_texture(*tex, glsl_shader_setup::loc_ct_tex, 0);
 		}
-	} else {
-		glsl_shader_setup::default_opaque->use();
-		glsl_shader_setup::default_opaque->set_uniform(glsl_shader_setup::loc_o_color, col);
 	}
 	glDrawArrays(type, 0, vertices.size());
 	glDisableClientState(GL_COLOR_ARRAY);
@@ -276,4 +279,31 @@ primitive_tex<4> primitives::textured_quad(const vector3f& xyz0,
 	result.texcoords[3].x = texc0.x;
 	result.texcoords[3].y = texc1.y;
 	return result;
+}
+
+
+
+primitives primitives::cylinder_z(double radius_bottom, double radius_top,
+				  double z_bottom, double z_top,
+				  double alpha, const texture& tex,
+				  double u_scal, unsigned nr_segs, bool inside)
+{
+	primitives cyl(GL_QUAD_STRIP, (nr_segs+1)*2, tex);
+	color col(255, 255, 255, 255);
+	double us = u_scal / nr_segs;
+	for (unsigned i = 0; i <= nr_segs; ++i) {
+		double a = -2*M_PI*i/nr_segs;
+		double sa = sin(a);
+		double ca = cos(a);
+		if (inside) ca = -ca;
+		col.a = Uint8(128 + 127*alpha);
+		cyl.colors[2*i] = col;
+		col.a = Uint8(255*alpha);
+		cyl.colors[2*i+1] = col;
+		cyl.texcoords[2*i] = vector2f(i * us, 1);
+		cyl.texcoords[2*i+1] = vector2f(i * us, 0);
+		cyl.vertices[2*i] = vector3f(radius_bottom * ca, radius_bottom * sa, z_bottom);
+		cyl.vertices[2*i+1] = vector3f(radius_top * ca, radius_top * sa, z_top);
+	}
+	return cyl;
 }

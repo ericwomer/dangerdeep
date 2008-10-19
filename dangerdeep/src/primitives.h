@@ -217,6 +217,11 @@ class primitives : public primitives_plain
 					      const vector2f& texc0 = vector2f(0,0),
 					      const vector2f& texc1 = vector2f(1,1),
 					      const colorf& col = colorf(1,1,1,1));
+	/// render a 3d z-axis aligned cylinder
+	static primitives cylinder_z(double radius_bottom, double radius_top,
+				     double z_bottom, double z_top,
+				     double alpha, const texture& tex,
+				     double u_scal, unsigned nr_segs, bool inside = false);
 
 	colorf col;
 	const texture* tex;

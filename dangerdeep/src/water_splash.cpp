@@ -29,25 +29,10 @@ void water_splash::render_cylinder(double radius_bottom, double radius_top, doub
 				   double alpha, const texture& tex,
 				   double u_scal, unsigned nr_segs)
 {
-	primitives splash(GL_QUAD_STRIP, (nr_segs+1)*2, tex);
-	color col(255, 255, 255, 255);
-	double us = u_scal / nr_segs;
 	//fixme: use different alpha for bottom? like always full alpha?
-	for (unsigned i = 0; i <= nr_segs; ++i) {
-		double a = -2*M_PI*i/nr_segs;
-		double sa = sin(a);
-		double ca = cos(a);
-		col.a = Uint8(128 + 127*alpha);
-		splash.colors[2*i] = col;
-		col.a = Uint8(255*alpha);
-		splash.colors[2*i+1] = col;
-		splash.texcoords[2*i] = vector2f(i * us, 1);
-		splash.texcoords[2*i+1] = vector2f(i * us, 0);
-		// compensate tide! so set z_lower to -1.5
-		splash.vertices[2*i] = vector3f(radius_bottom * ca, radius_bottom * sa, -1.5);
-		splash.vertices[2*i+1] = vector3f(radius_top * ca, radius_top * sa, height);
-	}
-	splash.render();
+	// compensate tide! so set z_lower to -1.5
+	primitives::cylinder_z(radius_bottom, radius_top, -1.5, height,
+			       alpha, tex, u_scal, nr_segs).render();
 }
 
 
