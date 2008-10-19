@@ -472,8 +472,6 @@ void water::setup_textures(const matrix4& reflection_projmvmat, const vector2f& 
 	   mostly very fuzzy, details can not be seen... fixme
 	*/
 
-	glActiveTexture(GL_TEXTURE1);
-	glEnable(GL_TEXTURE_2D);
 	if (!under_water) {
 		glsl_water->set_gl_texture(*reflectiontex, loc_w_tex_reflection, 1);
 	}
