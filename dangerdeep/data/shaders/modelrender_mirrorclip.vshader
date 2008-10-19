@@ -23,10 +23,19 @@ void main()
 	// transform to clip space (only transform x/y/z as w is one and clip3 is 0,0,0,1)
 	vec4 vertex_worldspace = (gl_TextureMatrix[1] * gl_Vertex);
 	/*
-	vec4 clipplane; // <- uniform
-	float clip_d = dot(gl_Vertex.xyz, clipplane.xyz) + clipplane.w;
-	clip_d = min(0.0, clip_d);
-	vec4 vpos = clipplane.xyz * (clip_d - clipplane.w);
+	  how to get rid of the texture matrix usage:
+	  give 4 coefficients of a plane equation as uniform.
+	  geometry is clipped against that plane.
+	  modelview matrix is used as usual.
+	  clipplane equation is computed from transformation of object to world.
+
+	vec4 clipplane = vec4(0.0, 0.0, 1.0, 0.0); // <- give as uniform!
+	float dist = dot(gl_Vertex.xyz, clipplane.xyz);
+	vec3 vpos_in_plane = gl_Vertex.xyz - clipplane.xyz * dist;
+	float clip_d = dist + clipplane.w;
+	clip_d = max(0.0, clip_d);
+	vec4 vpos = vec4(vpos_in_plane + clipplane.xyz * (clip_d - clipplane.w), gl_Vertex.w);
+	gl_Position = gl_ModelViewProjectionMatrix * vpos;
 	*/
 #ifndef HQSFX
 	vertex_worldspace.z = max(vertex_worldspace.z, 0.0);
