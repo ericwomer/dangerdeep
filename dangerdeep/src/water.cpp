@@ -205,6 +205,8 @@ water::water(double tm) :
 	// 261598 indices with N=64, using 1046392 (<1MB) of video ram with uint32 indices
 #endif
 
+	use_hqsfx = cfg::instance().getb("use_hqsfx");
+
 	// 2004/04/25 Note! decreasing the size of the reflection map improves performance
 	// on a gf4mx! (23fps to 28fps with a 128x128 map to a 512x512 map)
 	// Maybe this is because of some bandwidth limit or cache efficiency of the gf4mx.
@@ -222,7 +224,7 @@ water::water(double tm) :
 	unsigned rx = sys().get_res_x();
 	unsigned ry = sys().get_res_y();
 	unsigned vps = texture::get_max_size();
-	const unsigned reflection_scale = 2;
+	const unsigned reflection_scale = use_hqsfx ? 1 : 2;
 	rx = std::min(rx, vps);
 	ry = std::min(ry, vps);
 	rx /= reflection_scale;
@@ -239,8 +241,6 @@ water::water(double tm) :
 	log_info("wave resolution " << wave_resolution << " (shift=" << wave_resolution_shift << ")");
 	log_info("reflection image size " << rx << "x" << ry);
 	log_info("water detail: " << geoclipmap_resolution);
-
-	use_hqsfx = cfg::instance().getb("use_hqsfx");
 
 	// initialize shaders
 	glsl_water.reset(new glsl_shader_setup(get_shader_dir() + "water.vshader",
