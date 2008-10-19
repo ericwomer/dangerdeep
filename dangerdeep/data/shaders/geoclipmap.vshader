@@ -55,13 +55,11 @@ void main()
 	//normal = vec3(0.0, 0.0, 1.0);
 
 #ifdef MIRROR
-	// transform vertex to projection space (clip coordinates)
-	// transform to clip space (only transform x/y/z as w is one and clip3 is 0,0,0,1)
-	vec4 vertex_worldspace = (gl_TextureMatrix[1] * vpos);
+	// clip vertex coordinates at z=0 plane
 #ifndef HQSFX
-	vertex_worldspace.z = max(vertex_worldspace.z, 0.0);
+	vpos.z = max(vpos.z, 0.0);
 #endif
-	world_z = vertex_worldspace.z;
+	world_z = vpos.z;
 #endif
 	// finally compute position
 	gl_Position = gl_ModelViewProjectionMatrix * vpos;
