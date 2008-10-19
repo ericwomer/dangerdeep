@@ -269,7 +269,17 @@ user_interface::user_interface(game& gm) :
 
 	particle::init();
 
-	mygeoclipmap.reset(new geoclipmap(TERRAIN_NR_LEVELS, cfg::instance().geti("terrain_detail"), mygame->get_height_gen()));
+	// level size is N * sample_spacing * 2^j, here we give n = log2(N)
+	// where j is level number from 0 on.
+	// so we compute number of levels:
+	// 2^n * sample_spacing * 2^j_max <= z_far
+	// j_max <= log2(z_far / (2^n * sample_spacing))
+	// and #levels = j_max+1
+	// so #levels = floor(log2(z_far / (2^n * sample_spacing))) + 1
+	const double z_far = 20000.0;
+	unsigned terrain_nr_levels = 1 + unsigned(floor(log2(z_far / (1 << cfg::instance().geti("terrain_detail"))
+							     / mygame->get_height_gen().get_sample_spacing())));
+	mygeoclipmap.reset(new geoclipmap(terrain_nr_levels, cfg::instance().geti("terrain_detail"), mygame->get_height_gen()));
 
 	add_loading_screen("user interface initialized");
 }

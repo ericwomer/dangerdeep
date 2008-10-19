@@ -306,8 +306,9 @@ geoclipmap::area geoclipmap::level::set_viewerpos(const vector3& new_viewpos, co
 		static const int dx[8] = { -1, 0, 1, 1, 1, 0, -1, -1 };
 		static const int dy[8] = { -1,-1,-1, 0, 1, 1,  1,  0 };
 		for (unsigned i = 0; i < 8; ++i) {
-			gcm.vboscratchbuf[4*i+0] = new_viewpos.x + 32000 * dx[i] - gcm.base_viewpos.x;
-			gcm.vboscratchbuf[4*i+1] = new_viewpos.y + 32000 * dy[i] - gcm.base_viewpos.y;
+			// 21km in x and y dir gives total length of < 30km
+			gcm.vboscratchbuf[4*i+0] = new_viewpos.x + 21000 * dx[i] - gcm.base_viewpos.x;
+			gcm.vboscratchbuf[4*i+1] = new_viewpos.y + 21000 * dy[i] - gcm.base_viewpos.y;
 			gcm.vboscratchbuf[4*i+2] = 0; // fixme: later give +- 10 for land/sea
 			gcm.vboscratchbuf[4*i+3] = 0; // same value here
 		}
