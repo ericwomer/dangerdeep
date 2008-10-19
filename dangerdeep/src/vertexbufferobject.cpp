@@ -29,11 +29,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 vertexbufferobject::vertexbufferobject(bool indexbuffer)
 	: id(0), size(0), mapped(false),
-	  target(indexbuffer ? GL_ELEMENT_ARRAY_BUFFER_ARB : GL_ARRAY_BUFFER_ARB)
+	  target(indexbuffer ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER)
 {
 	if (!sys().extension_supported("GL_ARB_vertex_buffer_object"))
 		throw std::runtime_error("vertex buffer objects are not supported!");
-	glGenBuffersARB(1, &id);
+	glGenBuffers(1, &id);
 }
 
 
@@ -42,7 +42,7 @@ vertexbufferobject::~vertexbufferobject()
 {
 	if (mapped)
 		unmap();
-	glDeleteBuffersARB(1, &id);
+	glDeleteBuffers(1, &id);
 }
 
 
@@ -51,7 +51,7 @@ void vertexbufferobject::init_data(unsigned size_, const void* data, int usage)
 {
 	size = size_;
 	bind();
-	glBufferDataARB(target, size, data, usage);
+	glBufferData(target, size, data, usage);
 	unbind();
 }
 
@@ -60,7 +60,7 @@ void vertexbufferobject::init_data(unsigned size_, const void* data, int usage)
 void vertexbufferobject::init_sub_data(unsigned offset, unsigned subsize, const void* data)
 {
 	bind();
-	glBufferSubDataARB(target, offset, subsize, data);
+	glBufferSubData(target, offset, subsize, data);
 	unbind();
 }
 
@@ -68,14 +68,14 @@ void vertexbufferobject::init_sub_data(unsigned offset, unsigned subsize, const 
 
 void vertexbufferobject::bind() const
 {
-	glBindBufferARB(target, id);
+	glBindBuffer(target, id);
 }
 
 
 
 void vertexbufferobject::unbind() const
 {
-	glBindBufferARB(target, 0);
+	glBindBuffer(target, 0);
 }
 
 
@@ -85,7 +85,7 @@ void* vertexbufferobject::map(int access)
 	if (mapped)
 		throw std::runtime_error("vertex buffer object mapped twice");
 	bind();
-	void* addr = glMapBufferARB(target, access);
+	void* addr = glMapBuffer(target, access);
 	if (addr == 0)
 		throw std::runtime_error("vertex buffer object mapping failed");
 	mapped = true;
@@ -100,7 +100,7 @@ void vertexbufferobject::unmap()
 		throw std::runtime_error("vertex buffer object not mapped before unmap()");
 	mapped = false;
 	bind();
-	if (glUnmapBufferARB(target) != GL_TRUE) {
+	if (glUnmapBuffer(target) != GL_TRUE) {
 		log_warning("failed to unmap Vertex Buffer object, data invalid");
 	}
 }
