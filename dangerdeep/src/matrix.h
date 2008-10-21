@@ -327,6 +327,22 @@ public:
 		values[3] = values[7] = values[11] = D(0.0);
 	}
 
+	static matrixt<D, size> frustum_fovx(double fovx, double aspect, double znear, double zfar) {
+		double tanfovx2 = tan(M_PI*fovx/360.0);
+		double tanfovy2 = tanfovx2 / aspect;
+		double r = znear * tanfovx2;
+		double t = znear * tanfovy2;
+		double n = znear;
+		double f = zfar;
+		// glFrustum(l,r,b,t,n,f) generates
+		// 2n/(r-l)   0      (r+l)/(r-l)   0
+		//    0     2n/(t-b) (t+b)/(t-b)   0
+		//    0       0      -(f+n)/(f-n) -2f*n/(f-n)
+		//    0       0       -1           0
+		// here we generate glFrustum(-r, r, -t, t, n, f);
+		return matrixt<D, size>(n/r, 0, 0, 0, 0, n/t, 0, 0, 0, 0, -(f+n)/(f-n), -2*f*n/(f-n), 0, 0, -1, 0);
+	}
+	
 	/// multiply NxN matrix with N-vector
 	vector4t<D> operator* (const vector4t<D>& v) const {
 		D r[4];
