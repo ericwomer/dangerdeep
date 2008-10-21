@@ -64,6 +64,16 @@ fixme: possible cleanup/simplification of rendering EVERYWHERE:
 1) reduce use of glActiveTexture, is rarely needed, now only for setting the
    right texture matrix, which can be surpassed by using uniforms and setting
    a matrix directly in the shader, not using the default texture matrices
+   one intermediate step would be to make modelviewmatrix transform to
+   world space, not eye space, and multiply the world space to eye space
+   transform to the projection matrix. This would made clipping easier,
+   as that is always done in world space. But we would need to use a special
+   form of world space, one that makes viewer world origin, because of
+   the high magnitues of coefficients we need to render.
+   The downside of that method is that some gl entities would not expect
+   this, e.g. light source positions would be wrong or would be needed to
+   set by hand. But if all objects would use this modelviewmatrix, it wouldn't
+   matter, so we can do it that way.
 2) replace Matrix use (glPushMatrix/glPopMatrix, texture matrix switch etc.)
    at least replace texture matrix use. At the moment only matrix for unit #1
    is used to implement a clipping plane for non-hqsfx modes, this can be done
