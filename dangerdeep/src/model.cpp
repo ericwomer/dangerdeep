@@ -61,6 +61,7 @@ unsigned model::init_count = 0;
 
 /*
 fixme: possible cleanup/simplification of rendering EVERYWHERE:
+0) maybe introduce a camera class that generates projection and camera modelview matrices.
 1) reduce use of glActiveTexture, is rarely needed, now only for setting the
    right texture matrix, which can be surpassed by using uniforms and setting
    a matrix directly in the shader, not using the default texture matrices
@@ -1172,11 +1173,11 @@ matrix3 model::mesh::compute_inertia_tensor(const matrix4f& transmat) const
 		vector3 abcd = A + B + C + D;
 		double V_i = (1.0/6.0) * ((A - D) * (B - D).cross(C - D));
 		double fac0 = V_i / 20.0; // 6*20=120
-		matrix3 abcd2 = matrix_of_vec_sqr(abcd);
-		matrix3 A2 = matrix_of_vec_sqr(A);
-		matrix3 B2 = matrix_of_vec_sqr(B);
-		matrix3 C2 = matrix_of_vec_sqr(C);
-		matrix3 D2 = matrix_of_vec_sqr(D);
+		matrix3 abcd2 = matrix3::vec_sqr(abcd);
+		matrix3 A2 = matrix3::vec_sqr(A);
+		matrix3 B2 = matrix3::vec_sqr(B);
+		matrix3 C2 = matrix3::vec_sqr(C);
+		matrix3 D2 = matrix3::vec_sqr(D);
 		matrix3 h = (abcd2 + A2 + B2 + C2 + D2) * fac0;
 		// we have to build the matrix with the integral
 		// to compute out of sums / products of coefficients
