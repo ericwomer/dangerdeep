@@ -328,8 +328,8 @@ void check_for_highscore(const game& gm)
 		std::string txt = texts::get(199);
 		if (pos == 0)
 			txt += "\n\n" + texts::get(201);
-		auto_ptr<widget> w(widget::create_dialogue_ok(0, texts::get(197), txt));
-		w->run();
+		w.add_child(new widget_text(400, 200, 0,0, txt));
+		w.run(0, false);
 		hsl.record(points, gm.get_player_info().name);
 	} else {
 		w.add_child(new widget_text(400, 200, 0,0, texts::get(198)));

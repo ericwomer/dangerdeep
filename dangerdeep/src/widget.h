@@ -116,6 +116,8 @@ public:
 	// Note! call this once before using images!
 	static void set_image_cache(objcachet<class image>* imagecache);
 
+	static std::string text_ok, text_cancel;
+
 	static void set_theme(std::auto_ptr<theme> t) { globaltheme = t; }
 	static const theme* get_theme() { return globaltheme.get(); }
 	static std::auto_ptr<theme> replace_theme(std::auto_ptr<theme> t);
@@ -178,11 +180,11 @@ public:
 	virtual bool check_for_mouse_event(const SDL_Event& event);
 
 	// run() always returns 1    - fixme: make own widget classes for them?
-	static widget* create_dialogue_ok(widget* parent_, const std::string& title, const std::string& text = "", int w = 0, int h = 0);
-	widget* create_dialogue_ok(const std::string& title, const std::string& text = "", int w = 0, int h = 0) { return create_dialogue_ok(this, title, text, w, h); }
+	static std::auto_ptr<widget> create_dialogue_ok(widget* parent_, const std::string& title, const std::string& text = "", int w = 0, int h = 0);
+	std::auto_ptr<widget> create_dialogue_ok(const std::string& title, const std::string& text = "", int w = 0, int h = 0) { return create_dialogue_ok(this, title, text, w, h); }
 	// run() returns 1 for ok, 0 for cancel
-	static widget* create_dialogue_ok_cancel(widget* parent_, const std::string& title, const std::string& text = "");
-	widget* create_dialogue_ok_cancel(const std::string& title, const std::string& text = "") { return create_dialogue_ok_cancel(this, title, text); }
+	static std::auto_ptr<widget> create_dialogue_ok_cancel(widget* parent_, const std::string& title, const std::string& text = "");
+	std::auto_ptr<widget> create_dialogue_ok_cancel(const std::string& title, const std::string& text = "") { return create_dialogue_ok_cancel(this, title, text); }
 
 	// show & exec. widget, automatically disable widgets below
 	// run() runs for "time" milliseconds (or forever if time == 0), then returns

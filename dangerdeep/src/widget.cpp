@@ -51,6 +51,9 @@ int widget::oldmb = 0;
 
 list<widget*> widget::widgets;
 
+std::string widget::text_ok = "Ok"; // fixme: let user read them from text database and set it here!
+std::string widget::text_cancel = "Cancel";
+
 void widget::ref_all_backgrounds()
 {
 	for (list<widget*>::iterator it = widgets.begin(); it != widgets.end(); ++it) {
@@ -480,33 +483,33 @@ bool widget::is_mouse_over(int mx, int my) const
 	return (mx >= p.x && my >= p.y && mx < p.x+size.x && my < p.y + size.y);
 }
 
-widget* widget::create_dialogue_ok(widget* parent_, const string& title, const string& text,
-				   int w, int h)
+std::auto_ptr<widget> widget::create_dialogue_ok(widget* parent_, const string& title, const string& text,
+						 int w, int h)
 {
 	unsigned res_x = sys().get_res_x_2d();
 	unsigned res_y = sys().get_res_y_2d();
 	int x = w ? (res_x - w) / 2 : res_x/4;
 	int y = h ? (res_y - h) / 2 : res_y/4;
-	widget* wi = new widget(x, y, w, h, title, parent_);
+	std::auto_ptr<widget> wi(new widget(x, y, w, h, title, parent_));
 	wi->add_child(new widget_text(32, 64, w-64, h-128, text));
 	int fw = globaltheme->frame_size();
 	int fh = int(globaltheme->myfont->get_height());
 	int butw = 4*fh+2*fw;
-	wi->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(wi, &widget::close, 1, w/2-butw/2, h-64, butw, fh+4*fw, "Ok"));
+	wi->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(wi.get(), &widget::close, 1, w/2-butw/2, h-64, butw, fh+4*fw, text_ok));
 	return wi;
 }
 
-widget* widget::create_dialogue_ok_cancel(widget* parent_, const string& title, const string& text)
+std::auto_ptr<widget> widget::create_dialogue_ok_cancel(widget* parent_, const string& title, const string& text)
 {
 	unsigned res_x = sys().get_res_x_2d();
 	unsigned res_y = sys().get_res_y_2d();
-	widget* w = new widget(res_x/4, res_y/4, res_x/2, res_y/2, title, parent_);
+	std::auto_ptr<widget> w(new widget(res_x/4, res_y/4, res_x/2, res_y/2, title, parent_));
 	w->add_child(new widget_text(32, 64, res_x/2-64, res_y/2-128, text));
 	int fw = globaltheme->frame_size();
 	int fh = int(globaltheme->myfont->get_height());
 	int butw = 4*fh+2*fw;
-	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, 1, res_x/8-butw/2, res_y/2-64, butw, fh+4*fw, "Ok"));
-	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w, &widget::close, 0, 3*res_x/8-butw/2, res_y/2-64, butw, fh+4*fw, "Cancel"));
+	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w.get(), &widget::close, 1, res_x/8-butw/2, res_y/2-64, butw, fh+4*fw, text_ok));
+	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w.get(), &widget::close, 0, 3*res_x/8-butw/2, res_y/2-64, butw, fh+4*fw, text_cancel));
 	return w;
 }
 
