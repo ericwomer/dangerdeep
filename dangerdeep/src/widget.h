@@ -183,7 +183,7 @@ public:
 	static std::auto_ptr<widget> create_dialogue_ok(widget* parent_, const std::string& title, const std::string& text = "", int w = 0, int h = 0);
 	std::auto_ptr<widget> create_dialogue_ok(const std::string& title, const std::string& text = "", int w = 0, int h = 0) { return create_dialogue_ok(this, title, text, w, h); }
 	// run() returns 1 for ok, 0 for cancel
-	static std::auto_ptr<widget> create_dialogue_ok_cancel(widget* parent_, const std::string& title, const std::string& text = "");
+	static std::auto_ptr<widget> create_dialogue_ok_cancel(widget* parent_, const std::string& title, const std::string& text = "", int w = 0, int h = 0);
 	std::auto_ptr<widget> create_dialogue_ok_cancel(const std::string& title, const std::string& text = "") { return create_dialogue_ok_cancel(this, title, text); }
 
 	// show & exec. widget, automatically disable widgets below

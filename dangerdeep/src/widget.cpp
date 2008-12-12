@@ -490,6 +490,8 @@ std::auto_ptr<widget> widget::create_dialogue_ok(widget* parent_, const string& 
 	unsigned res_y = sys().get_res_y_2d();
 	int x = w ? (res_x - w) / 2 : res_x/4;
 	int y = h ? (res_y - h) / 2 : res_y/4;
+	if (!w) w = res_x/2;
+	if (!h) h = res_y/2;
 	std::auto_ptr<widget> wi(new widget(x, y, w, h, title, parent_));
 	wi->add_child(new widget_text(32, 64, w-64, h-128, text));
 	int fw = globaltheme->frame_size();
@@ -499,18 +501,23 @@ std::auto_ptr<widget> widget::create_dialogue_ok(widget* parent_, const string& 
 	return wi;
 }
 
-std::auto_ptr<widget> widget::create_dialogue_ok_cancel(widget* parent_, const string& title, const string& text)
+std::auto_ptr<widget> widget::create_dialogue_ok_cancel(widget* parent_, const string& title, const string& text,
+							int w, int h)
 {
 	unsigned res_x = sys().get_res_x_2d();
 	unsigned res_y = sys().get_res_y_2d();
-	std::auto_ptr<widget> w(new widget(res_x/4, res_y/4, res_x/2, res_y/2, title, parent_));
-	w->add_child(new widget_text(32, 64, res_x/2-64, res_y/2-128, text));
+	int x = w ? (res_x - w) / 2 : res_x/4;
+	int y = h ? (res_y - h) / 2 : res_y/4;
+	if (!w) w = res_x/2;
+	if (!h) h = res_y/2;
+	std::auto_ptr<widget> wi(new widget(x, y, w, h, title, parent_));
+	wi->add_child(new widget_text(32, 64, w-64, h-128, text));
 	int fw = globaltheme->frame_size();
 	int fh = int(globaltheme->myfont->get_height());
 	int butw = 4*fh+2*fw;
-	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w.get(), &widget::close, 1, res_x/8-butw/2, res_y/2-64, butw, fh+4*fw, text_ok));
-	w->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(w.get(), &widget::close, 0, 3*res_x/8-butw/2, res_y/2-64, butw, fh+4*fw, text_cancel));
-	return w;
+	wi->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(wi.get(), &widget::close, 1, w/4-butw/2, h-64, butw, fh+4*fw, text_ok));
+	wi->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(wi.get(), &widget::close, 0, 3*w/4-butw/2, h-64, butw, fh+4*fw, text_cancel));
+	return wi;
 }
 
 int widget::run(unsigned timeout, bool do_stacking, widget* focussed_at_begin)
