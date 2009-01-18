@@ -125,7 +125,7 @@ void game::sink_record::save(xml_elem& parent) const
 
 
 game::player_info::player_info()
-	: name("Heinz Mustermann"),  flotilla(1),  submarineid("U 999"),  photo("player_photo_1.jpg")
+	: name("Heinz Mustermann"),  flotilla(1),  submarineid("U 999"),  photo("1")
 {
 	//generate a random soldbuch_nr between 1 and 9999
 	soldbuch_nr = str(rnd(9999)+1);
