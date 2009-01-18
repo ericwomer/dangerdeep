@@ -1286,7 +1286,7 @@ void menu_misc()
 	widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
 	unsigned wd = 600;
 	unsigned hg = 5 * 40 + 4 * 20;
-	vector2i curr_res(sys().get_res_x(), sys().get_res_y());
+	vector2i curr_res = sys().get_res_2d();
 	int x = (curr_res.x - wd)/2;
 	int y = (curr_res.y - hg)/2;
 	widget_menu* wm = new widget_menu(x, y, wd, 40, texts::get(107));
@@ -1303,7 +1303,6 @@ void menu_misc()
 	cfg::instance().set("use_hqsfx", whqsfx->is_checked());
 	cfg::instance().set("terrain_detail", terrain_lod->get_curr_value());
 	glsl_shader::enable_hqsfx = whqsfx->is_checked();
-
 }
 
 
