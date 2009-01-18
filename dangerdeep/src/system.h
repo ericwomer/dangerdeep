@@ -96,12 +96,16 @@ public:
 	// give FOV X in degrees, aspect (w/h), znear and zfar.	
 	void gl_perspective_fovx(double fovx, double aspect, double znear, double zfar);
 
-	unsigned get_res_x() const { return res_x; };
-	unsigned get_res_y() const { return res_y; };
-	unsigned get_res_x_2d() const { return res_x_2d; };
-	unsigned get_res_y_2d() const { return res_y_2d; };
+	unsigned get_res_x() const { return res_x; }
+	unsigned get_res_y() const { return res_y; }
+	unsigned get_res_x_2d() const { return res_x_2d; }
+	unsigned get_res_y_2d() const { return res_y_2d; }
 	vector2i get_res() const { return vector2i(res_x, res_y); }
 	vector2i get_res_2d() const { return vector2i(res_x_2d, res_y_2d); }
+	unsigned get_res_area_2d_x() const { return res_area_2d_x; }
+	unsigned get_res_area_2d_y() const { return res_area_2d_y; }
+	unsigned get_res_area_2d_w() const { return res_area_2d_w; }
+	unsigned get_res_area_2d_h() const { return res_area_2d_h; }
 	
 	// is a given OpenGL extension supported?
 	bool extension_supported(const std::string& s) const;
@@ -125,8 +129,14 @@ private:
 	
 	bool draw_2d;
 	unsigned res_x_2d, res_y_2d;	// real resolution (depends on user settings)
+	unsigned res_area_2d_x;
+	unsigned res_area_2d_y;
+	unsigned res_area_2d_w;
+	unsigned res_area_2d_h;
 	
 	void draw_console();
+	int transform_2d_x(int x);
+	int transform_2d_y(int y);
 
 	unsigned long time_passed_while_sleeping;	// total sleep time
 	unsigned long sleep_time;	// time when system gets to sleep

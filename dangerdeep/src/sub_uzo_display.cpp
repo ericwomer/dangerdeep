@@ -42,10 +42,10 @@ void sub_uzo_display::pre_display(game& gm) const
 freeview_display::projection_data sub_uzo_display::get_projection_data(class game& gm) const
 {
 	projection_data pd;
-	pd.x = 0;
-       	pd.y = 0;
-	pd.w = sys().get_res_x();
-	pd.h = sys().get_res_y();
+	pd.x = sys().get_res_area_2d_x();
+       	pd.y = sys().get_res_area_2d_y();
+	pd.w = sys().get_res_area_2d_w();
+	pd.h = sys().get_res_area_2d_h();
 	// with normal fov of 70 degrees, this is 1.5 / 6.0 magnification
 	pd.fov_x = zoomed ? 13.31 : 50.05;	//fixme: historic values?
 	pd.near_z = 1.0;

@@ -66,12 +66,6 @@ bad_typeid
 
 */
 
-//#define THROWERR
-
-#ifdef THROWERR
-#include <exception>
-#endif
-
 system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bool fullscreen) :
 	res_x(res_x_), res_y(res_y_), nearz(nearz_), farz(farz_), is_fullscreen(fullscreen),
 	show_console(false), console_font(0), console_background(0),
@@ -88,8 +82,24 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 		available_resolutions.push_back(vector2i(modes[i]->w, modes[i]->h));
 	}
 
-	res_x_2d = res_x;
-	res_y_2d = res_y;
+	// compute 2d area and resolution. it must be 4:3 always.
+	if (res_x * 3 >= res_y * 4) {
+		// screen is wider than high
+		res_area_2d_w = res_y * 4 / 3;
+		res_area_2d_h = res_y;
+		res_area_2d_x = (res_x - res_area_2d_w) / 2;
+		res_area_2d_y = 0;
+	} else {
+		// screen is higher than wide
+		res_area_2d_w = res_x;
+		res_area_2d_h = res_x * 3 / 4;
+		res_area_2d_x = 0;
+		res_area_2d_y = (res_y - res_area_2d_h) / 2;
+		// maybe limit y to even lines for interlaced displays?
+		//res_area_2d_y &= ~1U;
+	}
+	res_x_2d = res_area_2d_w;
+	res_y_2d = res_area_2d_h;
 
 	try {
 		set_video_mode(res_x, res_y, is_fullscreen);
@@ -113,7 +123,7 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 	glShadeModel(GL_SMOOTH);
 	glDisable(GL_LIGHTING); // we use shaders for everything
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_NORMALIZE);	// fixme!!!! why was that turned on?! we don't need it! it doesn't hurt much though...
+	glDisable(GL_NORMALIZE);
 	glEnable(GL_TEXTURE_2D);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
@@ -294,11 +304,33 @@ void system::draw_console()
 	unprepare_2d_drawing();
 }
 
+
+
+int system::transform_2d_x(int x)
+{
+	x -= int(res_area_2d_x);
+	if (x < 0) x = 0;
+	if (x >= int(res_area_2d_w)) x = int(res_area_2d_w)-1;
+	return x * res_x_2d / res_area_2d_w;
+}
+
+
+
+int system::transform_2d_y(int y)
+{
+	y -= int(res_area_2d_y);
+	if (y < 0) y = 0;
+	if (y >= int(res_area_2d_h)) y = int(res_area_2d_h)-1;
+	return y * res_y_2d / res_area_2d_h;
+}
+
+
+
 void system::prepare_2d_drawing()
 {
 	if (draw_2d) throw runtime_error("2d drawing already turned on");
 	glFlush();
-	glViewport(0, 0, res_x, res_y);
+	glViewport(res_area_2d_x, res_area_2d_y, res_area_2d_w, res_area_2d_h);
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
@@ -311,7 +343,7 @@ void system::prepare_2d_drawing()
 	glDisable(GL_DEPTH_TEST);
 	glCullFace(GL_FRONT);
 	draw_2d = true;
-	glPixelZoom(float(res_x)/res_x_2d, -float(res_y)/res_y_2d);	// flip images
+	glPixelZoom(float(res_area_2d_w)/res_x_2d, -float(res_area_2d_h)/res_y_2d);	// flip images
 }
 
 void system::unprepare_2d_drawing()
@@ -405,32 +437,24 @@ list<SDL_Event> system::poll_event_queue()
 		
 				case SDL_MOUSEMOTION:		// Mouse motion event
 					// translate coordinates!
-					events.back().motion.x = events.back().motion.x *
-						int(res_x_2d) / int(res_x);
-					events.back().motion.y = events.back().motion.y *
-						int(res_y_2d) / int(res_y);
+					events.back().motion.x = transform_2d_x(events.back().motion.x);
+					events.back().motion.y = transform_2d_y(events.back().motion.y);
 					// be careful: small motions at larger screens
 					// could get lost! fixme
 					events.back().motion.xrel = events.back().motion.xrel *
-						int(res_x_2d) / int(res_x);
+						int(res_x_2d) / int(res_area_2d_w);
 					events.back().motion.yrel = events.back().motion.yrel *
-						int(res_y_2d) / int(res_y);
+						int(res_y_2d) / int(res_area_2d_h);
 					break;
 				
 				case SDL_MOUSEBUTTONDOWN:	// Mouse button event - button down
-					// translate coordinates!
-					events.back().button.x = events.back().button.x *
-						int(res_x_2d) / int(res_x);
-					events.back().button.y = events.back().button.y *
-						int(res_y_2d) / int(res_y);
+					events.back().motion.x = transform_2d_x(events.back().button.x);
+					events.back().motion.y = transform_2d_y(events.back().button.y);
 					break;
 				
 				case SDL_MOUSEBUTTONUP:		// Mouse button event - button up
-					// translate coordinates!
-					events.back().button.x = events.back().button.x *
-						int(res_x_2d) / int(res_x);
-					events.back().button.y = events.back().button.y *
-						int(res_y_2d) / int(res_y);
+					events.back().motion.x = transform_2d_x(events.back().button.x);
+					events.back().motion.y = transform_2d_y(events.back().button.y);
 					break;
 					
 				default:			// Should NEVER happen !

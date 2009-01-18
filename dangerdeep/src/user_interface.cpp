@@ -732,6 +732,14 @@ void user_interface::set_current_display(unsigned curdis) const
 		mygame->freeze_time();
 	displays[current_display]->leave();
 	current_display = curdis;
+
+	// clear both screen buffers
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	sys().swap_buffers();
+	glClear(GL_COLOR_BUFFER_BIT);
+	sys().swap_buffers();
+
 	displays[current_display]->enter(daymode);
 	if (mygame)
 		mygame->unfreeze_time();
