@@ -1,6 +1,7 @@
 ################ needed imports
 import os
 import sys
+import subprocess
 
 ################ base paths (needed for Win32 OS)
 sdlbase = 'D:\\sdl-devel\\SDL'
@@ -73,7 +74,7 @@ elif (sys.platform == 'freebsd5') or (sys.platform == 'freebsd6') or (sys.platfo
 	gllibs = ['GL', 'GLU']
 	sdllibs = ['SDL_image']
 	extralibs = ['execinfo']
-	cpuinfof = os.popen('sysctl -n hw.instruction_sse')
+	cpuinfof = subprocess.Popen( 'sysctl -n hw.instruction_sse', 1024, None, None, subprocess.PIPE, None, None, False, True ).communicate( None )[0].strip();
 	cpuinfol = cpuinfof.readlines()
 	mmxsupported = False
 	ssesupported = False
@@ -126,8 +127,8 @@ else:
 
 	ccflags = '-Wall `sdl-config --cflags` `pkg-config --cflags x11`'
 
-	# work out the system arch, i383 or amd64 etc.
-	uname_arch = os.popen2( 'uname -m', 'r', 1024 )[1].read().strip()
+	# work out the system arch, i3d3 or amd64 etc.
+	uname_arch = subprocess.Popen( 'uname -m', 1024, None, None, subprocess.PIPE, None, None, False, True ).communicate( None )[0].strip();
 
 	if ( 'x86_64' == uname_arch ):
 		arch = 'x86-64'
