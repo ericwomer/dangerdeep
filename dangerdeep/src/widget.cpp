@@ -1339,14 +1339,10 @@ void widget_3dview::draw() const
 
 	sys().unprepare_2d_drawing();
 	glFlush();
-	unsigned rx = sys().get_res_x();
-	unsigned ry = sys().get_res_y();
-	unsigned rx2 = sys().get_res_x_2d();
-	unsigned ry2 = sys().get_res_y_2d();
-	unsigned vpx = pos.x*rx/rx2;
-	unsigned vpy = (ry2 - pos.y - size.y)*ry/ry2;
-	unsigned vpw = size.x*rx/rx2;
-	unsigned vph = size.y*ry/ry2;
+	unsigned vpx = sys().get_res_area_2d_x();
+	unsigned vpy = sys().get_res_area_2d_y();
+	unsigned vpw = sys().get_res_area_2d_w();
+	unsigned vph = sys().get_res_area_2d_h();
 	glViewport(vpx, vpy, vpw, vph);
 
 	glMatrixMode(GL_PROJECTION);
