@@ -94,7 +94,10 @@ class non_uniform_bsplinet
 		t = t*(cp.size()-1) - bp;
 		return cp[bp] * (1.0-t) + cp[np] * t;
 */
-		if (t < 0.0 || t > 1.0) throw std::runtime_error("bspline: invalid t");
+		// better to limit t than to fail loudly.
+		if (t < 0.0) t = 0.0;
+		if (t > 1.0) t = 1.0;
+		//if (t < 0.0 || t > 1.0) throw std::runtime_error("bspline: invalid t");
 
 		unsigned l = find_l(t);
 	
