@@ -269,6 +269,7 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	speed[SLOW] = speed[MEDIUM] = speed[FAST] = 0.0;
 	for (xml_elem::iterator it = eranges.iterate("range"); !it.end(); it.next()) {
 		speedrange_types srt = NORMAL;
+		//fixme: handle from/until tags and check against gm.get_date!
 		if (it.elem().has_attr("preheated")) {
 			if (it.elem().attrb("preheated")) {
 				srt = PREHEATED;
