@@ -94,6 +94,9 @@ class torpedo : public ship
 
 	enum propulsion_types { STEAM, ELECTRIC, WALTER };
 
+	// do not change these numbers! must be 0-2 for slow...fast
+	enum speedrange_types { SLOW = 0, PREHEATED = 0, MEDIUM = 1, FAST = 2, NORMAL = 2, NR_SPEEDRANGE_TYPES = 3 };
+
  private:
 	torpedo();
 	torpedo& operator=(const torpedo& other);
@@ -109,10 +112,8 @@ class torpedo : public ship
 	warhead_types warhead_type;
 	double arming_distance;	// meters
 	std::list<fuse> fuses;
-	double range_normal;
-	double speed_normal;
-	double range_preheated;
-	double speed_preheated;
+	double range[NR_SPEEDRANGE_TYPES];
+	double speed[NR_SPEEDRANGE_TYPES];
 	steering_devices steering_device;
 	double hp;		// horse power of engine
 	propulsion_types propulsion_type;
@@ -159,6 +160,8 @@ public:
 	virtual void save(xml_elem& parent) const;
 
 	// additional FAT/LUT values as indices (0-16,0-1,0-1,0-180,0-2,0-25) fixme
+	// this method is never used, as sub_torpsetup_display accesses torpedo's members
+	// directly, bad! fixme
 	void set_steering_values(unsigned primrg, unsigned secrg, bool initurnleft, angle turnang,
 				 unsigned tspeedsel, double rdepth);
 	

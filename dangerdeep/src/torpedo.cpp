@@ -265,14 +265,31 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	// ------------ sensors, fixme
 	// ------------ ranges
 	xml_elem eranges = parent.child("ranges");
+	range[SLOW] = range[MEDIUM] = range[FAST] = 0.0;
+	speed[SLOW] = speed[MEDIUM] = speed[FAST] = 0.0;
 	for (xml_elem::iterator it = eranges.iterate("range"); !it.end(); it.next()) {
-		if (it.elem().attrb("preheated")) {
-			range_preheated = it.elem().attrf("distance");
-			speed_preheated = kts2ms(it.elem().attrf("speed"));
+		speedrange_types srt = NORMAL;
+		if (it.elem().has_attr("preheated")) {
+			if (it.elem().attrb("preheated")) {
+				srt = PREHEATED;
+			} else {
+				srt = NORMAL;
+			}
+		} else if (it.elem().has_attr("throttle")) {
+			if (it.elem().attr("throttle") == "slow") {
+				srt = SLOW;
+			} else if (it.elem().attr("throttle") == "medium") {
+				srt = MEDIUM;
+			} else if (it.elem().attr("throttle") == "fast") {
+				srt = FAST;
+			} else {
+				throw xml_error("illegal throttle attribute!", parent.doc_name());
+			}
 		} else {
-			range_normal = it.elem().attrf("distance");
-			speed_normal = kts2ms(it.elem().attrf("speed"));
+			throw xml_error("illegal speed/range type attributes!", parent.doc_name());
 		}
+		range[srt] = it.elem().attrf("distance");
+		speed[srt] = kts2ms(it.elem().attrf("speed"));
 	}
 	// ------------ power, fixme - not needed yet
 	xml_elem epower = parent.child("power");
@@ -367,6 +384,9 @@ void torpedo::simulate(double delta_time)
 	run_length += get_speed() * delta_time;
 	if (run_length > get_range()) {
 		// later: simulate slow sinking to the ground...
+		// just set acceleration to zero, physic engine will do the rest
+		// it doesn't sink to sea floor when doing this
+		//alive_stat = inactive;
 		kill();
 		return;
 	}
@@ -385,6 +405,7 @@ void torpedo::simulate(double delta_time)
 	if (steering_device != STRAIGHT) {
 		unsigned old_phase = unsigned(floor((old_run_length < primaryrange) ? old_run_length/primaryrange : 1.0+(old_run_length - primaryrange)/secondaryrange));
 		unsigned phase = unsigned(floor((run_length < primaryrange) ? run_length/primaryrange : 1.0+(run_length - primaryrange)/secondaryrange));
+		//fixme rather see if we are on turn or run straight and count
 		if (phase > old_phase) {
 			// phase change.
 			if (phase == 1) {
@@ -534,28 +555,36 @@ unsigned torpedo::get_hit_points () const	// awful, useless, replace, fixme
 
 double torpedo::get_range() const
 {
-	// fixme: TI independent on temperature, but depends on torpspeed selector!
-	double s = 0;
-	if (temperature > 15) {
-		if (temperature > 30)
-			s = 1;
-		else
-			s = (temperature - 15)/15;
+	switch (propulsion_type) {
+	case STEAM:
+		return range[torpspeed];
+	case ELECTRIC:
+		{
+			// varies between 15° and 30°
+			double s = myclamp((temperature - 15) / 15, 0.0, 1.0);
+			return myinterpolate(range[NORMAL], range[PREHEATED], s);
+		}
+	case WALTER:
+	default:
+		return range[NORMAL];
 	}
-	return range_normal * (1-s) + range_preheated * s;
 }
 
 
 
 double torpedo::get_torp_speed() const
 {
-	// fixme: TI independent on temperature, but depends on torpspeed selector!
-	double s = 0;
-	if (temperature > 15) {
-		if (temperature > 30)
-			s = 1;
-		else
-			s = (temperature - 15)/15;
+	switch (propulsion_type) {
+	case STEAM:
+		return speed[torpspeed];
+	case ELECTRIC:
+		{
+			// varies between 15° and 30°
+			double s = myclamp((temperature - 15) / 15, 0.0, 1.0);
+			return myinterpolate(speed[NORMAL], speed[PREHEATED], s);
+		}
+	case WALTER:
+	default:
+		return speed[NORMAL];
 	}
-	return speed_normal * (1-s) + speed_preheated * s;
 }

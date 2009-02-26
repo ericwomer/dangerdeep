@@ -112,6 +112,7 @@ inline double myfrac(double a) { return a-floor(a); }
 inline float mysgn(float a) { return (a < 0) ? -1.0f : ((a > 0) ? 1.0f : 0.0f); }
 inline double mysgn(double a) { return (a < 0) ? -1.0 : ((a > 0) ? 1.0 : 0.0); }
 template<class T> inline T myclamp(const T& v, const T& minv, const T& maxv) { return std::min(maxv, std::max(minv, v)); }
+template<class T> inline T myinterpolate(const T& v0, const T& v1, double f) { return T(v0 * (1.0-f) + v1 * f); }
 template<class C> inline void add_saturated(C& sum, const C& add, const C& max) { sum = std::min(sum + add, max); }
 // return a random value in [0, 1(
 inline double rnd() { return double(rand())/RAND_MAX; }

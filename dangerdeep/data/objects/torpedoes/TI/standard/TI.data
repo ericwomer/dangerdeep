@@ -27,11 +27,11 @@
     <period type="TZ3,Pi3" from="1942/12/1" until="1945/12/31"/>
   </fuse>
   <ranges>
-    <range distance="14000" speed="30" from="1941/1/1" until="1945/12/31" visibility="1.0"/>
-    <range distance="12500" speed="30" from="1939/1/1" until="1940/12/31" visibility="1.0"/>
-    <range distance="8000" speed="40" from="1941/1/1" until="1945/12/31" visibility="1.2"/>
-    <range distance="7500" speed="40" from="1939/1/1" until="1940/12/31" visibility="1.2"/>
-    <range distance="6000" speed="44" from="1941/1/1" until="1945/12/31" visibility="2.0"/>
+    <range distance="14000" speed="30" from="1941/1/1" until="1945/12/31" throttle="slow"/>
+    <range distance="12500" speed="30" from="1939/1/1" until="1940/12/31" throttle="slow"/>
+    <range distance="8000" speed="40" from="1941/1/1" until="1945/12/31" throttle="medium"/>
+    <range distance="7500" speed="40" from="1939/1/1" until="1940/12/31" throttle="medium"/>
+    <range distance="6000" speed="44" from="1941/1/1" until="1945/12/31" throttle="fast"/>
   </ranges>
   <motion acceleration="1.0" turnrate="1.0"/>
 <!-- hp values specified below, affect acceleration, and therefore turn rate, so, therefore, using a specific speed/range combination, means also using the associated power/rotation value, for instance, 940U/min, which in turn, affects the acceleration value, and the turnrate (acceleration decreases, turn rate increases). On top of this, we have the "from" and "until" values, since speed/range (power output/rotation) changed in the war. So, therefore, we would need to specify a speed/range combination, only 5 combinations possible for TI torpedo > medium speed/range, slow speed/long range, in early war (pre1941), and the fast speed/short range, medium speed/range, slow speed/long range (post1941) - so, id 0 to 4. For electric torpedos, the speed is fixed, but affected by preheating, so this would be id = 5. A mockup would look like
