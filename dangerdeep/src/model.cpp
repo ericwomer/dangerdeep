@@ -560,7 +560,8 @@ void model::mesh::compute_normals()
 			vector3f ortho = (v1-v0).orthogonal(v2-v0);
 			// avoid degenerated triangles
 			float lf = 1.0/ortho.length();
-			if (isfinite(lf)) {
+			// icc fix, doesn't like the other method, gcc does something wierd with isfinite()
+			if ((fpclassify(lf) != FP_NAN && fpclassify(lf) != FP_INFINITE)) {
 				vector3f face_normal = ortho * lf;
 				//normals could be weighted by face area, that gives better results.
 				normals[tit->i0()] += face_normal;

@@ -382,7 +382,8 @@ model::mesh* heightfield(unsigned resx, unsigned resy, const vector<Uint8>& heig
 			const vector3f& v3 = m->vertices[m->indices[ib+5]];
 			vector3f ortho = (v1-v0).orthogonal(v2-v0);
 			float lf = 1.0/ortho.length();
-			if (isfinite(lf)) {
+			// icc fix, doesn't like the other method, gcc does something wierd with isfinite()
+			if ((fpclassify(lf) != FP_NAN && fpclassify(lf) != FP_INFINITE)) {
 				vector3f face_normal = ortho * lf;
 				m->normals[m->indices[ib]] += face_normal;
 				m->normals[m->indices[ib+1]] += face_normal;
@@ -390,7 +391,8 @@ model::mesh* heightfield(unsigned resx, unsigned resy, const vector<Uint8>& heig
 			}
 			ortho = (v1-v2).orthogonal(v3-v2);
 			lf = 1.0/ortho.length();
-			if (isfinite(lf)) {
+			// icc fix, doesn't like the other method, gcc does something wierd with isfinite()
+			if ((fpclassify(lf) != FP_NAN && fpclassify(lf) != FP_INFINITE)) {
 				vector3f face_normal = ortho * lf;
 				m->normals[m->indices[ib+3]] += face_normal;
 				m->normals[m->indices[ib+4]] += face_normal;
