@@ -19,6 +19,7 @@ glbase = 'D:\\Dev-Cpp\\include\\gl'
 debug = int(ARGUMENTS.get('debug', 0))
 devel = int(ARGUMENTS.get('devel', 0))
 cvedit = int(ARGUMENTS.get('cvedit', 0))
+useicc = int(ARGUMENTS.get('useicc', 0))
 usex86sse = int(ARGUMENTS.get('usex86sse', 0))
 useefence = int(ARGUMENTS.get('useefence', 0))
 useduma = int(ARGUMENTS.get('useduma', 0))
@@ -125,6 +126,9 @@ else:
 	gllibs = ['GL', 'GLU']
 	sdllibs = ['SDL', 'SDL_image']
 
+	datadir = '/usr/local/share/dangerdeep'
+	build_dir = 'linux'
+
 	ccflags = '-Wall `sdl-config --cflags` `pkg-config --cflags x11`'
 
 	# work out the system arch, i3d3 or amd64 etc.
@@ -168,7 +172,13 @@ else:
 	elif (debug == -3):	# special g++4.0+ auto vectorization
 		ccflags += ' -g -O3 -march=' + arch + ' -mfpmath=sse -mmmx -msse -msse2 -m3dnow -ftree-vectorize'
 	else:
-		ccflags += ' -g -O2 -march=' + arch # debug symbols will be stripped by the linker for a debian package
+		if (useicc >= 1):
+			env.Replace(CC = "icc")
+			env.Replace(CXX = "icpc")
+			ccflags += ' -ip -w '
+			build_dir = 'linux-icc'
+		else:
+			ccflags += ' -g -O2 -march=' + arch # debug symbols will be stripped by the linker for a debian package
 
 	if (useefence >= 1):
 		extralibs += ['efence']
@@ -202,8 +212,7 @@ else:
 		else:
 			print 'Using x86 SSE/MMX optimizations with GCC intrinsics.'
 	env.Append(CCFLAGS = ccflags)
-	datadir = '/usr/local/share/dangerdeep'
-	build_dir = 'linux'
+
 	# check for broken libGL, ignore undefined symbols then
 	if (os.system('grep glBindProgram /usr/include/GL/gl*.h > /dev/null') == 0):
 		gllibdirs = ['/usr/X11R6/lib/', '/usr/lib/', '/usr/local/lib/']
