@@ -161,7 +161,7 @@ int tests::do_version_check()
 			spos++;
 		}
 
-		if ( 2 == major )
+		if ( major >= 2 )
 		{
 			status = sGOOD;
 		} else if ( 1 == major && 5 == minor ) {
