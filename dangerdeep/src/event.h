@@ -171,4 +171,13 @@ class event_ping : public event
 	void evaluate(user_interface& ui);
 };
 
+/// torpedo transfer done / tube reloaded
+class event_tube_reloaded : public event
+{
+	unsigned tube_nr;
+ public:
+	event_tube_reloaded(unsigned nr) : tube_nr(nr) {}
+	void evaluate(user_interface& ui);
+};
+
 #endif

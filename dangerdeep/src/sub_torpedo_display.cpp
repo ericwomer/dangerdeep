@@ -76,25 +76,25 @@ void sub_torpedo_display::draw_torpedo(class game& gm, bool usebow,
 		if (st.status == 0) {	// empty
 			torpempty->draw(pos.x, pos.y);
 		} else if (st.status == 1) {	// reloading
-			torptex(st.torp->get_specfilename()).draw(pos.x, pos.y);
+			torptex(st.specfilename).draw(pos.x, pos.y);
 			torpload->draw(pos.x, pos.y);
 		} else if (st.status == 2) {	// unloading
 			torpempty->draw(pos.x, pos.y);
 			torpunload->draw(pos.x, pos.y);
 		} else {		// loaded
-			torptex(st.torp->get_specfilename()).draw(pos.x, pos.y);
+			torptex(st.specfilename).draw(pos.x, pos.y);
 		}
 	} else {
 		if (st.status == 0) {	// empty
 			torpempty->draw_hm(pos.x, pos.y);
 		} else if (st.status == 1) {	// reloading
-			torptex(st.torp->get_specfilename()).draw_hm(pos.x, pos.y);
+			torptex(st.specfilename).draw_hm(pos.x, pos.y);
 			torpload->draw_hm(pos.x, pos.y);
 		} else if (st.status == 2) {	// unloading
 			torpempty->draw_hm(pos.x, pos.y);
 			torpunload->draw_hm(pos.x, pos.y);
 		} else {		// loaded
-			torptex(st.torp->get_specfilename()).draw_hm(pos.x, pos.y);
+			torptex(st.specfilename).draw_hm(pos.x, pos.y);
 		}
 	}
 }
@@ -224,7 +224,7 @@ void sub_torpedo_display::display(class game& gm) const
 	// draw transfer graphics if needed
 	if (torptranssrc != ILLEGAL_TUBE && torpedoes[torptranssrc].status ==
 	    submarine::stored_torpedo::st_loaded) {
-		torptex(torpedoes[torptranssrc].torp->get_specfilename()).draw(mx-124/2, my-12/2,
+		torptex(torpedoes[torptranssrc].specfilename).draw(mx-124/2, my-12/2,
 									       colorf(1,1,1,0.5));
 		primitives::line(vector2f(tubecoords[torptranssrc].x+124/2,
 					  tubecoords[torptranssrc].y+12/2),
@@ -235,9 +235,9 @@ void sub_torpedo_display::display(class game& gm) const
 	unsigned tb = get_tube_below_mouse(tubecoords);
 	if (tb != ILLEGAL_TUBE) {
 		// display type info.
-		if (torpedoes[tb].torp != 0 && torpedoes[tb].status == submarine::stored_torpedo::st_loaded) {
+		if (torpedoes[tb].status == submarine::stored_torpedo::st_loaded) {
 			desc_text* torpdesctext = 0;
-			string sfn = torpedoes[tb].torp->get_specfilename();
+			string sfn = torpedoes[tb].specfilename;
 			try {
 				torpdesctext = desc_texts.ref(data_file().get_rel_path(sfn) + sfn + "_"
 							      + texts::get_language_code() + ".txt");

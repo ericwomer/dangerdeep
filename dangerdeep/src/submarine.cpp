@@ -111,53 +111,50 @@ the waterline although the ship would swim in total.
 
 
 submarine::stored_torpedo::stored_torpedo()
-	: torp(0), status(st_empty), associated(0), remaining_time(0), preheating(false)
+	: temperature(15.0), status(st_empty), associated(0), remaining_time(0), preheating(false)
 {
 }
 
 
 
 submarine::stored_torpedo::stored_torpedo(game& gm, const std::string& type)
-	: torp(0), status(st_loaded), associated(0), remaining_time(0), preheating(false)
+	: specfilename(type), temperature(15.0), status(st_loaded), associated(0), remaining_time(0), preheating(false)
 {
-	xml_doc doc(data_file().get_filename(type));
-	doc.load();
-	torp = new torpedo(gm, doc.first_child());
 }
 
 
 
 void submarine::stored_torpedo::load(game& gm, const xml_elem& parent)
 {
+	specfilename = parent.attr("type");
+	if (parent.has_child("setup")) {
+		setup.load(parent.child("setup"));
+	} else {
+		setup = torpedo::setup();
+	}
+	temperature = parent.attrf("temperature");
 	status = st_status(parent.attru("status"));
 	associated = parent.attru("associated");
 	remaining_time = parent.attrf("remaining_time");
 	addleadangle = angle(parent.attrf("addleadangle"));
 	preheating = parent.attrb("preheating");
-	if (parent.has_child("torpedo")) {
-		xml_elem tp = parent.child("torpedo");
-		xml_doc doc(data_file().get_filename(tp.attr("type")));
-		doc.load();
-		delete torp;
-		torp = 0;
-		torp = new torpedo(gm, doc.first_child());
-	}
 }
 
 
 
 void submarine::stored_torpedo::save(xml_elem& parent) const
 {
+	parent.set_attr(specfilename, "type");
+	if (status != st_empty) {
+		xml_elem s = parent.add_child("setup");
+		setup.save(s);
+	}
+	parent.set_attr(temperature, "temperature");
 	parent.set_attr(unsigned(status), "status");
 	parent.set_attr(associated, "associated");
 	parent.set_attr(remaining_time, "remaining_time");
 	parent.set_attr(addleadangle.value(), "addleadangle");
 	parent.set_attr(preheating, "preheating");
-	if (torp) {
-		xml_elem tp = parent.add_child("torpedo");
-		tp.set_attr(torp->get_specfilename(), "type");
-		torp->save(tp);
-	}
 }
 
 
@@ -314,14 +311,6 @@ submarine::submarine(game& gm_, const xml_elem& parent)
 
 
 
-submarine::~submarine()
-{
-	for (vector<stored_torpedo>::iterator it = torpedoes.begin(); it != torpedoes.end(); ++it)
-		delete it->torp;
-}
-
-
-
 void submarine::load(const xml_elem& parent)
 {
 	ship::load(parent);
@@ -337,9 +326,8 @@ void submarine::load(const xml_elem& parent)
 	torpedoes.clear();
 	torpedoes.reserve(tp.attru("nr"));
 	for (xml_elem::iterator it = tp.iterate("stored_torpedo"); !it.end(); it.next()) {
-		stored_torpedo stp;
-		stp.load(gm, it.elem());
-		torpedoes.push_back(stp);
+		torpedoes.push_back(stored_torpedo());
+		torpedoes.back().load(gm, it.elem());
 	}
 
 	xml_elem sst = parent.child("sub_state");
@@ -434,10 +422,8 @@ void submarine::transfer_torpedo(unsigned from, unsigned to)
 	}
 	if (torpedoes[from].status == stored_torpedo::st_loaded &&
 			torpedoes[to].status == stored_torpedo::st_empty) {
-		if (torpedoes[to].torp != 0)
-			throw error("destination tube not empty, internal error");
-		torpedoes[to].torp = torpedoes[from].torp;
-		torpedoes[from].torp = 0;
+		torpedoes[to].setup = torpedoes[from].setup;
+		torpedoes[to].temperature = torpedoes[from].temperature;
 		torpedoes[from].status = stored_torpedo::st_unloading;
 		torpedoes[to].status = stored_torpedo::st_reloading;
 		torpedoes[from].associated = to;
@@ -562,11 +548,11 @@ void submarine::simulate(double delta_time)
 				if (st.status == stored_torpedo::st_reloading) {	// reloading
 					st.status = stored_torpedo::st_loaded;	// loading
 //					torpedoes[st.associated].status = stored_torpedo::st_empty;	// empty
+					if (i < get_nr_of_bow_tubes() + get_nr_of_stern_tubes())
+						gm.add_event(new event_tube_reloaded(i + 1));
 				} else {		// unloading
 					st.status = stored_torpedo::st_empty;	// empty
-					st.torp = 0;
 //					torpedoes[st.associated].status = stored_torpedo::st_loaded;	// loaded
-					// fixme: message: torpedo reloaded
 				}
 			}
 		}
@@ -1293,21 +1279,19 @@ bool submarine::launch_torpedo(int tubenr, sea_object* target)
 	}
 
 	// check if torpedo can be fired with that tube, if yes, then fire it
-	if (torpedoes[tubenr].torp == 0)
-		return false;
-
 	//cout << "sol valid? " << TDC.solution_valid() << "\n";
-	//fixme
 	if (TDC.solution_valid()) {
 		angle fired_at_angle = usebowtubes ? heading : heading + angle(180);
 		angle torp_head_to = TDC.get_lead_angle() + TDC.get_parallax_angle();
 		//cout << "fired at " << fired_at_angle.value() << ", head to " << torp_head_to.value() << ", is cw nearer " << torp_head_to.is_cw_nearer(fired_at_angle) << "\n";
-		torpedoes[tubenr].torp->head_to_ang(torp_head_to, torp_head_to.is_cw_nearer(fired_at_angle));
+		xml_doc doc(data_file().get_filename(torpedoes[tubenr].specfilename));
+		doc.load();
+		std::auto_ptr<torpedo> torp(new torpedo(gm, doc.first_child()));
+		torp->head_to_ang(torp_head_to, torp_head_to.is_cw_nearer(fired_at_angle));
 		// just hand the torpedo object over to class game. tube is empty after that...
 		vector3 torppos = position + (fired_at_angle.direction() * (get_length()/2 + 5 /*5m extra*/)).xy0();
-		torpedoes[tubenr].torp->launch(torppos, fired_at_angle);
-		gm.spawn_torpedo(torpedoes[tubenr].torp);
-		torpedoes[tubenr].torp = 0;
+		torp->launch(torppos, fired_at_angle);
+		gm.spawn_torpedo(torp.release());
 		torpedoes[tubenr].status = stored_torpedo::st_empty;
 		return true;
 	} else {

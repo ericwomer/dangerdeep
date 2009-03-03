@@ -213,7 +213,7 @@ void loadsavequit_dialogue::save()
 	FILE* f = fopen(fn.c_str(), "rb");
 	if (f) {
 		fclose(f);
-		auto_ptr<widget> w(create_dialogue_ok_cancel(texts::get(182), texts::get(183) + gamename->get_text() + texts::get(184)));
+		auto_ptr<widget> w(create_dialogue_ok_cancel(texts::get(182), texts::get_replace(183, gamename->get_text())));
 		int ok = w->run();
 		w.reset();
 		if (!ok) return;

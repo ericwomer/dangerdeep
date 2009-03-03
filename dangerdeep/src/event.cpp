@@ -143,3 +143,10 @@ void event_ping::evaluate(user_interface& ui)
 {
 	ui.play_sound_effect(SFX_PING, source);
 }
+
+
+
+void event_tube_reloaded::evaluate(user_interface& ui)
+{
+	ui.add_message(texts::get_replace(184, tube_nr));
+}

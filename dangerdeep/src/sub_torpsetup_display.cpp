@@ -118,16 +118,16 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 			turnknobdrag = TK_RUNDEPTH;
 		} else if (s.is_over(s.firstturn[0], firstturn_pos, mx, my)) {
 			unsigned idx = (mx < firstturn_pos.x + int(s.firstturn[0]->get_width()/2)) ? 1 : 0;
-			if (tbsetup.torp) tbsetup.torp->initialturn_left = idx;
+			tbsetup.setup.initialturn_left = idx;
 		} else if (s.is_over(s.secondaryrange[0], secrange_pos, mx, my)) {
 			unsigned idx = (mx < secrange_pos.x + int(s.secondaryrange[0]->get_width()/2)) ? 0 : 1;
-			if (tbsetup.torp) tbsetup.torp->secondaryrange = 800 + idx * 800;
+			tbsetup.setup.secondaryrange = 800 + idx * 800;
 		} else if (s.is_over(s.preheating[0], preheat_pos, mx, my)) {
 			tbsetup.preheating = (my < preheat_pos.y + int(s.preheating[0]->get_height()/2)) ? true : false;
 		} else if (s.is_over(s.torpspeed[0], torpspeed_pos, mx, my)) {
 			int i = (my - torpspeed_pos.y) * 3 / s.torpspeed[0]->get_height();
 			unsigned idx = 2 - unsigned(myclamp(i, int(0), int(2)));
-			if (tbsetup.torp) tbsetup.torp->torpspeed = idx;
+			tbsetup.setup.torpspeed = idx;
 		}
 		break;
 	case SDL_MOUSEMOTION:
@@ -142,7 +142,7 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 				case TK_PRIMARYRANGE:
 					// 0-360 degrees match to 0-16
 					ang = myclamp(ang, 0.0f, 359.0f);
-					if (tbsetup.torp) tbsetup.torp->primaryrange = unsigned(ang*17/360)*100+1600;
+					tbsetup.setup.primaryrange = unsigned(ang*17/360)*100+1600;
 					break;
 				case TK_TURNANGLE:
 					// 0-360 degrees match to 0-180 degrees angle
@@ -151,12 +151,12 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 					//tbsetup.turnangle = ang*180/360;
 					ang = myclamp(ang, 0.0f, 179.0f);
 					// fixme: allow only 90/180 for FAT, any angle for LUT, nothing for other types
-					if (tbsetup.torp) tbsetup.torp->turnangle = unsigned(ang*2/180)*90+90;
+					tbsetup.setup.turnangle = unsigned(ang*2/180)*90+90;
 					break;
 				case TK_RUNDEPTH:
 					// 0-360 degrees match to 0-25m
 					ang = myclamp(ang, 0.0f, 360.0f);
-					if (tbsetup.torp) tbsetup.torp->rundepth = ang*25/360;
+					tbsetup.setup.rundepth = ang*25/360;
 					break;
 				default:	// can never happen
 					break;
@@ -283,23 +283,23 @@ void sub_torpsetup_display::display(class game& gm) const
 	// get tube settings
 	const submarine::stored_torpedo& tbsetup = sub->get_torp_in_tube(dynamic_cast<const submarine_interface&>(ui).get_selected_tube());
 
-	unsigned primaryrangedial = (tbsetup.torp) ? (tbsetup.torp->primaryrange - 1600) : 0;
+	unsigned primaryrangedial = tbsetup.setup.primaryrange - 1600;
 	s.primaryrangedial.draw(primaryrangedial / -5.0f);	// 1 degree = 5meters
 
-	float firstturnangle = (tbsetup.torp) ? (tbsetup.torp->turnangle.value()) : 0;
+	float firstturnangle = tbsetup.setup.turnangle.value();
 	s.turnangledial.draw(firstturnangle * -1.8f); // 18 degrees = 10 turn degrees
 
 	// draw background
 	s.background->draw(0, 0);
 
 	// draw objects from upper layer: knobs/switches/pointers
-	unsigned torpspeedidx = (tbsetup.torp) ? (tbsetup.torp->torpspeed) : 0;
+	unsigned torpspeedidx = tbsetup.setup.torpspeed;
 	s.torpspeed[torpspeedidx]->draw(torpspeed_pos.x, torpspeed_pos.y);
 
-	unsigned ftidx = (tbsetup.torp) ? (tbsetup.torp->initialturn_left ? 0 : 1) : 0;
+	unsigned ftidx = tbsetup.setup.initialturn_left ? 0 : 1;
 	s.firstturn[ftidx]->draw(firstturn_pos.x, firstturn_pos.y);
 
-	unsigned sridx = (tbsetup.torp) ? (tbsetup.torp->secondaryrange - 800) / 800 : 0;
+	unsigned sridx = (tbsetup.setup.secondaryrange - 800) / 800;
 	s.secondaryrange[sridx]->draw(secrange_pos.x, secrange_pos.y);
 
 	unsigned preheatingidx = tbsetup.preheating ? 1 : 0;
@@ -311,7 +311,7 @@ void sub_torpsetup_display::display(class game& gm) const
 
 	s.rundepthknob[unsigned(myfmod(turnknobang[TK_RUNDEPTH], 360.0f)/(45.0/TK_PHASES)+0.5)%TK_PHASES].draw(0);
 
-	double rundepth = (tbsetup.torp) ? (tbsetup.torp->rundepth) : 0;	// meters
+	double rundepth = tbsetup.setup.rundepth;	// meters
 	s.rundepthptr.draw(rundepth * 300/25.0 + 30); // 25m = 30deg+x*300deg
 
 	double secondaryrange = myfmod(ctr,32)*50;//800.0; // meters

@@ -162,14 +162,39 @@ bool torpedo::fuse::handle_impact(angle impactangle) const
 
 
 
+torpedo::setup::setup()
+	: primaryrange(1600), secondaryrange(800), initialturn_left(true), turnangle(180.0), torpspeed(0), rundepth(3)
+{
+}
+
+
+
+void torpedo::setup::load(const xml_elem& parent)
+{
+	primaryrange = parent.attru("primaryrange");
+	secondaryrange = parent.attru("secondaryrange");
+	initialturn_left = parent.attrb("initialturn_left");
+	turnangle = angle(parent.attrf("turnangle"));
+	torpspeed = parent.attru("torpspeed");
+	rundepth = parent.attrf("rundepth");
+}
+
+
+
+void torpedo::setup::save(xml_elem& parent) const
+{
+	parent.set_attr(primaryrange, "primaryrange");
+	parent.set_attr(secondaryrange, "secondaryrange");
+	parent.set_attr(initialturn_left, "initialturn_left");
+	parent.set_attr(turnangle.value(), "turnangle");
+	parent.set_attr(torpspeed, "torpspeed");
+	parent.set_attr(rundepth, "rundepth");
+}
+
+
+
 torpedo::torpedo(game& gm, const xml_elem& parent)
 	: ship(gm, parent),
-	  primaryrange(1600),
-	  secondaryrange(800),
-	  initialturn_left(true),
-	  turnangle(180),
-	  torpspeed(0),	// 0-2 slow-fast, only for G7a torps
-	  rundepth(3),
 	  temperature(15),	// degrees C
 	  probability_of_rundepth_failure(0.2),	// basically high before mid 1942, fixme
 	  run_length(0),
@@ -319,13 +344,7 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 void torpedo::load(const xml_elem& parent)
 {
 	sea_object::load(parent);
-	xml_elem stg = parent.child("settings");
-	primaryrange = stg.attru("primaryrange");
-	secondaryrange = stg.attru("secondaryrange");
-	initialturn_left = stg.attrb("initialturn_left");
-	turnangle = angle(stg.attrf("turnangle"));
-	torpspeed = stg.attru("torpspeed");
-	rundepth = stg.attrf("rundepth");
+	mysetup.load(parent.child("setup"));
 	temperature = parent.child("temperature").attrf();
 	probability_of_rundepth_failure = parent.child("probability_of_rundepth_failure").attrf();
 	run_length = parent.child("run_length").attrf();
@@ -337,32 +356,13 @@ void torpedo::load(const xml_elem& parent)
 void torpedo::save(xml_elem& parent) const
 {
 	sea_object::save(parent);
-	xml_elem stg = parent.add_child("settings");
-	stg.set_attr(primaryrange, "primaryrange");
-	stg.set_attr(secondaryrange, "secondaryrange");
-	stg.set_attr(initialturn_left, "initialturn_left");
-	stg.set_attr(turnangle.value(), "turnangle");
-	stg.set_attr(torpspeed, "torpspeed");
-	stg.set_attr(rundepth, "rundepth");
+	xml_elem st = parent.add_child("setup");
+	mysetup.save(st);
 	parent.add_child("temperature").set_attr(temperature);
 	parent.add_child("probability_of_rundepth_failure").set_attr(probability_of_rundepth_failure);
 	parent.add_child("run_length").set_attr(run_length);
 	xml_elem ed = parent.add_child("dive_planes");
 	rudder.save(ed);
-}
-
-
-
-void torpedo::set_steering_values(unsigned primrg, unsigned secrg,
-				  bool initurnleft, angle turnang,
-				  unsigned tspeedsel, double rdepth)
-{
-	primaryrange = primrg;	// fixme: multiply? ...
-	secondaryrange = secrg;
-	initialturn_left = initurnleft;
-	turnangle = turnang;
-	torpspeed = tspeedsel;
-	rundepth = rdepth;
 }
 
 
@@ -404,8 +404,8 @@ void torpedo::simulate(double delta_time)
 	}
 
 	if (steering_device != STRAIGHT) {
-		unsigned old_phase = unsigned(floor((old_run_length < primaryrange) ? old_run_length/primaryrange : 1.0+(old_run_length - primaryrange)/secondaryrange));
-		unsigned phase = unsigned(floor((run_length < primaryrange) ? run_length/primaryrange : 1.0+(run_length - primaryrange)/secondaryrange));
+		unsigned old_phase = unsigned(floor((old_run_length < mysetup.primaryrange) ? old_run_length/mysetup.primaryrange : 1.0+(old_run_length - mysetup.primaryrange)/mysetup.secondaryrange));
+		unsigned phase = unsigned(floor((run_length < mysetup.primaryrange) ? run_length/mysetup.primaryrange : 1.0+(run_length - mysetup.primaryrange)/mysetup.secondaryrange));
 		//fixme rather see if we are on turn or run straight and count
 		if (phase > old_phase) {
 			// phase change.
@@ -413,11 +413,11 @@ void torpedo::simulate(double delta_time)
 				// first turn. Differences between LuT and FaT,
 				// FaT always 180 degrees, LuT variable. Angle is stored, use that
 				//fixme: LuT worked different to what we simulate here.
-				angle turn = initialturn_left ? -turnangle : turnangle;
-				head_to_ang(get_heading() + turn, initialturn_left);
+				angle turn = mysetup.initialturn_left ? -mysetup.turnangle : mysetup.turnangle;
+				head_to_ang(get_heading() + turn, mysetup.initialturn_left);
 			} else {
 				// further turns, always 180 degrees.
-				bool turn_is_left = initialturn_left ? ((phase & 1) != 0) : ((phase & 1) == 0);
+				bool turn_is_left = mysetup.initialturn_left ? ((phase & 1) != 0) : ((phase & 1) == 0);
 				head_to_ang(get_heading() + angle(180), turn_is_left);
 			}
 		}
@@ -483,7 +483,7 @@ void torpedo::steering_logic()
 
 void torpedo::depth_steering_logic()
 {
-	double depthdiff = position.z - (-rundepth);
+	double depthdiff = position.z - (-mysetup.rundepth);
 	double error0 = depthdiff;
 	double error1 = dive_planes.max_angle/dive_planes.max_turn_speed * local_velocity.z * 1.0;
 	double error2 = 0;//-rudder_pos/max_rudder_turn_speed * turn_velocity;
@@ -558,7 +558,7 @@ double torpedo::get_range() const
 {
 	switch (propulsion_type) {
 	case STEAM:
-		return range[torpspeed];
+		return range[mysetup.torpspeed];
 	case ELECTRIC:
 		{
 			// varies between 15° and 30°
@@ -577,7 +577,7 @@ double torpedo::get_torp_speed() const
 {
 	switch (propulsion_type) {
 	case STEAM:
-		return speed[torpspeed];
+		return speed[mysetup.torpspeed];
 	case ELECTRIC:
 		{
 			// varies between 15° and 30°

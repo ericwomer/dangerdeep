@@ -75,7 +75,9 @@ Pi: angle of impact? unsure
 class torpedo : public ship
 {
  public:
-	class fuse {
+	/// data about a torpedo fuse
+	class fuse
+	{
 	public:
 		fuse();
 		enum models { Pi1, Pi2, Pi3, Pi4a, Pi4b, Pi4c, Pi6, TZ3, TZ5, TZ6 };
@@ -86,6 +88,22 @@ class torpedo : public ship
 		// this function computes if the fuse ignites or fails, call it once
 		bool handle_impact(angle impactangle) const;
 		fuse(const xml_elem& parent, date equipdate);
+	};
+
+	/// data about setup of a torpedo while it is still in the tube
+	class setup
+	{
+	public:
+		setup();
+		unsigned primaryrange;	// 1600...3200, [SAVE]
+		unsigned secondaryrange;// 800/1600, [SAVE]
+		bool initialturn_left;	// initital turn is left (true) or right (false), [SAVE]
+		angle turnangle;	// (0...180 degrees, for LUT, FAT has 180), [SAVE]
+		unsigned torpspeed;	// torpspeed (0-2 slow-fast, only for G7a torps), [SAVE]
+		double rundepth;	// depth the torpedo should run at, [SAVE]
+
+		void load(const xml_elem& parent);
+		void save(xml_elem& parent) const;
 	};
 
 	enum warhead_types { Ka, Kb, Kc, Kd, Ke, Kf };
@@ -120,12 +138,7 @@ class torpedo : public ship
 	double sensor_activation_distance;	// meters. unused if torp has no sensors.
 
 	// ------------- configured by the player ------------------
-	unsigned primaryrange;	// 1600...3200, [SAVE]
-	unsigned secondaryrange;// 800/1600, [SAVE]
-	bool initialturn_left;	// initital turn is left (true) or right (false), [SAVE]
-	angle turnangle;	// (0...180 degrees, for LUT, FAT has 180), [SAVE]
-	unsigned torpspeed;	// torpspeed (0-2 slow-fast, only for G7a torps), [SAVE]
-	double rundepth;	// depth the torpedo should run at, [SAVE]
+	setup mysetup;		// [SAVE]
 
 	// ------------ changes over time by simulation
 	double temperature;	// only useful for electric torpedoes, [SAVE]
@@ -159,12 +172,6 @@ public:
 	virtual void load(const xml_elem& parent);
 	virtual void save(xml_elem& parent) const;
 
-	// additional FAT/LUT values as indices (0-16,0-1,0-1,0-180,0-2,0-25) fixme
-	// this method is never used, as sub_torpsetup_display accesses torpedo's members
-	// directly, bad! fixme
-	void set_steering_values(unsigned primrg, unsigned secrg, bool initurnleft, angle turnang,
-				 unsigned tspeedsel, double rdepth);
-	
 	virtual void simulate(double delta_time);
 
 	// sets speed to initial speed, sets position

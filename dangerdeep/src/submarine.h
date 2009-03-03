@@ -27,10 +27,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "tdc.h"
 #include "sonar.h"
 #include "sonar_operator.h"
+#include "torpedo.h"
 #include <vector>
 
 class game;
-class torpedo;
+//class torpedo;
 
 ///\brief Represents a submarine with all attributes like torpedo storage and handling, depth rudder control etc.
 /** Submarine attributes are defined via specification XML file.
@@ -44,17 +45,19 @@ class submarine : public ship
 
  public:
 
- 	//fixme: later we have to add control data for each torpedo (gyro angle, fat/lut setup for each
- 	//torpedo etc. we store pointers to class torpedo here instead of "type" to accomplish this)
-	struct stored_torpedo {
+	struct stored_torpedo
+	{
 		enum st_status { st_empty, st_reloading, st_unloading, st_loaded };
 		// be careful with that...
-		torpedo* torp;
+		std::string specfilename;
+		torpedo::setup setup;
+		double temperature;
 		st_status status;	// 0 empty 1 reloading 2 unloading 3 loaded
 		unsigned associated;	// reloading from/unloading to
 		double remaining_time;	// remaining time until work is finished
 		angle addleadangle;	// additional lead angle (only per tube) fixme: replace by lead angle reported from TDC
 		bool preheating;	// preheating on? only used for torps in a tube
+
 		stored_torpedo();
 		stored_torpedo(game& gm, const std::string& type);
 		void load(game& gm, const xml_elem& parent);
@@ -232,8 +235,6 @@ public:
 
 	// create empty object from specification xml file
 	submarine(game& gm_, const xml_elem& parent);
-
-	~submarine();
 
 	virtual void load(const xml_elem& parent);
 	virtual void save(xml_elem& parent) const;
