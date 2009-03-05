@@ -626,8 +626,9 @@ public:
 private:
 
 	inline void generate_morton_tables(std::vector<long>&, std::vector<long>&);
-	inline unsigned long coord_to_morton(vector2i coord);
 	inline unsigned long coord_to_morton(vector2i& coord);
+	inline unsigned long coord_to_morton(const vector2i& coord);
+	inline unsigned long coord_to_morton(const vector2i& coord) const;
 };
 
 template<class T>
@@ -660,7 +661,13 @@ inline unsigned long morton_bivector<T>::coord_to_morton(vector2i& coord)
 }
 
 template<class T>
-inline unsigned long morton_bivector<T>::coord_to_morton(vector2i coord) 
+inline unsigned long morton_bivector<T>::coord_to_morton(const vector2i& coord) const
+{
+	return morton_x[coord.x] + morton_y[coord.y];
+}
+
+template<class T>
+inline unsigned long morton_bivector<T>::coord_to_morton(const vector2i& coord) 
 {
 	return morton_x[coord.x] + morton_y[coord.y];
 }
