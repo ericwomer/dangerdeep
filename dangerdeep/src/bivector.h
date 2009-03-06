@@ -524,7 +524,7 @@ protected:
 	template<class U> friend class bivector;
 	
 public:
-	morton_bivector() {}
+	morton_bivector():datasize(0) {}
 	
 	morton_bivector(const bivector<T>& bv) {
 		datasize = std::max(pow(2, ceil(log2(bv.datasize.x))), pow(2, ceil(log2(bv.datasize.y))));
@@ -676,15 +676,13 @@ template <class T>
 void morton_bivector<T>::resize(const long& newsz, const T& v)
 {
 	data.resize(newsz*newsz, v);
-	if(newsz>datasize) {
-		morton_x.resize(newsz);
-		morton_y.resize(newsz);
+	morton_x.resize(newsz);
+	morton_y.resize(newsz);
+
+	if((newsz*newsz)>datasize) {
+		datasize = newsz;
 		generate_morton_tables(morton_x, morton_y);
-	} else {
-		morton_x.resize(newsz);
-		morton_y.resize(newsz);
-	}
-	datasize = newsz;
+	} datasize = newsz;
 }
 
 template <class T>
