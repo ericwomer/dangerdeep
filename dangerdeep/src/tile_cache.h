@@ -49,19 +49,24 @@ public:
 		int 			tile_size;
 		unsigned int 	slots;
 		unsigned long 	expire;
-		T 				no_data;
 	};
 	
 	/* The compare function for the std::map */
 	struct coord_compare
 	{
- 		bool operator()(const vector2l& lhs, const vector2l& rhs) const {
-			return (lhs.x<rhs.x && lhs.y<rhs.y);
+ 		bool operator()(const vector2i& lhs, const vector2i& rhs) const {
+			if(lhs.y>rhs.y) return false;
+			if(lhs.y<rhs.y) return true;
+			if(lhs.y==rhs.y) {
+				if(lhs.x<rhs.x) return true;
+				return false;
+			}
+			return false;
 		}
 	};
 		
 	/* Iterator type to iterate through the tile map */
-	typedef typename std::map<vector2l, tile<T>, coord_compare>::iterator tile_list_iterator;
+	typedef typename std::map<vector2i, tile<T>, coord_compare>::iterator tile_list_iterator;
 	
 	/* Constructs a tile_cache object and generates the morton lookup tables
 	 * 
@@ -75,7 +80,7 @@ public:
 	 * no_data: the no_data value. for further documentation is in tile.h
 	 */
 	tile_cache(const std::string tile_folder, int overall_rows, int overall_cols, int tile_size,
-				unsigned int slots, unsigned long expire, T no_data) 
+				unsigned int slots, unsigned long expire) 
 	{
 		configuration.tile_folder = tile_folder;
 		configuration.overall_rows = overall_rows;
@@ -83,16 +88,14 @@ public:
 		configuration.tile_size = tile_size;
 		configuration.slots = slots;
 		configuration.expire = expire;
-		configuration.no_data = no_data;
 
-		generate_morton_tables(morton_table_x, morton_table_y);
 	};
-	
+	tile_cache() {};
 	/* Returns a value from the corresponding tile. If the tile isn't in the cache it's added to it.
 	 * 
 	 * coord: should be clear. Note that it takes global coordinates, no tile local coordinates!
 	 */
-  	T get_value(vector2l& coord);
+  	T get_value(vector2i& coord);
 
 	/* Removes all tiles from cache */
   	void flush();
@@ -100,50 +103,20 @@ public:
 protected:
 	
 	/* a map that holds all cached tiles */
-	std::map<vector2l, tile<T>, coord_compare> tile_list;
+	std::map<vector2i, tile<T>, coord_compare> tile_list;
 	/* holds all configuration related variables */
 	config_type configuration;
-	/* The two lookup tables for morton order */
-	std::vector<long> morton_table_x, morton_table_y;
 	
 	/* removes the least recently used tile from cache */
 	inline void free_slot();
 	/* removes all expired tiles from cache */
 	inline void	erase_expired();
 	/* computes the bottom left corner of correspondig tile to the given global coordinates */
-  	inline vector2l coord_to_tile(vector2l& coord);
-	/* generates the morton lookup tables */
-	inline void generate_morton_tables(std::vector<long>&, std::vector<long>&);
+  	inline vector2i coord_to_tile(vector2i& coord);
 };
 
 template<class T>
-inline void tile_cache<T>::generate_morton_tables(std::vector<long>& table_x, std::vector<long>& table_y) 
-{
-	table_x.resize(configuration.tile_size);
-	table_y.resize(configuration.tile_size);
-
-	long d0 = 0, d1 = 0, ones0 = 0, ones1 = 0;
-
-	/* data type lengths vary from system to system */
-	for (unsigned int i=0; i<sizeof(long); i++) {
-		ones0 <<= 4;
-		ones0 += 10; /* 1010 */
-		ones1 <<= 4;
-		ones1 += 5; /* 0101 */
-	}
-
-	table_x[0] = 0;
-	table_y[0] = 0;	
-	for (long i=1; i < configuration.tile_size; i++) {
-		d0 = ((d0 | ones0)+1) & ones1;
-		d1 = ((d1 | ones1)+1) & ones0;
-		table_x[i] = d0;
-		table_y[i] = d1;
-	}
-};
-
-template<class T>
-T tile_cache<T>::get_value(vector2l& coord) 
+T tile_cache<T>::get_value(vector2i& coord) 
 {
 	T return_value;
 
@@ -153,7 +126,7 @@ T tile_cache<T>::get_value(vector2l& coord)
 	if (coord.x < 0) coord.x+= configuration.overall_cols;
 	if (coord.y < 0) coord.y+= configuration.overall_rows;
 
-	vector2l tile_coord = coord_to_tile(coord);
+	vector2i tile_coord = coord_to_tile(coord);
 	tile_list_iterator it = tile_list.find(tile_coord);
 
 	if(it != tile_list.end()) return_value = it->second.get_value(coord-tile_coord);
@@ -161,19 +134,13 @@ T tile_cache<T>::get_value(vector2l& coord)
 		if (configuration.slots>0 && tile_list.size()>=configuration.slots) 
 			free_slot();
 		
-		std::stringstream filename;
-		filename << configuration.tile_folder;
-		filename << tile_coord.y;
-		filename << "_";
-		filename << tile_coord.x;
-		filename << ".raw";
+			tile<T> new_tile(filename.str().c_str(), tile_coord, configuration.tile_size);
+			tile_list.insert(std::pair<vector2i, tile<T> >(tile_coord, new_tile));
 
-		tile<T> new_tile(filename.str(), tile_coord, configuration.tile_size, configuration.no_data, morton_table_x, morton_table_y);
-		tile_list.insert(std::pair<vector2l, tile<T> >(tile_coord, new_tile));
-
-		return_value = new_tile.get_value(coord-tile_coord);
+			return_value = new_tile.get_value(coord-tile_coord);
 	}
 	erase_expired();
+
 	return return_value;
 }
 
@@ -181,7 +148,7 @@ template<class T>
 inline void tile_cache<T>::free_slot() 
 {
 	unsigned long min = sys().millisec();
-	vector2l min_key;
+	vector2i min_key;
 	for (tile_list_iterator it = tile_list.begin(); it != tile_list.end(); it++) {
 		if (it->second.get_last_access()<=min) {
 			min = it->second.get_last_access();
@@ -210,8 +177,8 @@ void tile_cache<T>::flush()
 }
 
 template<class T>
-inline vector2l tile_cache<T>::coord_to_tile(vector2l& coord) 
+inline vector2i tile_cache<T>::coord_to_tile(vector2i& coord) 
 {
-	return vector2l((coord.x/configuration.tile_size)*configuration.tile_size, (coord.y/configuration.tile_size)*configuration.tile_size);
+	return vector2i((coord.x/configuration.tile_size)*configuration.tile_size, (coord.y/configuration.tile_size)*configuration.tile_size);
 }
 #endif // TILE_CACHE_H

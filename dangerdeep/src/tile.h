@@ -19,18 +19,19 @@
 #ifndef TILE_H
 #define TILE_H
 
-#include <vector>
 #include <fstream>
 #include <string>
+#include <SDL.h>
 #include "time.h"
 #include "vector2.h"
 #include "system.h"
+#include "bzip.h"
+#include "bitstream.h"
+#include "morton_bivector.h"
+#include "log.h"
 
-/* A simple macro that determines if we are on a Big-Endian system */
-#ifndef IS_BENDIAN
-const int ENDIAN_TEST = 1;
-#define IS_BENDIAN ((*(char*)&ENDIAN_TEST)==0)
-#endif
+#define read_bw(target, len, stream); {target = stream.read(len); if(stream.read(1)==1) {target=(-target);}}
+#define read_bw_s(target, len, shift, stream); {target = stream.read(len); target<<=shift; if(stream.read(1)==1) {target=(-target);}}
 
 /* A Class that caches tile data from a file and provide a method to access it's values.
  * 
@@ -54,11 +55,9 @@ public:
 	 * range of the tile's values (f.e.: if the data contains values from -11000 to 8000, _no_data could be
 	 * -11001 or -32768 or 32767 or ...)
 	 */
-  	tile(std::string filename, vector2l& _bottom_left, int size, T _no_data, std::vector<long>& _morton_x, std::vector<long>& _morton_y);
-
-	/* copy constructor */
-	tile(const tile<T> &rhs);
-
+  	tile(const char *filename, vector2i& _bottom_left, unsigned size);
+	tile(const tile<T>&);
+	tile() {};
 	/* Returns the value correspondig to the given local coordinate.
 	 * 
 	 * If the value is in memory already it's just returned. 
@@ -70,95 +69,64 @@ public:
 	 * "Is morton layout competive for large two-dimensional arrasy, yet?" by Jeyarajan Thiyagalingam, 
  	 * Olav Beckmann, Paul H.J. Kelly
 	 */
-	T get_value(vector2l coord);
+	T get_value(vector2i coord);
 
 	/* simple getters */
-  	unsigned long get_last_access() const { return last_access; };		
-	vector2l get_bottom_left() const { return bottom_left; };
-	unsigned int get_tile_size() const { return tile_size; };
-	T get_no_data() const { return no_data; };
-	std::string get_filename() const { return filename; };
-	std::vector<long>& get_morton_x() const { return morton_x; };
-	std::vector<long>& get_morton_y() const { return morton_y; };
+  	unsigned long get_last_access() const { return last_access; };
+	vector2i get_bottom_left() const { return bottom_left; };
+	const morton_bivector<T>& get_data() const { return data; };
 
 protected:
-	/* Reverses the byte order of a given variable. Transforms between Big-Endian and Little-Endian and vice versa */
-	inline void reverse_byte_order(unsigned char * b, int n);
-	/* Computes the morton index in 1D space from a given coordinate in 2D space. */
-	inline unsigned long coord_to_morton(vector2l& coord);
-
-	/* The file stream for the data file */
-	std::auto_ptr<std::ifstream>	instream;
-
-	/* Check the constructor's comment */
-	std::string			filename;
-	std::vector<T>		data_vector;
-	vector2l 			bottom_left;
-	unsigned int 		tile_size;
+	morton_bivector<T>	data;
+	vector2i 			bottom_left;
 	unsigned long 		last_access;
-	T 					no_data;
-	/* References(!) to the both morton lookup tables. */
-	std::vector<long>&	morton_x;
-	std::vector<long>&	morton_y;
-		
+	
 };
 
 template<class T>
-tile<T>::tile(std::string _filename, vector2l& _bottom_left, int size, T _no_data, std::vector<long>& _morton_x, std::vector<long>& _morton_y) 
-: instream(std::auto_ptr<std::ifstream>(new std::ifstream(_filename.c_str(), std::ios::binary | std::ios::in))), filename(_filename), data_vector(size*size, _no_data), 
-  bottom_left(_bottom_left), tile_size(size), last_access(sys().millisec()), no_data(_no_data), morton_x(_morton_x), morton_y(_morton_y)
+tile<T>::tile(const char *filename, vector2i& _bottom_left, unsigned size) 
+: data(size), bottom_left(_bottom_left), last_access(sys().millisec())
 {
-	if (!instream->is_open()) throw std::ios::failure("Could not open file: " + std::string(filename));	
+	std::ifstream file;
+	file.open(filename);
+	if(file.is_open()) {
+		bzip_istream bin(&file);
+		ibitstream in(&bin);
+
+		T average;
+		Uint8 shift, numbits;
+
+		read_bw(average, 15, in);
+		read_bw(numbits, 4, in);
+		read_bw(shift, 4, in);
+
+		T *ptr = data.data_ptr();
+		for(unsigned long i=0; i<size*size; i++) {
+			read_bw_s((*ptr), numbits, shift, in);
+			*ptr +=average;
+			ptr++;
+		}
+
+		bin.close();
+		file.close();
+	} else {
+		std::stringstream msg;
+		msg << "Cannot open file: ";
+		msg << filename;
+		log_warning(msg.str());
+	}
 }
 
 template<class T>
-tile<T>::tile(const tile<T> &rhs)
-: instream(std::auto_ptr<std::ifstream>(new std::ifstream(rhs.get_filename().c_str(), std::ios::binary | std::ios::in))), 
-filename(rhs.get_filename()), data_vector(rhs.get_tile_size()*rhs.get_tile_size(), rhs.get_no_data()), 
-bottom_left(rhs.get_bottom_left()), tile_size(rhs.get_tile_size()), last_access(rhs.get_last_access()), 
-no_data(rhs.get_no_data()), morton_x(rhs.get_morton_x()), morton_y(rhs.get_morton_y())
+tile<T>::tile(const tile<T>& other) : data(other.get_data()), bottom_left(other.get_bottom_left()), last_access(other.get_last_access())
 {
-	if (!instream->is_open()) throw std::ios::failure("Could not open file: " + std::string(filename));	
 }
 
 template<class T>
-T tile<T>::get_value(vector2l coord) 
+T tile<T>::get_value(vector2i coord) 
 {
 	last_access = sys().millisec();
-	coord.y = tile_size-coord.y-1;
-
-	long morton_coord = coord_to_morton(coord);
-
-	if (data_vector[morton_coord] != no_data)
-		return data_vector[morton_coord];
-
-	vector2l start_coord((coord.x%2)==0?coord.x:coord.x-1, (coord.y%2)==0?coord.y:coord.y-1);
-	long start_morton = coord_to_morton(start_coord);
-	
-	instream->seekg(start_morton*sizeof(T));
-	instream->read((char*)&data_vector[start_morton], 4*sizeof(T));
-  	
-	if (IS_BENDIAN)
-		for (int i=0; i<4; i++) reverse_byte_order((unsigned char*)&data_vector[start_morton+i], sizeof(T));
-
-	return data_vector[morton_coord];
-}
-
-template<class T>
-inline unsigned long tile<T>::coord_to_morton(vector2l& coord) 
-{
-	return morton_x[coord.x] + morton_y[coord.y];
-}
-
-template<class T>
-inline void tile<T>::reverse_byte_order(unsigned char * b, int n)
-{
-   register int i = 0;
-   register int j = n-1;
-   while (i<j)
-   {
-      std::swap(b[i], b[j]);
-      i++, j--;
-   }
+	coord.y = data.size()-coord.y-1;
+	return data.at(coord);
 }
 #endif

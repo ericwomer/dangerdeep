@@ -39,6 +39,7 @@
 #include "perlinnoise.h"
 #include "tile_cache.h"
 #include "game.h"
+#include "log.h"
 
 
 #define rad2deg(x) ((x*180.0)/M_PI)
@@ -47,7 +48,7 @@ template <class T>
 class terrain : public height_generator
 {
 protected:
-	std::auto_ptr<tile_cache<T> > m_tile_cache;
+	tile_cache<T> m_tile_cache;
 	int num_levels;
 	long int resolution, min_height, max_height;
 	vector2l bounds;
@@ -63,7 +64,7 @@ protected:
 	std::vector<uint8_t> ct[8];
 	std::vector<float> extrah;
 	std::fstream map_file;
-
+	
 public:
 
 	terrain(const std::string&, const std::string&, unsigned);
@@ -75,6 +76,7 @@ public:
 		minh = (double)min_height;
 		maxh = (double)max_height;
 	}
+	
 };
 
 
@@ -95,9 +97,9 @@ terrain<T>::terrain(const std::string& header_file, const std::string& data_dir,
         "tex_grass4.jpg",
         "tex_grass5.jpg",
         "tex_mud.jpg",
-        "tex_stone.jpg",
-        "tex_sand.jpg"
-    };
+		"tex_stone.jpg",
+		"tex_sand.jpg"
+	};
     for (unsigned i = 0; i < 8; ++i) {
         sdl_image tmp(get_texture_dir() + texnames[i]);
         unsigned bpp = 0;
@@ -125,15 +127,16 @@ terrain<T>::terrain(const std::string& header_file, const std::string& data_dir,
 	origin.y = elem.attri("y");
 
     // heired from height_generator interface
-	sample_spacing = 10.0;
-	m_tile_cache = std::auto_ptr<tile_cache<T> >(new tile_cache<T>(data_dir, bounds.y, bounds.x, 512, 0, 300000, min_height-1));
+	sample_spacing = 50.0;
+	m_tile_cache = tile_cache<T>(data_dir, bounds.y, bounds.x, 256, 0, 300000);
+
 }
 
 template <class T>
 void terrain<T>::compute_heights(int detail, const vector2i& coord_bl, const vector2i& coord_sz,
                                    float* dest, unsigned stride, unsigned line_stride, bool noise)
 {
-	float scale = 2.0;
+	float scale = 1.0;
 	if (!stride) stride = 1;
 	if (!line_stride) line_stride = coord_sz.x * stride;
 
@@ -172,12 +175,15 @@ bivector<float> terrain<T>::generate_patch(int detail, const vector2i& coord_bl,
                 for (int x = 0; x < coord_sz.x; x++) {
                     vector2f coord = vector2f(((float)((coord_bl.x+x)<<detail))*sample_spacing, ((float)((coord_bl.y+y)<<detail))*sample_spacing);
 
-                    coord = vector2f((((float)coord.x)/SECOND_IN_METERS)/(float)resolution, 
-									 (((float)coord.y)/SECOND_IN_METERS)/(float)resolution);
-
-					vector2l coord_l = vector2l(origin.x+coord.x, origin.y+coord.y);
+					coord.x = (coord.x*180.0)/(M_PI*EARTH_RADIUS);
+					coord.y = (coord.y*180.0)/(M_PI*EARTH_RADIUS);
 					
-					patch[vector2i(x, y)] = (float) m_tile_cache->get_value(coord_l);
+					coord = vector2f(((float)coord.x)*(float)resolution, 
+									 ((float)coord.y)*(float)resolution);
+
+					vector2i coord_l = vector2i(origin.x+coord.x, origin.y+coord.y);
+					
+					patch[vector2i(x, y)] = (float) m_tile_cache.get_value(coord_l);
                 }
             }
         } else throw error("invalid detail level requested");
@@ -203,7 +209,7 @@ void terrain<T>::compute_colors(int detail, const vector2i& coord_bl, const vect
                     yc2 = coord.y >> -detail;
                 }
                 float z = -4500;
-                if (detail <= 6) {
+		        if (detail <= 6) {
                     float h = pn.value(xc2, yc2, 6) / 255.0f;
                     z = -4500 + h * h * h * 0.5 * 256;
                 }
@@ -215,7 +221,7 @@ void terrain<T>::compute_colors(int detail, const vector2i& coord_bl, const vect
                 //if (zi <= 4) zi = ((xc/256)*(xc/256)*3+(yc/256)*(yc/256)*(yc/256)*2+(xc/256)*(yc/256)*7)%5;
                 unsigned i = ((yc & (ch - 1)) * cw + (xc & (cw - 1)));
                 float zif2 = 1.0 - zif;
-                c = color(uint8_t(ct[zi][3 * i] * zif2 + ct[zi + 1][3 * i] * zif),
+                c = color(uint8_t(ct[zi][3 * i + 0] * zif2 + ct[zi + 1][3 * i + 0] * zif),
                           uint8_t(ct[zi][3 * i + 1] * zif2 + ct[zi + 1][3 * i + 1] * zif),
                           uint8_t(ct[zi][3 * i + 2] * zif2 + ct[zi + 1][3 * i + 2] * zif));
             } else {
@@ -245,4 +251,5 @@ void terrain<T>::compute_colors(int detail, const vector2i& coord_bl, const vect
         }
     }
 }
+
 #endif
