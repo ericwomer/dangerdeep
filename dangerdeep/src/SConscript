@@ -8,6 +8,7 @@ Import('env', 'gfxlibs', 'alllibs', 'installbindir', 'datadir', 'version', 'ossp
 dftdsources = Split("""subsim.cpp
 	ai.cpp
 	airplane.cpp
+	bitstream.cpp
 	bzip.cpp
 	cfg.cpp
 	coastmap.cpp
@@ -133,7 +134,7 @@ env.Default(portal)
 treegentest = env.Program('treegentest', ['treegentest.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
 env.Default(treegentest)
 
-geoclipmaptest = env.Program('geoclipmaptest', ['geoclipmaptest.cpp', 'height_generator_map.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
+geoclipmaptest = env.Program('geoclipmaptest', ['geoclipmaptest.cpp', 'height_generator_map.cpp', 'bitstream.cpp', 'bzip.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
 env.Default(geoclipmaptest)
 
 if ffmpeg_available:
@@ -141,8 +142,8 @@ if ffmpeg_available:
 	videoplaytest = env.Program('videoplaytest', ['videoplaytest.cpp', datadirsobj, filehelper_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs + ['avcodec', 'avformat'])
 	env.Default(videoplaytest)
 
-map_tiles = env.Program('map_tiles', ['map_tiles.cpp'], LIBS = alllibs)
-env.Default(map_tiles)
+map_precompute = env.Program('map_precompute', ['tools/map_precompute.cpp', 'bitstream.cpp', 'bzip.cpp', threads_obj, datadirsobj, filehelper_obj], LIBS = alllibs)
+env.Default(map_precompute)
 
 ############ this allows to run "scons install" to install the binary
 install = env.Alias('install', env.Install(installbindir, binary))
