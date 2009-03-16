@@ -134,10 +134,16 @@ T tile_cache<T>::get_value(vector2i& coord)
 		if (configuration.slots>0 && tile_list.size()>=configuration.slots) 
 			free_slot();
 		
-			tile<T> new_tile(filename.str().c_str(), tile_coord, configuration.tile_size);
-			tile_list.insert(std::pair<vector2i, tile<T> >(tile_coord, new_tile));
+		std::stringstream filename;
+		filename << configuration.tile_folder;
+		filename << tile_coord.y;
+		filename << "_";
+		filename << tile_coord.x;
+		filename << ".bz2";
+		tile<T> new_tile(filename.str().c_str(), tile_coord, configuration.tile_size);
+		tile_list.insert(std::pair<vector2i, tile<T> >(tile_coord, new_tile));
 
-			return_value = new_tile.get_value(coord-tile_coord);
+		return_value = new_tile.get_value(coord-tile_coord);
 	}
 	erase_expired();
 
