@@ -20,7 +20,7 @@
 #ifndef BITSTREAM_H
 #define BITSTREAM_H
 
-#include <SDL.h>
+#include <SDL_types.h>
 #include <iostream>
 #include <vector>
 
