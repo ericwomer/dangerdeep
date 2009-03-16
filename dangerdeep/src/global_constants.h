@@ -38,7 +38,7 @@ const double EARTH_PERIMETER = 40030173.59;
 const double BRT_VOLUME = 2.8316846592;
 
 // earth radius in meters (radius of a globe with same volume as the GRS 80 ellipsoide)
-const double EARTH_RADIUS = 6371000.8;			// 6378km
+const double EARTH_RADIUS = 6371000.785;			// 6371km
 const double SUN_RADIUS = 696e6;			// 696.000km
 const double MOON_RADIUS = 1.738e6;			// 1738km
 const double EARTH_SUN_DISTANCE = 149600e6;		// 149.6 million km.
