@@ -829,8 +829,8 @@ void run()
 #endif
 #else	
     float camadd = -4500.0;
-    terrain<Sint16> m_terrain(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", 11);
-    geoclipmap gcm(10, 8, m_terrain);
+    terrain<Sint16> m_terrain(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", 8);
+    geoclipmap gcm(7, 6, m_terrain);
 #endif
 
     //gcm.set_viewerpos(vector3(0, 0, 30.0));
