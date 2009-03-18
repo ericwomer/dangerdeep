@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "color.h"
 #include <string>
 #include <list>
+#include <vector>
 #include <memory>
 
 class texture;
@@ -111,23 +112,26 @@ class glsl_program
 	/// set up texture for a particular shader name
 	void set_gl_texture(const texture& tex, unsigned loc, unsigned texunit) const;
 
-	/// set uniform variable (vec3)
-	void set_uniform(unsigned loc, const vector3f& value) const;
-
-	/// set uniform variable (vec2)
-	void set_uniform(unsigned loc, const vector2f& value) const;
-
 	/// set uniform variable (float)
 	void set_uniform(unsigned loc, float value) const;
 
 	/// set uniform variable (doubles)
 	void set_uniform(unsigned loc, const vector3& value) const;
+		
+	/// set uniform variable (vec2)
+	void set_uniform(unsigned loc, const vector2f& value) const;
+		
+	/// set uniform variable (vec3)
+	void set_uniform(unsigned loc, const vector3f& value) const;
+		
+	/// set uniform variable (vec4)
+	void set_uniform(unsigned loc, const vector4f& value) const;
+		
+	/// set uniform variable (vec4 array)
+	void set_uniform(unsigned loc, const std::vector<vector4f>& values) const;
 
 	/// set uniform variable (matrix4)
 	void set_uniform(unsigned loc, const matrix4& value) const;
-
-	/// set uniform variable (vec4)
-	void set_uniform(unsigned loc, const vector4f& value) const;
 
 	/// set uniform variable (vec4)
 	void set_uniform(unsigned loc, const colorf& value) const;
@@ -204,6 +208,11 @@ class glsl_shader_setup
 		prog.set_uniform(loc, value);
 	}
 
+	/// set uniform variable (vec4)
+	void set_uniform(unsigned loc, const std::vector<vector4f>& value) const {
+		prog.set_uniform(loc, value);
+	}
+		
 	/// set uniform variable (vec4)
 	void set_uniform(unsigned loc, const colorf& value) const {
 		prog.set_uniform(loc, value);
