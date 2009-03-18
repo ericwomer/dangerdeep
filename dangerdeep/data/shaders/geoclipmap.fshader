@@ -1,17 +1,14 @@
 // -*- mode: C; -*-
-struct tex_offset {
-	float x;
-	float y;
-};
-struct region {
-	float range;
-	float bound;
-	tex_offset tex_off;
-};
 
 uniform float tex_coord_factor;
-uniform region regions[3];
-uniform tex_offset slope_offset;
+/*
+	x = range
+	y = upper_bound
+	z = tex_offset_x
+	w = tex_offset_y
+ */
+uniform vec4 regions[3];
+uniform vec2 slope_offset;
 
 varying vec3 lightdir;
 varying vec2 texcoordnormal;
@@ -43,13 +40,15 @@ void main()
 	// compute color
 	vec3 col = vec3(0.0, 0.0, 0.0);
 	float weight;
+	
 	// compute simple weight of a texture dependent from it's height and the specified vertical regions
 	for(int i=0; i<regions.length(); i++) {
-		weight = max(0.0, (regions[i].range - abs(gl_TexCoord[0].z - regions[i].bound)) / regions[i].range);
-		col  += weight * texture2D(terrain_texture, (frac(gl_TexCoord[0].xy)*tex_coord_factor)+vec2(regions[i].tex_off.x, regions[i].tex_off.y)).xyz;
+		weight = max(0.0, (regions[i].x - abs(gl_TexCoord[0].z - regions[i].y)) / regions[i].x);
+		col  += weight * texture2D(terrain_texture, (frac(gl_TexCoord[0].xy)*tex_coord_factor)+vec2(regions[i].z, regions[i].w)).xyz;
 	}
 	//add the weighted texture for slopes
-	col += dot(texture2D(texnormal, texcoordnormal), vec4(0.0, 0.0, 1.0, 0.0)) * texture2D(terrain_texture, (frac(gl_TexCoord[0].xy)*tex_coord_factor)+vec2(slope_offset.x, slope_offset.y)).xyz;
+	float slope_weight = max(0, dot(normalize(texture2D(texnormal, texcoordnormal).xyz), vec3(0.0, 0.0, 1.0)));
+	col += slope_weight * texture2D(terrain_texture, (frac(gl_TexCoord[0].xy)*tex_coord_factor)+slope_offset).xyz;
 
 	vec3 final_color = col * (max(dot(L, N), 0.0) * (1.0 - ambient) + ambient);
 
