@@ -276,7 +276,7 @@ user_interface::user_interface(game& gm) :
 	// j_max <= log2(z_far / (2^n * sample_spacing))
 	// and #levels = j_max+1
 	// so #levels = floor(log2(z_far / (2^n * sample_spacing))) + 1
-	const double z_far = 20000.0;
+	//const double z_far = 20000.0;
 
 	mygeoclipmap.reset(new geoclipmap(TERRAIN_NR_LEVELS, TERRAIN_RESOLUTION_N, mygame->get_height_gen()));
 

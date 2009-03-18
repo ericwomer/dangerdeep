@@ -63,8 +63,8 @@ public:
 	morton_bivector(const morton_bivector<T>& bv) {
 		resize(bv.size());
 
-		for(unsigned y=0; y<datasize; y++) {
-			for(unsigned x=0; x<datasize; x++) {
+		for(long y=0; y<datasize; y++) {
+			for(long x=0; x<datasize; x++) {
 				at(x,y) = bv.at(x,y);
 			}
 		}
