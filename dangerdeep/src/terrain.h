@@ -107,10 +107,10 @@ terrain<T>::terrain(const std::string& header_file, const std::string& data_dir,
 	elem = root.child("slope_offset");
 	slope_offset.x = elem.attrf("x");
 	slope_offset.y = elem.attrf("x");
-	for (xml_elem::iterator it = root.iterate("region"); !it.end(); it.next()) {
+	elem = root.child("regions");
+	for (xml_elem::iterator it = elem.iterate("region"); !it.end(); it.next()) {
 		elem = it.elem();
 		regions.push_back(region(elem.attrf("min"), elem.attrf("max"), vector2f(elem.attrf("off_x"), elem.attrf("off_y"))));
-		std::cout << "region" << std::endl;
 	}
 	
     // heired from height_generator interface
