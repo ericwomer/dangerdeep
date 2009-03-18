@@ -162,7 +162,7 @@ glsl_shader::glsl_shader(const string& filename, type stype, const glsl_shader::
 		string prg;
 
 		// always add this mandatory string, some ATI cards don't like it. We don't care.
-		prg += "#version 110\n";
+		prg += "#version 120\n";
 
 		// add special optimizations for Nvidia cards
 		if (is_nvidia_card) {
@@ -363,8 +363,6 @@ void glsl_program::set_uniform(unsigned loc, float value) const
 		throw runtime_error("glsl_program::set_uniform, program not bound!");
 	glUniform1f(loc, value);
 }
-
-
 
 void glsl_program::set_uniform(unsigned loc, const vector3& value) const
 {
