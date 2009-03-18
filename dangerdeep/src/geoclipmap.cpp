@@ -105,34 +105,16 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 		myshader[i]->set_uniform(loc_N_rcp[i], 1.0f/resolution_vbo);
 		
 		unsigned loc_tmp;
-		const std::vector<height_generator::region> regions = hg.get_regions();
 		
 		loc_tmp = myshader[i]->get_uniform_location("tex_coord_factor");
 		myshader[i]->set_uniform(loc_tmp, hg.get_tex_coord_factor());
 		loc_tmp = myshader[i]->get_uniform_location("tex_stretch_factor");
 		myshader[i]->set_uniform(loc_tmp, hg.get_tex_stretch_factor());
-		loc_tmp = myshader[i]->get_uniform_location("slope_offset.x");
-		myshader[i]->set_uniform(loc_tmp, hg.get_slope_offset().x);
-		loc_tmp = myshader[i]->get_uniform_location("slope_offset.y");
-		myshader[i]->set_uniform(loc_tmp, hg.get_slope_offset().y);
-		std::stringstream ss;
-		for(unsigned j=0; j<regions.size(); j++) {
-			ss << "region["; ss << j; ss << "].range";
-			loc_tmp = myshader[i]->get_uniform_location(ss.str().c_str());
-			myshader[i]->set_uniform(loc_tmp, regions[j].max-regions[j].min);
-			ss.str(std::string()); ss.clear();
-			ss << "region["; ss << j; ss << "].bound";
-			loc_tmp = myshader[i]->get_uniform_location(ss.str().c_str());
-			myshader[i]->set_uniform(loc_tmp, regions[j].max);
-			ss.str(std::string()); ss.clear();
-			ss << "region["; ss << j; ss << "].tex_off.x";
-			loc_tmp = myshader[i]->get_uniform_location(ss.str().c_str());
-			myshader[i]->set_uniform(loc_tmp, regions[j].texture_offset.x);		
-			ss.str(std::string()); ss.clear();
-			ss << "region["; ss << j; ss << "].tex_off.y";
-			loc_tmp = myshader[i]->get_uniform_location(ss.str().c_str());
-			myshader[i]->set_uniform(loc_tmp, regions[j].texture_offset.y);		
-		}
+		loc_tmp = myshader[i]->get_uniform_location("slope_offset");
+		myshader[i]->set_uniform(loc_tmp, hg.get_slope_offset());
+
+		loc_tmp = myshader[i]->get_uniform_location("regions");
+		myshader[i]->set_uniform(loc_tmp, hg.get_regions());
 		 
 	}
 	// set a texture for normals outside coarsest level, just 0,0,1

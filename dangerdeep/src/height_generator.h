@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 #include "color.h"
 #include "vector3.h"
+#include "vector4.h"
 #include "texture.h"
 #include "datadirs.h"
 
@@ -51,12 +52,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class height_generator
 {
  public:
-	struct region {
-		float min, max;
-		vector2f texture_offset;
-		
-		region(float _min, float _max, vector2f _off) : min(_min), max(_max), texture_offset(_off) {}
-	};
 	/// destructor
 	virtual ~height_generator() {}
 
@@ -87,7 +82,7 @@ class height_generator
 		}
 	}
 	*/
-	const std::vector<region>& get_regions()	const   { return regions; }
+	const std::vector<vector4f>& get_regions()	const   { return regions; }
 	const texture& get_terrain_texture()		const   { return *terrain_texture; }
 	const vector2f& get_slope_offset()			const   { return slope_offset; }
 		
@@ -140,7 +135,7 @@ class height_generator
 	// fixme: is this still needed?
 	unsigned log2_color_res_factor; // colors have 2^x more values as vertices
 		
-	std::vector<region> regions;
+	std::vector<vector4f> regions;
 	std::auto_ptr<texture> terrain_texture;
 	float tex_coord_factor, tex_stretch_factor;
 	vector2f slope_offset;
