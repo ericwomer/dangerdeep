@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 #include "color.h"
 #include "vector3.h"
+#include "texture.h"
+#include "datadirs.h"
 
 /* possible interface changes ahead:
    normals have 2x resolution than vertices,
@@ -49,6 +51,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class height_generator
 {
  public:
+	struct region {
+		float min, max;
+		vector2f texture_offset;
+		
+		region(float _min, float _max, vector2f _off) : min(_min), max(_max), texture_offset(_off) {}
+	};
 	/// destructor
 	virtual ~height_generator() {}
 
@@ -79,7 +87,12 @@ class height_generator
 		}
 	}
 	*/
-
+	const std::vector<region>& get_regions()	const   { return regions; }
+	const texture& get_terrain_texture()		const   { return *terrain_texture; }
+	const vector2f& get_slope_offset()			const   { return slope_offset; }
+		
+	float get_tex_coord_factor()	{ return tex_coord_factor; }
+	float get_tex_stretch_factor()	{ return tex_stretch_factor; }
 	/// compute normal values of given detail and coordinate area (including given coordinates)
 	///@note here is some reasonable implementation, normally it should be overloaded, normals are always packed
 	///@param detail - detail level to be generated and also coordinate domain,
@@ -106,24 +119,6 @@ class height_generator
 		}
 	}
 
-	/// compute color values of given detail and coordinate area (including given coordinates)
-	///@note here is some reasonable implementation, normally it should be overloaded, colors are always packed
-	///@param detail - detail level to be generated and also coordinate domain,
-	///@param coord_bl - xy coordinates for the value to generate, scaled to match detail level, bottem left inclusive
-	///@param coord_sz - xy coordinate range for the value to generate, scaled to match detail level
-	///@param dest - destination where to write color values (R,G,B)
-	virtual void compute_colors(int detail, const vector2i& coord_bl,
-				    const vector2i& coord_sz, Uint8* dest) {
-		for (int y = 0; y < coord_sz.y; ++y) {
-			for (int x = 0; x < coord_sz.x; ++x) {
-				dest[0] = (detail & 1) * 255;
-				dest[1] = 128;
-				dest[2] = coord_bl.x & 255;
-				dest += 3;
-			}
-		}
-	}
-
 	/// get absolute minimum and maximum height of all levels, used for clipping
 	///@param minh - minimum height values of all levels and samples
 	///@param maxh - maximum height values of all levels and samples
@@ -139,10 +134,16 @@ class height_generator
 	/// normal constructor for heirs
 	/// if heirs know L or l2crf right at creation, give some default parameters
 	height_generator(double L = 1.0, unsigned l2crf = 1)
-		: sample_spacing(L), log2_color_res_factor(l2crf) {}
+		: sample_spacing(L), log2_color_res_factor(l2crf), tex_coord_factor(0.0), tex_stretch_factor(0.01) {}
 
 	double sample_spacing;	// equal to "L" value of geoclipmap renderer
+	// fixme: is this still needed?
 	unsigned log2_color_res_factor; // colors have 2^x more values as vertices
+		
+	std::vector<region> regions;
+	std::auto_ptr<texture> terrain_texture;
+	float tex_coord_factor, tex_stretch_factor;
+	vector2f slope_offset;
 };
 
 #endif

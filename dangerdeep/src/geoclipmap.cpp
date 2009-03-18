@@ -53,7 +53,6 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 	  // ^ extra space for normals
 	  texnormalscratchbuf_3f(resolution_vbo*2*resolution_vbo*2*3),
 	  texnormalscratchbuf(resolution_vbo*2*resolution_vbo*2*3),
-	  texcolorscratchbuf(resolution_vbo*color_res_fac * resolution_vbo*color_res_fac * 3),
 	  idxscratchbuf(2*(resolution_vbo+4)*(resolution_vbo+4) // patch triangles
 			+ 2*4*resolution_vbo // T-junction triangles
 			+ 4*2*resolution_vbo // outmost tri-fan
@@ -66,6 +65,7 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 	  height_gen(hg),
 	  wireframe(false)
 {
+	
 	// initialize vertex VBO and all level VBOs
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
 		levels.reset(lvl, new level(*this, lvl, lvl+1==levels.size()));
@@ -82,13 +82,13 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 	// Otherwise the decaying transition factor (going from 1.0 at outer border
 	// down to 0.0 at center), won't have reached 0.0 at inner border,
 	// leading to visible gaps.
+	
 	const float w_fac = resolution_vbo < 128 ? 0.1f : 0.2f;
 	for (unsigned i = 0; i < 2; ++i) {
 		myshader[i]->use();
 		myshader_vattr_z_c_index[i] = myshader[i]->get_vertex_attrib_index("z_c");
 		loc_texterrain[i] = myshader[i]->get_uniform_location("texterrain");
-		loc_texcolor[i] = myshader[i]->get_uniform_location("texcolor");
-		loc_texcolor_c[i] = myshader[i]->get_uniform_location("texcolor_c");
+		loc_terrain_texture[i] = myshader[i]->get_uniform_location("terrain_texture");
 		loc_texnormal[i] = myshader[i]->get_uniform_location("texnormal");
 		loc_texnormal_c[i] = myshader[i]->get_uniform_location("texnormal_c");
 		loc_w_p1[i] = myshader[i]->get_uniform_location("w_p1");
@@ -103,6 +103,37 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 		myshader[i]->set_uniform(loc_w_p1[i], resolution_vbo * w_fac + 1.0f);
 		myshader[i]->set_uniform(loc_w_rcp[i], 1.0f/(resolution_vbo * w_fac));
 		myshader[i]->set_uniform(loc_N_rcp[i], 1.0f/resolution_vbo);
+		
+		unsigned loc_tmp;
+		const std::vector<height_generator::region> regions = hg.get_regions();
+		
+		loc_tmp = myshader[i]->get_uniform_location("tex_coord_factor");
+		myshader[i]->set_uniform(loc_tmp, hg.get_tex_coord_factor());
+		loc_tmp = myshader[i]->get_uniform_location("tex_stretch_factor");
+		myshader[i]->set_uniform(loc_tmp, hg.get_tex_stretch_factor());
+		loc_tmp = myshader[i]->get_uniform_location("slope_offset.x");
+		myshader[i]->set_uniform(loc_tmp, hg.get_slope_offset().x);
+		loc_tmp = myshader[i]->get_uniform_location("slope_offset.y");
+		myshader[i]->set_uniform(loc_tmp, hg.get_slope_offset().y);
+		std::stringstream ss;
+		for(unsigned j=0; j<regions.size(); j++) {
+			ss << "region["; ss << j; ss << "].range";
+			loc_tmp = myshader[i]->get_uniform_location(ss.str().c_str());
+			myshader[i]->set_uniform(loc_tmp, regions[j].max-regions[j].min);
+			ss.str(std::string()); ss.clear();
+			ss << "region["; ss << j; ss << "].bound";
+			loc_tmp = myshader[i]->get_uniform_location(ss.str().c_str());
+			myshader[i]->set_uniform(loc_tmp, regions[j].max);
+			ss.str(std::string()); ss.clear();
+			ss << "region["; ss << j; ss << "].tex_off.x";
+			loc_tmp = myshader[i]->get_uniform_location(ss.str().c_str());
+			myshader[i]->set_uniform(loc_tmp, regions[j].texture_offset.x);		
+			ss.str(std::string()); ss.clear();
+			ss << "region["; ss << j; ss << "].tex_off.y";
+			loc_tmp = myshader[i]->get_uniform_location(ss.str().c_str());
+			myshader[i]->set_uniform(loc_tmp, regions[j].texture_offset.y);		
+		}
+		 
 	}
 	// set a texture for normals outside coarsest level, just 0,0,1
 	std::vector<Uint8> pxl(3, 128);
@@ -179,14 +210,12 @@ void geoclipmap::display(const frustum& f, const vector3& view_delta, bool is_mi
 	glTranslated(translation.x, translation.y, translation.z);
 	frustum f2 = f;
 	if (is_mirror) f2 = f.get_mirrored();
+	myshader[si]->set_gl_texture(height_gen.get_terrain_texture(), loc_terrain_texture[si], 0);
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
-		myshader[si]->set_gl_texture(levels[lvl]->colors_tex(), loc_texcolor[si], 0);
 		myshader[si]->set_gl_texture(levels[lvl]->normals_tex(), loc_texnormal[si], 2);
 		if (lvl + 1 < levels.size()) {
-			myshader[si]->set_gl_texture(levels[lvl+1]->colors_tex(), loc_texcolor_c[si], 1);
 			myshader[si]->set_gl_texture(levels[lvl+1]->normals_tex(), loc_texnormal_c[si], 3);
 		} else {
-			myshader[si]->set_gl_texture(levels[levels.size()-1]->colors_tex(), loc_texcolor_c[si], 1);
 			myshader[si]->set_gl_texture(*horizon_normal, loc_texnormal_c[si], 3);
 		}
 		levels[lvl]->display(f2, is_mirror);
@@ -231,6 +260,8 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx, bool outmost_level)
 	std::vector<Uint8> pxl(3*gcm.resolution_vbo*gcm.resolution_vbo*2*2);
 	normals.reset(new texture(pxl, gcm.resolution_vbo*2,
 				  gcm.resolution_vbo*2, GL_RGB, texture::LINEAR, texture::REPEAT));
+	
+	// fixme: is this still needed?
 	if (color_res_fac == 2) {
 		// reuse pxl
 		memset(&pxl[0], index*30, pxl.size());
@@ -239,8 +270,6 @@ geoclipmap::level::level(geoclipmap& gcm_, unsigned idx, bool outmost_level)
 		pxl.resize(color_res_fac*gcm.resolution_vbo * color_res_fac*gcm.resolution_vbo * 3,
 			   index*30);
 	}
-	colors.reset(new texture(pxl, gcm.resolution_vbo*color_res_fac,
-				 gcm.resolution_vbo*color_res_fac, GL_RGB, texture::LINEAR, texture::REPEAT));
 }
 
 
@@ -442,12 +471,6 @@ void geoclipmap::level::update_region(const geoclipmap::area& upar)
 		}
 	}
 
-	// color update
-	gcm.height_gen.compute_colors(int(index)-int(log2_color_res_fac),
-				      upar.bl*color_res_fac,
-				      sz*color_res_fac,
-				      &gcm.texcolorscratchbuf[0]);
-
 	ptr = 0;
 	geoclipmap::area vboupdate(gcm.clamp(upar.bl - vboarea.bl + dataoffset),
 				   gcm.clamp(upar.tr - vboarea.bl + dataoffset));
@@ -518,15 +541,6 @@ void geoclipmap::level::update_VBO_and_tex(const vector2i& scratchoff,
 				vbooff.x*2, (vbooff.y*2+y) & (gcm.resolution_vbo_mod*2+1), sz.x*2, 1, GL_RGB, GL_UNSIGNED_BYTE,
 				&gcm.texnormalscratchbuf[((scratchoff.y*2+y)*scratchmod*2+scratchoff.x*2)*3]);
 	}
-
-	glActiveTexture(GL_TEXTURE0);
-	colors->set_gl_texture();
-	for (int y = 0; y < sz.y*int(color_res_fac); ++y) {
-		glTexSubImage2D(GL_TEXTURE_2D, 0 /* mipmap level */,
-				vbooff.x*color_res_fac, (vbooff.y*color_res_fac+y) & (gcm.resolution_vbo_mod*color_res_fac+color_res_fac-1), sz.x*color_res_fac, 1, GL_RGB, GL_UNSIGNED_BYTE,
-				&gcm.texcolorscratchbuf[((scratchoff.y*color_res_fac+y)*scratchmod*color_res_fac+scratchoff.x*color_res_fac)*3]);
-	}
-
 	// copy data to real VBO.
 	// we need to do it line by line anyway.
 	for (int y = 0; y < sz.y; ++y) {

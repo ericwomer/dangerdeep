@@ -40,6 +40,8 @@
 #include "tile_cache.h"
 #include "game.h"
 #include "log.h"
+#include "texture.h"
+#include "datadirs.h"
 
 
 #define rad2deg(x) ((x*180.0)/M_PI)
@@ -47,22 +49,17 @@
 template <class T>
 class terrain : public height_generator
 {
+private:
+	terrain();
+	
 protected:
 	tile_cache<T> m_tile_cache;
 	int num_levels;
 	long int resolution, min_height, max_height;
 	vector2l bounds;
 	vector2l origin;
-    bool byteorder;
 
-	terrain();
-
-	std::vector<uint8_t> texture;
-	unsigned cw, ch;
-	perlinnoise pn;
 	perlinnoise pn2;
-	std::vector<uint8_t> ct[8];
-	std::vector<float> extrah;
 	std::fstream map_file;
 	
 public:
@@ -82,32 +79,8 @@ public:
 
 template <class T>
 terrain<T>::terrain(const std::string& header_file, const std::string& data_dir, unsigned _num_levels) 
-	: num_levels(_num_levels), pn(64, 2, 16), pn2(64, 4, num_levels - 4, true)
+	: num_levels(_num_levels), pn2(64, 4, num_levels - 4, true)
 {
-    // proxy stuff for textures and detail <0
-    extrah.resize(64 * 64);
-    for (unsigned y = 0; y < 64; ++y)
-        for (unsigned x = 0; x < 64; ++x)
-            // FIXME: use real gaussion noise function
-            extrah[64 * y + x] = rnd() - 0.5; //extrah2[64*y+x]/256.0-0.5;
-    const char* texnames[8] = {
-        "tex_grass.jpg",
-        "tex_grass2.jpg",
-        "tex_grass3.jpg",
-        "tex_grass4.jpg",
-        "tex_grass5.jpg",
-        "tex_mud.jpg",
-		"tex_stone.jpg",
-		"tex_sand.jpg"
-	};
-    for (unsigned i = 0; i < 8; ++i) {
-        sdl_image tmp(get_texture_dir() + texnames[i]);
-        unsigned bpp = 0;
-        ct[i] = tmp.get_plain_data(cw, ch, bpp);
-        if (bpp != 3) throw error("color bpp != 3");
-    }
-    // --------------------------------------
-
     // open header file
     xml_doc doc(header_file);
     doc.load();
@@ -125,7 +98,21 @@ terrain<T>::terrain(const std::string& header_file, const std::string& data_dir,
 	elem = root.child("origin");
 	origin.x = elem.attri("x");
 	origin.y = elem.attri("y");
-
+	elem = root.child("tex_stretch_factor");
+	tex_stretch_factor = elem.attrf("value");
+	elem = root.child("tex_coord_factor");
+	tex_coord_factor = elem.attrf("value");	
+	elem = root.child("texture");
+	terrain_texture = std::auto_ptr<texture>(new texture(get_texture_dir() += elem.attr("file")));
+	elem = root.child("slope_offset");
+	slope_offset.x = elem.attrf("x");
+	slope_offset.y = elem.attrf("x");
+	for (xml_elem::iterator it = root.iterate("region"); !it.end(); it.next()) {
+		elem = it.elem();
+		regions.push_back(region(elem.attrf("min"), elem.attrf("max"), vector2f(elem.attrf("off_x"), elem.attrf("off_y"))));
+		std::cout << "region" << std::endl;
+	}
+	
     // heired from height_generator interface
 	sample_spacing = 50.0;
 	m_tile_cache = tile_cache<T>(data_dir, bounds.y, bounds.x, 256, 0, 300000);
@@ -189,67 +176,4 @@ bivector<float> terrain<T>::generate_patch(int detail, const vector2i& coord_bl,
         } else throw error("invalid detail level requested");
 	return patch;
 }
-
-template <class T>
-void terrain<T>::compute_colors(int detail, const vector2i& coord_bl, const vector2i& coord_sz, Uint8* dest)
-{
-    for (int y = 0; y < coord_sz.y; ++y) {
-        for (int x = 0; x < coord_sz.x; ++x) {
-            vector2i coord = coord_bl + vector2i(x, y);
-            color c;
-            if (detail >= -2) {
-                unsigned xc = coord.x << (detail + 2);
-                unsigned yc = coord.y << (detail + 2);
-                unsigned xc2, yc2;
-                if (detail >= 0) {
-                    xc2 = coord.x << detail;
-                    yc2 = coord.y << detail;
-                } else {
-                    xc2 = coord.x >> -detail;
-                    yc2 = coord.y >> -detail;
-                }
-                float z = -4500;
-		        if (detail <= 6) {
-                    float h = pn.value(xc2, yc2, 6) / 255.0f;
-                    z = -4500 + h * h * h * 0.5 * 256;
-                }
-                float zif = (z + 130) * 4 * 8 / 256;
-                if (zif < 0.0) zif = 0.0;
-                if (zif >= 7.0) zif = 6.999;
-                unsigned zi = unsigned(zif);
-                zif = myfrac(zif);
-                //if (zi <= 4) zi = ((xc/256)*(xc/256)*3+(yc/256)*(yc/256)*(yc/256)*2+(xc/256)*(yc/256)*7)%5;
-                unsigned i = ((yc & (ch - 1)) * cw + (xc & (cw - 1)));
-                float zif2 = 1.0 - zif;
-                c = color(uint8_t(ct[zi][3 * i + 0] * zif2 + ct[zi + 1][3 * i + 0] * zif),
-                          uint8_t(ct[zi][3 * i + 1] * zif2 + ct[zi + 1][3 * i + 1] * zif),
-                          uint8_t(ct[zi][3 * i + 2] * zif2 + ct[zi + 1][3 * i + 2] * zif));
-            } else {
-                unsigned xc = coord.x >> (-(detail + 2));
-                unsigned yc = coord.y >> (-(detail + 2));
-                float z = -130;
-                if (detail <= 6) {
-                    float h = pn.value(xc, yc, 6) / 255.0f;
-                    z = -4500 + h * h * h * 0.5 * 256;
-                }
-                float zif = (z + 130) * 4 * 8 / 256;
-                if (zif < 0.0) zif = 0.0;
-                if (zif >= 7.0) zif = 6.999;
-                unsigned zi = unsigned(zif);
-                zif = myfrac(zif);
-                //if (zi <= 4) zi = ((xc/256)*(xc/256)*3+(yc/256)*(yc/256)*(yc/256)*2+(xc/256)*(yc/256)*7)%5;
-                unsigned i = ((yc & (ch - 1)) * cw + (xc & (cw - 1)));
-                float zif2 = 1.0 - zif;
-                c = color(uint8_t(ct[zi][3 * i] * zif2 + ct[zi + 1][3 * i] * zif),
-                          uint8_t(ct[zi][3 * i + 1] * zif2 + ct[zi + 1][3 * i + 1] * zif),
-                          uint8_t(ct[zi][3 * i + 2] * zif2 + ct[zi + 1][3 * i + 2] * zif));
-            }
-            dest[0] = c.r;
-            dest[1] = c.g;
-            dest[2] = c.b;
-            dest += 3;
-        }
-    }
-}
-
 #endif

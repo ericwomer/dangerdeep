@@ -421,8 +421,9 @@ public:
                     int xc = coord.x * int(1 << detail);
                     int yc = coord.y * int(1 << detail);
                     if (detail <= 6) {
-                        float h = pn.value(xc, yc, 6 - detail) / 255.0f;
-                        *dest2 = -130 + h * h * h * 0.5 * 256;
+                        //float h = pn.value(xc, yc, 6 - detail) / 255.0f;
+                        //*dest2 = h * h * h * h * 0.5 * 256;
+						*dest2 = -130+pn.value(xc, yc, 6 - detail);
                     } else
                         *dest2 = -130;
                     dest2 += stride;
@@ -819,7 +820,7 @@ void run()
     float camadd = 700;
 #if 1
     //height_generator_test1 hgt;
-    height_generator_test3 hgt;
+    height_generator_test2 hgt;
     // total area covered = 2^(levels-1) * L * N
     // 8, 7, 1.0 gives 2^14m = 16384m    
     geoclipmap gcm(7, 8/*8*/ /* 2^x=N */, hgt);
@@ -828,7 +829,7 @@ void run()
     geoclipmap gcm(7, 5/*3*/, hgtm);
 #endif
 #else	
-    float camadd = -4500.0;
+    float camadd = -4000.0;
     terrain<Sint16> m_terrain(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", 8);
     geoclipmap gcm(7, 6, m_terrain);
 #endif
@@ -889,10 +890,10 @@ void run()
                         quit = true;
                         break;
                     case SDLK_PAGEUP:
-                        camadd += 5;
+                        camadd += 15;
                         break;
                     case SDLK_PAGEDOWN:
-                        camadd -= 5;
+                        camadd -= 15;
                         break;
                     default:
                         break;

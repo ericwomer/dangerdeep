@@ -31,6 +31,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "height_generator.h"
 #include "color.h"
 
+#include <sstream>
+
 class geoclipmap
 {
  public:
@@ -58,6 +60,7 @@ class geoclipmap
 	const double L;
 
 	// resolution factor vertex to color
+	// fixme: is this still needed?
 	const unsigned color_res_fac;
 	const unsigned log2_color_res_fac;
 
@@ -70,9 +73,6 @@ class geoclipmap
 	// scratch buffer for texture data, for transmission
 	std::vector<vector3f> texnormalscratchbuf_3f;
 	std::vector<Uint8> texnormalscratchbuf;
-
-	// scratch buffer for color texture data, for transmission
-	std::vector<Uint8> texcolorscratchbuf;
 
 	// scratch buffer for index generation, for transmission
 	std::vector<uint32_t> idxscratchbuf;
@@ -142,6 +142,7 @@ class geoclipmap
 		texture& normals_tex() const { return *normals; }
 		texture& colors_tex() const { return *colors; }
 		void clear_area();
+
 	};
 
 	ptrvector<level> levels;
@@ -172,6 +173,7 @@ class geoclipmap
 	unsigned loc_N_rcp[2];
 	unsigned loc_texcshift[2];
 	unsigned loc_texcshift2[2];
+	unsigned loc_terrain_texture[2];
 	texture::ptr horizon_normal;
 
  public:
