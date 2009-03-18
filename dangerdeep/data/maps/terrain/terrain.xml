@@ -3,4 +3,13 @@
 	<height max="8848" min="-11034"/>
 	<bounds x="21600" y="10800" />
 	<origin x="10800" y="5400" />
+	<tex_stretch_factor value="0.01" />
+	<tex_coord_factor value="0.5" />
+	<texture file="tex_terrain.jpg" />
+	<slope_offset x="0.0" y="0.5" />
+	<regions>
+		<region min="-200" max="0" off_x="0.0" off_y="0.0" />
+		<region min="0" max="500" off_x="0.5" off_y="0.0" />
+		<region min="500" max="2000" off_x="0.5" off_y="0.5" />
+	</regions>
 </dftd-map>
