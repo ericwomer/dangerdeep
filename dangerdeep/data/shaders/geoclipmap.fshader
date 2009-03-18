@@ -1,11 +1,24 @@
 // -*- mode: C; -*-
+struct tex_offset {
+	float x;
+	float y;
+};
+struct region {
+	float range;
+	float bound;
+	tex_offset tex_off;
+};
+
+uniform float tex_coord_factor;
+uniform region regions[3];
+uniform tex_offset slope_offset;
 
 varying vec3 lightdir;
 varying vec2 texcoordnormal;
 varying vec2 texcoordnormal_c;
 varying float alpha;
-uniform sampler2D texcolor;
-uniform sampler2D texcolor_c;
+
+uniform sampler2D terrain_texture;
 uniform sampler2D texnormal;
 uniform sampler2D texnormal_c;
 #ifdef MIRROR
@@ -28,13 +41,17 @@ void main()
 			       texture2D(texnormal_c, texcoordnormal_c).xyz * 2.0 - 1.0,
 			       alpha));
 	// compute color
-	vec3 col = mix(texture2D(texcolor, texcoordnormal).xyz,
-		       texture2D(texcolor_c, texcoordnormal_c).xyz,
-		       alpha);
+	vec3 col = vec3(0.0, 0.0, 0.0);
+	float weight;
+	// compute simple weight of a texture dependent from it's height and the specified vertical regions
+	for(int i=0; i<regions.length(); i++) {
+		weight = max(0.0, (regions[i].range - abs(gl_TexCoord[0].z - regions[i].bound)) / regions[i].range);
+		col  += weight * texture2D(terrain_texture, (frac(gl_TexCoord[0].xy)*tex_coord_factor)+vec2(regions[i].tex_off.x, regions[i].tex_off.y)).xyz;
+	}
+	//add the weighted texture for slopes
+	col += dot(texture2D(texnormal, texcoordnormal), vec4(0.0, 0.0, 1.0, 0.0)) * texture2D(terrain_texture, (frac(gl_TexCoord[0].xy)*tex_coord_factor)+vec2(slope_offset.x, slope_offset.y)).xyz;
+
 	vec3 final_color = col * (max(dot(L, N), 0.0) * (1.0 - ambient) + ambient);
-//	final_color = mix(final_color, vec3(1.0, 1.0, 1.0), alpha);
-//	final_color.z = alpha;
-//	vec3 final_color = texture2D(texnormal, texcoordnormal).xyz;
 
 	// add linear fog
 	float fog_factor = exp2(-gl_Fog.density * gl_FogFragCoord * 1.4426940);
