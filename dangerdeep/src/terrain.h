@@ -124,7 +124,7 @@ template <class T>
 void terrain<T>::compute_heights(int detail, const vector2i& coord_bl, const vector2i& coord_sz,
                                    float* dest, unsigned stride, unsigned line_stride, bool noise)
 {
-	float scale = 1.0;
+	float scale = 5.0;
 	if (!stride) stride = 1;
 	if (!line_stride) line_stride = coord_sz.x * stride;
 
