@@ -94,8 +94,7 @@ user_interface::user_interface(game& gm) :
 	current_display(0),
 	current_popup(0),
 	mycoastmap(get_map_dir() + "default.xml"),
-	daymode(gm.is_day_mode()),
-	terraintex(texturecache(), "terrain.jpg")
+	daymode(gm.is_day_mode())
 {
 	add_loading_screen("coast map initialized");
 	mysky.reset(new sky());

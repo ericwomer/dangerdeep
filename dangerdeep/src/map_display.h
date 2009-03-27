@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "color.h"
 #include "widget.h"
 #include "primitives.h"
+#include "bivector.h"
 class game;
 class game_editor;
 class sea_object;
@@ -39,6 +40,7 @@ protected:
 	float mapzoom;	// factor pixel/meter
 	vector2 mapoffset;	// additional offset used for display, relative to player (meters)
 	int mx, my;	// last mouse position
+	int mapmode;
 
 	void draw_vessel_symbol(const vector2& offset, sea_object* so, color c) const;
 	void draw_trail(sea_object* so, const vector2& offset) const;

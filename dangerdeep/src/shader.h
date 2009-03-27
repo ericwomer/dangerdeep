@@ -121,6 +121,9 @@ class glsl_program
 	/// set uniform variable (vec2)
 	void set_uniform(unsigned loc, const vector2f& value) const;
 		
+	/// set uniform variable (vec2 array)
+	void set_uniform(unsigned loc, const std::vector<vector2f>& values) const;
+		
 	/// set uniform variable (vec3)
 	void set_uniform(unsigned loc, const vector3f& value) const;
 		
@@ -188,6 +191,11 @@ class glsl_shader_setup
 		prog.set_uniform(loc, value);
 	}
 
+	/// set uniform variable (vec2 array)
+	void set_uniform(unsigned loc, const std::vector<vector2f>& value) const {
+		prog.set_uniform(loc, value);
+	}
+		
 	/// set uniform variable
 	void set_uniform(unsigned loc, float value) const {
 		prog.set_uniform(loc, value);

@@ -61,6 +61,7 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 	                + DEBUG_INDEX_EXTRA
 #endif
 			),
+	  bumpmap(simplex_noise::noise_map2D(vector2i(256,256), nr_levels), 256, 256, GL_LUMINANCE, texture::LINEAR, texture::REPEAT, true),
 	  levels(nr_levels),
 	  height_gen(hg),
 	  wireframe(false)
@@ -87,8 +88,6 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 	for (unsigned i = 0; i < 2; ++i) {
 		myshader[i]->use();
 		myshader_vattr_z_c_index[i] = myshader[i]->get_vertex_attrib_index("z_c");
-		loc_texterrain[i] = myshader[i]->get_uniform_location("texterrain");
-		loc_terrain_texture[i] = myshader[i]->get_uniform_location("terrain_texture");
 		loc_texnormal[i] = myshader[i]->get_uniform_location("texnormal");
 		loc_texnormal_c[i] = myshader[i]->get_uniform_location("texnormal_c");
 		loc_w_p1[i] = myshader[i]->get_uniform_location("w_p1");
@@ -100,21 +99,24 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 		loc_N_rcp[i] = myshader[i]->get_uniform_location("N_rcp");
 		loc_texcshift[i] = myshader[i]->get_uniform_location("texcshift");
 		loc_texcshift2[i] = myshader[i]->get_uniform_location("texcshift2");
+		loc_tex_stretch_factor[i] = myshader[i]->get_uniform_location("tex_stretch_factor");
+		loc_bumpmap[i] = myshader[i]->get_uniform_location("bump_texture");
+		loc_slope_texture[i] = myshader[i]->get_uniform_location("slope_texture");
 		myshader[i]->set_uniform(loc_w_p1[i], resolution_vbo * w_fac + 1.0f);
 		myshader[i]->set_uniform(loc_w_rcp[i], 1.0f/(resolution_vbo * w_fac));
 		myshader[i]->set_uniform(loc_N_rcp[i], 1.0f/resolution_vbo);
 		
-		unsigned loc_tmp;
-		
-		loc_tmp = myshader[i]->get_uniform_location("tex_coord_factor");
-		myshader[i]->set_uniform(loc_tmp, hg.get_tex_coord_factor());
-		loc_tmp = myshader[i]->get_uniform_location("tex_stretch_factor");
-		myshader[i]->set_uniform(loc_tmp, hg.get_tex_stretch_factor());
-		loc_tmp = myshader[i]->get_uniform_location("slope_offset");
-		myshader[i]->set_uniform(loc_tmp, hg.get_slope_offset());
-
-		loc_tmp = myshader[i]->get_uniform_location("regions");
+		unsigned loc_tmp = myshader[i]->get_uniform_location("regions");
 		myshader[i]->set_uniform(loc_tmp, hg.get_regions());
+		
+		loc_terrain_textures[i].resize(hg.get_texture_count());
+
+		for(unsigned j=0; j<hg.get_texture_count(); j++) {
+			std::stringstream ss;
+			ss << "terrain_texture";
+			ss << j;
+			loc_terrain_textures[i][j] = myshader[i]->get_uniform_location(ss.str().c_str());
+		}
 		 
 	}
 	// set a texture for normals outside coarsest level, just 0,0,1
@@ -192,13 +194,18 @@ void geoclipmap::display(const frustum& f, const vector3& view_delta, bool is_mi
 	glTranslated(translation.x, translation.y, translation.z);
 	frustum f2 = f;
 	if (is_mirror) f2 = f.get_mirrored();
-	myshader[si]->set_gl_texture(height_gen.get_terrain_texture(), loc_terrain_texture[si], 0);
+	myshader[si]->set_gl_texture(bumpmap, loc_bumpmap[si], 2);
+	myshader[si]->set_gl_texture(height_gen.get_slope_texture(), loc_slope_texture[si], 3);
+	for(unsigned j=0; j<height_gen.get_texture_count(); j++) {
+		myshader[si]->set_gl_texture(height_gen.get_terrain_texture(j), loc_terrain_textures[si][j], 4+j);
+	}
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
-		myshader[si]->set_gl_texture(levels[lvl]->normals_tex(), loc_texnormal[si], 2);
+		myshader[si]->set_uniform(loc_tex_stretch_factor[si], height_gen.get_tex_stretch_factor()/pow(2,lvl));
+		myshader[si]->set_gl_texture(levels[lvl]->normals_tex(), loc_texnormal[si], 0);
 		if (lvl + 1 < levels.size()) {
-			myshader[si]->set_gl_texture(levels[lvl+1]->normals_tex(), loc_texnormal_c[si], 3);
+			myshader[si]->set_gl_texture(levels[lvl+1]->normals_tex(), loc_texnormal_c[si], 1);
 		} else {
-			myshader[si]->set_gl_texture(*horizon_normal, loc_texnormal_c[si], 3);
+			myshader[si]->set_gl_texture(*horizon_normal, loc_texnormal_c[si], 1);
 		}
 		levels[lvl]->display(f2, is_mirror);
 	}
@@ -515,7 +522,7 @@ void geoclipmap::level::update_VBO_and_tex(const vector2i& scratchoff,
 	// we need to do it line by line anyway, as the source is not packed.
 	// maybe we can get higher frame rates if it would be packed...
 	// test showed that this is negligible
-	glActiveTexture(GL_TEXTURE2);
+	glActiveTexture(GL_TEXTURE1);
 	normals->set_gl_texture();
 	for (int y = 0; y < sz.y*2; ++y) {
 		//log_debug("update texture xy off ="<<vbooff.x<<"|"<<gcm.mod(vbooff.y+y)<<" idx="<<((scratchoff.y+y)*scratchmod+scratchoff.x)*3);

@@ -109,8 +109,6 @@ protected:
 	ptrvector<class texture> raintex;	// images (animation) of rain drops
 	ptrvector<class texture> snowtex;	// images (animation) of snow flakes
 
-	objcachet<texture>::reference terraintex; //fixme: remove soon
-
 	// free view mode
 //	float freeviewsideang, freeviewupang;	// global spectators viewing angles
 //	vector3 freeviewpos;

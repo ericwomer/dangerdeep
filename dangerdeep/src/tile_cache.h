@@ -31,9 +31,6 @@
  * 
  * The tiles are stored in a std::map atm. Maybe a std::unsorted_map should be used when TR1 goes 
  * into the C++ Standard.
- * It also provides two morton lookup tables that are used by the tiles. For more information about this
- * check "Is morton layout competive for large two-dimensional arrasy, yet?" by Jeyarajan Thiyagalingam, 
- * Olav Beckmann, Paul H.J. Kelly
  */
 template<class T>
 class tile_cache
@@ -44,8 +41,8 @@ public:
 	struct config_type
 	{
 		std::string 	tile_folder;
-		int 			overall_rows;
-		int 			overall_cols;
+		int				overall_rows;
+		int				overall_cols;
 		int 			tile_size;
 		unsigned int 	slots;
 		unsigned long 	expire;
@@ -55,10 +52,10 @@ public:
 	struct coord_compare
 	{
  		bool operator()(const vector2i& lhs, const vector2i& rhs) const {
-			if(lhs.y>rhs.y) return false;
-			if(lhs.y<rhs.y) return true;
-			if(lhs.y==rhs.y) {
-				if(lhs.x<rhs.x) return true;
+			if(lhs.x>rhs.x) return false;
+			if(lhs.x<rhs.x) return true;
+			if(lhs.x==rhs.x) {
+				if(lhs.y<rhs.y) return true;
 				return false;
 			}
 			return false;
@@ -77,7 +74,6 @@ public:
 	 * tile_size: edge length of one tile (tiles are square)
 	 * slots: capacity of the cache. zero means infinite
 	 * expire: number of millisecs after a tile expire when it wasn't accessed. zero means infinite
-	 * no_data: the no_data value. for further documentation is in tile.h
 	 */
 	tile_cache(const std::string tile_folder, int overall_rows, int overall_cols, int tile_size,
 				unsigned int slots, unsigned long expire) 
@@ -95,13 +91,12 @@ public:
 	 * 
 	 * coord: should be clear. Note that it takes global coordinates, no tile local coordinates!
 	 */
-  	T get_value(vector2i& coord);
+  	T get_value(vector2i coord);
 
 	/* Removes all tiles from cache */
   	void flush();
 	
 protected:
-	
 	/* a map that holds all cached tiles */
 	std::map<vector2i, tile<T>, coord_compare> tile_list;
 	/* holds all configuration related variables */
@@ -116,10 +111,11 @@ protected:
 };
 
 template<class T>
-T tile_cache<T>::get_value(vector2i& coord) 
+T tile_cache<T>::get_value(vector2i coord) 
 {
 	T return_value;
-
+	coord.y = configuration.overall_rows-coord.y;
+	
 	/* wrap coordinates if needed */
 	if (coord.x >= configuration.overall_cols) coord.x-= configuration.overall_cols;
 	if (coord.y >= configuration.overall_rows) coord.y-= configuration.overall_rows;
@@ -127,23 +123,24 @@ T tile_cache<T>::get_value(vector2i& coord)
 	if (coord.y < 0) coord.y+= configuration.overall_rows;
 
 	vector2i tile_coord = coord_to_tile(coord);
+
 	tile_list_iterator it = tile_list.find(tile_coord);
 
 	if(it != tile_list.end()) return_value = it->second.get_value(coord-tile_coord);
 	else {
 		if (configuration.slots>0 && tile_list.size()>=configuration.slots) 
 			free_slot();
-		
+
 		std::stringstream filename;
 		filename << configuration.tile_folder;
 		filename << tile_coord.y;
 		filename << "_";
 		filename << tile_coord.x;
 		filename << ".bz2";
-		tile<T> new_tile(filename.str().c_str(), tile_coord, configuration.tile_size);
-		tile_list.insert(std::pair<vector2i, tile<T> >(tile_coord, new_tile));
 
-		return_value = new_tile.get_value(coord-tile_coord);
+		std::pair<tile_list_iterator, bool> p = tile_list.insert(std::pair<vector2i, tile<T> >(tile_coord, tile<T>()));
+		p.first->second.load(filename.str().c_str(), tile_coord, configuration.tile_size);
+		return_value = p.first->second.get_value(coord-tile_coord);
 	}
 	erase_expired();
 

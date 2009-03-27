@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector4.h"
 #include "texture.h"
 #include "datadirs.h"
+#include "ptrvector.h"
 
 /* possible interface changes ahead:
    normals have 2x resolution than vertices,
@@ -82,11 +83,11 @@ class height_generator
 		}
 	}
 	*/
-	const std::vector<vector4f>& get_regions()	const   { return regions; }
-	const texture& get_terrain_texture()		const   { return *terrain_texture; }
-	const vector2f& get_slope_offset()			const   { return slope_offset; }
+	const std::vector<vector2f>& get_regions()	const   { return regions; }
+	const texture& get_terrain_texture(int i)	const   { return *terrain_textures[i]; }
+	const texture& get_slope_texture()			const   { return *slope_texture; }
 		
-	float get_tex_coord_factor()	{ return tex_coord_factor; }
+	unsigned get_texture_count()	{ return terrain_textures.size(); }
 	float get_tex_stretch_factor()	{ return tex_stretch_factor; }
 	/// compute normal values of given detail and coordinate area (including given coordinates)
 	///@note here is some reasonable implementation, normally it should be overloaded, normals are always packed
@@ -129,16 +130,16 @@ class height_generator
 	/// normal constructor for heirs
 	/// if heirs know L or l2crf right at creation, give some default parameters
 	height_generator(double L = 1.0, unsigned l2crf = 1)
-		: sample_spacing(L), log2_color_res_factor(l2crf), tex_coord_factor(0.0), tex_stretch_factor(0.01) {}
+		: sample_spacing(L), log2_color_res_factor(l2crf), tex_stretch_factor(0.01) {}
 
 	double sample_spacing;	// equal to "L" value of geoclipmap renderer
 	// fixme: is this still needed?
 	unsigned log2_color_res_factor; // colors have 2^x more values as vertices
 		
-	std::vector<vector4f> regions;
-	std::auto_ptr<texture> terrain_texture;
-	float tex_coord_factor, tex_stretch_factor;
-	vector2f slope_offset;
+	std::vector<vector2f> regions;
+	ptrvector<texture> terrain_textures;
+	std::auto_ptr<texture> slope_texture;
+	float tex_stretch_factor;
 };
 
 #endif

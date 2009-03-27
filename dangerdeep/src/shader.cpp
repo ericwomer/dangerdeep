@@ -355,7 +355,13 @@ void glsl_program::set_uniform(unsigned loc, const vector2f& value) const
 	glUniform2f(loc, value.x, value.y);
 }
 
+void glsl_program::set_uniform(unsigned loc, const std::vector<vector2f>& values) const
+{
+	if (used_program != this)
+		throw runtime_error("glsl_program::set_uniform, program not bound!");
 
+	glUniform2fv(loc, values.size()*2, &values[0].x);
+}
 
 void glsl_program::set_uniform(unsigned loc, float value) const
 {
@@ -396,17 +402,7 @@ void glsl_program::set_uniform(unsigned loc, const std::vector<vector4f>& values
 {
 	if (used_program != this)
 		throw runtime_error("glsl_program::set_uniform, program not bound!");
-/*	
-	float tmp[values.size()*4];
-	float *ptr = tmp;
-	for(unsigned i=0; i<values.size(); i++) {
-		*(ptr++) = values[i].x;
-		*(ptr++) = values[i].y;
-		*(ptr++) = values[i].z;
-		*(ptr++) = values[i].w;
-	}
-	glUniform4fv(loc, values.size()*4, tmp);
-*/	 
+
 	glUniform4fv(loc, values.size()*4, &values[0].x);
 }
 

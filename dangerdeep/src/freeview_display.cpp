@@ -190,6 +190,7 @@ void freeview_display::process_input(class game& gm, const SDL_Event& event)
 		case SDLK_KP6: add_pos += sidestep * 5; break;
 		case SDLK_KP1: add_pos -= upward * 5; break;
 		case SDLK_KP3: add_pos += upward * 5; break;
+		case SDLK_KP5: std::cout << gm.get_player()->get_pos() << std::endl; break;
 		default: break;
 		}
 		break;
@@ -352,7 +353,6 @@ void freeview_display::draw_objects(game& gm, const vector3& viewpos,
 void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 {	
 	double max_view_dist = gm.get_max_view_distance();
-
 
 
 	// the modelview matrix is set around the player's viewing position.

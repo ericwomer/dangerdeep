@@ -162,10 +162,9 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 			}
 		}
 	}
-	GLint nrtexunits = 0, nrteximgunits = 0, nrlights = 0, nrclipplanes = 0, depthbits = 0;
+	GLint nrtexunits = 0, nrlights = 0, nrclipplanes = 0, depthbits = 0;
 	GLint maxviewportdims[2] = { 0, 0 };
-	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &nrtexunits);
-	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &nrteximgunits);
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &nrtexunits);
 	glGetIntegerv(GL_MAX_LIGHTS, &nrlights);
 	glGetIntegerv(GL_MAX_CLIP_PLANES, &nrclipplanes);
 	glGetIntegerv(GL_MAX_VIEWPORT_DIMS, maxviewportdims);
@@ -176,8 +175,7 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 		 << "GL renderer : " << renderer << "\n"
 		 << "GL version : " << version << "\n"
 		 << "GL max texture size : " << texture::get_max_size() << "\n"
-		 << "GL number of texture units(fixed) : " << nrtexunits << "\n"
-		 << "GL number of texture units(GLSL) : " << nrteximgunits << "\n"
+		 << "GL number of texture units : " << nrtexunits << "\n"
 		 << "GL number of lights : " << nrlights << "\n"
 		 << "GL number of clip planes : " << nrclipplanes << "\n"
 		 << "GL maximum viewport dimensions : " << maxviewportdims[0] << "x" << maxviewportdims[1] << "\n"

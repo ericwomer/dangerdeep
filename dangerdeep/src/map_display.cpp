@@ -282,7 +282,7 @@ void map_display::draw_square_mark_special ( class game& gm,
 
 
 map_display::map_display(user_interface& ui_) :
-	user_display(ui_), mapzoom(0.1), mx(0), my(0),
+	user_display(ui_), mapzoom(0.1), mx(0), my(0), mapmode(0),
 	edit_btn_del(0),
 	edit_btn_chgmot(0),
 	edit_btn_copy(0),
@@ -585,18 +585,53 @@ void map_display::display(class game& gm) const
 			sy -= delta;
 		}
 	}
-
 	// draw map
-	glPushMatrix();
-	glTranslatef(512, 384, 0);
-	glScalef(mapzoom, mapzoom, 1);
-	glScalef(1,-1,1);
-	glTranslatef(-offset.x, -offset.y, 0);
-	glCullFace(GL_BACK);// we must render the map with front-faced tris
-	ui.get_coastmap().draw_as_map(offset, mapzoom);//, detl); // detail should depend on zoom, fixme
-	glCullFace(GL_FRONT);//clean up
-	glPopMatrix();
+	if(mapmode==0) {
+		glPushMatrix();
+		glTranslatef(512, 384, 0);
+		glScalef(mapzoom, mapzoom, 1);
+		glScalef(1,-1,1);
+		glTranslatef(-offset.x, -offset.y, 0);
+		glCullFace(GL_BACK);// we must render the map with front-faced tris
+		ui.get_coastmap().draw_as_map(offset, mapzoom);//, detl); // detail should depend on zoom, fixme
+		glCullFace(GL_FRONT);//clean up
+		glPopMatrix();
+	} else {
+		height_generator &hg = gm.get_height_gen();
+		unsigned level = 0;
+		vector2i size((1024.0/mapzoom)/hg.get_sample_spacing(), (768.0/mapzoom)/hg.get_sample_spacing());
+		vector2i bl((offset.x-(512.0/mapzoom))/hg.get_sample_spacing(), (offset.y-(384.0/mapzoom))/hg.get_sample_spacing());
+		
+		while((size.x>1024 || size.y>768) && level < 7) {
+			level++;
+			size.x = size.x>>1;
+			size.y = size.y>>1;
+			bl.x = bl.x>>1;
+			bl.y = bl.y>>1;
+		}
 
+		bivector<float> heights(size);
+		std::vector<Uint8> colors(size.x*size.y*3);
+		hg.compute_heights(level, bl, size, heights.data_ptr(), 0, 0, true);
+		
+		for(int y=0; y<size.y; y++) {
+			for(int x=0; x<size.x; x++) {
+				float &height = heights.at(x, y);
+	
+				float weight = std::max(0.0, (6000.0 - abs(height - 9000.0)) / 6000.0);
+				colors[(y*size.x*3)+(x*3)+0] = weight*255;
+				
+				weight = std::max(0.0, ((3000.0) - abs(height - 3000.0)) / 3000.0);
+				colors[(y*size.x*3)+(x*3)+1] = weight*255;
+
+				weight = std::max(0.0, ((-11000.0) - abs(height - 0.0)) / (-11000.0));
+				colors[(y*size.x*3)+(x*3)+2] = weight*255;
+
+			}
+		}
+		texture atlanticmap(colors, size.x, size.y, GL_RGB, texture::LINEAR, texture::CLAMP);
+		primitives::textured_quad(vector2f(0.0, 0.0), vector2f(1024, 768), atlanticmap).render();
+	}
 #ifdef CVEDIT
 	// draw convoy route points and route
 	if (cvroute.size() >= 2) {
@@ -1024,7 +1059,6 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
                 } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
                         if (mapzoom > 1.0/16384) mapzoom /= 1.25;
                 }
-
 	        break;
 	case SDL_MOUSEMOTION:
 		mx = event.motion.x;
@@ -1044,6 +1078,10 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 			if (mapzoom < 1) mapzoom *= 2;
 		} else if (cfg::instance().getkey(KEY_UNZOOM_MAP).equal(event.key.keysym)) {
 			if (mapzoom > 1.0/16384) mapzoom /= 2;
+		}
+		if (event.key.keysym.sym == SDLK_m) {
+			mapmode++;
+			if(mapmode>1)mapmode=0;
 		}
 #ifdef CVEDIT
 		if (event.key.keysym.sym == SDLK_w) {
