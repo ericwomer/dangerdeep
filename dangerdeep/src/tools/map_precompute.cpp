@@ -28,15 +28,9 @@
 
 #include "../vector2.h"
 #include "../morton_bivector.h"
-#include "../bitstream.h"
 #include "../mymain.cpp"
 #include "../bzip.h"
 #include "../terrain.h"
-
-#define write_Sint16(val,len,shift,stream); { if(val<0) {stream.write((Uint16)((-val)>>shift), len); stream.write((Uint8)1,1);} else {stream.write((Uint16)(val>>shift),len);stream.write((Uint8)0,1);}}
-#define write_Uint8(val,len,stream); {stream.write((Uint8)(val), len); stream.write((Uint8)0,1);}
-#define read_bw(target, len, stream); {target = stream.read(len); if(stream.read(1)==1) {target=(-target);}}
-#define read_bw_s(target, len, shift, stream); {target = stream.read(len); target<<=shift; if(stream.read(1)==1) {target=(-target);}}
 
 inline void print_tile(morton_bivector<Sint16>& tile) 
 {
@@ -69,138 +63,6 @@ inline void load_tile(ifstream& file, morton_bivector<Sint16>& tile, vector2i tl
 	}
 }
 
-inline void compute_average(morton_bivector<Sint16>& tile, Sint16& average, long& numbits) {
-	
-	long double tile_average_arith = 0, tile_average_rms = 0, tile_average_harm = 0;
-	long double tile_average_arith_max = 0, tile_average_rms_max = 0, tile_average_harm_max = 0;
-	long double tile_average_arith_min = 0, tile_average_rms_min = 0, tile_average_harm_min = 0;
-
-	Sint16 tile_numbits_arith = 0, tile_numbits_rms = 0, tile_numbits_harm = 0, tile_average = 0, tile_numbits = 0;
-	
-	for(int y=0; y<tile.size(); y++) {	
-		for(int x=0; x<tile.size(); x++) {
-			tile_average_arith += (long double)tile.at(x, y);
-			tile_average_rms += (long double)(tile.at(x, y)*tile.at(x, y));
-			tile_average_harm += 1.0/(long double)tile.at(x, y);
-		}
-	}
-	
-	tile_average_arith /= (long double)(tile.size()*tile.size());
-	tile_average_rms = sqrt(tile_average_rms/(long double)(tile.size()*tile.size()));
-	tile_average_harm = ((long double)(tile.size()*tile.size()))/tile_average_harm;
-	
-	long double distance;
-	
-	for(int y=0; y<tile.size(); y++) {	
-		for(int x=0; x<tile.size(); x++) {
-			distance = ((long double)tile.at(x, y))-tile_average_arith;
-			if(distance>tile_average_arith_max)tile_average_arith_max=distance;
-			if(distance<tile_average_arith_min)tile_average_arith_min=distance;
-					
-			distance = ((long double)tile.at(x, y))-tile_average_rms;
-			if(distance>tile_average_rms_max)tile_average_rms_max=distance;
-			if(distance<tile_average_rms_min)tile_average_rms_min=distance;
-					
-			distance = ((long double)tile.at(x, y))-tile_average_harm;
-			if(distance>tile_average_harm_max)tile_average_harm_max=distance;
-			if(distance<tile_average_harm_min)tile_average_harm_min=distance;
-		}
-	}
-	
-	if((-tile_average_arith_min) > tile_average_arith_max) tile_average_arith_max = -tile_average_arith_min;
-	if((-tile_average_rms_min) > tile_average_rms_max) tile_average_rms_max = -tile_average_rms_min;
-	if((-tile_average_harm_min) > tile_average_harm_max) tile_average_harm_max = -tile_average_harm_min;
-	
-	if(tile_average_arith_max != (long double)0.)
-		tile_numbits_arith = floor(log2(ceil(tile_average_arith_max))+1.);
-	else tile_numbits_arith = 1;
-	
-	if(tile_average_rms_max != (long double)0.)
-		tile_numbits_rms = floor(log2(ceil(tile_average_rms_max))+1.);
-	else tile_numbits_arith = 1;
-	
-	if(tile_average_harm_max != (long double)0.)
-		tile_numbits_harm = floor(log2(ceil(tile_average_harm_max))+1.);
-	else tile_numbits_arith = 1;
-	
-	tile_average=tile_average_arith; tile_numbits=tile_numbits_arith;
-	if(tile_numbits_rms<tile_numbits) { tile_average=tile_average_rms; tile_numbits=tile_numbits_rms; }
-	if(tile_numbits_harm<tile_numbits) { tile_average=tile_average_harm; tile_numbits=tile_numbits_harm; }
-	
-	average = tile_average;
-	numbits = tile_numbits;
-	if(numbits < 1) numbits = 1;
-}
-
-inline void compare_tiles(morton_bivector<Sint16>& tile1, morton_bivector<Sint16>& tile2, Uint16 max_diff) 
-{
-	std::cout << "compare: ";
-
-	for(long y=0; y<tile1.size(); y++) {
-		for(long x=0; x<tile1.size(); x++) {
-			if(std::abs(tile1.at(x,y)-tile2.at(x,y)) > max_diff) {
-				std::cerr << std::endl << tile1.at(x,y) << " <> " << tile2.at(x,y) << " at position: " << x << "," << y << std::endl; 
-				exit(-1);
-			}
-		}
-	}
-	std::cout << "OK" << std::endl;
- 
-}
-
-inline void read_tile_bit(morton_bivector<Sint16>& tile, const char* filename) 
-{
-	Sint16 average;
-	long numbits;
-	long shift;
-	
-	ifstream file;
-	file.open(filename);
-	bzip_istream bin(&file);
-	ibitstream in(&bin);
-	
-	read_bw(average, 15, in);
-	
-	read_bw(numbits, 4, in);
-	read_bw(shift, 4, in);
-	
-	Sint16 *ptr = tile.data_ptr();
-	for(long i=0; i<tile.size()*tile.size(); i++) {
-		read_bw_s((*ptr), numbits, shift, in);
-		ptr++;
-	}
-	tile += average;
-	bin.close();
-	file.close();
-}
-
-inline void write_tile_bit(morton_bivector<Sint16>& tile, std::ostream& file, long& shift)
-{
-	bzip_ostream bout(&file);
-	
-	long numbits = 0;
-	Sint16 average = 0;
-	
-	compute_average(tile, average, numbits);
-	std::cout << "numbits: " << numbits << std::endl;
-	numbits -= shift;
-	tile += -average;
-
-	obitstream out(&bout);
-	write_Sint16(average, 15, 0, out);
-	
-	write_Uint8(numbits, 4, out);
-	write_Uint8(shift, 4, out);
-
-	Sint16 *ptr = tile.data_ptr();
-	for(long i=0; i<tile.size()*tile.size(); i++) {
-		write_Sint16((*ptr), numbits, shift, out);
-		ptr++;
-	}
-	out.last_write();
-	bout.close();
-}
-
 int mymain(list<string>& args)
 {
 
@@ -208,8 +70,6 @@ int mymain(list<string>& args)
 	long rows = 10800;
 	long cols = 21600;
 	long sqr_size = 512;
-	long shift = 0;
-	bool compare = false;
 	bool clip = false;
 	vector2i clip_tl, clip_br;
 	
@@ -224,9 +84,6 @@ int mymain(list<string>& args)
 						<< "\t--mapsize X*Y\t\tspecifies map resolution"														<< std::endl
 						<< "\t\t\t\tDefault: 21600*10800"																		<< std::endl
 						<< "\t--tile_size x\t\tthe size for each tile in coarsest level. needs to be power of 2"				<< std::endl
-						<< "\t--shift x\t\tright shifts all height values by x bits"											<< std::endl
-						<< "\t--levels x\t\tspecifies the number of detail levels for the map"									<< std::endl
-						<< "\t--compare\t\treads in the written tile and compare with the original tile"						<< std::endl
 						<< "\t--clip X1,Y1 X2,Y2\tonly computes a clipped region of the map."									<< std::endl
 						<< "\t\t\t\tthe first X,Y pair are the top left coords, the second pair are the bottom right coords."	<< std::endl
 						<< "\t\t\t\tNOTE: the coordinates have to fit the tile size!"											<< std::endl;
@@ -262,15 +119,6 @@ int mymain(list<string>& args)
 			if (it2 != args.end()) {
 				sqr_size = atol((*it2).c_str());
 			}
-		}
-		if(*it == "--shift") {
-			list<string>::iterator it2 = it; ++it2;
-			if (it2 != args.end()) {
-				shift = atol((*it2).c_str());
-			}
-		}
-		if(*it == "--compare") {
-			compare = true;
 		}
 		if(*it == "--clip") {
 			list<string>::iterator it2 = it; ++it2;
@@ -342,8 +190,6 @@ int mymain(list<string>& args)
 	std::cout << "\tcols: " << padded_cols << std::endl;
 	std::cout << "\trows: " << padded_rows << std::endl;
 	std::cout << "\ttile_size: " << sqr_size << std::endl;
-	std::cout << "\tshift: " << shift << std::endl;
-	std::cout << "\tcompare: " << compare << std::endl;
 	std::cout << "\tclip: " << clip << std::endl;
 	std::cout << "\tclip_tl: " << clip_tl << std::endl;
 	std::cout << "\tclip_br: " << clip_br << std::endl;
@@ -376,19 +222,10 @@ int mymain(list<string>& args)
 				return(-1);
 			}
 			
-			Uint16 max_diff = 0;
-			for(int i=0; i<shift; i++) {
-				max_diff <<= 1;
-				max_diff += 1;
-			}
+			bzip_ostream bout(&file);
+			bout.write((char *)tile.data_ptr(), tile.size()*tile.size()*sizeof(Sint16));
+			bout.close();
 
-			if(compare) {
-				morton_bivector<Sint16> original_tile(tile);
-				write_tile_bit(tile, file, shift);
-				file.close();
-				read_tile_bit(tile, filename.str().c_str());
-				compare_tiles(original_tile, tile, max_diff);
-			} else write_tile_bit(tile, file, shift);
 			file.close();
 		}
 	}
