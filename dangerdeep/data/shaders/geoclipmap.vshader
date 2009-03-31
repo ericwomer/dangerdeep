@@ -19,7 +19,7 @@ uniform float L_l_rcp;
 uniform float N_rcp;
 uniform vec2 texcshift;
 uniform vec2 texcshift2;
-uniform float tex_stretch_factor;
+
 
 #ifdef MIRROR
 varying float world_z;
@@ -37,7 +37,7 @@ void main()
 	vpos.z = mix(vpos.z, z_c, alpha);
 	
 	// compute texture coordinates. z is used for height
-	gl_TexCoord[0].xy = gl_Vertex.xy*tex_stretch_factor;
+	gl_TexCoord[0].xy = gl_Vertex.xy;
 	gl_TexCoord[0].z = vpos.z;
 #if 0
 	// simulate earth curvature

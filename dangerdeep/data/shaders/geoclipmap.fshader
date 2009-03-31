@@ -13,6 +13,7 @@ uniform sampler2D texnormal_c;
 	y = upper_bound
  */
 uniform vec2 regions[3];
+uniform float tex_stretch_factor;
 
 uniform sampler2D terrain_texture0;
 uniform sampler2D terrain_texture1;
@@ -25,6 +26,17 @@ varying float world_z;
 
 const float ambient = 0.3;
 
+float compute_weight(float range, float bound, float height) {
+	return max(0.0, (range - abs(height - bound)) / range);
+}
+
+vec3 get_color(sampler2D texture, vec2 coord) {
+	return mix(
+			   texture2D(texture, coord*tex_stretch_factor).xyz, 
+			   texture2D(texture, coord*(tex_stretch_factor/2.0)).xyz, 
+			   alpha
+			   );
+}
 void main()
 {
 #ifdef MIRROR
@@ -42,24 +54,25 @@ void main()
 	float weight;
 	float height = gl_TexCoord[0].z;
 	vec3 blended_color = vec3(0.0, 0.0, 0.0);
-	vec2 coord = frac(gl_TexCoord[0].xy);
+	vec2 coord = gl_TexCoord[0].xy;
 
 	// compute simple weight of a texture dependent from it's height and the specified vertical regions
-	weight = max(0.0, (regions[0].x - abs(height - regions[0].y)) / regions[0].x);
-	blended_color = mix(blended_color, texture2D(terrain_texture0, coord).xyz, weight);
+	weight = compute_weight(regions[0].x, regions[0].y, height);
+	blended_color = mix(blended_color, get_color(terrain_texture0, coord), weight);
 
-	weight = max(0.0, (regions[1].x - abs(height - regions[1].y)) / regions[1].x);
-	blended_color = mix(blended_color, texture2D(terrain_texture1, coord).xyz, weight);
+	weight = compute_weight(regions[1].x, regions[1].y, height);
+	blended_color = mix(blended_color, get_color(terrain_texture1, coord), weight);
 	
-	weight = max(0.0, (regions[2].x - abs(height - regions[2].y)) / regions[2].x);
-	blended_color = mix(blended_color, texture2D(terrain_texture2, coord).xyz, weight);
+	weight = compute_weight(regions[2].x, regions[2].y, height);
+	blended_color = mix(blended_color, get_color(terrain_texture2, coord), weight);
 
 	float slope = 1.0 - dot(N, vec3(0.0, 0.0, 1.0));
-	vec3 slope_color = texture2D(slope_texture, coord).xyz;
+	vec3 slope_color = get_color(slope_texture, coord).xyz;
 	blended_color = mix(blended_color, slope_color, slope);
 	
 	vec3 final_color = vec3(blended_color * (max(dot(L, N), 0.0) * (1.0 - ambient) + ambient));
-
+	gl_FragColor = vec4(final_color,1.0);
+	/*
 	// add linear fog
 	float fog_factor = exp2(-gl_Fog.density * gl_FogFragCoord * 1.4426940);
 	// output color is a mix between fog and final color
@@ -75,4 +88,5 @@ void main()
 			    1.0
 #endif
 			    );
+	 */
 }
