@@ -677,8 +677,8 @@ int mymain(list<string>& args)
     // report critical errors (on Unix/Posix systems)
     install_segfault_handler();
 	
-	cfg::instance().register_option("use_ani_filtering", false);
-	cfg::instance().register_option("anisotropic_level", 1.0f);
+	cfg::instance().register_option("use_ani_filtering", true);
+	cfg::instance().register_option("anisotropic_level", 16.0f);
 	cfg::instance().register_option("use_compressed_textures", false);
 	cfg::instance().register_option("multisampling_level", 0);
 	cfg::instance().register_option("use_multisampling", false);

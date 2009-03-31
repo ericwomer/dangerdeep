@@ -43,7 +43,6 @@ public:
 		/* get first octave of function */
 		result = (simplex_noise::noise(point, 1)+offset) * exponent_array[0];
 		weight = result;
-	
 		/* increase frequency */
 		point.x *= lacunarity;
 		point.y *= lacunarity;
@@ -55,7 +54,6 @@ public:
 	        if (weight > 1.0) weight = 1.0;
 		    /* get next higher frequency */
     		signal = (simplex_noise::noise(point, i+1)+offset) * exponent_array[i];
-	        /* add it in, weighted by previous freq’s local value */
 			result += weight * signal;
     		/* update the (monotonically decreasing) weighting value */
 	        /* (this is why H must specify a high fractal dimension) */
