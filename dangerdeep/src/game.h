@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define ASDICRANGE 1500.0	// meters fixme: historic values?
 #define MAX_ACUSTIC_CONTACTS 5	// max. nr of simultaneous trackable acustic contacts
 #define TERRAIN_NR_LEVELS	7
-#define TERRAIN_RESOLUTION_N	6
+#define TERRAIN_RESOLUTION_N	7
 
 #include <list>
 #include <vector>
