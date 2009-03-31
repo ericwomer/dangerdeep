@@ -54,6 +54,242 @@ list<widget*> widget::widgets;
 std::string widget::text_ok = "Ok"; // fixme: let user read them from text database and set it here!
 std::string widget::text_cancel = "Cancel";
 
+widget::widget(xml_elem& elem, widget* _parent) 
+	: parent(_parent), background_tex(0), retval(-1), closeme(false), redrawme(true)
+{
+	name = elem.attr("name");
+	
+	pos = vector2i(elem.attri("pos_x"), elem.attri("pos_y"));
+	size = vector2i(elem.attri("width"), elem.attri("height"));
+	if(elem.has_attr("text") && elem.attri("text")>0)
+		text = texts::get(elem.attri("text"));
+	if(elem.has_attr("bg_image"))
+		background_image_name = elem.attr("bg_image");
+	background = imagecache().ref(background_image_name);
+	if(elem.has_attr("bg_texture")) {
+		set_background(std::auto_ptr<texture>(new texture(get_texture_dir() += elem.attr("bg_texture"))).get());
+	}
+	if(elem.has_attr("enabled"))
+		enabled = elem.attrb("enabled");
+	else enabled = true;
+	
+	for (xml_elem::iterator it = elem.iterate("widget"); !it.end(); it.next()) {
+		xml_elem e = it.elem();
+		std::string type = e.attr("type");
+		
+		if(elem.attr("type") != "menu") {
+			if(type == "text") {
+				add_child(new widget_text(e));
+			} else if(type == "checkbox") {
+				add_child(new widget_checkbox(e));
+			} else if(type == "button") {
+				add_child(new widget_button(e));
+			} else if(type == "menu") {
+				add_child(new widget_menu(e));
+			} else if(type == "scrollbar") {
+				add_child(new widget_scrollbar(e));
+			} else if(type == "list") {
+				add_child(new widget_list(e));
+			} else if(type == "edit") {
+				add_child(new widget_edit(e));
+			} else if(type == "fileselector") {
+				add_child(new widget_fileselector(e));
+			} else if(type == "3dview") {
+				add_child(new widget_3dview(e));
+			} else if(type == "slider") {
+				add_child(new widget_slider(e));
+			}
+		}
+	}
+}
+
+widget_text::widget_text(xml_elem& elem, widget* _parent) 
+	: widget(elem, parent) 
+{
+	if(elem.has_attr("align_x") && elem.has_attr("align_y"))
+		align(elem.attri("align_x"), elem.attri("align_y"));
+}
+
+widget_checkbox::widget_checkbox(xml_elem& elem, widget* _parent) 
+	: widget(elem, parent) 
+{ 
+	if(elem.has_attr("checked"))
+		checked = elem.attrb("checked");
+	else checked = false;
+	if(elem.has_attr("align_x") && elem.has_attr("align_y"))
+		align(elem.attri("align_x"), elem.attri("align_y"));
+}
+
+widget_button::widget_button(xml_elem& elem, widget* _parent) 
+	: widget(elem, parent), pressed(false) 
+{
+	if(elem.has_attr("align_x") && elem.has_attr("align_y"))
+		align(elem.attri("align_x"), elem.attri("align_y"));
+}
+
+widget_menu::widget_menu(xml_elem& elem, widget* _parent) : widget(elem, _parent) 
+{
+	if(elem.has_attr("horizontal"))
+		horizontal = elem.attrb("horizontal");
+	else horizontal = false;
+	if(elem.has_attr("entryspacing"))
+		entryspacing = elem.attru("entryspacing");
+	else entryspacing = 16;
+	entryw = size.x;
+	entryh = size.y;
+	if (text.length() > 0) {
+		size.x = entryw;
+		size.y = entryh;
+	}
+	
+	for (xml_elem::iterator it = elem.iterate("widget"); !it.end(); it.next()) {
+		xml_elem e = it.elem();
+		
+		if(e.attr("type") != "button") 
+			throw error("widget_menu only accepts widget_button as entry");
+		else {
+			add_entry(texts::get(e.attri("text")), new widget_button(e));
+		}
+	}
+	if(elem.has_attr("align_x") && elem.has_attr("align_y"))
+		align(elem.attri("align_x"), elem.attri("align_y"));
+}
+
+widget_scrollbar::widget_scrollbar(xml_elem& elem, widget* _parent) : widget(elem, _parent)
+{
+	scrollbarpos = 0;
+	
+	if(elem.has_attr("positions"))
+		set_nr_of_positions(elem.attru("positions"));
+	else scrollbarmaxpos = 0;
+	if(elem.has_attr("align_x") && elem.has_attr("align_y"))
+		align(elem.attri("align_x"), elem.attri("align_y"));
+}
+
+widget_list::widget_list(xml_elem& elem, widget* _parent) : widget(elem, _parent), listpos(0), selected(-1), columnwidth(-1)
+{
+	struct wls : public widget_scrollbar
+	{
+		unsigned& p;
+		void on_scroll() { p = get_current_position(); }
+		wls(unsigned& p_, int x, int y, int w, int h, widget* parent) : widget_scrollbar(x,y,w,h,parent), p(p_) {}
+		~wls() {};
+	};
+	int fw = globaltheme->frame_size();
+	myscrollbar = new wls(listpos, size.x-3*fw-globaltheme->icons[0]->get_width(), fw, globaltheme->icons[0]->get_width()+2*fw, size.y-2*fw, this);
+	add_child(myscrollbar);
+	if(elem.has_attr("align_x") && elem.has_attr("align_y"))
+		align(elem.attri("align_x"), elem.attri("align_y"));
+	if(elem.has_attr("column_width"))
+		set_column_width(elem.attri("column_width"));
+}
+
+widget_edit::widget_edit(xml_elem& elem, widget* _parent) : widget(elem, _parent), cursorpos(text.length()) 
+{
+	if(elem.has_attr("align_x") && elem.has_attr("align_y"))
+		align(elem.attri("align_x"), elem.attri("align_y"));
+}
+
+widget_fileselector::widget_fileselector(xml_elem& elem, widget* _parent) : widget(elem, _parent) 
+{
+	current_path = new widget_text(120, 40, size.x-140, 32, get_current_directory());
+	current_dir = new filelist(120, 80, size.x-140, size.y-136);
+	current_filename = new widget_edit(120, size.y - 52, size.x-140, 32, "");
+	add_child(current_path);
+	add_child(current_dir);
+	add_child(current_filename);
+	add_child(new widget_text(20, 40, 80, 32, "Path:"));
+	add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(this, &widget::close, 1, 20, 80, 80, 32, "Ok"));
+	add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(this, &widget::close, 0, 20, 120, 80, 32, "Cancel"));
+	
+	read_current_dir();
+	if(elem.has_attr("align_x") && elem.has_attr("align_y"))
+		align(elem.attri("align_x"), elem.attri("align_y"));
+}
+
+widget_3dview::widget_3dview(xml_elem& elem, widget* _parent) 
+	: widget(elem, _parent), z_angle(90), x_angle(0), lightdir(0, 0, 1, 0), lightcol(color::white())
+{
+	if(elem.has_child("bg_color")) {
+		xml_elem e = elem.child("bg_color");
+		backgrcol = color(e.attri("r"), e.attri("g"), e.attri("b"));
+	} else {
+		backgrcol = color::black();
+	}
+	translation.z = 100;
+	if(elem.has_attr("align_x") && elem.has_attr("align_y"))
+		align(elem.attri("align_x"), elem.attri("align_y"));
+}
+
+widget_slider::widget_slider(xml_elem& elem, widget* _parent) : widget(elem, _parent) 
+{ 
+	minvalue = elem.attri("minvalue");
+	maxvalue = elem.attri("maxvalue");
+	currvalue = elem.attri("currvalue");
+	descrstep = elem.attri("descrstep");
+	if(elem.has_attr("align_x") && elem.has_attr("align_y"))
+		align(elem.attri("align_x"), elem.attri("align_y"));
+}
+
+void widget::fire_mouse_click_event(int mx, int my, int mb) {
+	mouse_click_event event(this, mx, my, mb);
+	for(std::list<const action_listener*>::const_iterator it=action_listeners.begin(); it!=action_listeners.end(); it++) {
+		(*it)->mouse_clicked(event);
+	}
+}
+
+void widget::fire_key_event(const SDL_keysym& ks) {
+	key_event event(this, ks);
+	for(std::list<const action_listener*>::const_iterator it=action_listeners.begin(); it!=action_listeners.end(); it++) {
+		(*it)->key_pressed(event);
+	}
+}
+
+void widget::fire_mouse_release_event() {
+	mouse_release_event event(this);
+	for(std::list<const action_listener*>::const_iterator it=action_listeners.begin(); it!=action_listeners.end(); it++) {
+		(*it)->mouse_released(event);
+	}
+}
+
+void widget::fire_mouse_drag_event(int mx, int my, int rx, int ry, int mb) {
+	mouse_drag_event event(this, mx, my, rx, ry, mb);
+	for(std::list<const action_listener*>::const_iterator it=action_listeners.begin(); it!=action_listeners.end(); it++) {
+		(*it)->mouse_dragged(event);
+	}
+}
+
+void widget::fire_mouse_scroll_event(int wd) {
+	mouse_scroll_event event(this, wd);
+	for(std::list<const action_listener*>::const_iterator it=action_listeners.begin(); it!=action_listeners.end(); it++) {
+		(*it)->mouse_scrolled(event);
+	}
+}
+
+void widget::add_action_listener(const action_listener* listener, bool recursive) { 
+	action_listeners.push_back(listener);
+	if(recursive) {
+		for(std::list<widget*>::iterator it = children.begin(); it != children.end(); it++) {
+			(*it)->add_action_listener(listener);
+		}
+	}
+}
+
+widget* widget::get_child(const std::string& child, bool recursive)
+{
+	widget* retval = 0;
+	
+	for(std::list<widget*>::iterator it = children.begin(); it != children.end(); it++) {
+		if((*it)->name == child) return *it;
+		else if(recursive) {
+			retval = (*it)->get_child(child);
+			if(retval>0) return retval;
+		}
+	}
+	
+	return retval;
+}
+
 void widget::ref_all_backgrounds()
 {
 	for (list<widget*>::iterator it = widgets.begin(); it != widgets.end(); ++it) {
@@ -347,12 +583,14 @@ void widget::on_char(const SDL_keysym& ks)
 {
 	// we can't handle it, so pass it to the parent
 	if (parent) parent->on_char(ks);
+	fire_key_event(ks);
 }
 
 void widget::on_wheel(int wd)
 {
 	// we can't handle it, so pass it to the parent
 	if (parent) parent->on_wheel(wd);
+	fire_mouse_scroll_event(wd);
 }
 
 void widget::draw_frame(int x, int y, int w, int h, bool out)
@@ -742,6 +980,7 @@ void widget_checkbox::on_click(int mx, int my, int mb)
 {
 	checked = !checked;
 	on_change();
+	fire_mouse_click_event(mx, my, mb);
 }
 
 
@@ -759,12 +998,14 @@ void widget_button::on_click(int mx, int my, int mb)
 {
 	pressed = true;
 	on_change();
+	fire_mouse_click_event(mx, my, mb);
 }
 
 void widget_button::on_release()
 {
 	pressed = false;
 	on_change();
+	fire_mouse_release_event();
 }
 
 widget_scrollbar::widget_scrollbar(int x, int y, int w, int h, widget* parent_)
@@ -873,6 +1114,7 @@ void widget_scrollbar::on_click(int mx, int my, int mb)
 	}
 	if (oldpos != scrollbarpos)
 		on_scroll();
+	fire_mouse_click_event(mx, my, mb);
 }
 
 void widget_scrollbar::on_drag(int mx, int my, int rx, int ry, int mb)
@@ -895,6 +1137,7 @@ void widget_scrollbar::on_drag(int mx, int my, int rx, int ry, int mb)
 		if (oldpos != scrollbarpos)
 			on_scroll();
 	}
+	fire_mouse_drag_event(mx, my, rx, ry, mb);
 }
 
 void widget_scrollbar::on_wheel(int wd)
@@ -914,6 +1157,7 @@ void widget_scrollbar::on_wheel(int wd)
 	}
 	if (oldpos != scrollbarpos)
 		on_scroll();
+	fire_mouse_scroll_event(wd);
 }
 
 widget_list::widget_list(int x, int y, int w, int h, widget* parent_)
@@ -1116,17 +1360,20 @@ void widget_list::on_click(int mx, int my, int mb)
 	}
 	if (oldselected != selected)
 		on_sel_change();
+	fire_mouse_click_event(mx, my, mb);
 }
 
 void widget_list::on_drag(int mx, int my, int rx, int ry, int mb)
 {
 	// fixme: this is not correct, translate mb here!
 	on_click(mx, my, mb);
+	fire_mouse_drag_event(mx, my, rx, ry, mb);
 }
 
 void widget_list::on_wheel(int wd)
 {
 	myscrollbar->on_wheel(wd);
+	fire_mouse_scroll_event(wd);
 }
 
 void widget_list::set_column_width(int cw)
@@ -1211,6 +1458,7 @@ void widget_edit::on_char(const SDL_keysym& ks)
 		cursorpos = clpos;
 		on_change();
 	}
+	fire_key_event(ks);
 }
 
 widget_fileselector::widget_fileselector(int x, int y, int w, int h, const string& text_, widget* parent_)
@@ -1290,8 +1538,6 @@ widget_3dview::widget_3dview(int x, int y, int w, int h, auto_ptr<model> mdl_, c
 	}
 }
 
-
-
 void widget_3dview::set_model(std::auto_ptr<model> mdl_)
 {
 	mdl = mdl_;
@@ -1311,6 +1557,7 @@ void widget_3dview::on_wheel(int wd)
 	} else if (wd == 2) {
 		translation.z -= 2;
 	}
+	fire_mouse_scroll_event(wd);
 }
 
 
@@ -1325,6 +1572,7 @@ void widget_3dview::on_drag(int mx, int my, int rx, int ry, int mb)
 		translation.x += rx * 0.1;
 		translation.y += ry * 0.1;
 	}
+	fire_mouse_drag_event(mx, my, rx, ry, mb);
 }
 
 
@@ -1389,8 +1637,6 @@ widget_slider::widget_slider(int x, int y, int w, int h, const string& text_,
 	set_values(minv, maxv, currv, descrstep_);
 }
 
-
-
 void widget_slider::draw() const
 {
 	// draw sunken area that just has the sunken border height*2, so you see only borders.
@@ -1450,6 +1696,7 @@ void widget_slider::on_char(const SDL_keysym& ks)
 		++currvalue;
 		on_change();
 	}
+	fire_key_event(ks);
 }
 
 
@@ -1462,6 +1709,7 @@ void widget_slider::on_click(int mx, int my, int mb)
 		currvalue = (sliderpos * (maxvalue - minvalue) + size.x/2) / size.x + minvalue;
 		on_change();
 	}
+	fire_mouse_click_event(mx, my, mb);
 }
 
 
@@ -1474,6 +1722,7 @@ void widget_slider::on_drag(int mx, int my, int rx, int ry, int mb)
 		currvalue = (sliderpos * (maxvalue - minvalue) + size.x/2) / size.x + minvalue;
 		on_change();
 	}
+	fire_mouse_drag_event(mx, my, rx, ry, mb);
 }
 
 

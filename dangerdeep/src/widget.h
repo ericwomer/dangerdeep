@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <list>
 #include <string>
+#include <typeinfo>
 #include "system.h"
 #include "color.h"
 #include "image.h"
@@ -32,6 +33,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "model.h"
 #include "vector2.h"
 #include "objcache.h"
+#include "xml.h"
+#include "texts.h"
 
 // fixme: add image-widget
 
@@ -61,6 +64,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class widget
 {
 protected:
+	std::string name;
 	vector2i pos, size;
 	std::string text;
 	widget* parent;
@@ -104,13 +108,59 @@ public:
 		theme(const char* elements_filename, const char* icons_filename, const font* fnt,
 			color tc, color tsc, color tdc);
 	};
-
+	
+	struct key_event {
+		const widget* source;
+		const SDL_keysym ks;
+		key_event(const widget* _source, const SDL_keysym& _ks) 
+			: source(_source), ks(_ks) {}
+	};
+	struct mouse_click_event {
+		const widget* source;
+		const int mx, my, mb;
+		mouse_click_event(const widget* _source, int _mx, int _my, int _mb) 
+			: source(_source), mx(_mx), my(_my), mb(_mb) {}
+	};
+	struct mouse_release_event {
+		const widget* source;
+		mouse_release_event(const widget* _source) 
+			: source(_source) {}
+	};
+	struct mouse_drag_event {
+		const widget* source;
+		const int mx, my, rx, ry, mb;
+		mouse_drag_event(const widget* _source, int _mx, int _my, int _rx, int _ry, int _mb) 
+			: source(_source), mx(_mx), my(_my), rx(_rx), ry(_ry), mb(_mb) {}
+	};
+	struct mouse_scroll_event {
+		const widget* source;
+		const int wd;
+		mouse_scroll_event(const widget* _source, int _wd) 
+			: source(_source), wd(_wd) {}
+	};
+	class action_listener {
+		public:
+			virtual void key_pressed(key_event&) const {};
+			virtual void mouse_clicked(mouse_click_event&) const {};
+			virtual void mouse_released(mouse_release_event&) const {};
+			virtual void mouse_dragged(mouse_drag_event&) const {};
+			virtual void mouse_scrolled(mouse_scroll_event&) const {};
+	};
+	
 protected:
 	static std::auto_ptr<widget::theme> globaltheme;
 	static widget* focussed;	// which widget has the focus
 	static widget* mouseover;	// which widget the mouse is over
 	
 	static int oldmx, oldmy, oldmb;	// used for input calculation
+	
+	std::list<const action_listener*> action_listeners;
+	
+	void fire_key_event(const SDL_keysym& ks);
+	void fire_mouse_click_event(int mx, int my, int mb);
+	void fire_mouse_release_event();
+	void fire_mouse_drag_event(int mx, int my, int rx, int ry, int mb);
+	void fire_mouse_scroll_event(int wd);
 
 public:	
 	// Note! call this once before using images!
@@ -122,12 +172,16 @@ public:
 	static const theme* get_theme() { return globaltheme.get(); }
 	static std::auto_ptr<theme> replace_theme(std::auto_ptr<theme> t);
 	widget(int x, int y, int w, int h, const std::string& text_, widget* parent_ = 0, const std::string& backgrimg = std::string());
+	widget(xml_elem&, widget* parent = 0);
+	void add_action_listener(const action_listener* listener, bool recursive = true);
 	virtual ~widget();
 	virtual void add_child(widget* w);
 	/** same as add_child, but place new child near last child.
 	    Give distance to last child and direction 0-3 (above, right, below, left)
 	    A distance < 0 means use theme border width * -distance (default children distance) */
+	widget* get_child(const std::string&, bool recursive = true);
 	virtual void add_child_near_last_child(widget *w, int distance = -2, unsigned direction = 2);
+	const std::string& get_name() const { return name; }
 	///> recompute size so that window embraces all children exactly.
 	virtual void clip_to_children_area();
 	virtual void remove_child(widget* w);
@@ -209,6 +263,7 @@ protected:
 public:
 	widget_text(int x, int y, int w, int h, const std::string& text_, widget* parent_ = 0, bool sunken_ = false)
 		: widget(x, y, w, h, text_, parent_), sunken(sunken_) {}
+	widget_text(xml_elem& elem, widget* _parent = 0);
 	void draw() const;
 	virtual void set_text_and_resize(const std::string& s);
 };
@@ -224,6 +279,7 @@ protected:
 public:
 	widget_checkbox(int x, int y, int w, int h, bool checked_, const std::string& text_, widget* parent_ = 0)
 		: widget(x, y, w, h, text_, parent_), checked(checked_) {}
+	widget_checkbox(xml_elem& elem, widget* _parent = 0);
 	void draw() const;
 	void on_click(int mx, int my, int mb);
 	bool is_checked() const { return checked; }
@@ -241,6 +297,7 @@ protected:
 public:
 	widget_button(int x, int y, int w, int h, const std::string& text_,
 		      widget* parent_ = 0, const std::string& backgrimg = std::string()) : widget(x, y, w, h, text_, parent_, backgrimg), pressed(false) {}
+	widget_button(xml_elem& elem, widget* _parent = 0);
 	void draw() const;
 	void on_click(int mx, int my, int mb);
 	void on_release();
@@ -337,6 +394,7 @@ protected:
 public:
 	widget_menu(int x, int y, int w, int h, const std::string& text_, bool horizontal_ = false,
 		    widget* parent_ = 0);
+	widget_menu(xml_elem& elem, widget* _parent = 0);
 	void set_entry_spacing(int spc) { entryspacing = spc; }
 	void adjust_buttons(unsigned totalsize);	// width or height
 	widget_button* add_entry(const std::string& s, widget_button* wb = 0); // wb's text is always set to s
@@ -362,6 +420,7 @@ protected:
 	widget_scrollbar& operator= (const widget_scrollbar& );
 public:
 	widget_scrollbar(int x, int y, int w, int h, widget* parent_ = 0);
+	widget_scrollbar(xml_elem& elem, widget* _parent = 0);
 	void set_nr_of_positions(unsigned s);
 	unsigned get_current_position() const;
 	void set_current_position(unsigned p);
@@ -389,6 +448,7 @@ protected:
 	widget_list& operator= (const widget_list& );
 public:
 	widget_list(int x, int y, int w, int h, widget* parent_ = 0);
+	widget_list(xml_elem& elem, widget* _parent = 0);
 	void delete_entry(unsigned n);
 	void insert_entry(unsigned n, const std::string& s);
 	void append_entry(const std::string& s);
@@ -424,6 +484,7 @@ protected:
 public:
 	widget_edit(int x, int y, int w, int h, const std::string& text_, widget* parent_ = 0)
 		: widget(x, y, w, h, text_, parent_), cursorpos(text_.length()) {}
+	widget_edit(xml_elem& elem, widget* _parent = 0);
 	void set_text(const std::string& s) { widget::set_text(s); cursorpos = s.length(); }
 	void draw() const;
 	void on_char(const SDL_keysym& ks);
@@ -456,6 +517,7 @@ protected:
 	widget_fileselector& operator= (const widget_fileselector& );
 public:
 	widget_fileselector(int x, int y, int w, int h, const std::string& text_, widget* parent_ = 0);
+	widget_fileselector(xml_elem& elem, widget* _parent = 0);
 	std::string get_filename() const { return current_path->get_text() + current_filename->get_text(); }
 	void listclick();
 };
@@ -479,6 +541,7 @@ protected:
 	widget_3dview& operator= (const widget_3dview& );
 public:
 	widget_3dview(int x, int y, int w, int h, std::auto_ptr<model> mdl, color bgcol, widget* parent_ = 0);
+	widget_3dview(xml_elem& elem, widget* _parent = 0);
 	void draw() const;
 	void set_model(std::auto_ptr<model> mdl_);
 	model* get_model() { return mdl.get(); }
@@ -504,6 +567,7 @@ public:
 	widget_slider(int x, int y, int w, int h, const std::string& text_,
 		      int minv, int maxv, int currv, int descrstep,
 		      widget* parent_ = 0);
+	widget_slider(xml_elem& elem, widget* _parent = 0);
 	void draw() const;
 	void on_char(const SDL_keysym& ks);
 	void on_click(int mx, int my, int mb);
