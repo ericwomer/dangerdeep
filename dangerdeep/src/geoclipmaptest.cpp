@@ -57,6 +57,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <iostream>
 #include <sstream>
 #include "height_generator_map.h"
+#include "cfg.h"
 
 
 // ------------------------------------------- code ---------------------------------------
@@ -675,7 +676,18 @@ int mymain(list<string>& args)
 {
     // report critical errors (on Unix/Posix systems)
     install_segfault_handler();
-
+	
+	cfg::instance().register_option("use_ani_filtering", false);
+	cfg::instance().register_option("anisotropic_level", 1.0f);
+	cfg::instance().register_option("use_compressed_textures", false);
+	cfg::instance().register_option("multisampling_level", 0);
+	cfg::instance().register_option("use_multisampling", false);
+	cfg::instance().register_option("hint_multisampling", 0);
+	cfg::instance().register_option("hint_fog", 0);
+	cfg::instance().register_option("hint_mipmap", 0);
+	cfg::instance().register_option("hint_texture_compression", 0);
+	cfg::instance().register_option("vsync", false);
+	
     // randomize
     srand(time(0));
 
