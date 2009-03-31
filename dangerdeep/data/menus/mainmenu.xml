@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<widget name="mainmenu" type="default" pos_x="0" pos_y="0" width="1024" height="768" bg_image="titlebackgr.jpg">
+	<widget name="menu_main" type="menu" pos_x="0" pos_y="0" width="400" height="40" text="104" entryspacing="8" align_x="0" align_y="0">
+		<widget name="btn_menu_main_singlemission" type="button" text="21" />
+		<widget name="btn_menu_main_missioneditor" type="button" text="222" />
+		<widget name="btn_menu_main_showvessels" type="button" text="24" />
+		<widget name="btn_menu_main_showhalloffame" type="button" text="25" />
+		<widget name="btn_menu_main_showcredits" type="button" text="213" />
+		<widget name="btn_menu_main_options" type="button" text="29" />
+		<widget name="btn_menu_main_close" type="button" text="30" />
+	</widget>
+</widget>

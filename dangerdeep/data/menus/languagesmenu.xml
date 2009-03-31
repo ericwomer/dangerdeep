@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<widget name="languagesmenu" type="default" pos_x="0" pos_y="0" width="1024" height="768" bg_image="titlebackgr.jpg" text="26">
+	<widget name="list_languages" type="list" pos_x="40" pos_y="50" width="944" height="640"/>
+	<widget name="btn_menu_languages_close" type="button" text="20" pos_x="40" pos_y="708" width="452" height="40" />
+	<widget name="btn_menu_languages_ok" type="button" text="160" pos_x="532" pos_y="708" width="452" height="40" />
+</widget>

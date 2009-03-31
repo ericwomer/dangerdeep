@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<widget name="optionsmenu" type="default" pos_x="0" pos_y="0" width="1024" height="768" bg_image="titlebackgr.jpg">
+	<widget name="menu_options" type="menu" pos_x="0" pos_y="0" width="400" height="40" text="29" align_x="0" align_y="0">
+		<widget name="btn_menu_options_keys" type="button" text="214" />
+		<widget name="btn_menu_options_graphic" type="button" text="106" />
+		<widget name="btn_menu_options_close" type="button" text="11" />
+	</widget>
+</widget>
