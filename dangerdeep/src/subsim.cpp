@@ -1685,6 +1685,16 @@ int mymain(list<string>& args)
 	mycfg.register_option("debug", false);
 	mycfg.register_option("sound", true);
 	mycfg.register_option("use_hqsfx", true);
+	mycfg.register_option("use_ani_filtering", false);
+	mycfg.register_option("anisotropic_level", 1.0f);
+	mycfg.register_option("use_compressed_textures", false);
+	mycfg.register_option("multisampling_level", 0);
+	mycfg.register_option("use_multisampling", false);
+	mycfg.register_option("hint_multisampling", 0);
+	mycfg.register_option("hint_fog", 0);
+	mycfg.register_option("hint_mipmap", 0);
+	mycfg.register_option("hint_texture_compression", 0);
+	mycfg.register_option("vsync", false);
 	mycfg.register_option("terrain_detail", 5);
 	mycfg.register_option("water_detail", 128);
 	mycfg.register_option("wave_fft_res", 128);
