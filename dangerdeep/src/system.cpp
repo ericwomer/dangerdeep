@@ -194,11 +194,58 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 		glsl_shader::is_nvidia_card = true;
 
 	// enable texturing on all units
-	for (unsigned i = 0; i < std::min(4U, unsigned(nrtexunits)); ++i) {
+	for (unsigned i = 0; i < unsigned(nrtexunits); ++i) {
 		glActiveTexture(GL_TEXTURE0 + i);
 		glEnable(GL_TEXTURE_2D);
 	}
-
+	
+	if(cfg::instance().getb("use_multisampling")) {
+		glEnable(GL_MULTISAMPLE);
+		switch(cfg::instance().geti("hint_multisampling")) {
+			case 1: 
+				glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+			break;
+			case 2:
+				glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_FASTEST);
+			break;
+			default:
+				glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_DONT_CARE);
+			break;
+		}
+	}
+	switch(cfg::instance().geti("hint_fog")) {
+		case 1: 
+			glHint(GL_FOG_HINT, GL_NICEST);
+		break;
+		case 2:
+			glHint(GL_FOG_HINT, GL_FASTEST);
+		break;
+		default:
+			glHint(GL_FOG_HINT, GL_DONT_CARE);
+		break;
+	}
+	switch(cfg::instance().geti("hint_mipmap")) {
+		case 1: 
+			glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
+		break;
+		case 2:
+			glHint(GL_GENERATE_MIPMAP_HINT, GL_FASTEST);
+		break;
+		default:
+			glHint(GL_GENERATE_MIPMAP_HINT, GL_DONT_CARE);
+		break;
+	}
+	switch(cfg::instance().geti("hint_texture_compression")) {
+		case 1: 
+			glHint(GL_TEXTURE_COMPRESSION_HINT, GL_NICEST);
+		break;
+		case 2:
+			glHint(GL_TEXTURE_COMPRESSION_HINT, GL_FASTEST);
+		break;
+		default:
+			glHint(GL_TEXTURE_COMPRESSION_HINT, GL_DONT_CARE);
+		break;
+	}
 	// since we use vertex arrays for every primitive, we can enable it
 	// here and leave it enabled forever
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -241,18 +288,27 @@ void system::set_video_mode(unsigned res_x_, unsigned res_y_, bool fullscreen)
 	// the flags SDL_HWPALETTE, SDL_HWSURFACE and SDL_HWACCEL
 	// are not needed for OpenGL mode.
 	int videoFlags  = SDL_OPENGL;
-	//videoFlags |= (videoInfo->hw_available) ? SDL_HWSURFACE : SDL_SWSURFACE;
-	// if (videoInfo->blit_hw) videoFlags |= SDL_HWACCEL;
 	if (fullscreen)
 		videoFlags |= SDL_FULLSCREEN;
 	if (SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1) < 0)
 		throw sdl_error("setting double buffer mode failed");
-	if (SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1) < 0)
-		throw sdl_error("setting accelerated visual failed");
+
+	/* Sometimes when setting SDL_GL_ACCELERATED_VISUAL (0 or 1 !?) multisampling is borked
+	 * if (SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 0) < 0)
+	 *	throw sdl_error("setting accelerated visual failed");
+	 */
+	
+	if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, cfg::instance().getb("use_multisampling")) < 0)
+		throw sdl_error("setting multisampling failed");
+	if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, cfg::instance().geti("multisampling_level")) < 0)
+		throw sdl_error("setting multisamplelevel failed");
+	
 	// enable VSync, but doesn't work on Linux/Nvidia/SDL 1.2.11 (?!)
-  	//if (SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1) < 0)
-  	//	throw sdl_error("setting VSync failed");
+	// works with Linux/Nvidia/SDL 1.2.12
+	if (SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, cfg::instance().getb("vsync")) < 0)
+  	throw sdl_error("setting VSync failed");
 	int bpp = videoInfo->vfmt->BitsPerPixel;
+	
 	SDL_Surface* screen = SDL_SetVideoMode(res_x_, res_y_, bpp, videoFlags);
 	if (!screen)
 		throw sdl_error("Video mode set failed");

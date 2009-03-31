@@ -43,6 +43,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "error.h"
 #include "vector3.h"
 #include "color.h"
+#include "cfg.h"
 
 /// wrapper for SDL_Surface/SDL_images to make memory management automatic
 class sdl_image

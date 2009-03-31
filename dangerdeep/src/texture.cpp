@@ -44,7 +44,6 @@ using namespace std;
 
 #undef  MEMMEASURE
 
-#undef COMPRESSED_TEXTURES
 
 #ifdef MEMMEASURE
 unsigned texture::mem_used = 0;
@@ -485,9 +484,10 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 				//fixme: must detailh also get halfed here? yes...
 				vector<Uint8> nmpix = make_normals(*gdat, w, h, detailh);
 				int internalformat = GL_RGB;
-#ifdef COMPRESSED_TEXTURES
-				internalformat = GL_COMPRESSED_RGB_ARB;
-#endif
+					 
+				if(cfg::instance().getb("use_compressed_textures"))
+					internalformat = GL_COMPRESSED_RGB_ARB;
+
 				glTexImage2D(GL_TEXTURE_2D, level, internalformat, w, h, 0, GL_RGB,
 					     GL_UNSIGNED_BYTE, &nmpix[0]);
 				w /= 2;
@@ -511,22 +511,24 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 	} else {
 		// make gl texture
 		int internalformat = format;
-#ifdef COMPRESSED_TEXTURES
-		switch (format) {
-		case GL_RGB:
-			internalformat = GL_COMPRESSED_RGB_ARB;
-			break;
-		case GL_RGBA:
-			internalformat = GL_COMPRESSED_RGBA_ARB;
-			break;
-		case GL_LUMINANCE:
-			internalformat = GL_COMPRESSED_LUMINANCE_ARB;
-			break;
-		case GL_LUMINANCE_ALPHA:
-			internalformat = GL_COMPRESSED_LUMINANCE_ALPHA_ARB;
-			break;
+
+		if(cfg::instance().getb("use_compressed_textures")) {
+			switch (format) {
+				case GL_RGB:
+					internalformat = GL_COMPRESSED_RGB_ARB;
+				break;
+				case GL_RGBA:
+					internalformat = GL_COMPRESSED_RGBA_ARB;
+				break;
+				case GL_LUMINANCE:
+					internalformat = GL_COMPRESSED_LUMINANCE_ARB;
+					break;
+				case GL_LUMINANCE_ALPHA:
+					internalformat = GL_COMPRESSED_LUMINANCE_ALPHA_ARB;
+				break;
+			}
 		}
-#endif
+
 		glTexImage2D(GL_TEXTURE_2D, 0, internalformat, gl_width, gl_height, 0, format,
 			     GL_UNSIGNED_BYTE, &data[0]);
 #ifdef MEMMEASURE
@@ -554,6 +556,10 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magfilter[mapping]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clampmodes[clamping]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
+	
+	//enable anisotropic filtering if choosen
+	if(cfg::instance().getb("use_ani_filtering"))
+		glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
 }
 
 
@@ -741,8 +747,31 @@ texture::texture(unsigned w, unsigned h, int format_,
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magfilter[mapping]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clampmodes[clamping]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
+	
+	//enable anisotropic filtering if choosen
+	if(cfg::instance().getb("use_ani_filtering"))
+		glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
+
+	int internalformat = format;
+	if(cfg::instance().getb("use_compressed_textures")) {
+		switch (format) {
+			case GL_RGB:
+				internalformat = GL_COMPRESSED_RGB_ARB;
+			break;
+			case GL_RGBA:
+				internalformat = GL_COMPRESSED_RGBA_ARB;
+			break;
+			case GL_LUMINANCE:
+				internalformat = GL_COMPRESSED_LUMINANCE_ARB;
+			break;
+			case GL_LUMINANCE_ALPHA:
+				internalformat = GL_COMPRESSED_LUMINANCE_ALPHA_ARB;
+			break;
+		}
+	}
+	
 	// initialize texel data with empty pixels
-	glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, GL_RGB,
+	glTexImage2D(GL_TEXTURE_2D, 0, internalformat, w, h, 0, GL_RGB,
 		     GL_UNSIGNED_BYTE, (void*)0);
 }
 
@@ -916,22 +945,23 @@ texture3d::texture3d(const std::vector<Uint8>& pixels, unsigned w, unsigned h, u
 
 	// make gl texture
 	int internalformat = format;
-#ifdef COMPRESSED_TEXTURES
-	switch (format) {
-	case GL_RGB:
-		internalformat = GL_COMPRESSED_RGB_ARB;
-		break;
-	case GL_RGBA:
-		internalformat = GL_COMPRESSED_RGBA_ARB;
-		break;
-	case GL_LUMINANCE:
-		internalformat = GL_COMPRESSED_LUMINANCE_ARB;
-		break;
-	case GL_LUMINANCE_ALPHA:
-		internalformat = GL_COMPRESSED_LUMINANCE_ALPHA_ARB;
-		break;
+	if(cfg::instance().getb("use_compressed_textures")) {
+		switch (format) {
+			case GL_RGB:
+				internalformat = GL_COMPRESSED_RGB_ARB;
+			break;
+			case GL_RGBA:
+				internalformat = GL_COMPRESSED_RGBA_ARB;
+			break;
+			case GL_LUMINANCE:
+				internalformat = GL_COMPRESSED_LUMINANCE_ARB;
+			break;
+			case GL_LUMINANCE_ALPHA:
+				internalformat = GL_COMPRESSED_LUMINANCE_ALPHA_ARB;
+			break;
+		}
 	}
-#endif
+
 	glTexImage3D(GL_TEXTURE_3D, 0, internalformat, gl_width, gl_height, gl_depth, 0, format,
 		     GL_UNSIGNED_BYTE, &pixels[0]);
 	
@@ -957,6 +987,10 @@ texture3d::texture3d(const std::vector<Uint8>& pixels, unsigned w, unsigned h, u
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, clampmodes[clamping]);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, clampmodes[clamping]);
+	
+	//enable anisotropic filtering if choosen
+	if(cfg::instance().getb("use_ani_filtering"))
+		glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
 	glBindTexture(GL_TEXTURE_3D, 0);
 }
 
@@ -996,6 +1030,11 @@ texture3d::texture3d(unsigned w, unsigned h, unsigned d,
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, clampmodes[clamping]);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, clampmodes[clamping]);
+	
+	//enable anisotropic filtering if choosen
+	if(cfg::instance().getb("use_ani_filtering"))
+		glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
+	
 	glTexImage3D(GL_TEXTURE_3D, 0, format, w, h, d, 0, GL_RGB,
 		     GL_UNSIGNED_BYTE, (void*)0);
 	glBindTexture(GL_TEXTURE_3D, 0);
