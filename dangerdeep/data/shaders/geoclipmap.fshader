@@ -31,9 +31,10 @@ float compute_weight(float range, float bound, float height) {
 }
 
 vec3 get_color(sampler2D texture, vec2 coord) {
+	
 	return mix(
-			   texture2D(texture, coord*tex_stretch_factor).xyz, 
-			   texture2D(texture, coord*(tex_stretch_factor/2.0)).xyz, 
+			   texture2D(texture, (coord*tex_stretch_factor)).xyz, 
+			   texture2D(texture, (coord*(tex_stretch_factor/2.0))).xyz, 
 			   alpha
 			   );
 }
@@ -50,12 +51,13 @@ void main()
 	vec3 N = normalize(mix(texture2D(texnormal,     texcoordnormal).xyz * 2.0 - 1.0,
 			   			   texture2D(texnormal_c, texcoordnormal_c).xyz * 2.0 - 1.0,
 			   			   alpha));
+	
 	// compute color
 	float weight;
 	float height = gl_TexCoord[0].z;
 	vec3 blended_color = vec3(0.0, 0.0, 0.0);
 	vec2 coord = gl_TexCoord[0].xy;
-
+	
 	// compute simple weight of a texture dependent from it's height and the specified vertical regions
 	weight = compute_weight(regions[0].x, regions[0].y, height);
 	blended_color = mix(blended_color, get_color(terrain_texture0, coord), weight);
@@ -70,7 +72,12 @@ void main()
 	vec3 slope_color = get_color(slope_texture, coord).xyz;
 	blended_color = mix(blended_color, slope_color, slope);
 	
-	vec3 final_color = vec3(blended_color * (max(dot(L, N), 0.0) * (1.0 - ambient) + ambient));
+	//Bump mapping
+	#ifdef HQSFX	
+	N = normalize(N+get_color(bump_texture, coord)*10.0);
+	#endif
+	
+	vec3 final_color = vec3( blended_color * max( 0.0, dot(L, N)));
 	gl_FragColor = vec4(final_color,1.0);
 	/*
 	// add linear fog
