@@ -563,8 +563,79 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
 }
 
+#define MAKEFOURCC(ch0, ch1, ch2, ch3) ((int32_t)(int8_t)(ch0) | ((int32_t)(int8_t)(ch1) << 8) | ((int32_t)(int8_t)(ch2) << 16) | ((int32_t)(int8_t)(ch3) << 24 ))
+void texture::load_dds(const std::string& filename, dds_data& target)
+{
+    DDSHEAD header;
+	std::ifstream file;
+    int factor;
+    int bufferSize;
 
+    // Open the file
+    file.open(filename.c_str());
 
+    if(!file.good())
+		throw error("couldn't find, or failed to load " + filename);
+
+    file.read((char*)&header, sizeof(header));
+
+    if(std::string((char*)header.Signature, 4) != "DDS ")
+		throw error("not a valid .dds file: " + filename);
+
+    //
+    // This .dds loader supports the loading of compressed formats DXT1, DXT3 
+    // and DXT5.
+    //
+    target.components = 4;
+
+    switch( SDL_SwapLE32(header.FourCC) )
+    {
+        case MAKEFOURCC('D','X','T','1'):
+            // DXT1's compression ratio is 8:1
+            target.format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+            target.components = 3;
+            factor = 2;
+            break;
+
+        case MAKEFOURCC('D','X','T','3'):
+            // DXT3's compression ratio is 4:1
+            target.format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+            factor = 4;
+            break;
+
+        case MAKEFOURCC('D','X','T','5'):
+            // DXT5's compression ratio is 4:1
+            target.format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+            factor = 4;
+            break;
+
+        default:
+			throw error("no supported compression type on file: " + filename);
+    }
+
+    // How big will the buffer need to be to load all of the pixel data 
+    // including mip-maps?
+
+    if( SDL_SwapLE32(header.LinearSize) == 0 )
+		throw error("linear size in dds file is 0: " + filename);
+
+    if( header.MipMapCount > 1 )
+        bufferSize = SDL_SwapLE32(header.LinearSize) * factor;
+    else
+        bufferSize = SDL_SwapLE32(header.LinearSize);
+
+    target.pixels.resize(bufferSize);
+
+	file.read((char*)&target.pixels[0], bufferSize);
+
+    // Close the file
+    file.close();
+
+    target.width      = SDL_SwapLE32(header.Width);
+    target.height     = SDL_SwapLE32(header.Height);
+    target.numMipMaps = SDL_SwapLE32(header.MipMapCount);
+}
+#undef MAKEFOURCC
 
 vector<Uint8> texture::scale_half(const vector<Uint8>& src, unsigned w, unsigned h, unsigned bpp)
 {
@@ -776,7 +847,61 @@ texture::texture(unsigned w, unsigned h, int format_,
 		     GL_UNSIGNED_BYTE, (void*)0);
 }
 
+texture::texture(const std::string& filename, bool dummy, mapping_mode mapping_, clamping_mode clamp)
+{
+	mapping = mapping_;
+	clamping = clamp;
+	
+	// error checks.
+	if (mapping < 0 || mapping >= NR_OF_MAPPING_MODES)
+		throw texerror(get_name(), "illegal mapping mode!");
+	if (clamping < 0 || clamping >= NR_OF_CLAMPING_MODES)
+		throw texerror(get_name(), "illegal clamping mode!");
+	
+	dds_data image_data;
+	load_dds(filename, image_data);
+	
+	width = gl_width = image_data.width;
+	height = gl_height = image_data.height;
+	
+    int block_size;
 
+	if( image_data.format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT )
+		block_size = 8;
+	else
+		block_size = 16;
+
+	glGenTextures(1, &opengl_name);
+	glBindTexture(GL_TEXTURE_2D, opengl_name);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapmodes[mapping]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magfilter[mapping]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clampmodes[clamping]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
+	
+	//enable anisotropic filtering if choosen
+	if(cfg::instance().getb("use_ani_filtering"))
+		glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
+
+	int m_size, m_offset = 0, m_width = width, m_height = height;
+
+	// Load the mip-map levels
+	for(int i = 0; i < image_data.numMipMaps; ++i) {
+		if( m_width  == 0 ) m_width  = 1;
+		if( m_height == 0 ) m_height = 1;
+
+		m_size = ((m_width+3)/4) * ((m_height+3)/4) * block_size;
+
+		glTexImage2D(GL_TEXTURE_2D, i,  image_data.format, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		glCompressedTexSubImage2DARB(GL_TEXTURE_2D,i, 0, 0, m_width, m_height, image_data.format, m_size, &image_data.pixels[m_offset]);
+
+		m_offset += m_size;
+
+		// Half the image size for the next mip-map level...
+		m_width  = (m_width  / 2);
+		m_height = (m_height / 2);
+	}
+}
 
 texture::~texture()
 {

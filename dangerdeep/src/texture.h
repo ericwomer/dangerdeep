@@ -28,6 +28,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif /* WIN32_LEAN_AND_MEAN */
+
+// taken from DevIL library
+
 #include <windows.h>
 #endif
 
@@ -136,6 +139,48 @@ protected:
 	static unsigned mem_freed;
 
 	texture() {}
+	
+	struct dds_data {
+	    GLsizei  width;
+	    GLsizei  height;
+		GLint    components;
+	    GLenum   format;
+		int      numMipMaps;
+	    std::vector<GLubyte> pixels;
+	};
+
+
+	// taken from DevIL library
+	typedef struct DDSHEAD
+	{
+		int8_t	Signature[4];
+
+		uint32_t	Size1;				// size of the structure (minus MagicNum)
+		uint32_t	Flags1; 			// determines what fields are valid
+		uint32_t	Height; 			// height of surface to be created
+		uint32_t	Width;				// width of input surface
+		uint32_t	LinearSize; 		// Formless late-allocated optimized surface size
+		uint32_t	Depth;				// Depth if a volume texture
+		uint32_t	MipMapCount;		// number of mip-map levels requested
+		uint32_t	AlphaBitDepth;		// depth of alpha buffer requested
+
+		uint32_t	NotUsed[10];
+
+		uint32_t	Size2;				// size of structure
+		uint32_t	Flags2;				// pixel format flags
+		uint32_t	FourCC;				// (FOURCC code)
+		uint32_t	RGBBitCount;		// how many bits per pixel
+		uint32_t	RBitMask;			// mask for red bit
+		uint32_t	GBitMask;			// mask for green bits
+		uint32_t	BBitMask;			// mask for blue bits
+		uint32_t	RGBAlphaBitMask;	// mask for alpha channel
+
+		uint32_t	ddsCaps1, ddsCaps2, ddsCaps3, ddsCaps4; // direct draw surface capabilities
+		uint32_t	TextureStage;
+	}  __attribute__ ((packed)) DDSHEAD;
+	
+	void load_dds(const std::string& filename, dds_data& target);
+
 
 public:
 	class texerror : public error
@@ -176,6 +221,9 @@ public:
 	texture(unsigned w, unsigned h,
 		int format_, mapping_mode mapping_,
 		clamping_mode clamp);
+	
+	// load a compressed DDS file (DXT1, DXT3, DXT5)
+	texture(const std::string& filename, bool dummy, mapping_mode mapping_ = NEAREST, clamping_mode clamp = REPEAT);
 
 	~texture();
 
