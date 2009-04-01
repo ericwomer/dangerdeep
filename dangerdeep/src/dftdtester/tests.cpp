@@ -161,15 +161,14 @@ int tests::do_version_check()
 			spos++;
 		}
 
-		if ( major >= 2 )
+		if ( major >= 2)
 		{
-			status = sGOOD;
-		} else if ( 1 == major && 5 == minor ) {
-			status = sBAD; // we require OpenGL 2.x as a minimum.
+			if(minor >= 1)
+				status = sGOOD;
+			else status = sBAD;
 		} else {
 			status = sBAD;
 		}
-
 		MPT_OUT( "OpenGL Version: " << major << "." << minor << ".x ", status );
 	} else {
 		return pt_out( "No version", sBAD );
