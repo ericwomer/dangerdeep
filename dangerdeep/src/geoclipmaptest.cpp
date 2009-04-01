@@ -687,6 +687,7 @@ int mymain(list<string>& args)
 	cfg::instance().register_option("hint_mipmap", 0);
 	cfg::instance().register_option("hint_texture_compression", 0);
 	cfg::instance().register_option("vsync", false);
+	cfg::instance().register_option("terrain_texture_resolution", 0.1f);
 	
     // randomize
     srand(time(0));
