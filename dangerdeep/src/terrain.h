@@ -22,7 +22,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <vector>
 #include <math.h>
 #include <SDL.h>
@@ -31,15 +30,12 @@
 #include "global_constants.h"
 #include "xml.h"
 #include "height_generator.h"
-#include "datadirs.h"
-#include "global_data.h"
 #include "bivector.h"
 #include "tile_cache.h"
 #include "game.h"
-#include "log.h"
 #include "datadirs.h"
 #include "fractal.h"
-#include "simplex_noise.h"
+#include "cfg.h"
 
 
 template <class T>
@@ -96,8 +92,6 @@ terrain<T>::terrain(const std::string& header_file, const std::string& data_dir,
 	elem = root.child("origin");
 	origin.x = elem.attri("x");
 	origin.y = elem.attri("y");
-	elem = root.child("tex_stretch_factor");
-	tex_stretch_factor = elem.attrf("value");
 	elem = root.child("regions");
 	for (xml_elem::iterator it = elem.iterate("region"); !it.end(); it.next()) {
 		elem = it.elem();
@@ -114,8 +108,10 @@ terrain<T>::terrain(const std::string& header_file, const std::string& data_dir,
 	noise_coord_factor = elem.attrf("coord_factor");
 	
 	fractal = std::auto_ptr<hybrid_multifractal>(new hybrid_multifractal(noise_h, noise_lac, _num_levels+1, noise_off));
-    // heired from height_generator interface
+
 	sample_spacing = 50.0;
+	tex_stretch_factor = cfg::instance().getf("terrain_texture_resolution")/100.0;
+	
 	m_tile_cache = tile_cache<T>(data_dir, bounds.y, bounds.x, tile_size, 0, 300000);
 }
 
