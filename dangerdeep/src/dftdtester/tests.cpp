@@ -182,18 +182,16 @@ int tests::do_texunit_check()
 	int texture_units = 0;
 	enum status status;
 
-	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &texture_units );
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texture_units );
 
-	if ( texture_units > 3 )
-	{
+	if ( texture_units > 8 ) {
 		status = sGOOD;
-	} else if( texture_units > 2 )
-	{
+	} else if( texture_units == 8 ) {
 		status = sMED;
 	} else {
 		status = sBAD;
 	}
-
+	
 	MPT_OUT( "Found " << texture_units << " Texture Units ", status );
 }
 
@@ -274,6 +272,21 @@ int tests::do_shaderobj_check()
 	return pt_out( "Support for shader objects", status );
 }
 
+int tests::do_compression_check()
+{
+	enum status status;
+	if (extension_supported( "GL_EXT_texture_compression_s3tc" ) ||
+		extension_supported( "GL_ARB_texture_compression_s3tc" )
+		)
+	{
+		status = sGOOD;
+	} else {
+		status = sBAD;
+	}
+
+	return pt_out( "Support for texture compression", status );
+}
+
 int tests::do_gl_tests()
 {
 	int retval = 1;
@@ -302,6 +315,9 @@ int tests::do_gl_tests()
 		retval = 0;
 
 	if ( 0 == do_shaderobj_check() )
+		retval = 0;
+	
+	if ( 0 == do_compression_check() )
 		retval = 0;
 
 	return retval;
