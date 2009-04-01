@@ -5,6 +5,8 @@ varying vec2 texcoordnormal;
 varying vec2 texcoordnormal_c;
 varying float alpha;
 
+uniform int above_water;
+
 uniform sampler2D texnormal;
 uniform sampler2D texnormal_c;
 
@@ -46,6 +48,12 @@ void main()
 		discard;
 #endif
 #endif
+	
+	//clipping
+	if((above_water > 0 && gl_TexCoord[0].z < 0) ||
+	   (above_water < 0 && gl_TexCoord[0].z > 0))
+		discard;
+	
 	vec3 L = normalize(lightdir);
 	// compute normal
 	vec3 N = normalize(mix(texture2D(texnormal,     texcoordnormal).xyz * 2.0 - 1.0,
