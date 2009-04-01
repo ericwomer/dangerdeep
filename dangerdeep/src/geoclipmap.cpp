@@ -102,6 +102,7 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 		loc_tex_stretch_factor[i] = myshader[i]->get_uniform_location("tex_stretch_factor");
 		loc_bumpmap[i] = myshader[i]->get_uniform_location("bump_texture");
 		loc_slope_texture[i] = myshader[i]->get_uniform_location("slope_texture");
+		loc_above_water[i] = myshader[i]->get_uniform_location("above_water");
 		myshader[i]->set_uniform(loc_w_p1[i], resolution_vbo * w_fac + 1.0f);
 		myshader[i]->set_uniform(loc_w_rcp[i], 1.0f/(resolution_vbo * w_fac));
 		myshader[i]->set_uniform(loc_N_rcp[i], 1.0f/resolution_vbo);
@@ -182,7 +183,7 @@ void geoclipmap::set_viewerpos(const vector3& new_viewpos)
 
 
 
-void geoclipmap::display(const frustum& f, const vector3& view_delta, bool is_mirror) const
+void geoclipmap::display(const frustum& f, const vector3& view_delta, bool is_mirror, int above_water) const
 {
 	if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// display levels from inside to outside
@@ -196,6 +197,7 @@ void geoclipmap::display(const frustum& f, const vector3& view_delta, bool is_mi
 	if (is_mirror) f2 = f.get_mirrored();
 	myshader[si]->set_gl_texture(bumpmap, loc_bumpmap[si], 2);
 	myshader[si]->set_gl_texture(height_gen.get_slope_texture(), loc_slope_texture[si], 3);
+	myshader[si]->set_uniform(loc_above_water[si], above_water);
 	for(unsigned j=0; j<height_gen.get_texture_count(); j++) {
 		myshader[si]->set_gl_texture(height_gen.get_terrain_texture(j), loc_terrain_textures[si][j], 4+j);
 	}

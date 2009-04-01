@@ -50,7 +50,7 @@ class geoclipmap
 	void set_viewerpos(const vector3& viewpos);
 
 	/// render the view (will only fetch the vertex/index data, no texture setup)
-	void display(const frustum& f, const vector3& view_delta = vector3(), bool is_mirror = false) const;
+	void display(const frustum& f, const vector3& view_delta = vector3(), bool is_mirror = false, int above_water = 0) const;
 
  protected:
 	// "N", must be power of two
@@ -176,6 +176,7 @@ class geoclipmap
 	unsigned loc_tex_stretch_factor[2];
 	unsigned loc_bumpmap[2];
 	unsigned loc_slope_texture[2];
+	unsigned loc_above_water[2];
 	std::vector<unsigned> loc_terrain_textures[2];
 	texture::ptr horizon_normal;
 

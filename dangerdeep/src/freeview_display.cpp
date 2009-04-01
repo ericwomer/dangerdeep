@@ -354,7 +354,13 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 {	
 	double max_view_dist = gm.get_max_view_distance();
 
-
+	// check if we are below water surface, above or near it
+	int above_water = 1; // 1: above, 0: near, -1: below
+	float waterheight = ui.get_water().get_height(viewpos.xy());
+	if (viewpos.z < waterheight) {
+		above_water = -1;
+	}
+	
 	// the modelview matrix is set around the player's viewing position.
 	// i.e. it has an translation part of zero.
 	// this means all objects have to be drawn with an offset of (-viewpos)
@@ -456,7 +462,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 		glPopMatrix();
 
 		//   terrain - it handles z-flipping itself
-		ui.draw_terrain(viewpos_mirror, ui.get_absolute_bearing(), max_view_dist, true/*mirrored*/);
+		ui.draw_terrain(viewpos_mirror, ui.get_absolute_bearing(), max_view_dist, true/*mirrored*/, above_water);
 
 		glPushMatrix();
 		// flip geometry at z=0 plane
@@ -558,8 +564,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	sys().gl_perspective_fovx(pd.fov_x, double(pd.w)/double(pd.h), pd.near_z, pd.far_z);
 	glMatrixMode(GL_MODELVIEW);
 
-	// check if we are below water surface, above or near it
-	int above_water = 1; // 1: above, 0: near, -1: below
+
 	frustum viewfrustum = frustum::from_opengl();
 	matrix4 mv = matrix4::get_gl(GL_MODELVIEW_MATRIX);
 	matrix4 prj = matrix4::get_gl(GL_PROJECTION_MATRIX);
@@ -570,10 +575,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	vector3 wtlf = invmvp * vector3(-1,+1,+0.99);
 	vector3 wtrf = invmvp * vector3(+1,+1,+0.99);
 	polygon viewwindow_far(wblf, wbrf, wtrf, wtlf);
-	float waterheight = ui.get_water().get_height(viewpos.xy());
-	if (viewpos.z < waterheight) {
-		above_water = -1;
-	}
+
 
 	//fixme: water reflections are brighter than the sky, so there must be a difference between sky drawing
 	//and mirrored sky drawing...
@@ -667,7 +669,7 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 
 	// ******** terrain/land ********************************************************
 //	glDisable(GL_FOG);	//testing with new 2d bspline terrain.
-	ui.draw_terrain(viewpos, ui.get_absolute_bearing(), max_view_dist, false/*not mirrored*/);
+	ui.draw_terrain(viewpos, ui.get_absolute_bearing(), max_view_dist, false/*not mirrored*/, above_water);
 //	glEnable(GL_FOG);	
 
 	// ******************** ships & subs *************************************************
