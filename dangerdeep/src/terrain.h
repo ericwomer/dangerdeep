@@ -115,7 +115,7 @@ terrain<T>::terrain(const std::string& header_file, const std::string& data_dir,
 	
 	fractal = std::auto_ptr<hybrid_multifractal>(new hybrid_multifractal(noise_h, noise_lac, _num_levels+1, noise_off));
     // heired from height_generator interface
-	sample_spacing = 25.0;
+	sample_spacing = 50.0;
 	m_tile_cache = tile_cache<T>(data_dir, bounds.y, bounds.x, tile_size, 0, 300000);
 }
 
@@ -173,7 +173,7 @@ bivector<float> terrain<T>::generate_patch(int detail, const vector2i& coord_bl,
 	for (int y = 0; y < coord_sz.y; ++y) {
 		for (int x = 0; x < coord_sz.x; ++x) {
 			vector2i coord = coord_bl + vector2i(x, y);
-				patch.at(x,y) += fractal->get_value(vector3f((coord.x<<(detail+1))*noise_coord_factor, (coord.y<<(detail+1))*noise_coord_factor, patch.at(x,y)*noise_coord_factor),num_levels-detail)*noise_scale;
+			patch.at(x,y) += fractal->get_value(vector3f((coord.x<<(detail+1))*noise_coord_factor, (coord.y<<(detail+1))*noise_coord_factor, patch.at(x,y)*noise_coord_factor),num_levels-detail)*noise_scale;
 		}
 	}
 	return patch;
