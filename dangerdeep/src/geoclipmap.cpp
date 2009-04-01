@@ -61,7 +61,7 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 	                + DEBUG_INDEX_EXTRA
 #endif
 			),
-	  bumpmap(simplex_noise::noise_map2D(vector2i(256,256), nr_levels), 256, 256, GL_LUMINANCE, texture::LINEAR, texture::REPEAT, true),
+	  bumpmap(simplex_noise::noise_map2D(vector2i(256,256), nr_levels), 256, 256, GL_LUMINANCE, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT, true),
 	  levels(nr_levels),
 	  height_gen(hg),
 	  wireframe(false)
