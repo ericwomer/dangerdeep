@@ -541,9 +541,9 @@ void user_interface::show_target(double vx, double vy, double w, double h, const
 }
 
 void user_interface::draw_terrain(const vector3& viewpos, angle dir,
-				  double max_view_dist, bool mirrored) const
+				  double max_view_dist, bool mirrored, int above_water) const
 {
-#if 1
+#if 0
 	glPushMatrix();
 	glTranslated(0, 0, -viewpos.z);
 	// still needed to render the props.
@@ -558,7 +558,7 @@ void user_interface::draw_terrain(const vector3& viewpos, angle dir,
 		glScalef(1.0f, 1.0f, -1.0f);
 	viewfrustum.translate(viewpos);
 	mygeoclipmap->set_viewerpos(viewpos);
-	mygeoclipmap->display(viewfrustum, -viewpos, mirrored);
+	mygeoclipmap->display(viewfrustum, -viewpos, mirrored, above_water);
 	glPopMatrix();
 }
 

@@ -178,7 +178,7 @@ public:
 	virtual void show_target(double x, double y, double w, double h, const vector3& viewpos);
 
 	// 3d drawing functions
-	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist, bool mirrored) const;
+	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist, bool mirrored, int above_water) const;
 
 	virtual void draw_weather_effects() const;
 
