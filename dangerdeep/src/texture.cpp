@@ -444,9 +444,10 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		format = GL_RGB;
 		vector<Uint8> nmpix = make_normals(data, gl_width, gl_height, detailh);
 		int internalformat = format;
-#ifdef COMPRESSED_TEXTURES
-		format = GL_COMPRESSED_LUMINANCE_ARB;
-#endif
+
+		if(cfg::instance().getb("use_compressed_textures"))
+			format = GL_COMPRESSED_LUMINANCE_ARB;
+
 		glTexImage2D(GL_TEXTURE_2D, 0, internalformat, gl_width, gl_height, 0, format,
 			     GL_UNSIGNED_BYTE, &nmpix[0]);
 
