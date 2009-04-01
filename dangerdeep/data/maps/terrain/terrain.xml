@@ -4,7 +4,7 @@
 	<bounds x="21600" y="10800" />
 	<origin x="10800" y="5400" />
 	<tile_size value="256" />
-	<tex_stretch_factor value=".005" />
+	<tex_stretch_factor value=".001" />
 	<slope texture="tex_stone.jpg" />
 	<regions>
 		<region min="-3000" max="-2000" texture="tex_mud.jpg" />
