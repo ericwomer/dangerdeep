@@ -102,10 +102,10 @@ terrain<T>::terrain(const std::string& header_file, const std::string& data_dir,
 	for (xml_elem::iterator it = elem.iterate("region"); !it.end(); it.next()) {
 		elem = it.elem();
 		regions.push_back(vector2f(elem.attrf("max")-elem.attrf("min"), elem.attrf("max")));
-		terrain_textures.push_back(std::auto_ptr<texture>(new texture(get_texture_dir() += elem.attr("texture"), texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT)));
+		terrain_textures.push_back(std::auto_ptr<texture>(new texture(get_texture_dir() += elem.attr("texture"), false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT)));
 	}
 	elem = root.child("slope");
-	slope_texture = std::auto_ptr<texture>(new texture(get_texture_dir() += elem.attr("texture"), texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
+	slope_texture = std::auto_ptr<texture>(new texture(get_texture_dir() += elem.attr("texture"), false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
 	elem = root.child("noise");
 	noise_h = elem.attrf("h");
 	noise_lac = elem.attrf("lacunarity");
