@@ -161,11 +161,13 @@ int tests::do_version_check()
 			spos++;
 		}
 
-		if ( major >= 2)
+		if ( major == 2)
 		{
 			if(minor >= 1)
 				status = sGOOD;
 			else status = sBAD;
+		} else if (major >=3) {
+			status = sGOOD;
 		} else {
 			status = sBAD;
 		}
