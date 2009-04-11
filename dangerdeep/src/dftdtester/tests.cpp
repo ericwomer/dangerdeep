@@ -161,11 +161,12 @@ int tests::do_version_check()
 			spos++;
 		}
 
-		if ( major == 2)
+		if ( major >= 2)
 		{
-			if(minor >= 1)
-				status = sGOOD;
-			else status = sBAD;
+			status = sGOOD;
+
+			if ( 0 == minor )
+				status = sMED;
 		} else if (major >=3) {
 			status = sGOOD;
 		} else {
@@ -181,9 +182,11 @@ int tests::do_version_check()
 int tests::do_texunit_check()
 {
 	int texture_units = 0;
+	int texture_image_units = 0;
 	enum status status;
 
-	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texture_units );
+	glGetIntegerv( GL_MAX_TEXTURE_UNITS, &texture_units );
+	glGetIntegerv( GL_MAX_TEXTURE_IMAGE_UNITS, &texture_image_units );
 
 	if ( texture_units > 8 ) {
 		status = sGOOD;
@@ -193,7 +196,17 @@ int tests::do_texunit_check()
 		status = sBAD;
 	}
 	
-	MPT_OUT( "Found " << texture_units << " Texture Units ", status );
+	if ( texture_image_units > 15 )
+	{
+		status = sGOOD;
+	} else if( texture_image_units > 7 )
+	{
+		status = sMED;
+	} else {
+		status = sBAD;
+	}
+
+	MPT_OUT( "Found " << texture_units << " Texture Units and " << texture_image_units << " Image Texture Units ", status );
 }
 
 int tests::do_vbo_check()
@@ -282,7 +295,7 @@ int tests::do_compression_check()
 	{
 		status = sGOOD;
 	} else {
-		status = sBAD;
+		status = sMED;
 	}
 
 	return pt_out( "Support for texture compression", status );
