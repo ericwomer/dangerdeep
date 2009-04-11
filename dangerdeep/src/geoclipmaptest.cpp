@@ -29,7 +29,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "perlinnoise.h"
 #include <glu.h>
 #include <SDL.h>
-#include <SDL_net.h>
 
 #include "terrain.h"
 #include "system.h"

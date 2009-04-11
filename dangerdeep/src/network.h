@@ -23,6 +23,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef NETWORK_H
 #define NETWORK_H
 
+#if 0
+
 #include "SDL.h"
 #include "SDL_net.h"
 #include <vector>
@@ -63,4 +65,5 @@ inline bool operator== (const IPaddress& a, const IPaddress& b)
 	return a.host == b.host && a.port == b.port;
 }
 
+#endif
 #endif
