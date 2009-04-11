@@ -423,7 +423,8 @@ inline void print_stack_trace()
 	if (f) {
 		for (std::list<std::string>::iterator it = lines.begin(); it != lines.end(); ++it) {
 			char tmp[128];
-			fgets(tmp, 127, f);
+			if ( NULL == fgets(tmp, 127, f) )
+				break;
 			fprintf(stderr, "%s at %s", it->c_str(), tmp);
 		}
 		pclose(f);
