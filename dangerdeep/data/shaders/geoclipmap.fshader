@@ -14,12 +14,13 @@ uniform sampler2D texnormal_c;
 	x = range
 	y = upper_bound
  */
-uniform vec2 regions[3];
+uniform vec2 regions[4];
 uniform float tex_stretch_factor;
 
 uniform sampler2D terrain_texture0;
 uniform sampler2D terrain_texture1;
 uniform sampler2D terrain_texture2;
+uniform sampler2D terrain_texture3;
 uniform sampler2D bump_texture;
 uniform sampler2D slope_texture;
 #ifdef MIRROR
@@ -76,8 +77,11 @@ void main()
 	weight = compute_weight(regions[2].x, regions[2].y, height);
 	blended_color = mix(blended_color, get_color(terrain_texture2, coord), weight);
 
+	weight = compute_weight(regions[3].x, regions[3].y, height);
+	blended_color = mix(blended_color, get_color(terrain_texture3, coord), weight);
+	
 	float slope = 1.0 - dot(N, vec3(0.0, 0.0, 1.0));
-	vec3 slope_color = get_color(slope_texture, coord).xyz;
+	vec3 slope_color = get_color(slope_texture, coord);
 	blended_color = mix(blended_color, slope_color, slope);
 	
 	//Bump mapping
