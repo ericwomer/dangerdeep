@@ -37,6 +37,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "log.h"
 #include "primitives.h"
 #include "shader.h"
+#include "cfg.h"
 
 #include <iostream>
 #include <sstream>
@@ -199,7 +200,7 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 		glEnable(GL_TEXTURE_2D);
 	}
 	
-	if(cfg::instance().getb("use_multisampling")) {
+	if (cfg::instance().getb("use_multisampling")) {
 		glEnable(GL_MULTISAMPLE);
 		switch(cfg::instance().geti("hint_multisampling")) {
 			case 1: 
@@ -213,7 +214,7 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 			break;
 		}
 	}
-	switch(cfg::instance().geti("hint_fog")) {
+	switch (cfg::instance().geti("hint_fog")) {
 		case 1: 
 			glHint(GL_FOG_HINT, GL_NICEST);
 		break;
@@ -224,7 +225,7 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 			glHint(GL_FOG_HINT, GL_DONT_CARE);
 		break;
 	}
-	switch(cfg::instance().geti("hint_mipmap")) {
+	switch (cfg::instance().geti("hint_mipmap")) {
 		case 1: 
 			glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
 		break;
@@ -235,7 +236,7 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 			glHint(GL_GENERATE_MIPMAP_HINT, GL_DONT_CARE);
 		break;
 	}
-	switch(cfg::instance().geti("hint_texture_compression")) {
+	switch (cfg::instance().geti("hint_texture_compression")) {
 		case 1: 
 			glHint(GL_TEXTURE_COMPRESSION_HINT, GL_NICEST);
 		break;
