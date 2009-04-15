@@ -1695,7 +1695,6 @@ int mymain(list<string>& args)
 	mycfg.register_option("hint_mipmap", 0);
 	mycfg.register_option("hint_texture_compression", 0);
 	mycfg.register_option("vsync", false);
-	mycfg.register_option("terrain_detail", 5);
 	mycfg.register_option("water_detail", 128);
 	mycfg.register_option("wave_fft_res", 128);
 	mycfg.register_option("wave_phases", 256);
