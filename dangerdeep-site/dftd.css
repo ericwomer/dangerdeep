@@ -23,19 +23,6 @@ div.classdiagram
 	border: 1px solid #fff;
 }
 
-/*
-span.MATH img {
-	text-align: left;
-	background-color: #bbb;
-	border: 1px solid #fff;
-	white-space: pre;
-	color: #000;
-	padding: 2px;
-	margin: 1px;
-}
-
-*/
-
 h2.center {
 	text-align: center;
 }
@@ -137,6 +124,7 @@ ul.menu li a {
 	text-decoration: none;
 	display: block;
 	padding-left: 18px;
+	height: 16px;
 }
 
 img.std {
@@ -145,62 +133,66 @@ img.std {
 }
 
 /* icons */
-li.gallery a {
-	background: url( 'ddicons/pictures.gif' );
-	background-repeat: no-repeat;
-}
-
-li.forum a {
-	background: url( 'ddicons/monitor_go.gif' );
-	background-repeat: no-repeat;
-}
-
 li.about a {
-	background: url( 'ddicons/house.gif' );
+	background: url( 'images/icons.gif' );
 	background-repeat: no-repeat;
+	background-position: 0px 0px; 
+}
+
+li.warn a {
+	background: url( 'images/icons.gif' );
+	background-repeat: no-repeat;
+	background-position: 0px -16px; 
 }
 
 li.feat a {
-	background: url( 'ddicons/page_white_gear.gif' );
+	background: url( 'images/icons.gif' );
 	background-repeat: no-repeat;
+	background-position: 0px -32px; 
 }
 
 li.news a {
-	background: url( 'ddicons/newspaper.gif' );
+	background: url( 'images/icons.gif' );
 	background-repeat: no-repeat;
+	background-position: 0px -48px; 
 }
 
-li.download a {
-	background: url( 'ddicons/folder_go.gif' );
+li.gallery a {
+	background: url( 'images/icons.gif' );
 	background-repeat: no-repeat;
+	background-position: 0px -64px; 
+}
+
+li.forum a {
+	background: url( 'images/icons.gif' );
+	background-repeat: no-repeat;
+	background-position: 0px -80px; 
+}
+
+
+li.download a {
+	background: url( 'images/icons.gif' );
+	background-repeat: no-repeat;
+	background-position: 0px -96px; 
 }
 
 li.help a {
-	background: url( 'ddicons/group.gif' );
+	background: url( 'images/icons.gif' );
 	background-repeat: no-repeat;
+	background-position: 0px -112px; 
 }
 
 li.docu a {
-	background: url( 'ddicons/help.gif' );
+	background: url( 'images/icons.gif' );
 	background-repeat: no-repeat;
+	background-position: 0px -128px; 
 }
 
 li.links a {
-	background: url( 'ddicons/door_out.gif' );
+	background: url( 'images/icons.gif' );
 	background-repeat: no-repeat;
+	background-position: 0px -144px; 
 }
-
-
-li.warn a {
-	background: url( 'ddicons/dialog-warning.gif' );
-	background-repeat: no-repeat;
-}
-/*
-li. a {
-	background: url( 'icons/' );
-	background-repeat: no-repeat;
-}
-*/
 
 /* hacks */
 div.ie_center {
