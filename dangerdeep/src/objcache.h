@@ -73,7 +73,7 @@ public:
 		if (objname.empty()) return (T*)0;
 		typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it == cache.end()) {
-			it = cache.insert(std::make_pair(objname, std::make_pair(1, new T(basedir + objname)))).first;
+			it = cache.insert(std::make_pair(objname, std::make_pair( (unsigned)1, new T(basedir + objname)))).first;
 		} else {
 			++(it->second.first);
 		}
@@ -84,7 +84,7 @@ public:
 		if (objname.empty()) return false;	// no valid name
 		typename std::map<std::string, std::pair<unsigned, T*> >::iterator it = cache.find(objname);
 		if (it == cache.end()) {
-			it = cache.insert(std::make_pair(objname, std::make_pair(1, obj))).first;
+			it = cache.insert(std::make_pair(objname, std::make_pair((unsigned)1, obj))).first;
 		} else {
 			return false;	// already exists
 		}
