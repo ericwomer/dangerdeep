@@ -26,20 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 #include <cmath>
 
-#if (defined(__APPLE__) && defined(__GNUC__)) || defined(__MACOSX__)
-#include <complex.h>
-#ifndef isfinite
-#define isfinite(x) finite(x)
-#endif
-#elif defined(WIN32)
-#include <float.h>
-#ifndef isfinite
-#define isfinite(x) _finite(x)
-#endif
-#else
-using std::isfinite;
-#endif
-
+#include "dmath.h"
 
 ///\brief Represents a non-uniform-B-spline interpolation object
 template <class T>
