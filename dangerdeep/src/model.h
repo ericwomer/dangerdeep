@@ -245,6 +245,16 @@ public:
 		vector3 compute_center_of_gravity() const;
 		/// give transformation matrix for vertices here (vertex->world space)
 		matrix3 compute_inertia_tensor(const matrix4f& transmat) const;
+
+		/// Adjacency information - computed on demand - only for triangles
+		std::vector<Uint32> triangle_adjacency;
+		std::vector<Uint32> vertex_triangle_adjacency;
+
+		static const unsigned no_adjacency = unsigned(-1);
+		bool has_adjacency_info() const;
+		void compute_adjacency();
+		unsigned get_adjacent_triangle(unsigned triangle, unsigned edge) const { return triangle_adjacency[triangle*3 + edge]; }
+		unsigned get_triangle_of_vertex(unsigned vertex) const { return vertex_triangle_adjacency[vertex]; }
 	};
 
 	struct light {

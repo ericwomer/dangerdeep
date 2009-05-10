@@ -1122,6 +1122,67 @@ vector3 model::mesh::compute_center_of_gravity() const
 
 
 
+bool model::mesh::has_adjacency_info() const
+{
+	return indices_type == pt_triangles && triangle_adjacency.size()*3 == indices.size();
+}
+
+
+
+// Auxiliary structures - store list of edges per vertex
+// sorted by vertex with smaller index
+struct adjacency_edge_aux_data
+{
+	unsigned triangle, edge;
+	unsigned v0, v1;
+	adjacency_edge_aux_data(unsigned t, unsigned e, unsigned v0_, unsigned v1_)
+		: triangle(t), edge(e), v0(v0_), v1(v1_) {}
+	bool operator< (const adjacency_edge_aux_data& other) const {
+		return v0 == other.v0 ? v1 < other.v1 : v0 < other.v0;
+	}
+};
+
+void model::mesh::compute_adjacency()
+{
+	if (indices_type != pt_triangles) {
+		triangle_adjacency.clear();
+		vertex_triangle_adjacency.clear();
+		throw std::runtime_error("can't compute adjacency for non-triangle meshes");
+	}
+
+	unsigned nr_tri = indices.size() / 3;
+	triangle_adjacency.clear();
+	triangle_adjacency.resize(nr_tri, no_adjacency);
+	vertex_triangle_adjacency.clear();
+	vertex_triangle_adjacency.resize(vertices.size(), no_adjacency);
+
+	// build/use auxiliary data while building adjacency data
+	std::vector<std::set<adjacency_edge_aux_data> > tri_of_vertex(vertices.size());
+	for (unsigned i = 0; i < nr_tri; ++i) {
+		for (unsigned j = 0; j < 3; ++j) {
+			unsigned v0 = indices[3*i + j];
+			unsigned v1 = indices[3*i + (j + 1) % 3];
+			unsigned va = std::min(v0, v1), vb = std::max(v0, v1);
+			adjacency_edge_aux_data aa(i, j, va, vb);
+			std::pair<std::set<adjacency_edge_aux_data>::iterator, bool> pib = 
+				tri_of_vertex[va].insert(aa);
+			vertex_triangle_adjacency[va] = aa.triangle;
+			if (!pib.second) {
+				// edge already existing
+				const adjacency_edge_aux_data& a2 = *pib.first;
+				if (triangle_adjacency[a2.triangle*3 + a2.edge] != no_adjacency)
+					throw std::runtime_error("inconsistent mesh");
+				if (triangle_adjacency[aa.triangle*3 + aa.edge] != no_adjacency)
+					throw std::runtime_error("inconsistent mesh");
+				triangle_adjacency[a2.triangle*3 + a2.edge] = aa.triangle;
+				triangle_adjacency[aa.triangle*3 + aa.edge] = a2.triangle;
+			}
+		}
+	}
+}
+
+
+
 /* computing the inertia tensor for a mesh,
    from the RigidBodySimulation paper.
    The inertia tensor is:
