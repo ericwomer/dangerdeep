@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "color.h"
 #include "shader.h"
 #include "vertexbufferobject.h"
+#include "bv_tree.h"
 #include <vector>
 #include <fstream>
 #include <memory>
@@ -137,7 +138,7 @@ public:
 		unsigned loc_texunit[4];
 		unsigned nrtex;
 	};
-	
+
 	class mesh {
 		mesh(const mesh& );
 		mesh& operator= (const mesh& );
@@ -253,8 +254,12 @@ public:
 		static const unsigned no_adjacency = unsigned(-1);
 		bool has_adjacency_info() const;
 		void compute_adjacency();
+		bool check_adjacency() const;
 		unsigned get_adjacent_triangle(unsigned triangle, unsigned edge) const { return triangle_adjacency[triangle*3 + edge]; }
 		unsigned get_triangle_of_vertex(unsigned vertex) const { return vertex_triangle_adjacency[vertex]; }
+
+		void compute_bv_tree();
+		std::auto_ptr<bv_tree> bounding_volume_tree;
 	};
 
 	struct light {

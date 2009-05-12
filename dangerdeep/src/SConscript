@@ -76,6 +76,7 @@ dftdsources = Split("""subsim.cpp
 	sub_recogmanual_popup.cpp""")
 
 dftdmediasources = Split("""
+	bv_tree.cpp
 	cfg.cpp
 	error.cpp
 	framebufferobject.cpp

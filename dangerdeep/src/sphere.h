@@ -60,6 +60,12 @@ public:
 		vector3t<D> new_center = center + delta * ((new_radius - radius) / distance);
 		return sphere_t<D>(new_center, new_radius);
 	}
+	/// compute min/max x,y,z values
+	void compute_min_max(vector3t<D>& minv, vector3t<D>& maxv) const {
+		vector3t<D> R(radius, radius, radius);
+		minv = minv.min(center - R);
+		maxv = maxv.max(center + R);
+	}
 };
 
 typedef sphere_t<double> sphere;

@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <cmath>
 #include "dmath.h"
-
+#include "plane.h"
 #include "caustics.h"
 #include "system.h"
 #include "datadirs.h"
@@ -42,6 +42,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <map>
 
 using namespace std;
+
+/* bounding sphere for a triangle: diameter is longest edge, chose center accordingly */
 
 texture::mapping_mode model::mapping = texture::LINEAR_MIPMAP_LINEAR;//texture::NEAREST;
 
@@ -364,6 +366,7 @@ model::~model()
 
 void model::compute_bounds()
 {
+	//fixme: repace with bounding sphere hierarchy
 	if (meshes.size() == 0) return;
 
 	// could be done once... not here
@@ -1183,6 +1186,13 @@ void model::mesh::compute_adjacency()
 
 
 
+bool model::mesh::check_adjacency() const
+{
+	// fixme: for all triangles check if adjacent triangle has vertex pair matching edge
+	// and that edge has same pair as current edge
+	return false;
+}
+
 /* computing the inertia tensor for a mesh,
    from the RigidBodySimulation paper.
    The inertia tensor is:
@@ -1246,6 +1256,64 @@ matrix3 model::mesh::compute_inertia_tensor(const matrix4f& transmat) const
 	} while (tit->next());
 	// result is in model-space, not mesh-space
 	return msum * (mass/vdiv);
+}
+
+
+
+void model::mesh::compute_bv_tree()
+{
+	// build leaf nodes for every triangle of m
+	ptrlist<bv_tree> leaf_nodes;
+
+	std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+	unsigned tri_index = 0;
+	do {
+		const vector3f* v[3] = { &vertices[tit->i0()], &vertices[tit->i1()], &vertices[tit->i2()] };
+		// if triangle has angle of more than 90 degrees,
+		// use the mid of the opposing edge as sphere center,
+		// and half of that edge as radius,
+		// otherwise use intersection of edge normals as
+		// center.
+		// for degenerated triangles use an sphere with radius zero
+		// and mean of all three vertices.
+		vector3f delta[3] = { *v[1] - *v[0], *v[2] - *v[1], *v[0] - *v[2] };
+		float delta_len[3];
+		bool degenerated = false;
+		for (unsigned i = 0; i < 3; ++i) {
+			delta_len[i] = delta[i].length();
+			if (delta_len[i] < 1e-5)
+				degenerated = true;
+		}
+		spheref boundsphere;
+		if (degenerated) {
+			boundsphere.center = (*v[0] + *v[1] + *v[2]) * (1.0/3);
+			boundsphere.radius = 0;
+		} else {
+			bool angle90 = false;
+			for (unsigned i = 0; i < 3; ++i) {
+				unsigned i1 = (i + 1) % 3;
+				if (delta[i] * delta[i1] <= 0) {
+					boundsphere.center = *v[i1];
+					boundsphere.radius = delta_len[i] * 0.5;
+					angle90 = true;
+					break;
+				}
+			}
+			if (!angle90) {
+				// construct three planes and cut them
+				planef pl_a(delta[0] * (1.0/delta_len[0]), *v[0] + delta[0]*0.5);
+				planef pl_b(delta[1] * (1.0/delta_len[1]), *v[1] + delta[1]*0.5);
+				planef pl_c(delta[2] * (1.0/delta_len[2]), *v[2] + delta[2]*0.5);
+				pl_a.compute_intersection(pl_b, pl_c, boundsphere.center);
+				boundsphere.radius = boundsphere.center.distance(*v[0]);
+			}
+		}
+		leaf_nodes.push_back(new bv_tree(boundsphere, tri_index));
+		++tri_index;
+	} while (tit->next());
+	// clear memory first
+	bounding_volume_tree.reset();
+	bounding_volume_tree = bv_tree::create(leaf_nodes);
 }
 
 

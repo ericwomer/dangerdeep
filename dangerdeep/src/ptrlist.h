@@ -97,8 +97,8 @@ class ptrlist
 		return result;
 	}
 
-	T* const& front() const { return *data.front(); }
-	T* const& back() const { return *data.back(); }
+	T* const& front() const { return data.front(); }
+	T* const& back() const { return data.back(); }
 
 	bool empty() const { return data.empty(); }
 
@@ -119,6 +119,23 @@ class ptrlist
 
 	const_iterator begin() const { return const_iterator(data.begin()); }
 	const_iterator end() const { return const_iterator(data.end()); }
+
+	struct iterator
+	{
+		typename std::list<T*>::iterator it;
+
+		iterator(typename std::list<T*>::iterator i) : it(i) {}
+		T& operator* () const { return *(*it); }
+		T* operator-> () const { return *it; }
+		iterator& operator++ () { ++it; return *this; }
+		iterator& operator-- () { --it; return *this; }
+		bool operator== (const iterator& other) const { return it == other.it; }
+		bool operator!= (const iterator& other) const { return it != other.it; }
+		std::auto_ptr<T> release() const { std::auto_ptr<T> result(*it); *it = 0; return result; }
+	};
+
+	iterator nc_begin() { return iterator(data.begin()); }
+	iterator nc_end() { return iterator(data.end()); }
 };
 
 
