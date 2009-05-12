@@ -80,6 +80,22 @@ class ptrlist
 			data.pop_back();
 		}
 	}
+	std::auto_ptr<T> release_front() {
+		std::auto_ptr<T> result;
+		if (!data.empty()) {
+			result.reset(data.front());
+			data.pop_front();
+		}
+		return result;
+	}
+	std::auto_ptr<T> release_back() {
+		std::auto_ptr<T> result;
+		if (!data.empty()) {
+			result.reset(data.back());
+			data.pop_back();
+		}
+		return result;
+	}
 
 	T* const& front() const { return *data.front(); }
 	T* const& back() const { return *data.back(); }
