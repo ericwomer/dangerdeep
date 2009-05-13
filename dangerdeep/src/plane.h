@@ -96,16 +96,16 @@ public:
 		// we have three equations of form N*(x,y,z)+d=0
 		// and solve for x,y,z
 		// So build equation system:
-		// (N1) * (x,y,z) = (d1)
-		// (N2)             (d2)
-		// (N3)             (d3)
+		// (N1) * (x,y,z) = (-d1)
+		// (N2)             (-d2)
+		// (N3)             (-d3)
 		// or by using inverse of the matrix (transposed here)
-		// (x,y,z) = (N1 | N2 | N3) * (d1 d2 d3)
+		// (x,y,z) = (N1 | N2 | N3) * (-d1 -d2 -d3)
 		// result is undefined in some cases
 		// fixme test for correctness here
-		intersection.x = N.x * d + plane_b.N.x * plane_b.d + plane_c.N.x * plane_c.d;
-		intersection.y = N.y * d + plane_b.N.y * plane_b.d + plane_c.N.y * plane_c.d;
-		intersection.z = N.z * d + plane_b.N.z * plane_b.d + plane_c.N.z * plane_c.d;
+		intersection.x = -(N.x * d + plane_b.N.x * plane_b.d + plane_c.N.x * plane_c.d);
+		intersection.y = -(N.y * d + plane_b.N.y * plane_b.d + plane_c.N.y * plane_c.d);
+		intersection.z = -(N.z * d + plane_b.N.z * plane_b.d + plane_c.N.z * plane_c.d);
 		return true;
 	}
 };

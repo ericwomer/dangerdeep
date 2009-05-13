@@ -42,6 +42,7 @@ class bv_tree
 	bool collides(const bv_tree& other, const matrix4f& other_transform, std::list<vector3f>& contact_points) const;
 	void transform(const matrix4f& mat);
 	void compute_min_max(vector3f& minv, vector3f& maxv) const;
+	void debug_dump(unsigned level = 0) const;
 
  protected:
 	spheref sphere;

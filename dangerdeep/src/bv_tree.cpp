@@ -73,6 +73,14 @@ std::auto_ptr<bv_tree> bv_tree::create(ptrlist<bv_tree>& nodes)
 		else
 			right_nodes.push_back(it.release());
 	}
+	if (left_nodes.empty() || right_nodes.empty()) {
+		// special case: force division
+		ptrlist<bv_tree>& empty_list = left_nodes.empty() ? left_nodes : right_nodes;
+		ptrlist<bv_tree>& full_list = left_nodes.empty() ? right_nodes : left_nodes;
+		for (unsigned i = 0; i < full_list.size() / 2; ++i) {
+			empty_list.push_back(full_list.release_front());
+		}
+	}
 	result.reset(new bv_tree(create(left_nodes), create(right_nodes)));
 	return result;
 }
@@ -131,4 +139,16 @@ void bv_tree::compute_min_max(vector3f& minv, vector3f& maxv) const
 	for (int i = 0; i < 2; ++i)
 		if (children[i].get())
 			children[i]->compute_min_max(minv, maxv);
+}
+
+
+
+void bv_tree::debug_dump(unsigned level) const
+{
+	for (unsigned i = 0; i < level; ++i)
+		std::cout << "\t";
+	std::cout << "Level " << level << " Sphere " << sphere.center << " | " << sphere.radius << "\n";
+	for (int i = 0; i < 2; ++i)
+		if (children[i].get())
+			children[i]->debug_dump(level + 1);
 }
