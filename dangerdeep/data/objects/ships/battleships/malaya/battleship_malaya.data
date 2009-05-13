@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
-  <classification identifier="battleship_malaya" modelname="battleship_malaya.3ds" type="warship" country="GB"/>
+  <classification identifier="battleship_malaya" modelname="battleship_malaya.ddxml" type="warship" country="GB"/>
   <description>
     <far lang="it">Nave da guerra</far>
     <medium lang="en">Battleship</medium>

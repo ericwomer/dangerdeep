@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <dftd-ship>
-  <classification identifier="carrier_bogue" modelname="carrier_bogue.3ds" type="warship" country="GB"/>
+  <classification identifier="carrier_bogue" modelname="carrier_bogue.ddxml" type="warship" country="GB"/>
   <description>
     <far lang="en">Warship</far>
     <far lang="de">Kriegsschiff</far>

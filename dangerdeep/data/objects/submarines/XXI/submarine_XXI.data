@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-submarine>
-  <classification identifier="submarine_XXI" modelname="submarine_XXI.3ds" type="submarine" country="DE"/>
+  <classification identifier="submarine_XXI" modelname="submarine_XXI.ddxml" type="submarine" country="DE"/>
   <description>
     <far lang="en">Submarine</far>
     <far lang="de">U-Boot</far>

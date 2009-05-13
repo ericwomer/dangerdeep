@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
-  <classification identifier="merchant_large" modelname="large_merchant.3ds" type="merchant" country="GB"/>
+  <classification identifier="merchant_large" modelname="large_merchant.ddxml" type="merchant" country="GB"/>
   <description>
     <far lang="en">Steam ship</far>
     <far lang="de">Dampfer</far>
