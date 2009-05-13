@@ -31,7 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
 depth_charge::depth_charge(game& gm_)
-	: sea_object(gm_, "depth_charge.3ds"), explosion_depth(0)
+	: sea_object(gm_, "depth_charge.ddxml"), explosion_depth(0)
 {
 	// for loading
 }
@@ -39,7 +39,7 @@ depth_charge::depth_charge(game& gm_)
 
 
 depth_charge::depth_charge(game& gm_, double expl_depth, const vector3& pos)
-	: sea_object(gm_, "depth_charge.3ds"), explosion_depth(expl_depth)
+	: sea_object(gm_, "depth_charge.ddxml"), explosion_depth(expl_depth)
 {
 	// fixme depends on parent! and parent's size, dc's can be thrown, etc.!
 	position = pos;

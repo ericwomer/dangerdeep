@@ -51,7 +51,7 @@ double water_splash::compute_height(double t) const
 
 
 water_splash::water_splash(game& gm_, const vector3& pos, double risetime_, double riseheight_)
-	: sea_object(gm_, "gun_shell.3ds" /* hack */),
+	: sea_object(gm_, "gun_shell.ddxml" /* hack */),
 	  risetime(risetime_), riseheight(riseheight_)
 {
 	double falltime = sqrt(riseheight * 2.0 / GRAVITY);

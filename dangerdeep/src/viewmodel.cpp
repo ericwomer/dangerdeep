@@ -733,6 +733,34 @@ int mymain(list<string>& args)
 
 	res_y = res_x*3/4;
 
+	// parse configuration
+	cfg& mycfg = cfg::instance();
+	mycfg.register_option("screen_res_x", 1024);
+	mycfg.register_option("screen_res_y", 768);
+	mycfg.register_option("fullscreen", true);
+	mycfg.register_option("debug", false);
+	mycfg.register_option("sound", true);
+	mycfg.register_option("use_hqsfx", true);
+	mycfg.register_option("use_ani_filtering", false);
+	mycfg.register_option("anisotropic_level", 1.0f);
+	mycfg.register_option("use_compressed_textures", false);
+	mycfg.register_option("multisampling_level", 0);
+	mycfg.register_option("use_multisampling", false);
+	mycfg.register_option("hint_multisampling", 0);
+	mycfg.register_option("hint_fog", 0);
+	mycfg.register_option("hint_mipmap", 0);
+	mycfg.register_option("hint_texture_compression", 0);
+	mycfg.register_option("vsync", false);
+	mycfg.register_option("water_detail", 128);
+	mycfg.register_option("wave_fft_res", 128);
+	mycfg.register_option("wave_phases", 256);
+	mycfg.register_option("wavetile_length", 256.0f);
+	mycfg.register_option("wave_tidecycle_time", 10.24f);
+	mycfg.register_option("usex86sse", true);
+	mycfg.register_option("language", 0);
+	mycfg.register_option("cpucores", 1);
+	mycfg.register_option("terrain_texture_resolution", 0.1f);
+
 	system::create_instance(new class system(1.0, 1000.0, res_x, res_y, fullscreen));
 	sys().set_res_2d(1024, 768);
 	

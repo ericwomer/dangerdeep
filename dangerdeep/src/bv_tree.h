@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef BV_TREE_H
 #define BV_TREE_H
 
+#include <list>
 #include "sphere.h"
 #include "matrix4.h"
 #include "ptrlist.h"
@@ -37,8 +38,8 @@ class bv_tree
 	bv_tree(std::auto_ptr<bv_tree> left_tree, std::auto_ptr<bv_tree> right_tree);
 	static std::auto_ptr<bv_tree> create(ptrlist<bv_tree>& nodes);
 	bool is_inside(const vector3f& v) const;
-	bool collides(const bv_tree& other) const;
-	bool collides(const bv_tree& other, const matrix4f& other_transform) const;
+	bool collides(const bv_tree& other, std::list<vector3f>& contact_points) const;
+	bool collides(const bv_tree& other, const matrix4f& other_transform, std::list<vector3f>& contact_points) const;
 	void transform(const matrix4f& mat);
 	void compute_min_max(vector3f& minv, vector3f& maxv) const;
 

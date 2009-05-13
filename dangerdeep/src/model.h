@@ -209,6 +209,9 @@ public:
 		matrix3 inertia_tensor;
 		double volume;
 
+		unsigned get_nr_of_triangles() const;
+		void (*get_triangle)(unsigned triangle, Uint32& i0, Uint32& i1, Uint32& i2);
+
 		void display(const texture *caustic_map = 0) const;
 		void display_mirror_clip() const;
 		void compute_vertex_bounds();
@@ -260,6 +263,9 @@ public:
 
 		void compute_bv_tree();
 		std::auto_ptr<bv_tree> bounding_volume_tree;
+
+		void get_plain_triangle(unsigned triangle, Uint32& i0, Uint32& i1, Uint32& i2);
+		void get_strip_triangle(unsigned triangle, Uint32& i0, Uint32& i1, Uint32& i2);
 	};
 
 	struct light {

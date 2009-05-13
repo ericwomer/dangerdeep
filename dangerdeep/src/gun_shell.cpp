@@ -32,7 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "particle.h"
 
 gun_shell::gun_shell(game& gm_)
-	: sea_object(gm_, "gun_shell.3ds"), damage_amount(0)
+	: sea_object(gm_, "gun_shell.ddxml"), damage_amount(0)
 {
 	// for loading
 	mass = 20;
@@ -43,7 +43,7 @@ gun_shell::gun_shell(game& gm_)
 
 gun_shell::gun_shell(game& gm_, const vector3& pos, angle direction, angle elevation,
 	double initial_velocity, double damage)
-	: sea_object(gm_, "gun_shell.3ds")
+	: sea_object(gm_, "gun_shell.ddxml")
 {
 	orientation = quaternion::rot(-direction.value(), 0, 0, 1);
 	mass = 20;

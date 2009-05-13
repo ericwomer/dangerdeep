@@ -758,6 +758,40 @@ model::mesh::mesh(unsigned w, unsigned h, const std::vector<float>& heights, con
 
 
 
+unsigned model::mesh::get_nr_of_triangles() const
+{
+	switch (indices_type) {
+	case pt_triangles:
+		return indices.size() / 3;
+	case pt_triangle_strip:
+		return std::max(2U, indices.size()) - 2;
+	default:
+		return 0;
+	}
+}
+
+
+
+void model::mesh::get_plain_triangle(unsigned triangle, Uint32& i0, Uint32& i1, Uint32& i2)
+{
+	unsigned t = triangle * 3;
+	i0 = indices[t];
+	i1 = indices[t+1];
+	i2 = indices[t+2];
+}
+
+
+
+void model::mesh::get_strip_triangle(unsigned triangle, Uint32& i0, Uint32& i1, Uint32& i2)
+{
+	unsigned x = triangle & 1;
+	i0 = indices[triangle  +x];
+	i1 = indices[triangle+1-x];
+	i2 = indices[triangle+2];
+}
+
+
+
 void model::mesh::compile()
 {
 	bool has_texture_u0 = false, has_texture_u1 = false;
@@ -1127,6 +1161,7 @@ vector3 model::mesh::compute_center_of_gravity() const
 
 bool model::mesh::has_adjacency_info() const
 {
+	//fixme adjacency works even for strips!
 	return indices_type == pt_triangles && triangle_adjacency.size()*3 == indices.size();
 }
 

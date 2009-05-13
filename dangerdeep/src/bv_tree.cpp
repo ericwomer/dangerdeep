@@ -101,14 +101,14 @@ bool bv_tree::is_inside(const vector3f& v) const
 
 
 
-bool bv_tree::collides(const bv_tree& other) const
+bool bv_tree::collides(const bv_tree& other, std::list<vector3f>& contact_points) const
 {
 	return false; // fixme
 }
 
 
 
-bool bv_tree::collides(const bv_tree& other, const matrix4f& other_transform) const
+bool bv_tree::collides(const bv_tree& other, const matrix4f& other_transform, std::list<vector3f>& contact_points) const
 {
 	return false; // fixme
 }
