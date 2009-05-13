@@ -324,9 +324,7 @@ model::model(const string& filename_, bool use_material)
 	fclose(ftest);
 
 	// determine loader by extension here.
-	if (extension == ".3ds") {
-		m3ds_load(filename2);
-	} else if (extension == ".off") {
+	if (extension == ".off") {
 		read_off_file(filename2);
 	} else if (extension == ".xml" || extension == ".ddxml") {
 		read_dftd_model_file(filename2);
@@ -392,13 +390,7 @@ void model::compute_bounds()
 void model::compute_normals()
 {
 	for (vector<model::mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it) {
-		try {
-			(*it)->compute_normals();
-		}
-		catch (std::exception& e) {
-			// if normal generation fails (happens for some broken 3ds models),
-			// ignore that, do not generate normals for such a mesh
-		}
+		(*it)->compute_normals();
 	}
 }
 
@@ -1925,16 +1917,6 @@ const model::material& model::get_material(unsigned nr) const
 	return *(materials.at(nr));
 }
 
-model::light& model::get_light(unsigned nr)
-{
-	return lights.at(nr);
-}
-
-const model::light& model::get_light(unsigned nr) const
-{
-	return lights.at(nr);
-}
-
 static inline unsigned char2hex(char c)
 {
 	if (c >= '0' && c <= '9')
@@ -2117,19 +2099,6 @@ void model::compile()
 
 
 
-void model::light::set_gl(unsigned nr_of_light) const
-{
-	GLfloat tmp[4] = { pos.x, pos.y, pos.z, 1.0f };
-	glLightfv(GL_LIGHT0, GL_POSITION, tmp);
-	tmp[0] = tmp[1] = tmp[2] = ambient;
-	glLightfv(GL_LIGHT0, GL_AMBIENT, tmp);
-	tmp[0] = colr; tmp[1] = colg; tmp[2] = colb;
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, tmp);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, tmp);
-}
-
-
-
 // -------------------------------- dftd model file writing --------------------------------------
 // write our own model file format.
 void model::write_to_dftd_model_file(const std::string& filename, bool store_normals) const
@@ -2265,17 +2234,6 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 		trans.add_child_text(osst.str());
 	}
 
-	// save lights.
-	for (vector<light>::const_iterator it = lights.begin(); it != lights.end(); ++it) {
-		xml_elem lgt = root.add_child("light");
-		lgt.set_attr(it->name, "name");
-		ostringstream lpos; lpos << it->pos.x << " " << it->pos.y << " " << it->pos.z;
-		lgt.set_attr(lpos.str(), "pos");
-		ostringstream lcol; lcol << it->colr << " " << it->colg << " " << it->colb;
-		lgt.set_attr(lpos.str(), "color");
-		lgt.set_attr(it->ambient, "ambient");
-	}
-
 	// finally save file.
 	doc.save();
 }
@@ -2346,403 +2304,6 @@ model::material::map::map(const xml_elem& parent)
 
 
 
-// ------------------------------------------ 3ds loading functions -------------------------- 
-// ----------------------------- 3ds file reading data ---------------------------
-// taken from a NeHe tutorial (nehe.gamedev.net)
-// indentations describe the tree structure
-#define M3DS_COLOR	0x0010	// three floats
-#define M3DS_COLOR24	0x0011	// 24bit truecolor
-#define	M3DS_MAIN3DS	0x4D4D
-#define 	M3DS_EDIT3DS	0x3D3D
-#define 		M3DS_EDIT_MATERIAL	0xAFFF
-#define 			M3DS_MATNAME	   	0xA000
-#define 			M3DS_MATAMBIENT		0xA010
-#define 			M3DS_MATDIFFUSE		0xA020
-#define 			M3DS_MATSPECULAR	0xA030
-#define 			M3DS_MATTRANSPARENCY	0xA050//not used yet, not needed!
-#define 			M3DS_MATMAPTEX1		0xA200
-#define 				M3DS_MATMAPFILE		0xA300
-#define 				M3DS_MATMAP1OVERU_SCAL	0xA354
-#define 				M3DS_MATMAP1OVERV_SCAL	0xA356
-#define 				M3DS_MATMAPUOFFSET	0xA358
-#define 				M3DS_MATMAPVOFFSET	0xA35A
-#define 				M3DS_MATMAPANG		0xA35C
-#define		 			M3DS_MATMAPAMOUNTBUMP	0xA252//double byte chunk, displayed amount of bump, not yet used
-#define 			M3DS_MATMAPBUMP		0xA230
-#define 		M3DS_EDIT_OBJECT	0x4000
-#define 			M3DS_OBJ_TRIMESH   	0x4100
-#define 				M3DS_TRI_VERTEXL	0x4110
-#define 				M3DS_TRI_FACEL1		0x4120
-#define 					M3DS_TRI_MATERIAL	0x4130
-#define 				M3DS_TRI_MAPPINGCOORDS	0x4140
-#define 				M3DS_TRI_MESHMATRIX  0x4160
-#define				M3DS_OBJ_LIGHT	0x4600
-#define 	M3DS_VERSION		0x0002
-#define 	M3DS_KEYF3DS		0xB000
-// ----------------------------- end of 3ds file reading data ----------------------
-
-void model::m3ds_load(const string& fn)
-{
-	ifstream in(fn.c_str(), ios::in | ios::binary);
-	m3ds_chunk head = m3ds_read_chunk(in);
-	if (head.id != M3DS_MAIN3DS) {
-		throw error(string("[model::load_m3ds] Unable to load PRIMARY chuck from file \"")+fn+string("\""));
-	}
-	m3ds_process_toplevel_chunks(in, head);
-	head.skip(in);
-}
-
-void model::m3ds_chunk::skip(istream& in)
-{
-//cout << "skipped id " << id << " (hex " << (void*)id << ") while reading chunk.\n";
-	if (length > bytes_read) {
-		unsigned n = length - bytes_read;
-		in.seekg(n, ios::cur);
-	}
-}
-
-void model::m3ds_process_toplevel_chunks(istream& in, m3ds_chunk& parent)
-{
-	unsigned version;
-	
-	while (!parent.fully_read()) {
-		m3ds_chunk ch = m3ds_read_chunk(in);
-		switch (ch.id) {
-			case M3DS_VERSION:
-				version = read_u16(in);
-				ch.bytes_read += 2;
-				// version should be <= 0x03 or else give a warning
-				// If the file version is over 3, give a warning that there could be a problem
-				if (version > 0x03)
-					cout << "warning: 3ds file version is > 0x03\n";
-				break;
-			case M3DS_EDIT3DS:
-				m3ds_process_model_chunks(in, ch);
-				break;
-			case M3DS_KEYF3DS:	// just ignore
-			default:
-				break;
-		}
-		ch.skip(in);
-		parent.bytes_read += ch.length;
-	}
-}
-
-void model::m3ds_process_model_chunks(istream& in, m3ds_chunk& parent)
-{
-	while (!parent.fully_read()) {
-		m3ds_chunk ch = m3ds_read_chunk(in);
-		string objname;
-		switch (ch.id) {
-			case M3DS_EDIT_MATERIAL:
-				m3ds_process_material_chunks(in, ch);
-				break;
-			case M3DS_EDIT_OBJECT:
-				objname = m3ds_read_string(in, ch);	// read name
-				m3ds_process_object_chunks(in, ch, objname);
-				break;
-		}
-		ch.skip(in);
-		parent.bytes_read += ch.length;
-	}
-}
-
-void model::m3ds_process_object_chunks(istream& in, m3ds_chunk& parent, const string& objname)
-{
-	while (!parent.fully_read()) {
-		m3ds_chunk ch = m3ds_read_chunk(in);
-		switch (ch.id) {
-		case M3DS_OBJ_TRIMESH:
-			m3ds_process_trimesh_chunks(in, ch, objname);
-			break;
-		case M3DS_OBJ_LIGHT:
-			m3ds_process_light_chunks(in, ch, objname);
-			break;
-		}
-		ch.skip(in);
-		parent.bytes_read += ch.length;
-	}
-}
-
-void model::m3ds_process_trimesh_chunks(istream& in, m3ds_chunk& parent, const string& objname)
-{
-	mesh* msh = new mesh();
-	meshes.push_back(msh);
-	msh->name = objname;
-	while (!parent.fully_read()) {
-		m3ds_chunk ch = m3ds_read_chunk(in);
-//	cout<<"found trimesh chunk"<<(void*)ch.id<<"\n";
-		switch (ch.id) {
-			case M3DS_TRI_VERTEXL:
-				m3ds_read_vertices(in, ch, *msh);
-				break;
-			case M3DS_TRI_FACEL1:
-				m3ds_read_faces(in, ch, *msh);
-				m3ds_process_face_chunks(in, ch, *msh);
-				break;
-			case M3DS_TRI_MAPPINGCOORDS:
-				m3ds_read_uv_coords(in, ch, *msh);
-				break;
-
-//fixme: this matrix seems to describe the model rotation and translation that IS ALREADY computed for the vertices
-//but why are some models so much off the origin? (corvette, largefreighter)
-//is there another chunk i missed while reading?
-			case M3DS_TRI_MESHMATRIX:
-				msh->transformation = matrix4f::one();
-				// read floats and skip them.
-				for (unsigned k = 0; k < 4*3; ++k)
-					read_float(in);
-				/*
-				for (int j = 0; j < 4; ++j) {
-					for (int i = 0; i < 3; ++i) {
-						msh->transformation.elem(j,i) = read_float(in);
-					}
-				}
-				*/
-				ch.bytes_read += 4 * 3 * 4;
-				break;
-		}
-		ch.skip(in);
-		parent.bytes_read += ch.length;
-	}
-}
-
-void model::m3ds_process_light_chunks(istream& in, m3ds_chunk& parent, const string& objname)
-{
-	light lg;
-	lg.name = objname;
-	lg.pos.x = read_float(in);
-	lg.pos.y = read_float(in);
-	lg.pos.z = read_float(in);
-	parent.bytes_read += 4 * 3;
-	while (!parent.fully_read()) {
-		m3ds_chunk ch = m3ds_read_chunk(in);
-		switch (ch.id) {
-		case M3DS_COLOR:
-			lg.colr = read_float(in);
-			lg.colg = read_float(in);
-			lg.colb = read_float(in);
-			ch.bytes_read += 3 * 4;
-			ch.skip(in);
-			parent.bytes_read += ch.length;
-			break;
-		default:
-			ch.skip(in);
-			parent.bytes_read += ch.length;
-		}
-	}
-	lights.push_back(lg);
-}
-
-void model::m3ds_process_face_chunks(istream& in, m3ds_chunk& parent, model::mesh& m)
-{
-	while (!parent.fully_read()) {
-		m3ds_chunk ch = m3ds_read_chunk(in);
-		switch (ch.id) {
-			case M3DS_TRI_MATERIAL:
-				m3ds_read_material(in, ch, m);
-				break;
-		}
-		ch.skip(in);
-		parent.bytes_read += ch.length;
-	}
-}
-
-void model::m3ds_process_material_chunks(istream& in, m3ds_chunk& parent)
-{
-	material* m = new material();
-	while (!parent.fully_read()) {
-		m3ds_chunk ch = m3ds_read_chunk(in);
-		switch (ch.id) {
-			case M3DS_MATNAME:
-				m->name = m3ds_read_string(in, ch);
-				break;
-/* unused.
-			case M3DS_MATAMBIENT:
-				m3ds_read_color_chunk(in, ch, m->ambient);
-				break;
-*/
-			case M3DS_MATDIFFUSE:
-				m3ds_read_color_chunk(in, ch, m->diffuse);
-				break;
-			case M3DS_MATSPECULAR:
-				m3ds_read_color_chunk(in, ch, m->specular);
-				break;
-/* unused.
-			case M3DS_MATTRANSPARENCY:
-				m3ds_read_color_chunk(in, ch, m->transparency);
-				break;
-*/
-			case M3DS_MATMAPTEX1:
-				if (!m->colormap.get()) {
-					m->colormap.reset(new material::map());
-					m3ds_process_materialmap_chunks(in, ch, m->colormap.get());
-				}
-				break;
-			case M3DS_MATMAPBUMP:
-				if (!m->normalmap.get()) {
-					m->normalmap.reset(new material::map());
-					m3ds_process_materialmap_chunks(in, ch, m->normalmap.get());
-				}
-				break;
-//			default: cout << "skipped chunk with id " << (void*)ch.id << "\n";
-		}
-		ch.skip(in);
-		parent.bytes_read += ch.length;
-	}
-
-	// 3d studio uses diffuse color just for editor display
-	if (m->colormap.get())
-		m->diffuse = color::white();
-
-	materials.push_back(m);
-}
-
-void model::m3ds_process_materialmap_chunks(istream& in, m3ds_chunk& parent, model::material::map* m)
-{
-	while (!parent.fully_read()) {
-		m3ds_chunk ch = m3ds_read_chunk(in);
-		switch (ch.id) {
-			case M3DS_MATMAPFILE:
-				m->filename = tolower(m3ds_read_string(in, ch));
-				break;
-			case M3DS_MATMAP1OVERU_SCAL:
-				/* m->uscal = 1.0f/  */ read_float(in);
-				ch.bytes_read += 4;
-				break;
-			case M3DS_MATMAP1OVERV_SCAL:
-				/* m->vscal = -1.0f/  */ read_float(in);
-				ch.bytes_read += 4;
-				break;
-			case M3DS_MATMAPUOFFSET:
-				/* m->uoffset = */ read_float(in);
-				ch.bytes_read += 4;
-				break;
-			case M3DS_MATMAPVOFFSET:
-				/* m->voffset = */ read_float(in);
-				ch.bytes_read += 4;
-				break;
-			case M3DS_MATMAPANG:
-				/* m->angle = - */ read_float(in);
-				ch.bytes_read += 4;
-				break;
-//			case M3DS_MATMAPAMOUNTBUMP://see above
-		}
-		ch.skip(in);
-		parent.bytes_read += ch.length;
-	}
-	//cout << "[3ds] map: angle " << m->angle << " uscal,vscal " << m->uscal << "," << m->vscal << " uoff,voff " << m->uoffset << "," << m->voffset << "\n";
-}
-
-model::m3ds_chunk model::m3ds_read_chunk(istream& in)
-{
-	m3ds_chunk c;
-	c.id = read_u16(in);
-//printf("read chunk id %x\n", c.id);	
-	c.length = read_u32(in);
-	c.bytes_read = 6;
-	return c;
-}
-
-string model::m3ds_read_string(istream& in, m3ds_chunk& ch)
-{
-	Uint8 c;
-	string s;
-	while (true) {
-		c = read_u8(in);
-		++ch.bytes_read;
-		if (c == 0) break;
-		s += c;
-	}
-	return s;
-}
-
-void model::m3ds_read_color_chunk(istream& in, m3ds_chunk& parent, color& col)
-{
-	m3ds_chunk ch = m3ds_read_chunk(in);
-	col.r = read_u8(in);
-	col.g = read_u8(in);
-	col.b = read_u8(in);
-	ch.bytes_read += 3;
-	ch.skip(in);
-	parent.bytes_read += ch.length;
-}
-
-void model::m3ds_read_faces(istream& in, m3ds_chunk& ch, model::mesh& m)
-{
-	unsigned nr_faces = read_u16(in);
-	ch.bytes_read += 2;
-
-	m.indices.clear();	
-	m.indices.reserve(nr_faces*3);
-	for (unsigned n = 0; n < nr_faces; ++n) {
-		m.indices.push_back(read_u16(in));
-		m.indices.push_back(read_u16(in));
-		m.indices.push_back(read_u16(in));
-		read_u16(in);	// ignore 4th value
-	}
-	ch.bytes_read += nr_faces * 4 * 2;
-}
-
-//float umin=1e10,umax=-1e10,vmin=1e10,vmax=-1e10;
-void model::m3ds_read_uv_coords(istream& in, m3ds_chunk& ch, model::mesh& m)
-{
-	unsigned nr_uv_coords = read_u16(in);
-	ch.bytes_read += 2;
-
-	if (nr_uv_coords == 0) {
-		m.texcoords.clear();
-		return;
-	}
-
-//	if (nr_uv_coords != m.vertices.size()) throw error("number of texture coordinates doesn't match number of vertices");
-
-	m.texcoords.clear();
-	m.texcoords.reserve(nr_uv_coords);		
-	for (unsigned n = 0; n < nr_uv_coords; ++n) {
-		float u = read_float(in);
-		float v = 1.0f - read_float(in); // for some reason we need to flip 3dstudio's y coords.
-//		if(u<umin)umin=u;if(u>umax)umax=u;if(v<vmin)vmin=v;if(v>vmax)vmax=v;cout<<"u in "<<umin<<","<<umax<<" v in "<<vmin<<","<<vmax<<"\n";
-		m.texcoords.push_back(vector2f(u, v));
-	}
-	ch.bytes_read += nr_uv_coords * 2 * 4;
-
-	// make sure that number of uv coords matches number of vertices
-	m.texcoords.resize(m.vertices.size());
-}
-
-void model::m3ds_read_vertices(istream& in, m3ds_chunk& ch, model::mesh& m)
-{
-	unsigned nr_verts = read_u16(in);
-	ch.bytes_read += 2;
-	
-	m.vertices.clear();
-	m.vertices.reserve(nr_verts);
-	for (unsigned n = 0; n < nr_verts; ++n) {
-		float x = read_float(in);
-		float y = read_float(in);
-		float z = read_float(in);
-		m.vertices.push_back(vector3f(x, y, z));
-	}
-	ch.bytes_read += nr_verts * 3 * 4;
-}
-
-void model::m3ds_read_material(istream& in, m3ds_chunk& ch, model::mesh& m)
-{
-	string matname = m3ds_read_string(in, ch);
-
-	for (vector<model::material*>::iterator it = materials.begin(); it != materials.end(); ++it) {
-		if ((*it)->name == matname) {
-			m.mymaterial = *it;
-			return;
-		}
-	}
-	throw error(filename + ": object has unknown material");
-}		   
-
-// -------------------------------- end of 3ds loading functions -----------------------------------
-
-
 // -------------------------------- off file loading --------------------------------------
 void model::read_off_file(const string& fn)
 {
@@ -2773,12 +2334,6 @@ void model::read_off_file(const string& fn)
 	}
 	fclose(f);
 	meshes.push_back(m);
-
-	// testing...
-	light lg;
-	lg.name = "testlight";
-	lg.pos = vector3f(1000, 1000, 1000);
-	lights.push_back(lg);
 
 }
 
@@ -2973,21 +2528,6 @@ void model::read_dftd_model_file(const std::string& filename)
 					}
 				}
 			}
-		} else if (etype == "light") {
-			// lights.
-			light l;
-			l.name = e.attr("name");
-			if (!e.has_attr("pos"))
-				throw xml_error("no pos for light given!", e.doc_name());
-			istringstream issp(e.attr("pos"));
-			issp >> l.pos.x >> l.pos.y >> l.pos.z;
-			if (e.has_attr("color")) {
-				istringstream issc(e.attr("color"));
-				issp >> l.colr >> l.colg >> l.colb;
-			}
-			if (e.has_attr("ambient")) {
-				l.ambient = e.attrf("ambient");
-			}
 		} else if (etype == "objecttree") {
 			++nr_of_objecttrees;
 			if (nr_of_objecttrees > 1)
@@ -3002,8 +2542,7 @@ void model::read_dftd_model_file(const std::string& filename)
 		read_objects(root.child("objecttree"), scene);
 	} else {
 		// create default objects for all objects in the scene
-		//fixme: this would have to be done for 3ds and off reading too
-		//and we would have to add new objects when new meshes are pushed back?! no necessarily...
+		// fixme
 	}
 }
 

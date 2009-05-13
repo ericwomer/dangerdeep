@@ -268,15 +268,6 @@ public:
 		void get_strip_triangle(unsigned triangle, Uint32& i0, Uint32& i1, Uint32& i2);
 	};
 
-	struct light {
-		std::string name;
-		vector3f pos;
-		float colr, colg, colb;
-		float ambient;
-		void set_gl(unsigned nr_of_light) const;
-		light() : colr(1.0f), colg(1.0f), colb(1.0f), ambient(0.1f) {}
-	};
-
 	/// voxel, the space of a model is partitioned in subspaces
 	class voxel
 	{
@@ -339,7 +330,6 @@ protected:
 
 	std::vector<material*> materials;
 	std::vector<mesh*> meshes;
-	std::vector<light> lights;
 
 	object scene;
 	
@@ -401,33 +391,6 @@ protected:
 	
 	void read_phys_file(const std::string& filename);
 	
-	// ------------ 3ds loading functions ------------------
-	struct m3ds_chunk {
-		unsigned short id;
-		unsigned bytes_read;
-		unsigned length;
-		bool fully_read() const { return bytes_read >= length; }
-		void skip(std::istream& in);
-	};
-	void m3ds_load(const std::string& fn);
-	std::string m3ds_read_string(std::istream& in, m3ds_chunk& ch);
-	m3ds_chunk m3ds_read_chunk(std::istream& in);
-	std::string m3ds_read_string_from_rest_of_chunk(std::istream& in, m3ds_chunk& ch);
-	void m3ds_process_toplevel_chunks(std::istream& in, m3ds_chunk& parent);
-	void m3ds_process_model_chunks(std::istream& in, m3ds_chunk& parent);
-	void m3ds_process_object_chunks(std::istream& in, m3ds_chunk& parent, const std::string& objname);
-	void m3ds_process_trimesh_chunks(std::istream& in, m3ds_chunk& parent, const std::string& objname);
-	void m3ds_process_light_chunks(std::istream& in, m3ds_chunk& parent, const std::string& objname);
-	void m3ds_process_face_chunks(std::istream& in, m3ds_chunk& parent, mesh& m);
-	void m3ds_process_material_chunks(std::istream& in, m3ds_chunk& parent);
-	void m3ds_process_materialmap_chunks(std::istream& in, m3ds_chunk& parent, material::map* m);
-	void m3ds_read_color_chunk(std::istream& in, m3ds_chunk& ch, color& col);
-	void m3ds_read_faces(std::istream& in, m3ds_chunk& ch, mesh& m);
-	void m3ds_read_uv_coords(std::istream& in, m3ds_chunk& ch, mesh& m);
-	void m3ds_read_vertices(std::istream& in, m3ds_chunk& ch, mesh& m);
-	void m3ds_read_material(std::istream& in, m3ds_chunk& ch, mesh& m);
-	// ------------ end of 3ds loading functions ------------------
-	
 	model(const model& );
 	model& operator= (const model& );
 
@@ -468,11 +431,8 @@ public:
 	const mesh& get_base_mesh() const;
 	material& get_material(unsigned nr);
 	const material& get_material(unsigned nr) const;
-	light& get_light(unsigned nr);
-	const light& get_light(unsigned nr) const;
 	unsigned get_nr_of_meshes() const { return meshes.size(); }
 	unsigned get_nr_of_materials() const { return materials.size(); }
-	unsigned get_nr_of_lights() const { return lights.size(); }
 	vector3f get_min() const { return min; }
 	vector3f get_max() const { return max; }
 	float get_length() const { return (max - min).y; }
