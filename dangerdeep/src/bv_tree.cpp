@@ -55,7 +55,7 @@ std::auto_ptr<bv_tree> bv_tree::create(ptrlist<bv_tree>& nodes)
 	vector3f deltav = maxv - minv;
 	// chose axis with longest value range, sort along that axis,
 	// split in center of union sphere.
-	std::cout << "nodes " << nodes.size() << " unionsph=" << union_sphere.center << "|" << union_sphere.radius << "\n";
+	//std::cout << "nodes " << nodes.size() << " unionsph=" << union_sphere.center << "|" << union_sphere.radius << "\n";
 	unsigned split_axis = 0; // x - default
 	if (deltav.y > deltav.x) {
 		if (deltav.z > deltav.y) {
@@ -66,7 +66,7 @@ std::auto_ptr<bv_tree> bv_tree::create(ptrlist<bv_tree>& nodes)
 	} else if (deltav.z > deltav.x) {
 		split_axis = 2; // z
 	}
-	std::cout << "deltav " << deltav << " split axis " << split_axis << "\n";
+	//std::cout << "deltav " << deltav << " split axis " << split_axis << "\n";
 	ptrlist<bv_tree> left_nodes, right_nodes;
 	float vcenter[3];
 	union_sphere.center.to_mem(vcenter);
@@ -80,7 +80,7 @@ std::auto_ptr<bv_tree> bv_tree::create(ptrlist<bv_tree>& nodes)
 			right_nodes.push_back(it.release());
 	}
 	if (left_nodes.empty() || right_nodes.empty()) {
-		std::cout << "special case\n";
+		//std::cout << "special case\n";
 		// special case: force division
 		ptrlist<bv_tree>& empty_list = left_nodes.empty() ? left_nodes : right_nodes;
 		ptrlist<bv_tree>& full_list = left_nodes.empty() ? right_nodes : left_nodes;
@@ -88,9 +88,9 @@ std::auto_ptr<bv_tree> bv_tree::create(ptrlist<bv_tree>& nodes)
 			empty_list.push_back(full_list.release_front());
 		}
 	}
-	std::cout << "left " << left_nodes.size() << " right " << right_nodes.size() << "\n";
+	//std::cout << "left " << left_nodes.size() << " right " << right_nodes.size() << "\n";
 	result.reset(new bv_tree(create(left_nodes), create(right_nodes)));
-	std::cout << "final volume " << result->volume.center << "|" << result->volume.radius << "\n";
+	//std::cout << "final volume " << result->volume.center << "|" << result->volume.radius << "\n";
 	return result;
 }
 

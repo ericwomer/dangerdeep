@@ -216,7 +216,7 @@ void view_model(const string& modelfilename, const string& datafilename)
 	mdl->set_layout(model_layout);
 
 	mdl->get_base_mesh().compute_bv_tree();
-	mdl->get_base_mesh().bounding_volume_tree->debug_dump();
+	//mdl->get_base_mesh().bounding_volume_tree->debug_dump();
 
 	mdl->write_to_dftd_model_file("test.xml");
 
