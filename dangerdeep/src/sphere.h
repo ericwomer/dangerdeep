@@ -56,7 +56,7 @@ public:
 		vector3t<D> delta = other.center - center;
 		D distance = delta.length();
 		if (distance < 1e-5)
-			return sphere_t<D>(center, std::max(radius, other.radius) + distance);
+			return sphere_t<D>(center, std::max(radius, other.radius + distance));
 		D new_diameter = std::max(radius + distance + other.radius, radius * D(2));
 		D new_radius = new_diameter * D(0.5);
 		vector3t<D> new_center = center + delta * ((new_radius - radius) / distance);

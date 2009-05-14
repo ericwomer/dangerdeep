@@ -139,10 +139,8 @@ public:
 		unsigned nrtex;
 	};
 
-	class mesh {
-		mesh(const mesh& );
-		mesh& operator= (const mesh& );
-
+	class mesh
+	{
 	public:
 		// translate primitive_type to GL enum
 		int gl_primitive_type() const;
@@ -194,7 +192,6 @@ public:
 		// save fetching the colors to the vertex shader and thus spare memory bandwidth.
 		std::vector<Uint8> righthanded;	// a vector of bools. takes more space than a bitvector, but faster access.
 		std::vector<Uint32> indices;	// 3 indices per face
-		primitive_type indices_type;
 		matrix4f transformation;	// rot., transl., scaling
 		material* mymaterial;
 		vector3f min, max;
@@ -210,7 +207,7 @@ public:
 		double volume;
 
 		unsigned get_nr_of_triangles() const;
-		void (*get_triangle)(unsigned triangle, Uint32& i0, Uint32& i1, Uint32& i2);
+		void get_triangle(unsigned triangle, Uint32 indices[3]) const { ((*this).*(get_triangle_ptr))(triangle, indices); }
 
 		void display(const texture *caustic_map = 0) const;
 		void display_mirror_clip() const;
@@ -264,8 +261,19 @@ public:
 		void compute_bv_tree();
 		std::auto_ptr<bv_tree> bounding_volume_tree;
 
-		void get_plain_triangle(unsigned triangle, Uint32& i0, Uint32& i1, Uint32& i2);
-		void get_strip_triangle(unsigned triangle, Uint32& i0, Uint32& i1, Uint32& i2);
+		void get_plain_triangle(unsigned triangle, Uint32 indices[3]) const;
+		void get_strip_triangle(unsigned triangle, Uint32 indices[3]) const;
+
+		void set_indices_type(primitive_type pt);
+		primitive_type get_indices_type() const { return indices_type; }
+
+	protected:
+		primitive_type indices_type;
+		void (model::mesh::*get_triangle_ptr) (unsigned triangle, Uint32 indices[3]) const;
+
+	private:
+		mesh(const mesh& );
+		mesh& operator= (const mesh& );
 	};
 
 	/// voxel, the space of a model is partitioned in subspaces

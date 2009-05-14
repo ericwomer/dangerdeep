@@ -112,7 +112,7 @@ model::mesh* sphere(float radius, float height,
 	unsigned nrvert = 2+(stacks-1)*(slices+1);
 	m->vertices.resize(nrvert);
 	m->indices.resize(2*(slices+1)*stacks+(stacks-1)*2);
-	m->indices_type = model::mesh::pt_triangle_strip;
+	m->set_indices_type(model::mesh::pt_triangle_strip);
 	m->texcoords.resize(nrvert);
 	m->normals.resize(nrvert);
 	m->tangentsx.resize(nrvert);

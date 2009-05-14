@@ -102,7 +102,10 @@ public:
 		// or by using inverse of the matrix (transposed here)
 		// (x,y,z) = (N1 | N2 | N3) * (-d1 -d2 -d3)
 		// result is undefined in some cases
-		// fixme test for correctness here
+		D x = plane_b.N.cross(plane_c.N) * N;
+		if (x < 0) x = -x;
+		if (x <= D(1e-3))
+			return false;
 		intersection.x = -(N.x * d + plane_b.N.x * plane_b.d + plane_c.N.x * plane_c.d);
 		intersection.y = -(N.y * d + plane_b.N.y * plane_b.d + plane_c.N.y * plane_c.d);
 		intersection.z = -(N.z * d + plane_b.N.z * plane_b.d + plane_c.N.z * plane_c.d);

@@ -147,7 +147,7 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 	const unsigned nr_indis = (2*(segs+1) + 2) * (bend_segs + 1) - (msh.indices.empty() ? 1 : 0);
 	unsigned old_v = msh.vertices.size();
 	unsigned old_i = msh.indices.size();
-	msh.indices_type = model::mesh::pt_triangle_strip;
+	msh.set_indices_type(model::mesh::pt_triangle_strip);
 	msh.vertices.resize(old_v + nr_verts);
 	msh.normals.resize(old_v + nr_verts);
 	msh.tangentsx.resize(old_v + nr_verts);
@@ -233,7 +233,7 @@ vector3f tree_generator::generate_log(model::mesh& msh, model::mesh& mshleaves, 
 		const unsigned nr_indis = nrl*6;
 		unsigned old_v = mshleaves.vertices.size();
 		unsigned old_i = mshleaves.indices.size();
-		mshleaves.indices_type = model::mesh::pt_triangles;
+		mshleaves.set_indices_type(model::mesh::pt_triangles);
 		mshleaves.vertices.resize(old_v + nr_verts);
 		mshleaves.normals.resize(old_v + nr_verts);
 		//mshleaves.tangentsx.resize(old_v + nr_verts);

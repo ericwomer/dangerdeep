@@ -34,7 +34,7 @@ class bv_tree
 {
  public:
 	bv_tree(const spheref& sph, unsigned triangle_)
-		: sphere(sph), triangle(triangle_) {}
+		: volume(sph), triangle(triangle_) {}
 	bv_tree(std::auto_ptr<bv_tree> left_tree, std::auto_ptr<bv_tree> right_tree);
 	static std::auto_ptr<bv_tree> create(ptrlist<bv_tree>& nodes);
 	bool is_inside(const vector3f& v) const;
@@ -43,9 +43,10 @@ class bv_tree
 	void transform(const matrix4f& mat);
 	void compute_min_max(vector3f& minv, vector3f& maxv) const;
 	void debug_dump(unsigned level = 0) const;
+	const spheref& get_sphere() const { return volume; }
 
  protected:
-	spheref sphere;
+	spheref volume;
 	unsigned triangle; // -1 except for leafs
 	std::auto_ptr<bv_tree> children[2];
 

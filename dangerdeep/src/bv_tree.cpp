@@ -36,23 +36,26 @@ std::auto_ptr<bv_tree> bv_tree::create(ptrlist<bv_tree>& nodes)
 	if (nodes.size() == 2) {
 		const bv_tree* ta = nodes.front();
 		const bv_tree* tb = nodes.back();
-		result.reset(new bv_tree(spheref(ta->sphere.compute_bound(tb->sphere)), unsigned(-1)));
+		result.reset(new bv_tree(spheref(ta->volume.compute_bound(tb->volume)), unsigned(-1)));
 		result->children[0] = nodes.release_front();
 		result->children[1] = nodes.release_back();
 		return result;
 	}
-	// compute bounds in x,y,z axis directions
+	// compute bounding sphere for all nodes
 	vector3f minv(1e30, 1e30, 1e30);
 	vector3f maxv = -minv;
-	vector3f center;
-	for (ptrlist<bv_tree>::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
-		it->compute_min_max(minv, maxv);
-		center += it->sphere.center;
+	ptrlist<bv_tree>::const_iterator itc = nodes.begin();
+	spheref union_sphere = itc->get_sphere();
+	itc->compute_min_max(minv, maxv);
+	++itc;
+	for ( ; itc != nodes.end(); ++itc) {
+		union_sphere = union_sphere.compute_bound(itc->get_sphere());
+		itc->compute_min_max(minv, maxv);
 	}
-	center *= 1.0/nodes.size();
 	vector3f deltav = maxv - minv;
 	// chose axis with longest value range, sort along that axis,
-	// split in gravity center of nodes.
+	// split in center of union sphere.
+	std::cout << "nodes " << nodes.size() << " unionsph=" << union_sphere.center << "|" << union_sphere.radius << "\n";
 	unsigned split_axis = 0; // x - default
 	if (deltav.y > deltav.x) {
 		if (deltav.z > deltav.y) {
@@ -63,17 +66,21 @@ std::auto_ptr<bv_tree> bv_tree::create(ptrlist<bv_tree>& nodes)
 	} else if (deltav.z > deltav.x) {
 		split_axis = 2; // z
 	}
+	std::cout << "deltav " << deltav << " split axis " << split_axis << "\n";
 	ptrlist<bv_tree> left_nodes, right_nodes;
-	float vcenter[3] = { center.x, center.y, center.z };
+	float vcenter[3];
+	union_sphere.center.to_mem(vcenter);
 	for (ptrlist<bv_tree>::iterator it = nodes.nc_begin(); it != nodes.nc_end(); ++it) {
-		const vector3f& c = it->sphere.center;
-		float vc[3] = { c.x, c.y, c.z };
+		const vector3f& c = it->volume.center;
+		float vc[3];
+		c.to_mem(vc);
 		if (vc[split_axis] < vcenter[split_axis])
 			left_nodes.push_back(it.release());
 		else
 			right_nodes.push_back(it.release());
 	}
 	if (left_nodes.empty() || right_nodes.empty()) {
+		std::cout << "special case\n";
 		// special case: force division
 		ptrlist<bv_tree>& empty_list = left_nodes.empty() ? left_nodes : right_nodes;
 		ptrlist<bv_tree>& full_list = left_nodes.empty() ? right_nodes : left_nodes;
@@ -81,14 +88,16 @@ std::auto_ptr<bv_tree> bv_tree::create(ptrlist<bv_tree>& nodes)
 			empty_list.push_back(full_list.release_front());
 		}
 	}
+	std::cout << "left " << left_nodes.size() << " right " << right_nodes.size() << "\n";
 	result.reset(new bv_tree(create(left_nodes), create(right_nodes)));
+	std::cout << "final volume " << result->volume.center << "|" << result->volume.radius << "\n";
 	return result;
 }
 
 
 
 bv_tree::bv_tree(std::auto_ptr<bv_tree> left_tree, std::auto_ptr<bv_tree> right_tree)
-	: sphere(left_tree->sphere.compute_bound(right_tree->sphere)), triangle(unsigned(-1))
+	: volume(left_tree->volume.compute_bound(right_tree->volume)), triangle(unsigned(-1))
 {
 	children[0] = left_tree;
 	children[1] = right_tree;
@@ -98,7 +107,7 @@ bv_tree::bv_tree(std::auto_ptr<bv_tree> left_tree, std::auto_ptr<bv_tree> right_
 
 bool bv_tree::is_inside(const vector3f& v) const
 {
-	if (!sphere.is_inside(v))
+	if (!volume.is_inside(v))
 		return false;
 	for (int i = 0; i < 2; ++i)
 		if (children[i].get())
@@ -125,7 +134,7 @@ bool bv_tree::collides(const bv_tree& other, const matrix4f& other_transform, st
 
 void bv_tree::transform(const matrix4f& mat)
 {
-	sphere.center = mat.mul4vec3xlat(sphere.center);
+	volume.center = mat.mul4vec3xlat(volume.center);
 	for (int i = 0; i < 2; ++i)
 		if (children[i].get())
 			children[i]->transform(mat);
@@ -135,7 +144,7 @@ void bv_tree::transform(const matrix4f& mat)
 
 void bv_tree::compute_min_max(vector3f& minv, vector3f& maxv) const
 {
-	sphere.compute_min_max(minv, maxv);
+	volume.compute_min_max(minv, maxv);
 	for (int i = 0; i < 2; ++i)
 		if (children[i].get())
 			children[i]->compute_min_max(minv, maxv);
@@ -147,7 +156,7 @@ void bv_tree::debug_dump(unsigned level) const
 {
 	for (unsigned i = 0; i < level; ++i)
 		std::cout << "\t";
-	std::cout << "Level " << level << " Sphere " << sphere.center << " | " << sphere.radius << "\n";
+	std::cout << "Level " << level << " Sphere " << volume.center << " | " << volume.radius << "\n";
 	for (int i = 0; i < 2; ++i)
 		if (children[i].get())
 			children[i]->debug_dump(level + 1);

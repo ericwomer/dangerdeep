@@ -647,7 +647,6 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 
 model::mesh::mesh(const string& nm)
 	: name(nm),
-	  indices_type(pt_triangles),
 	  transformation(matrix4f::one()),
 	  mymaterial(0),
 	  vbo_positions(false),
@@ -659,6 +658,7 @@ model::mesh::mesh(const string& nm)
 	  vertex_attrib_index(0),
 	  inertia_tensor(matrix3::one())
 {
+	set_indices_type(pt_triangles);
 }
 
 
@@ -667,7 +667,6 @@ model::mesh::mesh(unsigned w, unsigned h, const std::vector<float>& heights, con
 		  const vector3f& trans,
 		  const std::string& nm)
 	: name(nm),
-	  indices_type(pt_triangle_strip),
 	  transformation(matrix4f::one()),
 	  mymaterial(0),
 	  vbo_positions(false),
@@ -678,6 +677,7 @@ model::mesh::mesh(unsigned w, unsigned h, const std::vector<float>& heights, con
 	  index_data(true),
 	  vertex_attrib_index(0)
 {
+	set_indices_type(pt_triangle_strip);
 	if (w < 2 || h < 2 || heights.size() != w * h)
 		throw std::invalid_argument("height field size invalid");
 
@@ -764,22 +764,39 @@ unsigned model::mesh::get_nr_of_triangles() const
 
 
 
-void model::mesh::get_plain_triangle(unsigned triangle, Uint32& i0, Uint32& i1, Uint32& i2)
+void model::mesh::get_plain_triangle(unsigned triangle, Uint32 idx[3]) const
 {
 	unsigned t = triangle * 3;
-	i0 = indices[t];
-	i1 = indices[t+1];
-	i2 = indices[t+2];
+	idx[0] = indices[t];
+	idx[1] = indices[t+1];
+	idx[2] = indices[t+2];
 }
 
 
 
-void model::mesh::get_strip_triangle(unsigned triangle, Uint32& i0, Uint32& i1, Uint32& i2)
+void model::mesh::get_strip_triangle(unsigned triangle, Uint32 idx[3]) const
 {
 	unsigned x = triangle & 1;
-	i0 = indices[triangle  +x];
-	i1 = indices[triangle+1-x];
-	i2 = indices[triangle+2];
+	idx[0] = indices[triangle  +x];
+	idx[1] = indices[triangle+1-x];
+	idx[2] = indices[triangle+2];
+}
+
+
+
+void model::mesh::set_indices_type(primitive_type pt)
+{
+	switch (pt) {
+	case pt_triangles:
+		get_triangle_ptr = &model::mesh::get_plain_triangle;
+		break;
+	case pt_triangle_strip:
+		get_triangle_ptr = &model::mesh::get_strip_triangle;
+		break;
+	default:
+		return;
+	}
+	indices_type = pt;
 }
 
 
@@ -859,47 +876,16 @@ void model::mesh::transform(const matrix4f& m)
 
 void model::mesh::write_off_file(const string& fn) const
 {
-	if (indices_type == pt_triangle_strip) {
-		unsigned nr_tri = 0;
-		for (unsigned j = 2; j < indices.size(); ++j) {
-			unsigned i0 = indices[j-2];
-			unsigned i1 = indices[j-1];
-			unsigned i2 = indices[j];
-			if (i0 != i1 && i1 != i2 && i2 != i0)
-				++nr_tri;
-		}
-		FILE *f = fopen(fn.c_str(), "wb");
-		if (!f) return;
-		fprintf(f, "OFF\n%u %u %u\n", vertices.size(), nr_tri * 3, 0);
-	
-		for (unsigned i = 0; i < vertices.size(); i++) {
-			fprintf(f, "%f %f %f\n", vertices[i].x, vertices[i].y, vertices[i].z);
-		}
-		for (unsigned j = 2; j < indices.size(); ++j) {
-			unsigned i0 = indices[j-2];
-			unsigned i1 = indices[j-1];
-			unsigned i2 = indices[j];
-			if (j & 1)
-				fprintf(f, "3 %u %u %u\n", i1, i0, i2);
-			else
-				fprintf(f, "3 %u %u %u\n", i0, i1, i2);
-		}
-		fclose(f);
-		return;
+	std::ofstream out(fn.c_str());
+	out << "OFF\n" << vertices.size() << " " << get_nr_of_triangles() << " 0\n";
+	for (unsigned i = 0; i < vertices.size(); ++i) {
+		out << vertices[i].x << " " << vertices[i].y << " " << vertices[i].z << "\n";
 	}
-	if (indices_type != pt_triangles) throw std::runtime_error("write_off_file: can't handle primitives other than triangles!");
-
-	FILE *f = fopen(fn.c_str(), "wb");
-	if (!f) return;
-	fprintf(f, "OFF\n%u %u %u\n", vertices.size(), indices.size()/3, 0);
-	
-	for (unsigned i = 0; i < vertices.size(); i++) {
-		fprintf(f, "%f %f %f\n", vertices[i].x, vertices[i].y, vertices[i].z);
+	for (unsigned j = 0; j < get_nr_of_triangles(); ++j) {
+		Uint32 idx[3];
+		get_triangle(j, idx);
+		out << "3 " << idx[0] << " " << idx[1] << " " << idx[2] << "\n";
 	}
-	for (unsigned j = 0; j < indices.size(); j += 3) {
-		fprintf(f, "3 %u %u %u\n", indices[j], indices[j+1], indices[j+2]);
-	}
-	fclose(f);
 }
 
 
@@ -1153,8 +1139,7 @@ vector3 model::mesh::compute_center_of_gravity() const
 
 bool model::mesh::has_adjacency_info() const
 {
-	//fixme adjacency works even for strips!
-	return indices_type == pt_triangles && triangle_adjacency.size()*3 == indices.size();
+	return triangle_adjacency.size()*3 == get_nr_of_triangles();
 }
 
 
@@ -1174,24 +1159,26 @@ struct adjacency_edge_aux_data
 
 void model::mesh::compute_adjacency()
 {
-	if (indices_type != pt_triangles) {
-		triangle_adjacency.clear();
-		vertex_triangle_adjacency.clear();
-		throw std::runtime_error("can't compute adjacency for non-triangle meshes");
-	}
-
-	unsigned nr_tri = indices.size() / 3;
+	unsigned nr_tri = get_nr_of_triangles();
 	triangle_adjacency.clear();
-	triangle_adjacency.resize(nr_tri, no_adjacency);
 	vertex_triangle_adjacency.clear();
+	triangle_adjacency.resize(nr_tri, no_adjacency);
 	vertex_triangle_adjacency.resize(vertices.size(), no_adjacency);
 
 	// build/use auxiliary data while building adjacency data
 	std::vector<std::set<adjacency_edge_aux_data> > tri_of_vertex(vertices.size());
 	for (unsigned i = 0; i < nr_tri; ++i) {
+		Uint32 idx[3];
+		get_triangle(i, idx);
+		unsigned degenerated_edges = 0;
+		degenerated_edges += (idx[0] == idx[1]) ? 1 : 0;
+		degenerated_edges += (idx[0] == idx[2]) ? 1 : 0;
+		degenerated_edges += (idx[1] == idx[2]) ? 1 : 0;
+		if (degenerated_edges > 0)
+			continue;
 		for (unsigned j = 0; j < 3; ++j) {
-			unsigned v0 = indices[3*i + j];
-			unsigned v1 = indices[3*i + (j + 1) % 3];
+			unsigned v0 = idx[j];
+			unsigned v1 = idx[(j+1)%3];
 			unsigned va = std::min(v0, v1), vb = std::max(v0, v1);
 			adjacency_edge_aux_data aa(i, j, va, vb);
 			std::pair<std::set<adjacency_edge_aux_data>::iterator, bool> pib = 
@@ -1330,7 +1317,7 @@ void model::mesh::compute_bv_tree()
 				// construct three planes and cut them
 				planef pl_a(delta[0] * (1.0/delta_len[0]), *v[0] + delta[0]*0.5);
 				planef pl_b(delta[1] * (1.0/delta_len[1]), *v[1] + delta[1]*0.5);
-				planef pl_c(delta[2] * (1.0/delta_len[2]), *v[2] + delta[2]*0.5);
+				planef pl_c((*v[1] - *v[0]).cross(*v[2] - *v[0]).normal(), *v[0]);
 				pl_a.compute_intersection(pl_b, pl_c, boundsphere.center);
 				boundsphere.radius = boundsphere.center.distance(*v[0]);
 			}
@@ -2467,9 +2454,9 @@ void model::read_dftd_model_file(const std::string& filename)
 			if (indis.has_attr("type")) {
 				string idxtype = indis.attr("type");
 				if (idxtype == "triangles")
-					msh->indices_type = mesh::pt_triangles;
+					msh->set_indices_type(mesh::pt_triangles);
 				else if (idxtype == "triangle_strip")
-					msh->indices_type = mesh::pt_triangle_strip;
+					msh->set_indices_type(mesh::pt_triangle_strip);
 				else
 					throw xml_error(string("invalid indices type, mesh ") + msh->name, filename);
 			}
