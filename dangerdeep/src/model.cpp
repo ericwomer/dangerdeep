@@ -756,7 +756,7 @@ unsigned model::mesh::get_nr_of_triangles() const
 	case pt_triangles:
 		return indices.size() / 3;
 	case pt_triangle_strip:
-		return std::max(2U, indices.size()) - 2;
+		return std::max(2U, (unsigned int)indices.size()) - 2;
 	default:
 		return 0;
 	}
