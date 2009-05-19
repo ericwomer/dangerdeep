@@ -137,6 +137,16 @@ bool bv_tree::collides(const bv_tree& other, std::list<vector3f>& contact_points
 		if (other.is_leaf()) {
 			// direct face to face collision test
 			// fixme ...
+			// we have no data here for collision tests!
+			// store vertex positions in leaf node to solve this?!
+			// then we should make a new bv_tree_leaf class heiring from
+			// bv_tree to avoid memory waste.
+			// this makes the tree rather big - alternativly give mesh to it,
+			// but then tree would need to know meshes.
+			// that way leaf_data could be smaller too.
+			// which would be a much better way or memory use will explode
+			// it wouldn't need to know model::mesh but a vector of vertices
+			// and a vector of triangle indices
 			return true;
 		} else {
 			// other node is no leaf, recurse there
@@ -164,10 +174,44 @@ bool bv_tree::collides(const bv_tree& other, std::list<vector3f>& contact_points
 
 bool bv_tree::collides(const bv_tree& other, std::list<vector3f>& contact_points, const matrix4f& other_transform, bool use_transform) const
 {
-	// split larger volume of this and other, go recursivly down larger, both paths
-	// call other.collides with !use_transform
-	// use transform for other always if use_transform==true
-	return false; // fixme
+	// if bounding volumes do not intersect, there can't be any collision of leaf elements
+	if (use_transform) {
+		spheref transformed_bv(other_transform.mul4vec3xlat(other.volume.center),
+				       other.volume.radius);
+		if (!volume.intersects(transformed_bv))
+			return false;
+	} else {
+		if (!volume.intersects(other.volume))
+			return false;
+	}
+
+	// handel case that this is a leaf node
+	if (is_leaf()) {
+		// we have a leaf node
+		if (other.is_leaf()) {
+			// direct face to face collision test
+			// fixme ... handle also transform here!
+			return true;
+		} else {
+			// other node is no leaf, recurse there, swap roles of this and other
+			bool col1 = other.children[0]->collides(*this, contact_points, other_transform, !use_transform);
+			bool col2 = other.children[1]->collides(*this, contact_points, other_transform, !use_transform);
+			return col1 || col2;
+		}
+	}
+
+	// split larger volume of this and other, go recursivly down all children
+	if (volume.radius > other.volume.radius || other.is_leaf()) {
+		// recurse this node, so don't swap roles of this and other
+		bool col1 = children[0]->collides(other, contact_points, other_transform, use_transform);
+		bool col2 = children[1]->collides(other, contact_points, other_transform, use_transform);
+		return col1 || col2;
+	} else {
+		// recurse other node - other is no leaf here, swap roles of this and other
+		bool col1 = other.children[0]->collides(*this, contact_points, other_transform, !use_transform);
+		bool col2 = other.children[1]->collides(*this, contact_points, other_transform, !use_transform);
+		return col1 || col2;
+	}
 }
 
 
