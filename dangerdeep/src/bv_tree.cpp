@@ -23,39 +23,46 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "bv_tree.h"
 
-std::auto_ptr<bv_tree> bv_tree::create(ptrlist<bv_tree>& nodes)
+//#define PRINT(x) std::cout << x
+#define PRINT(x) do { } while (0)
+
+std::auto_ptr<bv_tree> bv_tree::create(std::list<leaf_data>& nodes)
 {
 	std::auto_ptr<bv_tree> result;
 	// if list has zero entries, return empty pointer
 	if (nodes.empty())
 		return result;
+	// compute bounding box for leaves
+	vector3f bbox_min = nodes.front().v[0];
+	vector3f bbox_max = bbox_min;
+	for (std::list<leaf_data>::iterator it = nodes.begin(); it != nodes.end(); ++it) {
+		for (unsigned i = 0; i < 3; ++i) {
+			bbox_min = bbox_min.min(it->v[i]);
+			bbox_max = bbox_max.max(it->v[i]);
+		}
+	}
+	// new sphere center is center of bbox
+	spheref bound_sphere((bbox_min + bbox_max) * 0.5f, 0.0f);
+	// compute sphere radius by vertex distances to center (more accurate than
+	// approximating by bbox size)
+	for (std::list<leaf_data>::iterator it = nodes.begin(); it != nodes.end(); ++it) {
+		for (unsigned i = 0; i < 3; ++i) {
+			float r = it->v[i].distance(bound_sphere.center);
+			bound_sphere.radius = std::max(r, bound_sphere.radius);
+		}
+	}
 	// if list has one entry, return that
-	if (nodes.size() == 1)
-		return nodes.release_front();
-	// if node list has two entries, partition intro tree node
-	if (nodes.size() == 2) {
-		const bv_tree* ta = nodes.front();
-		const bv_tree* tb = nodes.back();
-		result.reset(new bv_tree(spheref(ta->volume.compute_bound(tb->volume)), unsigned(-1)));
-		result->children[0] = nodes.release_front();
-		result->children[1] = nodes.release_back();
+	if (nodes.size() == 1) {
+		result.reset(new bv_tree(bound_sphere, nodes.front().triangle));
 		return result;
 	}
-	// compute bounding sphere for all nodes
-	vector3f minv(1e30, 1e30, 1e30);
-	vector3f maxv = -minv;
-	ptrlist<bv_tree>::const_iterator itc = nodes.begin();
-	spheref union_sphere = itc->get_sphere();
-	itc->compute_min_max(minv, maxv);
-	++itc;
-	for ( ; itc != nodes.end(); ++itc) {
-		union_sphere = union_sphere.compute_bound(itc->get_sphere());
-		itc->compute_min_max(minv, maxv);
-	}
-	vector3f deltav = maxv - minv;
+	//
+	// split leaf node list in two parts
+	//
+	vector3f deltav = bbox_max - bbox_min;
 	// chose axis with longest value range, sort along that axis,
-	// split in center of union sphere.
-	//std::cout << "nodes " << nodes.size() << " unionsph=" << union_sphere.center << "|" << union_sphere.radius << "\n";
+	// split in center of bound_sphere.
+	PRINT("nodes " << nodes.size() << " boundsph=" << bound_sphere.center << "|" << bound_sphere.radius << "\n");
 	unsigned split_axis = 0; // x - default
 	if (deltav.y > deltav.x) {
 		if (deltav.z > deltav.y) {
@@ -66,38 +73,38 @@ std::auto_ptr<bv_tree> bv_tree::create(ptrlist<bv_tree>& nodes)
 	} else if (deltav.z > deltav.x) {
 		split_axis = 2; // z
 	}
-	//std::cout << "deltav " << deltav << " split axis " << split_axis << "\n";
-	ptrlist<bv_tree> left_nodes, right_nodes;
+	PRINT("deltav " << deltav << " split axis " << split_axis << "\n");
+	std::list<leaf_data> left_nodes, right_nodes;
 	float vcenter[3];
-	union_sphere.center.to_mem(vcenter);
-	for (ptrlist<bv_tree>::iterator it = nodes.nc_begin(); it != nodes.nc_end(); ++it) {
-		const vector3f& c = it->volume.center;
+	bound_sphere.center.to_mem(vcenter);
+	while (!nodes.empty()) {
 		float vc[3];
-		c.to_mem(vc);
+		nodes.front().get_center().to_mem(vc);
 		if (vc[split_axis] < vcenter[split_axis])
-			left_nodes.push_back(it.release());
+			left_nodes.splice(left_nodes.end(), nodes, nodes.begin());
 		else
-			right_nodes.push_back(it.release());
+			right_nodes.splice(right_nodes.end(), nodes, nodes.begin());
 	}
 	if (left_nodes.empty() || right_nodes.empty()) {
-		//std::cout << "special case\n";
+		PRINT("special case\n");
 		// special case: force division
-		ptrlist<bv_tree>& empty_list = left_nodes.empty() ? left_nodes : right_nodes;
-		ptrlist<bv_tree>& full_list = left_nodes.empty() ? right_nodes : left_nodes;
-		for (unsigned i = 0; i < full_list.size() / 2; ++i) {
-			empty_list.push_back(full_list.release_front());
-		}
+		std::list<leaf_data>& empty_list = left_nodes.empty() ? left_nodes : right_nodes;
+		std::list<leaf_data>& full_list = left_nodes.empty() ? right_nodes : left_nodes;
+		std::list<leaf_data>::iterator it = full_list.begin();
+		for (unsigned i = 0; i < full_list.size() / 2; ++i)
+			++it;
+		empty_list.splice(empty_list.end(), full_list, full_list.begin(), it);
 	}
-	//std::cout << "left " << left_nodes.size() << " right " << right_nodes.size() << "\n";
-	result.reset(new bv_tree(create(left_nodes), create(right_nodes)));
-	//std::cout << "final volume " << result->volume.center << "|" << result->volume.radius << "\n";
+	PRINT("left " << left_nodes.size() << " right " << right_nodes.size() << "\n");
+	result.reset(new bv_tree(bound_sphere, create(left_nodes), create(right_nodes)));
+	PRINT("final volume " << result->volume.center << "|" << result->volume.radius << "\n");
 	return result;
 }
 
 
 
-bv_tree::bv_tree(std::auto_ptr<bv_tree> left_tree, std::auto_ptr<bv_tree> right_tree)
-	: volume(left_tree->volume.compute_bound(right_tree->volume)), triangle(unsigned(-1))
+bv_tree::bv_tree(const spheref& sph, std::auto_ptr<bv_tree> left_tree, std::auto_ptr<bv_tree> right_tree)
+	: volume(sph), triangle(unsigned(-1))
 {
 	children[0] = left_tree;
 	children[1] = right_tree;
@@ -120,13 +127,46 @@ bool bv_tree::is_inside(const vector3f& v) const
 
 bool bv_tree::collides(const bv_tree& other, std::list<vector3f>& contact_points) const
 {
-	return false; // fixme
+	// if bounding volumes do not intersect, there can't be any collision of leaf elements
+	if (!volume.intersects(other.volume))
+		return false;
+
+	// handel case that this is a leaf node
+	if (is_leaf()) {
+		// we have a leaf node
+		if (other.is_leaf()) {
+			// direct face to face collision test
+			// fixme ...
+			return true;
+		} else {
+			// other node is no leaf, recurse there
+			bool col1 = other.children[0]->collides(*this, contact_points);
+			bool col2 = other.children[1]->collides(*this, contact_points);
+			return col1 || col2;
+		}
+	}
+
+	// split larger volume of this and other, go recursivly down all children
+	if (volume.radius > other.volume.radius || other.is_leaf()) {
+		// recurse this node
+		bool col1 = children[0]->collides(other, contact_points);
+		bool col2 = children[1]->collides(other, contact_points);
+		return col1 || col2;
+	} else {
+		// recurse other node - other is no leaf here
+		bool col1 = other.children[0]->collides(*this, contact_points);
+		bool col2 = other.children[1]->collides(*this, contact_points);
+		return col1 || col2;
+	}
 }
 
 
 
-bool bv_tree::collides(const bv_tree& other, const matrix4f& other_transform, std::list<vector3f>& contact_points) const
+bool bv_tree::collides(const bv_tree& other, std::list<vector3f>& contact_points, const matrix4f& other_transform, bool use_transform) const
 {
+	// split larger volume of this and other, go recursivly down larger, both paths
+	// call other.collides with !use_transform
+	// use transform for other always if use_transform==true
 	return false; // fixme
 }
 
