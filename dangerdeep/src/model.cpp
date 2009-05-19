@@ -1282,16 +1282,16 @@ void model::mesh::compute_bv_tree()
 	unsigned tri_index = 0;
 	do {
 		bv_tree::leaf_data ld;
-		ld.v[0] = vertices[tit->i0()];
-		ld.v[1] = vertices[tit->i1()];
-		ld.v[2] = vertices[tit->i2()];
+		ld.tri_idx[0] = tit->i0();
+		ld.tri_idx[1] = tit->i1();
+		ld.tri_idx[2] = tit->i2();
 		ld.triangle = tri_index;
 		leaf_nodes.push_back(ld);
 		++tri_index;
 	} while (tit->next());
 	// clear memory first
 	bounding_volume_tree.reset();
-	bounding_volume_tree = bv_tree::create(leaf_nodes);
+	bounding_volume_tree = bv_tree::create(vertices, leaf_nodes);
 }
 
 

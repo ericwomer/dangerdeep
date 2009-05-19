@@ -26,8 +26,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <list>
 #include <memory>
+#include <vector>
 #include "sphere.h"
 #include "matrix4.h"
+#include <stdint.h>
 
 /// a binary tree representing a bounding volume hierarchy
 class bv_tree
@@ -36,15 +38,18 @@ class bv_tree
 	/// data representing a triangle for tree construction
 	struct leaf_data
 	{
-		vector3f v[3];
-		unsigned triangle;
-		vector3f get_center() const { return (v[0] + v[1] + v[2]) * (1.f/3); }
+		uint32_t tri_idx[3];
+		uint32_t triangle;
+		const vector3f& get_pos(const std::vector<vector3f>& vertices, unsigned corner) const {
+			return vertices[tri_idx[corner]];
+		}
+		vector3f get_center(const std::vector<vector3f>& vertices) const { return (get_pos(vertices, 0) + get_pos(vertices, 1) + get_pos(vertices, 2)) * (1.f/3); }
 	};
 
 	bv_tree(const spheref& sph, unsigned triangle_)
 		: volume(sph), triangle(triangle_) {}
 	bv_tree(const spheref& sph, std::auto_ptr<bv_tree> left_tree, std::auto_ptr<bv_tree> right_tree);
-	static std::auto_ptr<bv_tree> create(std::list<leaf_data>& nodes);
+	static std::auto_ptr<bv_tree> create(const std::vector<vector3f>& vertices, std::list<leaf_data>& nodes);
 	bool is_inside(const vector3f& v) const;
 	bool collides(const bv_tree& other, std::list<vector3f>& contact_points) const;
 	bool collides(const bv_tree& other, std::list<vector3f>& contact_points, const matrix4f& other_transform, bool use_transform = true) const;

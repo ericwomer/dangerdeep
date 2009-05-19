@@ -26,19 +26,19 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //#define PRINT(x) std::cout << x
 #define PRINT(x) do { } while (0)
 
-std::auto_ptr<bv_tree> bv_tree::create(std::list<leaf_data>& nodes)
+std::auto_ptr<bv_tree> bv_tree::create(const std::vector<vector3f>& vertices, std::list<leaf_data>& nodes)
 {
 	std::auto_ptr<bv_tree> result;
 	// if list has zero entries, return empty pointer
 	if (nodes.empty())
 		return result;
 	// compute bounding box for leaves
-	vector3f bbox_min = nodes.front().v[0];
+	vector3f bbox_min = nodes.front().get_pos(vertices, 0);
 	vector3f bbox_max = bbox_min;
 	for (std::list<leaf_data>::iterator it = nodes.begin(); it != nodes.end(); ++it) {
 		for (unsigned i = 0; i < 3; ++i) {
-			bbox_min = bbox_min.min(it->v[i]);
-			bbox_max = bbox_max.max(it->v[i]);
+			bbox_min = bbox_min.min(it->get_pos(vertices, i));
+			bbox_max = bbox_max.max(it->get_pos(vertices, i));
 		}
 	}
 	// new sphere center is center of bbox
@@ -47,7 +47,7 @@ std::auto_ptr<bv_tree> bv_tree::create(std::list<leaf_data>& nodes)
 	// approximating by bbox size)
 	for (std::list<leaf_data>::iterator it = nodes.begin(); it != nodes.end(); ++it) {
 		for (unsigned i = 0; i < 3; ++i) {
-			float r = it->v[i].distance(bound_sphere.center);
+			float r = it->get_pos(vertices, i).distance(bound_sphere.center);
 			bound_sphere.radius = std::max(r, bound_sphere.radius);
 		}
 	}
@@ -79,7 +79,7 @@ std::auto_ptr<bv_tree> bv_tree::create(std::list<leaf_data>& nodes)
 	bound_sphere.center.to_mem(vcenter);
 	while (!nodes.empty()) {
 		float vc[3];
-		nodes.front().get_center().to_mem(vc);
+		nodes.front().get_center(vertices).to_mem(vc);
 		if (vc[split_axis] < vcenter[split_axis])
 			left_nodes.splice(left_nodes.end(), nodes, nodes.begin());
 		else
@@ -96,7 +96,7 @@ std::auto_ptr<bv_tree> bv_tree::create(std::list<leaf_data>& nodes)
 		empty_list.splice(empty_list.end(), full_list, full_list.begin(), it);
 	}
 	PRINT("left " << left_nodes.size() << " right " << right_nodes.size() << "\n");
-	result.reset(new bv_tree(bound_sphere, create(left_nodes), create(right_nodes)));
+	result.reset(new bv_tree(bound_sphere, create(vertices, left_nodes), create(vertices, right_nodes)));
 	PRINT("final volume " << result->volume.center << "|" << result->volume.radius << "\n");
 	return result;
 }
