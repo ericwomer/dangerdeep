@@ -161,7 +161,7 @@ int tests::do_version_check()
 			spos++;
 		}
 
-		if ( major >= 2)
+		if ( major == 2)
 		{
 			status = sGOOD;
 
