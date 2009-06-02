@@ -749,6 +749,8 @@ int mymain(list<string>& args)
 	mycfg.register_option("use_compressed_textures", false);
 	mycfg.register_option("multisampling_level", 0);
 	mycfg.register_option("use_multisampling", false);
+	mycfg.register_option("bloom_enabled", false);
+	mycfg.register_option("hdr_enabled", false);
 	mycfg.register_option("hint_multisampling", 0);
 	mycfg.register_option("hint_fog", 0);
 	mycfg.register_option("hint_mipmap", 0);

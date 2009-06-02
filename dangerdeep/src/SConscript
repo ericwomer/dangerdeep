@@ -90,6 +90,7 @@ dftdmediasources = Split("""
 	perlinnoise.cpp
 	primitives.cpp
 	shader.cpp
+	postprocessor.cpp
 	system.cpp
 	texture.cpp
 	vertexbufferobject.cpp

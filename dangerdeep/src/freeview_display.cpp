@@ -40,6 +40,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "model.h"
 #include "frustum.h"
 #include "primitives.h"
+#include "postprocessor.h"
 #include <fstream>
 #include <algorithm>
 using std::vector;
@@ -558,6 +559,8 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 
 	// ************************** draw the real scene ********************************
 
+	postprocessor::instance().render2texture();
+
 	glViewport(pd.x, pd.y, pd.w, pd.h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -697,4 +700,6 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	glDisable(GL_FOG);	
 
 	ui.draw_weather_effects();
+
+	postprocessor::instance().process();
 }
