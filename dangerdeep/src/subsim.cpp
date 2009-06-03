@@ -1707,6 +1707,7 @@ int mymain(list<string>& args)
 	mycfg.register_option("language", 0);
 	mycfg.register_option("cpucores", 1);
 	mycfg.register_option("terrain_texture_resolution", 0.1f);
+	mycfg.register_option("terrain_detail", 1);
 	
 	mycfg.register_key(key_names[KEY_ZOOM_MAP].name, SDLK_PLUS, 0, 0, 0);
 	mycfg.register_key(key_names[KEY_UNZOOM_MAP].name, SDLK_MINUS, 0, 0, 0);
