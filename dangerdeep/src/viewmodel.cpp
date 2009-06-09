@@ -768,7 +768,9 @@ int mymain(list<string>& args)
 
 	system::create_instance(new class system(1.0, 1000.0, res_x, res_y, fullscreen));
 	sys().set_res_2d(1024, 768);
-	
+	/* no need for 2300fps when watching cubes spinning */
+	sys().set_max_fps(60);
+
 	log_info("A simple model viewer for DftD-.mdl files");
 	log_info("copyright and written 2003 by Thorsten Jordan");
 
