@@ -701,12 +701,17 @@ int mymain(list<string>& args)
 	string modelfilename;
         string datafilename;
 	model_layout = model::default_layout;
+	/* default fps */
+	unsigned maxfps = 60;
+
 	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
 		if (*it == "--help") {
 			cout << "DftD viewmodel, usage:\n--help\t\tshow this\n"
 			     << "--res n\t\tuse resolution n horizontal,\n\t\tn is 512,640,800,1024 (recommended) or 1280\n"
 			     << "--nofullscreen\tdon't use fullscreen\n"
 			     << "--layout layoutname\tuse layout with specific name for skins\n"
+			     << "--maxfps x\tset maximum fps to x frames per second (default 60). Use x=0 to disable fps limit.\n"
+				 << "--gui starts viewmodel in GUI mode, with model list.\n"
 			     << "MODELFILENAME\n";
 			return 0;
 		} else if (*it == "--nofullscreen") {
@@ -729,6 +734,13 @@ int mymain(list<string>& args)
                         } else --it;
                 } else if (*it == "--gui") {
                         use_gui = true;
+		} else if (*it == "--maxfps") {
+			list<string>::iterator it2 = it; ++it2;
+			if (it2 != args.end()) {
+				int mf = atoi(it2->c_str());
+				if (mf >= 0) maxfps = unsigned(mf);
+				++it;
+			}
 		} else {
 			modelfilename = *it;
 		}
@@ -768,9 +780,8 @@ int mymain(list<string>& args)
 
 	system::create_instance(new class system(1.0, 1000.0, res_x, res_y, fullscreen));
 	sys().set_res_2d(1024, 768);
-	/* no need for 2300fps when watching cubes spinning */
-	sys().set_max_fps(60);
-
+	sys().set_max_fps(maxfps);
+	
 	log_info("A simple model viewer for DftD-.mdl files");
 	log_info("copyright and written 2003 by Thorsten Jordan");
 
