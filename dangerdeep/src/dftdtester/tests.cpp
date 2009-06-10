@@ -73,18 +73,22 @@ void tests::load_gl_info()
 {
 	const char *c_vendor = (const char *)glGetString( GL_VENDOR );
 	const char *c_render = (const char *)glGetString( GL_RENDERER );
+	const char *c_glsl = (const char *)glGetString( GL_SHADING_LANGUAGE_VERSION );
 
 	c_version = (const char *)glGetString( GL_VERSION );
 	c_extensions = (const char *)glGetString( GL_EXTENSIONS );
 
+
 	string vendor = c_vendor ? c_vendor : "Unknown";
 	string render = c_render ? c_render : "Unknown";
+	string glsl = c_glsl ? c_glsl : "Unknown";
 	version = c_version ? c_version : "Unknown";
 	extensions = c_extensions ? c_extensions : "Unknown";
 
 	cout << START_ITEM << "Vendor: " << STOP_ITEM << vendor << endl;
 	cout << START_ITEM << "Render: " << STOP_ITEM<< render << endl;
 	cout << START_ITEM << "Version: " << STOP_ITEM<< version << endl;
+	cout << START_ITEM << "GLSL: " << STOP_ITEM<< glsl << endl;
 
 	// some modifled dftd code to parse the extensions
 	if (c_extensions)
