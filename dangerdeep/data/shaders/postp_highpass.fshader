@@ -1,5 +1,6 @@
 uniform sampler2D source;
-uniform float thresh;
+
+const float thresh = 1.0;
 
 void main(void)
 {

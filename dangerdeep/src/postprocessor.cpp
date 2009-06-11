@@ -27,8 +27,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "log.h"
 
-#define HIPASS_THRESH 0.99
-
 using namespace std;
 
 bool postprocessor::bloom_enabled = false;
@@ -54,19 +52,20 @@ postprocessor::postprocessor() :	filter( get_shader_dir() + "postp_null.vshader"
 
 	// only alloc buffers if needed
 	if ( bloom_enabled || hdr_enabled )
-	for( unsigned ix=0; ix < PP_FILTERS; ix++ )
 	{
-		h_textures[ ix ] =  new texture( w >> ix, h >> ix, GL_RGB, texture::LINEAR, texture::CLAMP );
-		v_textures[ ix ] =  new texture( w >> ix, h >> ix, GL_RGB, texture::LINEAR, texture::CLAMP );
-
-		h_pass[ ix ] = new framebufferobject( *h_textures[ ix ], 0 == ix ? true : false );
-		v_pass[ ix ] = new framebufferobject( *v_textures[ ix ], false );
-
-		if ( hdr_enabled )
+		for( unsigned ix=0; ix < PP_FILTERS; ix++ )
 		{
-			hipass_t = new texture( w, h, GL_RGB, texture::LINEAR, texture::CLAMP );
-			hipass_fbo = new framebufferobject( *hipass_t, false );
+			h_textures[ ix ] = new texture( w >> ix, h >> ix, GL_RGB, texture::LINEAR, texture::CLAMP );
+			v_textures[ ix ] = new texture( w >> ix, h >> ix, GL_RGB, texture::LINEAR, texture::CLAMP );
+
+			h_pass[ ix ] = new framebufferobject( *h_textures[ ix ], false );
+			v_pass[ ix ] = new framebufferobject( *v_textures[ ix ], false );
+
 		}
+
+		// only use floats if doing HDR
+		scene_t = new texture( w, h, ( hdr_enabled ) ? GL_RGB16F_ARB : GL_RGB, texture::LINEAR, texture::CLAMP );
+		scene_fbo = new framebufferobject( *scene_t, true );
 	}
 }
 
@@ -74,18 +73,17 @@ postprocessor::~postprocessor()
 {
 	// only free buffers if alloc'd
 	if ( bloom_enabled || hdr_enabled )
-	for( unsigned ix=0; ix < PP_FILTERS; ix++ )
 	{
-		delete h_textures[ix];
-		delete v_textures[ix];
-		delete h_pass[ ix ];
-		delete v_pass[ ix ];
-
-		if ( hdr_enabled )
+		for( unsigned ix=0; ix < PP_FILTERS; ix++ )
 		{
-			delete hipass_t;
-			delete hipass_fbo;
+			delete h_textures[ix];
+			delete v_textures[ix];
+			delete h_pass[ ix ];
+			delete v_pass[ ix ];
 		}
+
+		delete scene_t;
+		delete scene_fbo;
 	}
 }
 
@@ -94,11 +92,8 @@ void postprocessor::render2texture()
 	// only run if enabled otherwise take a 20% performance hit
 	if ( !( bloom_enabled || hdr_enabled ) )
 		return;
-	
-	// TODO: do we need to clear here? // yes for temp debugging
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	h_pass[0]->bind();
+	scene_fbo->bind();
 }
 
 void postprocessor::render_quad()
@@ -140,10 +135,10 @@ void postprocessor::bloom()
 
 	glsl_shader_setup::default_tex->use();
 	glsl_shader_setup::default_tex->set_uniform(glsl_shader_setup::loc_t_color, colorf( color::white() ) );
-	glsl_shader_setup::default_tex->set_gl_texture( *h_textures[0], glsl_shader_setup::loc_t_tex, 0);
+	glsl_shader_setup::default_tex->set_gl_texture( *scene_t, glsl_shader_setup::loc_t_tex, 0);
 	
 	// down-sample/size from initial fbo
-	for( unsigned ix = 1; ix < PP_FILTERS; ix++ )
+	for( unsigned ix = 0; ix < PP_FILTERS; ix++ )
 	{
 		h_pass[ ix ]->bind();
 		render_quad();
@@ -237,21 +232,19 @@ void postprocessor::hdr()
 	hipass.use();
 
 	loc = hipass.get_uniform_location( "source" );
-	hipass.set_gl_texture( *h_textures[0], loc, 0 );
-	
-	loc = hipass.get_uniform_location( "thresh" );
-	hipass.set_uniform( loc, HIPASS_THRESH );
+	hipass.set_gl_texture( *scene_t, loc, 0 );
 
-	hipass_fbo->bind();
+	h_pass[0]->bind();
 
 	render_quad();
 
-	hipass_fbo->unbind();
+	h_pass[0]->unbind();
+
 
 	// down-sample/size from initial fbo
 	glsl_shader_setup::default_tex->use();
 	glsl_shader_setup::default_tex->set_uniform(glsl_shader_setup::loc_t_color, colorf( color::white() ) );
-	glsl_shader_setup::default_tex->set_gl_texture( *hipass_t, glsl_shader_setup::loc_t_tex, 0);
+	glsl_shader_setup::default_tex->set_gl_texture( *h_textures[0], glsl_shader_setup::loc_t_tex, 0);
 	
 	for( unsigned ix = 1; ix < PP_FILTERS; ix++ )
 	{
@@ -285,11 +278,7 @@ void postprocessor::hdr()
 
 			v_pass[ ix ]->bind();
 		
-			// hack: first render target is h_text0 so we want out hipass tex0 not the h_tex0
-			if ( 0 == ix )
-				hipass_t->set_gl_texture();
-			else
-				h_textures[ ix ]->set_gl_texture();
+			h_textures[ ix ]->set_gl_texture();
 			render_quad();
 
 			v_pass[ ix ]->unbind();
@@ -306,20 +295,12 @@ void postprocessor::hdr()
 			float offset = 1.2f / (float)h_textures[ ix ]->get_height();
 			filter.set_uniform( loc_off, offset );
 
-			// hack: make sure we don't destroy our original render
-			if ( 0 == ix )
-				hipass_fbo->bind();
-			else
-				h_pass[ ix ]->bind();
+			h_pass[ ix ]->bind();
 
 			v_textures[ ix ]->set_gl_texture();
 			render_quad();
 
-			// hack: see above
-			if ( 0 == ix )
-				hipass_fbo->unbind();
-			else
-				h_pass[ ix ]->unbind();
+			h_pass[ ix ]->unbind();
 		}
 	}
 
@@ -343,12 +324,20 @@ void postprocessor::hdr()
 
 	// include the original
 	loc = combine2.get_uniform_location( "hipass" );
-	combine2.set_gl_texture( *hipass_t, loc, PP_FILTERS );
+	combine2.set_gl_texture( *scene_t, loc, PP_FILTERS );
 
 	// render final img
 	render_quad();
 
 	undo_2d();
+
+	// debug
+#if 0
+	system::sys().prepare_2d_drawing();
+	h_textures[0]->draw(0, 0, 256, 256);
+	system::sys().unprepare_2d_drawing();
+
+#endif
 }
 
 void postprocessor::process()
@@ -357,10 +346,10 @@ void postprocessor::process()
 	if ( !( bloom_enabled || hdr_enabled ) )
 		return;
 	
-	// stop rendering into the first buffer
-	h_pass[0]->unbind();
+	// stop rendering into the scene buffer
+	scene_fbo->unbind();
 
-
+	// TODO: use a scalar instead of booleans ?
 	if ( bloom_enabled )
 		bloom();
 	else

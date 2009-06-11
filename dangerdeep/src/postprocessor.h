@@ -37,7 +37,7 @@ class postprocessor : public singleton<class postprocessor>
 	public:
 		postprocessor();
 		~postprocessor();
-		// TODO: user set settings
+
 		static bool bloom_enabled;
 		static bool hdr_enabled;
 
@@ -47,8 +47,8 @@ class postprocessor : public singleton<class postprocessor>
 	private:
 		glsl_shader_setup filter, combine, combine2, hipass;
 
-		framebufferobject *h_pass[ PP_FILTERS ], *v_pass[ PP_FILTERS ], *hipass_fbo;
-		texture *h_textures[ PP_FILTERS ], *v_textures[ PP_FILTERS ], *hipass_t;
+		framebufferobject *h_pass[ PP_FILTERS ], *v_pass[ PP_FILTERS ], *scene_fbo;
+		texture *h_textures[ PP_FILTERS ], *v_textures[ PP_FILTERS ], *scene_t;
 
 		static bool use_hqsfx;
 
