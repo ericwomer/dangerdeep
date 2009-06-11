@@ -524,8 +524,6 @@ void camera::set_gl_trans() const
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-font* font_arial = 0;
-
 void run()
 {
 
@@ -753,7 +751,7 @@ int mymain(list<string>& args)
     glEnable(GL_LIGHT0);
 
     font_arial = new font(get_font_dir() + "font_arial");
-    auto_ptr<font> fa(font_arial);
+	auto_ptr<font> fa(font_arial);
     sys().draw_console_with(font_arial, 0);
 
     run();
