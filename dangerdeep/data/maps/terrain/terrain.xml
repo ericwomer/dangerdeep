@@ -4,12 +4,5 @@
 	<bounds x="21600" y="10800" />
 	<origin x="10800" y="5400" />
 	<tile_size value="256" />
-	<slope texture="terrain_rock.dds" />
-	<regions>
-		<region min="-200" max="-5" texture="terrain_sand.dds" />
-		<region min="-6" max="5" texture="terrain_mud.dds" />
-		<region min="6" max="3000" texture="terrain_forest.dds" />
-		<region min="3001" max="9000" texture="terrain_snow.dds" />
-	</regions>
-	<noise h=".25" lacunarity="2.0" offset="0.7" scale="5.0" coord_factor="0.01"/>
+	<noise h=".25" lacunarity="1.723724" offset="0.0" scale="50.0" coord_factor="0.01" gain="2.0" />
 </dftd-map>
