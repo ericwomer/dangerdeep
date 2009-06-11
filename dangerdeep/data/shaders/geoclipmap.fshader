@@ -10,19 +10,26 @@ uniform int above_water;
 uniform sampler2D texnormal;
 uniform sampler2D texnormal_c;
 
-/*
-	x = range
-	y = upper_bound
- */
-uniform vec2 regions[4];
+struct region {
+	float max;
+	float min;
+};
+
+region reg_sand = region(0, -9000);
+region reg_mud = region(40, 1);
+region reg_grass = region(2000, 41);
+region reg_rock = region(4000, 2001);
+region reg_snow = region(9000, 4001);
+
 uniform float tex_stretch_factor;
 
-uniform sampler2D terrain_texture0;
-uniform sampler2D terrain_texture1;
-uniform sampler2D terrain_texture2;
-uniform sampler2D terrain_texture3;
-uniform sampler2D bump_texture;
-uniform sampler2D slope_texture;
+uniform sampler2D sand_texture;
+uniform sampler2D mud_texture;
+uniform sampler2D forest_texture;
+uniform sampler2D noise_texture;
+uniform sampler2D rock_texture;
+uniform sampler2D snow_texture;
+
 #ifdef MIRROR
 varying float world_z;
 #endif
@@ -51,45 +58,55 @@ void main()
 #endif
 	
 	//clipping
-	if((above_water > 0 && gl_TexCoord[0].z < 0) ||
-	   (above_water < 0 && gl_TexCoord[0].z > 0))
+	if((above_water > 0 && gl_TexCoord[0].z < 0.0) ||
+	   (above_water < 0 && gl_TexCoord[0].z > 0.0))
 		discard;
 	
 	vec3 L = normalize(lightdir);
 	// compute normal
-	vec3 N = normalize(mix(texture2D(texnormal,     texcoordnormal).xyz * 2.0 - 1.0,
+	vec3 N = normalize(mix(texture2D(texnormal, texcoordnormal).xyz * 2.0 - 1.0,
 			   			   texture2D(texnormal_c, texcoordnormal_c).xyz * 2.0 - 1.0,
 			   			   alpha));
 	
 	// compute color
-	float weight;
-	float height = gl_TexCoord[0].z;
-	vec3 blended_color = vec3(0.0, 0.0, 0.0);
+	vec3 terrain_color;
 	vec2 coord = gl_TexCoord[0].xy;
-	
-	// compute simple weight of a texture dependent from it's height and the specified vertical regions
-	weight = compute_weight(regions[0].x, regions[0].y, height);
-	blended_color = mix(blended_color, get_color(terrain_texture0, coord), weight);
 
-	weight = compute_weight(regions[1].x, regions[1].y, height);
-	blended_color = mix(blended_color, get_color(terrain_texture1, coord), weight);
+	float weight;
+	float noise = abs(get_color(noise_texture, coord).x);
+	float height = gl_TexCoord[0].z;
+	float slope = (1.0 - dot(N, vec3(0.0, 0.0, 1.0)));
 	
-	weight = compute_weight(regions[2].x, regions[2].y, height);
-	blended_color = mix(blended_color, get_color(terrain_texture2, coord), weight);
+//	if(slope >= 0.4) terrain_color = get_color(rock_texture, coord);
 
-	weight = compute_weight(regions[3].x, regions[3].y, height);
-	blended_color = mix(blended_color, get_color(terrain_texture3, coord), weight);
-	
-	float slope = 1.0 - dot(N, vec3(0.0, 0.0, 1.0));
-	vec3 slope_color = get_color(slope_texture, coord);
-	blended_color = mix(blended_color, slope_color, slope);
-	
+	height *= noise;
+
+	if(height <= reg_sand.max) {
+		weight = clamp(10.0/(reg_mud.min-height), 0.0, 1.0);
+		terrain_color = mix(get_color(sand_texture, coord), get_color(mud_texture, coord), weight);
+	}	else if(height <= reg_mud.max) {
+		weight = clamp(10.0/(reg_grass.min-height), 0.0, 1.0);
+		terrain_color = mix(get_color(mud_texture, coord), get_color(forest_texture, coord), weight);
+	}	else if(height <= reg_grass.max) {
+		weight = clamp(10.0/(reg_rock.min-height), 0.0, 1.0);
+		terrain_color = mix(get_color(forest_texture, coord), get_color(snow_texture, coord), weight);
+	}	else if(height <= reg_rock.max) {
+		weight = clamp(10.0/(reg_snow.min-height), 0.0, 1.0);
+		terrain_color = mix(get_color(rock_texture, coord), get_color(snow_texture, coord), weight);
+	}else if(height <= reg_snow.max) {
+		terrain_color = get_color(snow_texture, coord);
+	}
+
+	terrain_color = mix(terrain_color, get_color(rock_texture, coord), slope);
+
+
+
 	//Bump mapping
 	#ifdef HQSFX	
-	N = normalize(N+get_color(bump_texture, coord)*10.0);
+	//N = normalize(N+get_color(bump_texture, coord)*10.0);
 	#endif
 	
-	vec3 final_color = vec3( blended_color * max( 0.0, dot(L, N)));
+	vec3 final_color = vec3(terrain_color * max( 0.0, dot(L, N)));
 	gl_FragColor = vec4(final_color,1.0);
 	/*
 	// add linear fog
