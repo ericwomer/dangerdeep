@@ -165,6 +165,17 @@ int mymain(list<string>& args)
 		}
 	}
 
+	cfg& mycfg = cfg::instance();
+	mycfg.register_option("use_ani_filtering", false);
+	mycfg.register_option("multisampling_level", 0);
+	mycfg.register_option("use_multisampling", false);
+	mycfg.register_option("vsync", false);
+	mycfg.register_option("hint_fog", 0);
+	mycfg.register_option("hint_mipmap", 0);
+	mycfg.register_option("hint_texture_compression", 0);
+	mycfg.register_option("use_compressed_textures", false);
+	
+
 	// fixme: also allow 1280x1024, set up gl viewport for 4:3 display
 	// with black borders at top/bottom (height 2*32pixels)
 	res_y = res_x*3/4;
