@@ -64,6 +64,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "sub_captainscabin_display.h"
 #include "sub_soldbuch_display.h"
 #include "sub_recogmanual_display.h"
+#include "sub_valves_display.h"
 
 #include "torpedo_camera_display.h"
 
@@ -81,6 +82,7 @@ submarine_interface::submarine_interface(game& gm) :
 
 	displays.resize(nr_of_displays);
 	displays.reset(display_mode_gauges, new sub_gauges_display(*this));
+	displays.reset(display_mode_valves, new sub_valves_display(*this));
 	displays.reset(display_mode_periscope, new sub_periscope_display(*this));
 	displays.reset(display_mode_uzo, new sub_uzo_display(*this));
 	displays.reset(display_mode_bridge, new sub_bridge_display(*this));
@@ -264,6 +266,7 @@ void submarine_interface::process_input(const SDL_Event& event)
 		const cfg& mycfg = cfg::instance();
 
 		// SCREENS
+		if(event.key.keysym.sym == SDLK_b) goto_valves();
 		if (mycfg.getkey(KEY_SHOW_GAUGES_SCREEN).equal(event.key.keysym)) {
 			goto_gauges();
 		} else if (mycfg.getkey(KEY_SHOW_PERISCOPE_SCREEN).equal(event.key.keysym)) {
@@ -541,7 +544,11 @@ void submarine_interface::goto_gauges()
 	set_current_display(display_mode_gauges);
 }
 
-
+void submarine_interface::goto_valves()
+{
+	log_debug("blubb");
+	set_current_display(display_mode_valves);
+}
 
 void submarine_interface::goto_periscope()
 {

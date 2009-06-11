@@ -51,6 +51,7 @@ public:
 	// the indices for the displays
 	enum {
 		display_mode_gauges,
+		display_mode_valves,
 		display_mode_periscope,
 		display_mode_uzo,
 		display_mode_bridge,
@@ -104,6 +105,7 @@ public:
 	void goto_TDC();
 	void goto_torpedosettings();
 	void goto_recogmanual();
+	void goto_valves();
 
 	void toggle_popup();
 
