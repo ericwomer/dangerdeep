@@ -59,6 +59,8 @@ class framebufferobject
 	framebufferobject();
 	framebufferobject(const framebufferobject& );	// no copy
 	framebufferobject& operator= (const framebufferobject&);
+
+	const char* init_failure_reason( int status );
 };
 
 #endif

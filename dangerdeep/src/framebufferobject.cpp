@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "oglext/OglExt.h"
 #include "texture.h"
 #include "system.h"
+#include "log.h"
 #include <stdexcept>
 
 
@@ -67,6 +68,7 @@ framebufferobject::framebufferobject(class texture& attachedtex, bool withdepthb
 	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
 	if(status != GL_FRAMEBUFFER_COMPLETE_EXT) {
 		destroy();
+		log_warning( "FBO initialization check failed: " << init_failure_reason( status ) );
 		throw std::runtime_error("FBO initialization check failed");
 	}
 	// unbind for now
@@ -74,6 +76,35 @@ framebufferobject::framebufferobject(class texture& attachedtex, bool withdepthb
 	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
 }
 
+const char* framebufferobject::init_failure_reason( int status )
+{
+	switch( status )
+	{
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
+			return "Attachment";
+
+		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
+			return "Missing attachment";
+
+		case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
+			return "Incorrect dimensions";
+
+		case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
+			return "Incorrect formats";
+
+		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
+			return "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT";
+
+		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
+			return "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT";
+
+		case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
+			return "GL_FRAMEBUFFER_UNSUPPORTED_EXT";
+
+		default:
+			return "Unknown";
+	}
+}
 
 
 framebufferobject::~framebufferobject()
