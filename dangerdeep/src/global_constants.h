@@ -37,6 +37,10 @@ const double EARTH_PERIMETER = 40030173.59;
 // Brutto register ton in cubic meters (100 cubic feet, 1 feet = 30.48cm)
 const double BRT_VOLUME = 2.8316846592;
 
+const double WGS84_A = 6378137.0;
+const double WGS84_B = 6356752.314;
+const double WGS84_K = sqrt(WGS84_A*WGS84_A-WGS84_B*WGS84_B)/WGS84_A;
+
 // earth radius in meters (radius of a globe with same volume as the GRS 80 ellipsoide)
 const double EARTH_RADIUS = 6371000.785;			// 6371km
 const double SUN_RADIUS = 696e6;			// 696.000km
