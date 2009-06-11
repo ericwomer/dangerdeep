@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "height_generator.h"
 #include "color.h"
 #include "simplex_noise.h"
+#include "fractal.h"
 
 #include <sstream>
 
@@ -77,9 +78,7 @@ class geoclipmap
 
 	// scratch buffer for index generation, for transmission
 	std::vector<uint32_t> idxscratchbuf;
-		
-	texture bumpmap;
-
+ 
 	struct area
 	{
 		// bottom left and top right vertex coordinates
@@ -159,6 +158,8 @@ class geoclipmap
 		return vector2i(mod(v.x), mod(v.y));
 	}
 
+        
+
 	/*mutable*/ std::auto_ptr<glsl_shader_setup> myshader[2];
 	//mutable glsl_shader_setup myshader_mirror;
 	unsigned myshader_vattr_z_c_index[2];
@@ -174,10 +175,8 @@ class geoclipmap
 	unsigned loc_texcshift[2];
 	unsigned loc_texcshift2[2];
 	unsigned loc_tex_stretch_factor[2];
-	unsigned loc_bumpmap[2];
-	unsigned loc_slope_texture[2];
 	unsigned loc_above_water[2];
-	std::vector<unsigned> loc_terrain_textures[2];
+	
 	texture::ptr horizon_normal;
 
  public:

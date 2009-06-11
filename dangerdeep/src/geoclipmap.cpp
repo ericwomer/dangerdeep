@@ -61,12 +61,10 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 	                + DEBUG_INDEX_EXTRA
 #endif
 			),
-	  bumpmap(simplex_noise::noise_map2D(vector2i(256,256), nr_levels), 256, 256, GL_LUMINANCE, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT, true),
 	  levels(nr_levels),
 	  height_gen(hg),
 	  wireframe(false)
 {
-	
 	// initialize vertex VBO and all level VBOs
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
 		levels.reset(lvl, new level(*this, lvl, lvl+1==levels.size()));
@@ -78,6 +76,12 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 	defines.push_back("MIRROR");
 	myshader[1].reset(new glsl_shader_setup(get_shader_dir() + "geoclipmap.vshader",
 					     get_shader_dir() + "geoclipmap.fshader", defines));
+
+	
+
+	fractal_noise frac(0.25, 1.9767, 15.0, 0.0, 0.0);
+	texture noisemap(frac.get_map_fbm(vector2i(-512, -512), vector2i(1024, 1024)), 1024, 1024, GL_LUMINANCE, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT, false);
+	
 
 	// do not use too high w_fac with too small resolutions.
 	// Otherwise the decaying transition factor (going from 1.0 at outer border
@@ -100,25 +104,30 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 		loc_texcshift[i] = myshader[i]->get_uniform_location("texcshift");
 		loc_texcshift2[i] = myshader[i]->get_uniform_location("texcshift2");
 		loc_tex_stretch_factor[i] = myshader[i]->get_uniform_location("tex_stretch_factor");
-		loc_bumpmap[i] = myshader[i]->get_uniform_location("bump_texture");
-		loc_slope_texture[i] = myshader[i]->get_uniform_location("slope_texture");
 		loc_above_water[i] = myshader[i]->get_uniform_location("above_water");
 		myshader[i]->set_uniform(loc_w_p1[i], resolution_vbo * w_fac + 1.0f);
 		myshader[i]->set_uniform(loc_w_rcp[i], 1.0f/(resolution_vbo * w_fac));
 		myshader[i]->set_uniform(loc_N_rcp[i], 1.0f/resolution_vbo);
-		
-		unsigned loc_tmp = myshader[i]->get_uniform_location("regions");
-		myshader[i]->set_uniform(loc_tmp, hg.get_regions());
-		
-		loc_terrain_textures[i].resize(hg.get_texture_count());
 
-		for(unsigned j=0; j<hg.get_texture_count(); j++) {
-			std::stringstream ss;
-			ss << "terrain_texture";
-			ss << j;
-			loc_terrain_textures[i][j] = myshader[i]->get_uniform_location(ss.str().c_str());
-		}
+		unsigned loc_tmp;
+
+		loc_tmp = myshader[i]->get_uniform_location("noise_texture");
+		myshader[i]->set_gl_texture(noisemap, loc_tmp, 2);
+	
+		loc_tmp = myshader[i]->get_uniform_location("sand_texture");
+		myshader[i]->set_gl_texture(height_gen.get_sand_texture(), loc_tmp, 4);
+		
+		loc_tmp = myshader[i]->get_uniform_location("mud_texture");
+		myshader[i]->set_gl_texture(height_gen.get_mud_texture(), loc_tmp, 5);
 		 
+		loc_tmp = myshader[i]->get_uniform_location("forest_texture");
+		myshader[i]->set_gl_texture(height_gen.get_forest_texture(), loc_tmp, 6);
+
+		loc_tmp = myshader[i]->get_uniform_location("rock_texture");
+		myshader[i]->set_gl_texture(height_gen.get_rock_texture(), loc_tmp, 7);
+
+		loc_tmp = myshader[i]->get_uniform_location("snow_texture");
+		myshader[i]->set_gl_texture(height_gen.get_snow_texture(), loc_tmp, 8);
 	}
 	// set a texture for normals outside coarsest level, just 0,0,1
 	std::vector<Uint8> pxl(3, 128);
@@ -195,12 +204,8 @@ void geoclipmap::display(const frustum& f, const vector3& view_delta, bool is_mi
 	glTranslated(translation.x, translation.y, translation.z);
 	frustum f2 = f;
 	if (is_mirror) f2 = f.get_mirrored();
-	myshader[si]->set_gl_texture(bumpmap, loc_bumpmap[si], 2);
-	myshader[si]->set_gl_texture(height_gen.get_slope_texture(), loc_slope_texture[si], 3);
 	myshader[si]->set_uniform(loc_above_water[si], above_water);
-	for(unsigned j=0; j<height_gen.get_texture_count(); j++) {
-		myshader[si]->set_gl_texture(height_gen.get_terrain_texture(j), loc_terrain_textures[si][j], 4+j);
-	}
+
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
 		myshader[si]->set_uniform(loc_tex_stretch_factor[si], height_gen.get_tex_stretch_factor()/pow(2,lvl));
 		myshader[si]->set_gl_texture(levels[lvl]->normals_tex(), loc_texnormal[si], 0);

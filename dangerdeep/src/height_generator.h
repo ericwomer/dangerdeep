@@ -83,11 +83,12 @@ class height_generator
 		}
 	}
 	*/
-	const std::vector<vector2f>& get_regions()	const   { return regions; }
-	const texture& get_terrain_texture(int i)	const   { return *terrain_textures[i]; }
-	const texture& get_slope_texture()			const   { return *slope_texture; }
+	const texture& get_sand_texture()	const   { return *sand_texture; }
+	const texture& get_mud_texture()	const   { return *mud_texture; }
+	const texture& get_forest_texture()	const   { return *forest_texture; }
+	const texture& get_rock_texture()	const   { return *rock_texture; }
+	const texture& get_snow_texture()	const   { return *snow_texture; }
 		
-	unsigned get_texture_count()	{ return terrain_textures.size(); }
 	float get_tex_stretch_factor()	{ return tex_stretch_factor; }
 	/// compute normal values of given detail and coordinate area (including given coordinates)
 	///@note here is some reasonable implementation, normally it should be overloaded, normals are always packed
@@ -136,9 +137,7 @@ class height_generator
 	// fixme: is this still needed?
 	unsigned log2_color_res_factor; // colors have 2^x more values as vertices
 		
-	std::vector<vector2f> regions;
-	ptrvector<texture> terrain_textures;
-	std::auto_ptr<texture> slope_texture;
+	std::auto_ptr<texture> sand_texture, mud_texture, forest_texture, rock_texture, snow_texture;
 	float tex_stretch_factor;
 };
 
