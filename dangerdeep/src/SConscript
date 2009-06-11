@@ -62,6 +62,7 @@ dftdsources = Split("""subsim.cpp
 	sub_torpedo_display.cpp
 	sub_torpsetup_display.cpp
 	sub_uzo_display.cpp
+  sub_valves_display.cpp
 	tdc.cpp
 	texts.cpp
 	tone_reproductor.cpp
@@ -139,7 +140,7 @@ env.Default(portal)
 treegentest = env.Program('treegentest', ['treegentest.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
 env.Default(treegentest)
 
-geoclipmaptest = env.Program('geoclipmaptest', ['geoclipmaptest.cpp', 'height_generator_map.cpp', 'bitstream.cpp', 'bzip.cpp', 'simplex_noise.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
+geoclipmaptest = env.Program('geoclipmaptest', ['geoclipmaptest.cpp', 'height_generator_map.cpp', 'bitstream.cpp', 'bzip.cpp', 'simplex_noise.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj, globaldataobj], LIBS = alllibs)
 env.Default(geoclipmaptest)
 
 if ffmpeg_available:
