@@ -59,6 +59,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <sstream>
 #include <iomanip>
 #include "singleton.h"
+#include "vector2.h"
 
 std::string get_program_version();
 
@@ -130,6 +131,8 @@ inline bool ispow2(unsigned x) { return (x & (x-1)) == 0; }
 double transform_nautic_posx_to_real(const std::string& s);
 double transform_nautic_posy_to_real(const std::string& s);
 
+void jacobi_amp(double u, double k, double& sn, double& cn);
+vector2f transform_real_to_geo(vector2f& pos);
 std::list<std::string> string_split(const std::string& src, char splitter = ',');
 
 // save a PGM (for debugging mostly)

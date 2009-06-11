@@ -145,6 +145,73 @@ string get_time_string(double tm)
 	return oss.str();
 }
 
+#define CA 0.0003
+void jacobi_amp(double u, double k, double& sn, double& cn)
+{
+	double emc = 1.0 - k*k;
+	
+	double a,b,c,d=0.0,dn;
+	double em[14],en[14];
+	int i,ii,l,bo;
+	
+	if (emc) {
+		bo=(emc < 0.0);
+		if (bo) {
+			d=1.0-emc;
+			emc /= -1.0/d;
+			u *= (d=sqrt(d));
+		}
+		a=1.0;
+		dn=1.0;
+		for (i=1;i<=13;i++) {
+			l=i;
+			em[i]=a;
+			en[i]=(emc=sqrt(emc));
+			c=0.5*(a+emc);
+			if (fabs(a-emc) <= CA*a) break;
+			emc *= a;
+			a=c;
+		}
+		u *= c;
+		sn=sin(u);
+		cn=cos(u);
+		if (sn) {
+			a=(cn)/(sn);
+			c *= a;
+			for (ii=l;ii>=1;ii--) {
+				b=em[ii];
+				a *= c;
+				c *= (dn);
+				dn=(en[ii]+a)/(b+a);
+				a=c/b;
+			}
+			a=1.0/sqrt(c*c+1.0);
+			sn=(sn >= 0.0 ? a : -a);
+			cn=c*sn;
+		}
+		if (bo) {
+			cn = dn;
+			sn /= d;
+		}
+	} else {
+		cn = 1.0/cosh(u);
+		sn=tanh(u);
+	}
+}
+#undef CA
+
+vector2f transform_real_to_geo(vector2f& pos)
+{
+	double sn, cn, r;
+	vector2f coord;
+	
+	jacobi_amp(pos.y/WGS84_A, WGS84_K, sn, cn);
+	r = sqrt((WGS84_B*WGS84_B)/(1.0-WGS84_K*WGS84_K*cn*cn));
+	coord.x = (180.0*pos.x)/(M_PI*r);
+	coord.y = (asin(sn)*180.0)/M_PI;
+	
+	return coord;
+}
 
 static double transform_nautic_coord_to_real(const string& s, char minus, char plus, int degmax)
 {
