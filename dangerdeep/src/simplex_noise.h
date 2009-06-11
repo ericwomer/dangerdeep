@@ -47,7 +47,7 @@ protected:
 	static double dot(const int* g, float& x, float& y, float& z, float& w) {
 		return g[0]*x + g[1]*y + g[2]*z + g[3]*w; 
 	}
-	
+
 	static float interpolate2D(const vector2f& coord);
 	static float interpolate3D(const vector3f& coord);
 	static float interpolate4D(const vector4f& coord);
@@ -63,7 +63,7 @@ public:
 	static float noise(vector4f coord) {
 		return interpolate4D(coord);
 	}
-	
+
 	static float noise(vector2f coord, unsigned depth);
 	static float noise(vector3f coord, unsigned depth);
 	static float noise(vector4f coord, unsigned depth);
