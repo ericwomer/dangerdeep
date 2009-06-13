@@ -97,6 +97,9 @@ terrain<T>::terrain(const std::string& header_file, const std::string& data_dir,
     noise_coord_factor = elem.attrf("coord_factor");
 		noise_gain = elem.attrf("gain");
 
+		elem = root.child("sample_spacing");
+		sample_spacing = elem.attrf("value");
+
     sand_texture.reset(new texture(get_texture_dir() += "terrain_sand.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
 		mud_texture.reset(new texture(get_texture_dir() += "terrain_mud.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
 		forest_texture.reset(new texture(get_texture_dir() += "terrain_forest.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
@@ -105,7 +108,6 @@ terrain<T>::terrain(const std::string& header_file, const std::string& data_dir,
 
     frac = std::auto_ptr<fractal_noise> (new fractal_noise(noise_h, noise_lac, _num_levels + 1, noise_off, noise_gain));
 
-    sample_spacing = 50.0;
     tex_stretch_factor = cfg::instance().getf("terrain_texture_resolution") / 100.0;
 
     m_tile_cache = tile_cache<T > (data_dir, bounds.y, bounds.x, tile_size, 0, 300000);
@@ -169,12 +171,10 @@ bivector<float> terrain<T>::generate_patch(int detail, const vector2i& coord_bl,
 								(coord.y << (detail + 1)) * noise_coord_factor, 
 								patch.at(x, y) * noise_coord_factor), num_levels - detail
 							) * noise_scale;
-            if (
-                    ((patch.at(x,y) < 0.0) && ((patch.at(x,y) + noise) > 0.0)) ||
-                    ((patch.at(x,y) > 0.0) && ((patch.at(x,y) + noise) < 0.0))
-                    )
-                noise *= -1.0;
-						if(patch.at(x,y) == 0.0) noise = 0.0;
+
+						if((patch.at(x,y) <= 0.0) && (noise>0.0)) noise *= -1.0;
+						if((patch.at(x,y) >= 0.0) && (noise<0.0)) noise *= -1.0;
+
             patch.at(x, y) += noise;
         }
     }
