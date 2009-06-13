@@ -1280,34 +1280,6 @@ void menu_resolution()
 	w.run(0, false);	
 }
 
-
-
-void menu_misc()
-{
-	widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
-	unsigned wd = 600;
-	unsigned hg = 5 * 40 + 4 * 20;
-	vector2i curr_res = sys().get_res_2d();
-	int x = (curr_res.x - wd)/2;
-	int y = (curr_res.y - hg)/2;
-	widget_menu* wm = new widget_menu(x, y, wd, 40, texts::get(107));
-	widget_checkbox* whqsfx = new widget_checkbox(x, y + 60, wd, 40, cfg::instance().getb("use_hqsfx"), texts::get(111));
-	widget_slider* terrain_lod = new widget_slider(x, y + 120, wd, 80, texts::get(112), 3, 9, cfg::instance().geti("terrain_detail"), 1);
-	widget_button* wcb = new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, x, y + 240, wd, 40, texts::get(20));  
-
-	w.add_child(wm);
-	w.add_child(whqsfx);
-	w.add_child(terrain_lod);
-	w.add_child(wcb);
-	w.run(0, false);
-
-	cfg::instance().set("use_hqsfx", whqsfx->is_checked());
-	cfg::instance().set("terrain_detail", terrain_lod->get_curr_value());
-	glsl_shader::enable_hqsfx = whqsfx->is_checked();
-}
-
-
-
 void configure_key(widget_list* wkeys)
 {
 	struct confkey_widget : public widget {
@@ -1366,6 +1338,152 @@ void menu_configure_keys()
 	w.run(0, false);
 }
 
+void menu_opt_input()
+{
+	widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
+	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(705));
+	w.add_child(wm);
+
+	wm->add_entry(texts::get(214), new widget_func_button<void (*)()>(&menu_configure_keys, 0, 0, 0, 0));
+	wm->add_entry(texts::get(709), new widget_func_button<void (*)()>(&menu_notimplemented, 0, 0, 0, 0)); // TODO
+
+	wm->add_entry(texts::get(11), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
+	wm->align(0, 0);
+	w.run(0, false);
+}
+
+void menu_opt_audio()
+{
+	menu_notimplemented(); // TODO
+}
+void menu_opt_video()
+{
+	unsigned wd = 400;
+	unsigned gap = 112;
+	unsigned x = 56;
+	unsigned y = 150;
+	unsigned right = x + wd + gap;
+
+	// make widgets
+	widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
+	widget_menu* wm = new widget_menu(x, y, wd, 40, texts::get(707));
+
+	widget_button* resolution = new widget_func_button<void (*)()>(&menu_resolution, x, y + 60, wd, 40, texts::get( 106 ) );
+	widget_checkbox* vsync = new widget_checkbox(right, y + 60, wd, 40, cfg::instance().getb("vsync"), texts::get(720));
+
+	widget_slider* terrain_lod = new widget_slider(x, y + 120, wd, 80, texts::get(112), 3, 9, cfg::instance().geti("terrain_detail"), 3);
+	widget_checkbox* tex_compress = new widget_checkbox(right, y + 120, wd, 40, cfg::instance().getb("use_compressed_textures"), texts::get(721));
+
+	widget_list* wfx_quality = new widget_list(x + (wd / 2), y + 220, wd / 2, 80 );
+	widget_text* wfx_quality_txt = new widget_text(x, y + 220, wd / 2, 20, texts::get(713) );
+	widget_list* w_postprocessing = new widget_list(right + (wd / 2), y + 220, wd / 2, 80 );
+	widget_text* w_postprocessing_txt = new widget_text(right, y + 220, wd / 2, 20, texts::get(714) );
+
+	widget_list* anisotropic_level = new widget_list(x + (wd / 2), y + 320, wd / 2, 80 );
+	widget_text* anisotropic_level_txt = new widget_text(x, y + 320, wd / 2, 20, texts::get(722) );
+	widget_list* anti_aliasing_level = new widget_list(right + (wd / 2), y + 320, wd / 2, 80 );
+	widget_text* anti_aliasing_level_txt = new widget_text(right, y + 320, wd / 2, 20, texts::get(723) );
+
+	widget_button* wcb = new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, x, y + 420, wd, 40, texts::get(20));
+
+	// insert values
+	wfx_quality->append_entry(texts::get(710));
+	wfx_quality->append_entry(texts::get(711));
+	wfx_quality->append_entry(texts::get(712));
+	wfx_quality->set_selected( cfg::instance().geti( "sfx_quality" ) );
+
+	w_postprocessing->append_entry(texts::get(715));
+	w_postprocessing->append_entry(texts::get(716));
+	w_postprocessing->append_entry(texts::get(717));
+	w_postprocessing->set_selected( cfg::instance().geti( "postprocessing" ) );
+
+	float max_ani = 1.0;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_ani );
+	anisotropic_level->append_entry(texts::get(724));
+
+	if ( 1.0f != max_ani )
+	{
+		unsigned count = 1;
+
+		while( max_ani >= 2.0f )
+		{
+			anisotropic_level->append_entry( str( max_ani ) );
+
+			if ( cfg::instance().getf("anisotropic_level") == max_ani )
+				anisotropic_level->set_selected( count );
+
+			count++;
+			max_ani /= 2.0f;
+		}
+	}
+
+	anti_aliasing_level->append_entry(texts::get(724));
+	anti_aliasing_level->set_selected( 0 ); // TODO: FIXME
+
+	// add to root
+	w.add_child(wm);
+
+	w.add_child(resolution);
+	w.add_child(vsync);
+
+	w.add_child(terrain_lod);
+	w.add_child(tex_compress);
+
+	w.add_child(w_postprocessing); w.add_child(w_postprocessing_txt);
+	w.add_child(wfx_quality); w.add_child(wfx_quality_txt);
+
+	w.add_child(anisotropic_level); w.add_child(anisotropic_level_txt);
+	w.add_child(anti_aliasing_level); w.add_child(anti_aliasing_level_txt);
+
+	w.add_child(wcb);
+
+	w.run(0, false);
+
+	// save settings
+	cfg::instance().set("vsync", vsync->is_checked());
+
+	cfg::instance().set("terrain_detail", terrain_lod->get_curr_value());
+	cfg::instance().set("use_compressed_textures", tex_compress->is_checked());
+
+	cfg::instance().set("sfx_quality", wfx_quality->get_selected());
+	cfg::instance().set("postprocessing", w_postprocessing->get_selected());
+	// TODO: need to update postproc. code to use this int instead of the previous two booleans.
+
+	if ( 0 == anisotropic_level->get_selected() )
+	{
+		cfg::instance().set("use_ani_filtering", false);
+		cfg::instance().set("anisotropic_level", 1.0f );
+	} else {
+		cfg::instance().set("use_ani_filtering", true);
+
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_ani );
+		unsigned max_list = anisotropic_level->get_listsize() - 1;
+		unsigned selected = anisotropic_level->get_selected();
+
+		for( unsigned ix=max_list; ix>selected; ix-- )
+			max_ani /= 2.0f;
+		
+		cfg::instance().set("anisotropic_level", max_ani );
+	}
+
+	if ( 0 == anti_aliasing_level->get_selected() )
+	{
+		cfg::instance().set("use_multisampling", false );
+	} else {
+		cfg::instance().set("use_multisampling", true );
+		// TODO - implement this, kind of held back by the lack of easy of detecting suitable/MAX values.
+		//cfg::instance().set("multisampling_level", ??? );
+	}
+
+	// TODO: something about this ? we need to convert or update existing code that uses the boolean use_hqsfx
+//	cfg::instance().set("use_hqsfx", whqsfx->is_checked());
+//	glsl_shader::enable_hqsfx = whqsfx->is_checked();
+}
+
+void menu_opt_network()
+{
+	menu_notimplemented(); // TODO
+}
 
 
 void menu_options()
@@ -1373,9 +1491,12 @@ void menu_options()
 	widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
 	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(29));
 	w.add_child(wm);
-	wm->add_entry(texts::get(214), new widget_func_button<void (*)()>(&menu_configure_keys, 0, 0, 0, 0));
-	wm->add_entry(texts::get(106), new widget_func_button<void (*)()>(&menu_resolution, 0, 0, 0, 0));
-	wm->add_entry(texts::get(107), new widget_func_button<void (*)()>(&menu_misc, 0, 0, 0, 0));
+
+	wm->add_entry(texts::get(705), new widget_func_button<void (*)()>(&menu_opt_input, 0, 0, 0, 0));
+	wm->add_entry(texts::get(706), new widget_func_button<void (*)()>(&menu_opt_audio, 0, 0, 0, 0));
+	wm->add_entry(texts::get(707), new widget_func_button<void (*)()>(&menu_opt_video, 0, 0, 0, 0));
+	wm->add_entry(texts::get(708), new widget_func_button<void (*)()>(&menu_opt_network, 0, 0, 0, 0));
+
 	wm->add_entry(texts::get(11), new widget_caller_arg_button<widget, void (widget::*)(int), int>(&w, &widget::close, 0, 0, 0, 0, 0));
 	wm->align(0, 0);
 	w.run(0, false);
@@ -1685,14 +1806,18 @@ int mymain(list<string>& args)
 	mycfg.register_option("fullscreen", true);
 	mycfg.register_option("debug", false);
 	mycfg.register_option("sound", true);
-	mycfg.register_option("use_hqsfx", true);
+
+	mycfg.register_option("sfx_quality", 0 );
+	mycfg.register_option("postprocessing", 0 );
+
+	mycfg.register_option("use_hqsfx", true); // TODO remove
 	mycfg.register_option("use_ani_filtering", false);
 	mycfg.register_option("anisotropic_level", 1.0f);
 	mycfg.register_option("use_compressed_textures", false);
 	mycfg.register_option("multisampling_level", 0);
 	mycfg.register_option("use_multisampling", false);
-	mycfg.register_option("bloom_enabled", false);
-	mycfg.register_option("hdr_enabled", false);
+	mycfg.register_option("bloom_enabled", false); // TODO: remove
+	mycfg.register_option("hdr_enabled", false); // TODO: remove
 	mycfg.register_option("hint_multisampling", 0);
 	mycfg.register_option("hint_fog", 0);
 	mycfg.register_option("hint_mipmap", 0);
