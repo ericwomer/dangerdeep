@@ -822,7 +822,7 @@ texture::texture(unsigned w, unsigned h, int format_,
 	
 	//enable anisotropic filtering if choosen
 	if(cfg::instance().getb("use_ani_filtering"))
-		glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
 
 	int internalformat = format;
 	if(cfg::instance().getb("use_compressed_textures")) {
@@ -881,7 +881,7 @@ texture::texture(const std::string& filename, bool dummy, mapping_mode mapping_,
 	
 	//enable anisotropic filtering if choosen
 	if(cfg::instance().getb("use_ani_filtering"))
-		glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
 
 	int m_size, m_offset = 0, m_width = width, m_height = height;
 
