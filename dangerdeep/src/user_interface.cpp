@@ -277,10 +277,10 @@ user_interface::user_interface(game& gm) :
 	// so #levels = floor(log2(z_far / (2^n * sample_spacing))) + 1
 	//const double z_far = 20000.0;
 
-        add_loading_screen("user interface initialized");
+  add_loading_screen("user interface initialized");
 
 	mygeoclipmap.reset(new geoclipmap(TERRAIN_NR_LEVELS, TERRAIN_RESOLUTION_N, mygame->get_height_gen()));
-        mygeoclipmap->set_viewerpos(gm.get_player()->get_pos());
+  mygeoclipmap->set_viewerpos(gm.get_player()->get_pos());
 
 	add_loading_screen("terrain loaded");
 }

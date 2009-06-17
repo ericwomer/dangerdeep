@@ -201,6 +201,10 @@ public:
 
 	bool abort_requested() const { return abort_request; }
 	void request_abort(bool abrt = true) { abort_request = abrt; }
+
+	void switch_geo_wire() {
+		mygeoclipmap->wireframe = !mygeoclipmap->wireframe;
+	}
 };
 
 #endif
