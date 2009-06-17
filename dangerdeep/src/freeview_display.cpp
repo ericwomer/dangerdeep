@@ -185,13 +185,14 @@ void freeview_display::process_input(class game& gm, const SDL_Event& event)
 	switch (event.type) {
 	case SDL_KEYDOWN:
 		switch(event.key.keysym.sym) {
-		case SDLK_KP8: add_pos -= forward * 5; break;
-		case SDLK_KP2: add_pos += forward * 5; break;
-		case SDLK_KP4: add_pos -= sidestep * 5; break;
-		case SDLK_KP6: add_pos += sidestep * 5; break;
-		case SDLK_KP1: add_pos -= upward * 5; break;
-		case SDLK_KP3: add_pos += upward * 5; break;
+		case SDLK_KP8: add_pos -= forward * 15; break;
+		case SDLK_KP2: add_pos += forward * 15; break;
+		case SDLK_KP4: add_pos -= sidestep * 15; break;
+		case SDLK_KP6: add_pos += sidestep * 15; break;
+		case SDLK_KP1: add_pos -= upward * 15; break;
+		case SDLK_KP3: add_pos += upward * 15; break;
 		case SDLK_KP5: std::cout << gm.get_player()->get_pos() << std::endl; break;
+		case SDLK_w: ui.switch_geo_wire(); break;
 		default: break;
 		}
 		break;
@@ -204,9 +205,9 @@ void freeview_display::process_input(class game& gm, const SDL_Event& event)
 		break;
         case SDL_MOUSEBUTTONDOWN:
                 if (event.button.button == SDL_BUTTON_WHEELUP) {
-			add_pos += forward * 5;
+			add_pos += forward * 15;
                 } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
-			add_pos -= forward * 5;
+			add_pos -= forward * 15;
                 }
                 break;
 	default:
