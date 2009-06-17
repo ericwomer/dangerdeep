@@ -1,13 +1,13 @@
 #include "simplex_noise.h"
 
-std::vector<Uint8> simplex_noise::noise_map2D(vector2i size, unsigned depth)
+std::vector<Uint8> simplex_noise::noise_map2D(vector2i size, unsigned ocatves, float persistence, float coord_factor)
 {
-	float min = 1.0, max = 0.0, scale = 0.0;
-	std::vector<float> values(size.x*size.y);
+	double min = 1.0, max = 0.0, scale = 0.0;
+	std::vector<double> values(size.x*size.y);
 	std::vector<Uint8> map(size.x*size.y);
 	for(int y=0; y<size.y; y++)	for(int x=0; x<size.x; x++)
 	{
-		values[y*size.x+x] = noise(vector2f(x,y), depth);
+		values[y*size.x+x] = noise(vector2(x*coord_factor,y*coord_factor), ocatves, persistence);
 		if(values[y*size.x+x]>max)max=values[y*size.x+x];
 		if(values[y*size.x+x]<min)min=values[y*size.x+x];
 	}
@@ -18,37 +18,40 @@ std::vector<Uint8> simplex_noise::noise_map2D(vector2i size, unsigned depth)
 	}
 	return map;
 }
-float simplex_noise::noise(vector2f coord, unsigned depth)
+double simplex_noise::noise(vector2 coord, unsigned ocatves, float persistence)
 {
-	float sum = 0.0, f = 1.0;
-	for(unsigned int i=0; i<depth; i++) {
-		sum += interpolate2D(coord*f);
-		f *= 0.5;
+	double sum = 0.0, amplitude, frequency;
+	for(unsigned int i=0; i<ocatves; i++) {
+		amplitude = pow(persistence, i);
+		frequency = 1<<i;
+		sum += interpolate2D(coord*frequency)*amplitude;
 	}
 	return sum;
 }
 
-float simplex_noise::noise(vector3f coord, unsigned depth)
+double simplex_noise::noise(vector3 coord, unsigned ocatves, float persistence)
 {
-	float sum = 0.0, f = 1.0;
-	for(unsigned int i=0; i<depth; i++) {
-		sum += interpolate3D(coord*f);
-		f *= 0.5;
+	double sum = 0.0, amplitude, frequency;
+	for(unsigned int i=0; i<ocatves; i++) {
+		amplitude = pow(persistence, i);
+		frequency = 1<<i;
+		sum += interpolate3D(coord*frequency)*amplitude;
 	}
 	return sum;
 }
 
-float simplex_noise::noise(vector4f coord, unsigned depth)
+double simplex_noise::noise(vector4 coord, unsigned ocatves, float persistence)
 {
-	float sum = 0.0, f = 1.0;
-	for(unsigned int i=0; i<depth; i++) {
-		sum += interpolate4D(coord*f);
-		f *= 0.5;
+	double sum = 0.0, amplitude, frequency;
+	for(unsigned int i=0; i<ocatves; i++) {
+		amplitude = pow(persistence, i);
+		frequency = 1<<i;
+		sum += interpolate4D(coord*frequency)*amplitude;
 	}
 	return sum;
 }
 
-float simplex_noise::interpolate2D(const vector2f& coord)
+double simplex_noise::interpolate2D(const vector2& coord)
 {
 	// Skew and unskew factors are a bit hairy for 2D, so define them as constants
 	// This is (sqrt(3.0)-1.0)/2.0
@@ -56,18 +59,18 @@ float simplex_noise::interpolate2D(const vector2f& coord)
 	// This is (3.0-sqrt(3.0))/6.0
 	#define G2 0.211324865405
 
-	float n0, n1, n2; // Noise contributions from the three corners
+	double n0, n1, n2; // Noise contributions from the three corners
 	
 	// Skew the input space to determine which simplex cell we're in
-	float s = (coord.x+coord.y)*F2; // Hairy factor for 2D
+	double s = (coord.x+coord.y)*F2; // Hairy factor for 2D
 	int i = fastfloor(coord.x+s);
 	int j = fastfloor(coord.y+s);
 	
-	float t = (i+j)*G2;
-	float X0 = i-t; // Unskew the cell origin back to (x,y) space
-	float Y0 = j-t;
-	float x0 = coord.x-X0; // The x,y distances from the cell origin
-	float y0 = coord.y-Y0;
+	double t = (i+j)*G2;
+	double X0 = i-t; // Unskew the cell origin back to (x,y) space
+	double Y0 = j-t;
+	double x0 = coord.x-X0; // The x,y distances from the cell origin
+	double y0 = coord.y-Y0;
 	
 	// For the 2D case, the simplex shape is an equilateral triangle.
 	// Determine which simplex we are in.
@@ -78,34 +81,34 @@ float simplex_noise::interpolate2D(const vector2f& coord)
 	// A step of (1,0) in (i,j) means a step of (1-c,-c) in (x,y), and
 	// a step of (0,1) in (i,j) means a step of (-c,1-c) in (x,y), where
 	// c = (3-sqrt(3))/6
-	float   x1  = x0 - i1 + G2; // Offsets for middle corner in (x,y) unskewed coords
-	float   y1  = y0 - j1 + G2;
-	float   x2  = x0 - 1.0 + 2.0 * G2; // Offsets for last corner in (x,y) unskewed coords
-	float   y2  = y0 - 1.0 + 2.0 * G2;
+	double   x1  = x0 - i1 + G2; // Offsets for middle corner in (x,y) unskewed coords
+	double   y1  = y0 - j1 + G2;
+	double   x2  = x0 - 1.0 + 2.0 * G2; // Offsets for last corner in (x,y) unskewed coords
+	double   y2  = y0 - 1.0 + 2.0 * G2;
 	
 	// Work out the hashed gradient indices of the three simplex corners
 	int ii = i & 255;
 	int jj = j & 255;
 	int gi0 = perm[ii+perm[jj]] % 12;
-	int gi1 = perm[ii+i1+perm[jj+j1]] % 12;
-	int gi2 = perm[ii+1+perm[jj+1]] % 12;
+	int gi1 = perm[(ii+i1+perm[jj+j1])] % 12;
+	int gi2 = perm[(ii+1+perm[jj+1])] % 12;
 	
 	// Calculate the contribution from the three corners
-	float t0 = 0.5 - x0*x0-y0*y0;
+	double t0 = 0.5 - x0*x0-y0*y0;
 	if(t0<0) n0 = 0.0;
 	else {
 		t0 *= t0;
 		n0 = t0 * t0 * dot(grad3[gi0], x0, y0); // (x,y) of grad3 used for 2D gradient
 	}
 	
-	float t1 = 0.5 - x1*x1-y1*y1;
+	double t1 = 0.5 - x1*x1-y1*y1;
 	if(t1<0) n1 = 0.0;
 	else {
 		t1 *= t1;
 		n1 = t1 * t1 * dot(grad3[gi1], x1, y1);
 	}
 	
-	float t2 = 0.5 - x2*x2-y2*y2;
+	double t2 = 0.5 - x2*x2-y2*y2;
 	if(t2<0) n2 = 0.0;
 	else {
 		t2 *= t2;
@@ -117,26 +120,26 @@ float simplex_noise::interpolate2D(const vector2f& coord)
 	return 70.0 * (n0 + n1 + n2);
 }
 
-float simplex_noise::interpolate3D(const vector3f& coord)
+double simplex_noise::interpolate3D(const vector3& coord)
 {
 	#define F3 0.333333333333
 	#define G3 0.166666666667
 		
-	float n0, n1, n2, n3; // Noise contributions from the four corners
+	double n0, n1, n2, n3; // Noise contributions from the four corners
 	
 	// Skew the input space to determine which simplex cell we're in
-	float s = (coord.x+coord.y+coord.z)*F3; // Very nice and simple skew factor for 3D
+	double s = (coord.x+coord.y+coord.z)*F3; // Very nice and simple skew factor for 3D
 	int i = fastfloor(coord.x+s);
 	int j = fastfloor(coord.y+s);
 	int k = fastfloor(coord.z+s);
 
-	float t = (i+j+k)*G3;
-	float X0 = i-t; // Unskew the cell origin back to (x,y,z) space
-	float Y0 = j-t;
-	float Z0 = k-t;
-	float x0 = coord.x-X0; // The x,y,z distances from the cell origin
-	float y0 = coord.y-Y0;
-	float z0 = coord.z-Z0;
+	double t = (i+j+k)*G3;
+	double X0 = i-t; // Unskew the cell origin back to (x,y,z) space
+	double Y0 = j-t;
+	double Z0 = k-t;
+	double x0 = coord.x-X0; // The x,y,z distances from the cell origin
+	double y0 = coord.y-Y0;
+	double z0 = coord.z-Z0;
 	
 	// For the 3D case, the simplex shape is a slightly irregular tetrahedron.
 	// Determine which simplex we are in.
@@ -156,15 +159,15 @@ float simplex_noise::interpolate3D(const vector3f& coord)
 	//  a step of (0,1,0) in (i,j,k) means a step of (-c,1-c,-c) in (x,y,z), and
 	//  a step of (0,0,1) in (i,j,k) means a step of (-c,-c,1-c) in (x,y,z), where
 	//  c = 1/6.
-	float   x1 = x0 - i1 + G3; // Offsets for second corner in (x,y,z) coords
-	float   y1 = y0 - j1 + G3;
-	float   z1 = z0 - k1 + G3;
-	float   x2 = x0 - i2 + 2.0*G3; // Offsets for third corner in (x,y,z) coords
-	float   y2 = y0 - j2 + 2.0*G3;
-	float   z2 = z0 - k2 + 2.0*G3;
-	float   x3 = x0 - 1.0 + 3.0*G3; // Offsets for last corner in (x,y,z) coords
-	float   y3 = y0 - 1.0 + 3.0*G3;
-	float   z3 = z0 - 1.0 + 3.0*G3;
+	double   x1 = x0 - i1 + G3; // Offsets for second corner in (x,y,z) coords
+	double   y1 = y0 - j1 + G3;
+	double   z1 = z0 - k1 + G3;
+	double   x2 = x0 - i2 + 2.0*G3; // Offsets for third corner in (x,y,z) coords
+	double   y2 = y0 - j2 + 2.0*G3;
+	double   z2 = z0 - k2 + 2.0*G3;
+	double   x3 = x0 - 1.0 + 3.0*G3; // Offsets for last corner in (x,y,z) coords
+	double   y3 = y0 - 1.0 + 3.0*G3;
+	double   z3 = z0 - 1.0 + 3.0*G3;
 	
 	// Work out the hashed gradient indices of the four simplex corners
 	int ii = i & 255;
@@ -176,25 +179,25 @@ float simplex_noise::interpolate3D(const vector3f& coord)
 	int gi3 = perm[ii+1+perm[jj+1+perm[kk+1]]] % 12;
 	
 	// Calculate the contribution from the four corners
-	float t0 = 0.6 - x0*x0 - y0*y0 - z0*z0;
+	double t0 = 0.6 - x0*x0 - y0*y0 - z0*z0;
 	if(t0<0) n0 = 0.0;
 	else {
 		t0 *= t0;
 		n0 = t0 * t0 * dot(grad3[gi0], x0, y0, z0);
 	}
-	float t1 = 0.6 - x1*x1 - y1*y1 - z1*z1;
+	double t1 = 0.6 - x1*x1 - y1*y1 - z1*z1;
 	if(t1<0) n1 = 0.0;
 	else {
 		t1 *= t1;
 		n1 = t1 * t1 * dot(grad3[gi1], x1, y1, z1);
 	}
-	float t2 = 0.6 - x2*x2 - y2*y2 - z2*z2;
+	double t2 = 0.6 - x2*x2 - y2*y2 - z2*z2;
 	if(t2<0) n2 = 0.0;
 	else {
 		t2 *= t2;
 		n2 = t2 * t2 * dot(grad3[gi2], x2, y2, z2);
 	}
-	float t3 = 0.6 - x3*x3 - y3*y3 - z3*z3;
+	double t3 = 0.6 - x3*x3 - y3*y3 - z3*z3;
 	if(t3<0) n3 = 0.0;
 	else {
 		t3 *= t3;
@@ -205,7 +208,7 @@ float simplex_noise::interpolate3D(const vector3f& coord)
 	return 32.0*(n0 + n1 + n2 + n3);
 }
 
-float simplex_noise::interpolate4D(const vector4f& coord)
+double simplex_noise::interpolate4D(const vector4& coord)
 {
 	// The skewing and unskewing factors are hairy again for the 4D case
 	// This is (sqrt(5.0)-1.0)/4.0
@@ -213,22 +216,22 @@ float simplex_noise::interpolate4D(const vector4f& coord)
 	// This is (5.0-sqrt(5.0))/20.0
 	#define G4 0.138196601125
 
-	float n0, n1, n2, n3, n4; // Noise contributions from the five corners
+	double n0, n1, n2, n3, n4; // Noise contributions from the five corners
 	// Skew the (x,y,z,w) space to determine which cell of 24 simplices we're in
-	float s = (coord.x + coord.y + coord.z + coord.w) * F4; // Factor for 4D skewing
+	double s = (coord.x + coord.y + coord.z + coord.w) * F4; // Factor for 4D skewing
 	int i = fastfloor(coord.x + s);
 	int j = fastfloor(coord.y + s);
 	int k = fastfloor(coord.z + s);
 	int l = fastfloor(coord.w + s);
-	float   t = (i + j + k + l) * G4; // Factor for 4D unskewing
-	float   X0 = i - t; // Unskew the cell origin back to (x,y,z,w) space
-	float   Y0 = j - t;
-	float   Z0 = k - t;
-	float   W0 = l - t;
-	float   x0 = coord.x - X0; // The x,y,z,w distances from the cell origin
-	float   y0 = coord.y - Y0;
-	float   z0 = coord.z - Z0;
-	float   w0 = coord.w - W0;
+	double   t = (i + j + k + l) * G4; // Factor for 4D unskewing
+	double   X0 = i - t; // Unskew the cell origin back to (x,y,z,w) space
+	double   Y0 = j - t;
+	double   Z0 = k - t;
+	double   W0 = l - t;
+	double   x0 = coord.x - X0; // The x,y,z,w distances from the cell origin
+	double   y0 = coord.y - Y0;
+	double   z0 = coord.z - Z0;
+	double   w0 = coord.w - W0;
 	
 	// For the 4D case, the simplex is a 4D shape I won't even try to describe.
 	// To find out which of the 24 possible simplices we're in, we need to
@@ -272,22 +275,22 @@ float simplex_noise::interpolate4D(const vector4f& coord)
 	l3 = simplex4D[c][3]>=1 ? 1 : 0;
 	
 	// The fifth corner has all coordinate offsets = 1, so no need to look that up.
-	float   x1 = x0 - i1 + G4; // Offsets for second corner in (x,y,z,w) coords
-	float   y1 = y0 - j1 + G4;
-	float   z1 = z0 - k1 + G4;
-	float   w1 = w0 - l1 + G4;
-	float   x2 = x0 - i2 + 2.0*G4; // Offsets for third corner in (x,y,z,w) coords
-	float   y2 = y0 - j2 + 2.0*G4;
-	float   z2 = z0 - k2 + 2.0*G4;
-	float   w2 = w0 - l2 + 2.0*G4;
-	float   x3 = x0 - i3 + 3.0*G4; // Offsets for fourth corner in (x,y,z,w) coords
-	float   y3 = y0 - j3 + 3.0*G4;
-	float   z3 = z0 - k3 + 3.0*G4;
-	float   w3 = w0 - l3 + 3.0*G4;
-	float   x4 = x0 - 1.0 + 4.0*G4; // Offsets for last corner in (x,y,z,w) coords
-	float   y4 = y0 - 1.0 + 4.0*G4;
-	float   z4 = z0 - 1.0 + 4.0*G4;
-	float   w4 = w0 - 1.0 + 4.0*G4;
+	double   x1 = x0 - i1 + G4; // Offsets for second corner in (x,y,z,w) coords
+	double   y1 = y0 - j1 + G4;
+	double   z1 = z0 - k1 + G4;
+	double   w1 = w0 - l1 + G4;
+	double   x2 = x0 - i2 + 2.0*G4; // Offsets for third corner in (x,y,z,w) coords
+	double   y2 = y0 - j2 + 2.0*G4;
+	double   z2 = z0 - k2 + 2.0*G4;
+	double   w2 = w0 - l2 + 2.0*G4;
+	double   x3 = x0 - i3 + 3.0*G4; // Offsets for fourth corner in (x,y,z,w) coords
+	double   y3 = y0 - j3 + 3.0*G4;
+	double   z3 = z0 - k3 + 3.0*G4;
+	double   w3 = w0 - l3 + 3.0*G4;
+	double   x4 = x0 - 1.0 + 4.0*G4; // Offsets for last corner in (x,y,z,w) coords
+	double   y4 = y0 - 1.0 + 4.0*G4;
+	double   z4 = z0 - 1.0 + 4.0*G4;
+	double   w4 = w0 - 1.0 + 4.0*G4;
 	
 	// Work out the hashed gradient indices of the five simplex corners
 	int ii = i & 255;
@@ -301,31 +304,31 @@ float simplex_noise::interpolate4D(const vector4f& coord)
 	int gi4 = perm[ii+1+perm[jj+1+perm[kk+1+perm[ll+1]]]] % 32;
 	
 	// Calculate the contribution from the five corners
-	float t0 = 0.6 - x0*x0 - y0*y0 - z0*z0 - w0*w0;
+	double t0 = 0.6 - x0*x0 - y0*y0 - z0*z0 - w0*w0;
 	if(t0<0) n0 = 0.0;
 	else {
 	  t0 *= t0;
 	  n0 = t0 * t0 * dot(grad4[gi0], x0, y0, z0, w0);
 	}
-	float t1 = 0.6 - x1*x1 - y1*y1 - z1*z1 - w1*w1;
+	double t1 = 0.6 - x1*x1 - y1*y1 - z1*z1 - w1*w1;
 	if(t1<0) n1 = 0.0;
 	else {
 	  t1 *= t1;
 	  n1 = t1 * t1 * dot(grad4[gi1], x1, y1, z1, w1);
 	}
-	float t2 = 0.6 - x2*x2 - y2*y2 - z2*z2 - w2*w2;
+	double t2 = 0.6 - x2*x2 - y2*y2 - z2*z2 - w2*w2;
 	if(t2<0) n2 = 0.0;
 	 else {
 	  t2 *= t2;
 	  n2 = t2 * t2 * dot(grad4[gi2], x2, y2, z2, w2);
 	}
-	float t3 = 0.6 - x3*x3 - y3*y3 - z3*z3 - w3*w3;
+	double t3 = 0.6 - x3*x3 - y3*y3 - z3*z3 - w3*w3;
 	 if(t3<0) n3 = 0.0;
 	 else {
 	   t3 *= t3;
 	   n3 = t3 * t3 * dot(grad4[gi3], x3, y3, z3, w3);
 	 }
-	float t4 = 0.6 - x4*x4 - y4*y4 - z4*z4 - w4*w4;
+	double t4 = 0.6 - x4*x4 - y4*y4 - z4*z4 - w4*w4;
 	 if(t4<0) n4 = 0.0;
 	 else {
 	   t4 *= t4;

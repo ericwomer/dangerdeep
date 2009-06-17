@@ -35,40 +35,30 @@ protected:
 	static const int perm[512];
 	static const int simplex4D[64][4];
 
-	static int fastfloor(const float& x) {
+	static int fastfloor(const double& x) {
 		return x>0 ? (int)x : (int)x-1;
 	}
-	static double dot(const int* g, float& x, float& y) {
+	static double dot(const int* g, double& x, double& y) {
 		return g[0]*x + g[1]*y; 
 	}
-	static double dot(const int* g, float& x, float& y, float& z) {
+	static double dot(const int* g, double& x, double& y, double& z) {
 		return g[0]*x + g[1]*y + g[2]*z; 
 	}
-	static double dot(const int* g, float& x, float& y, float& z, float& w) {
+	static double dot(const int* g, double& x, double& y, double& z, double& w) {
 		return g[0]*x + g[1]*y + g[2]*z + g[3]*w; 
 	}
 
-	static float interpolate2D(const vector2f& coord);
-	static float interpolate3D(const vector3f& coord);
-	static float interpolate4D(const vector4f& coord);
+	static double interpolate2D(const vector2& coord);
+	static double interpolate3D(const vector3& coord);
+	static double interpolate4D(const vector4& coord);
 
 public:
 	
-	static float noise(vector2f coord) {
-		return interpolate2D(coord);
-	}
-	static float noise(vector3f coord) {
-		return interpolate3D(coord);
-	}
-	static float noise(vector4f coord) {
-		return interpolate4D(coord);
-	}
+	static double noise(vector2 coord, unsigned ocatves = 1, float persistence = 1.0);
+	static double noise(vector3 coord, unsigned ocatves = 1, float persistence = 1.0);
+	static double noise(vector4 coord, unsigned ocatves = 1, float persistence = 1.0);
+	
+	static std::vector<Uint8> noise_map2D(vector2i size, unsigned ocatves = 1, float persistence = 1.0, float coord_factor = 0.01);
 
-	static float noise(vector2f coord, unsigned depth);
-	static float noise(vector3f coord, unsigned depth);
-	static float noise(vector4f coord, unsigned depth);
-	
-	static std::vector<Uint8> noise_map2D(vector2i size, unsigned depth);
-	
 };
 #endif
