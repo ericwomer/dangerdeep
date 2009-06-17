@@ -119,6 +119,7 @@ protected:
 	unsigned gl_height;
 	std::string texfilename;
 	int format;	// GL_RGB, GL_RGBA, etc.
+	GLenum dimension;
 	mapping_mode mapping; // how GL draws the texture (GL_NEAREST, GL_LINEAR, etc.)
 	clamping_mode clamping; // how GL handles the border (GL_REPEAT, GL_CLAMP_TO_EDGE)
 	
@@ -196,25 +197,25 @@ public:
 	// a normal map (RGB) is computed from the texture.
 	// give height of detail (scale factor) for normal mapping, mostly much larger than 1.0
 	texture(const std::string& filename, mapping_mode mapping_ = NEAREST, clamping_mode clamp = REPEAT,
-		bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
+		bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false, GLenum _dimension = GL_TEXTURE_2D);
 
 	// create texture from subimage of SDL surface.
 	// sw,sh need not to be powers of two.
 	texture(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
 		mapping_mode mapping_ = NEAREST, clamping_mode clamp = REPEAT,
-		bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
+		bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false, GLenum _dimension = GL_TEXTURE_2D);
 
 	// create texture from subimage of SDL surface, based on sdl_image
 	// sw,sh need not to be powers of two.
 	texture(const sdl_image& teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
 		mapping_mode mapping_ = NEAREST, clamping_mode clamp = REPEAT,
-		bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
+		bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false, GLenum _dimension = GL_TEXTURE_2D);
 
 	// create texture from memory values (use openGl constants for format,etc.
 	// w,h must be powers of two.
 	texture(const std::vector<Uint8>& pixels, unsigned w, unsigned h,
 		int format_, mapping_mode mapping_,
-		clamping_mode clamp, bool makenormalmap = false, float detailh = 1.0f);
+		clamping_mode clamp, bool makenormalmap = false, float detailh = 1.0f, GLenum _dimension = GL_TEXTURE_2D);
 
 	// allocate a GL texture, set some values, but do not fill texel values
 	// w,h are more for information purposes.

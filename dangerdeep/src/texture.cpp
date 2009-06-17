@@ -431,13 +431,14 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		throw texerror(texfilename, "texture values too large, not supported by card");
 
 	glGenTextures(1, &opengl_name);
-	glBindTexture(GL_TEXTURE_2D, opengl_name);
+	glBindTexture(dimension, opengl_name);
 
 #ifdef MEMMEASURE
 	unsigned add_mem_used = 0;
 #endif
 
 	if (makenormalmap && format == GL_LUMINANCE) {
+		if(dimension != GL_TEXTURE_2D) throw texerror(get_name(), "normals only supported for 2D textures");
 		// make own mipmap building for normal maps here...
 		// give increasing levels with decreasing w/h down to 1x1
 		// e.g. 64x16 -> 32x8, 16x4, 8x2, 4x1, 2x1, 1x1
@@ -447,15 +448,15 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 
 		if(cfg::instance().getb("use_compressed_textures"))
 			format = GL_COMPRESSED_LUMINANCE_ARB;
-
-		glTexImage2D(GL_TEXTURE_2D, 0, internalformat, gl_width, gl_height, 0, format,
-			     GL_UNSIGNED_BYTE, &nmpix[0]);
+		
+		glTexImage2D(GL_TEXTURE_2D, 0, internalformat, gl_width, gl_height, 0, format, GL_UNSIGNED_BYTE, &nmpix[0]);
 
 #ifdef MEMMEASURE
 		add_mem_used = gl_width * gl_height * get_bpp();
 #endif
 
 		if (do_mipmapping[mapping]) {
+			if(dimension != GL_TEXTURE_2D) throw texerror(get_name(), "mip mapping only supported for 2D textures");
 #if 1
 			// fixme: doesn't work with textures that don't have power of two size...
 			gluBuild2DMipmaps(GL_TEXTURE_2D, format, gl_width, gl_height,
@@ -529,9 +530,15 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 				break;
 			}
 		}
+		switch(dimension) {
+			case GL_TEXTURE_2D: {
+				glTexImage2D(GL_TEXTURE_2D, 0, internalformat, gl_width, gl_height, 0, format, GL_UNSIGNED_BYTE, &data[0]);
+			} break;
+			case GL_TEXTURE_1D: {
+				glTexImage1D(GL_TEXTURE_1D, 0, internalformat, max(gl_width, gl_height), 0, format, GL_UNSIGNED_BYTE, &data[0]);
+			} break;
+		}
 
-		glTexImage2D(GL_TEXTURE_2D, 0, internalformat, gl_width, gl_height, 0, format,
-			     GL_UNSIGNED_BYTE, &data[0]);
 #ifdef MEMMEASURE
 		add_mem_used = gl_width * gl_height * get_bpp();
 #endif
@@ -553,14 +560,14 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 	log_debug("Video mem usage " << mem_alloced << " vs " << mem_freed);
 #endif
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mapmodes[mapping]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magfilter[mapping]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clampmodes[clamping]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
+	glTexParameteri(dimension, GL_TEXTURE_MIN_FILTER, mapmodes[mapping]);
+	glTexParameteri(dimension, GL_TEXTURE_MAG_FILTER, magfilter[mapping]);
+	glTexParameteri(dimension, GL_TEXTURE_WRAP_S, clampmodes[clamping]);
+	glTexParameteri(dimension, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
 	
 	//enable anisotropic filtering if choosen
 	if(cfg::instance().getb("use_ani_filtering"))
-		glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
+		glTexParameterf(dimension, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
 }
 
 #define MAKEFOURCC(ch0, ch1, ch2, ch3) ((int32_t)(int8_t)(ch0) | ((int32_t)(int8_t)(ch1) << 8) | ((int32_t)(int8_t)(ch2) << 16) | ((int32_t)(int8_t)(ch3) << 24 ))
@@ -734,8 +741,9 @@ vector<Uint8> texture::make_normals_with_alpha(const vector<Uint8>& src, unsigne
 
 
 texture::texture(const string& filename, mapping_mode mapping_, clamping_mode clamp,
-		 bool makenormalmap, float detailh, bool rgb2grey)
+		 bool makenormalmap, float detailh, bool rgb2grey, GLenum _dimension)
 {
+	dimension = _dimension;
 	mapping = mapping_;
 	clamping = clamp;
 	texfilename = filename;
@@ -748,8 +756,9 @@ texture::texture(const string& filename, mapping_mode mapping_, clamping_mode cl
 
 texture::texture(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
 		 mapping_mode mapping_, clamping_mode clamp, bool makenormalmap, float detailh,
-		 bool rgb2grey)
+		 bool rgb2grey, GLenum _dimension)
 {
+	dimension = _dimension;
 	mapping = mapping_;
 	clamping = clamp;
 	sdl_init(teximage, sx, sy, sw, sh, makenormalmap, detailh, rgb2grey);
@@ -759,8 +768,9 @@ texture::texture(SDL_Surface* teximage, unsigned sx, unsigned sy, unsigned sw, u
 
 texture::texture(const sdl_image& teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
 		 mapping_mode mapping_, clamping_mode clamp, bool makenormalmap, float detailh,
-		 bool rgb2grey)
+		 bool rgb2grey, GLenum _dimension)
 {
+	dimension = _dimension;
 	mapping = mapping_;
 	clamping = clamp;
 	sdl_init(teximage.get_SDL_Surface(), sx, sy, sw, sh, makenormalmap, detailh, rgb2grey);
@@ -769,8 +779,9 @@ texture::texture(const sdl_image& teximage, unsigned sx, unsigned sy, unsigned s
 
 
 texture::texture(const vector<Uint8>& pixels, unsigned w, unsigned h, int format_,
-		 mapping_mode mapping_, clamping_mode clamp, bool makenormalmap, float detailh)
+		 mapping_mode mapping_, clamping_mode clamp, bool makenormalmap, float detailh, GLenum _dimension)
 {
+	dimension = _dimension;
 	mapping = mapping_;
 	clamping = clamp;
 	
@@ -793,6 +804,7 @@ texture::texture(const vector<Uint8>& pixels, unsigned w, unsigned h, int format
 texture::texture(unsigned w, unsigned h, int format_,
 		 mapping_mode mapping_, clamping_mode clamp)
 {
+	dimension = GL_TEXTURE_2D;
 	mapping = mapping_;
 	clamping = clamp;
 	
@@ -849,6 +861,7 @@ texture::texture(unsigned w, unsigned h, int format_,
 
 texture::texture(const std::string& filename, bool dummy, mapping_mode mapping_, clamping_mode clamp)
 {
+	dimension = GL_TEXTURE_2D;
 	mapping = mapping_;
 	clamping = clamp;
 	
