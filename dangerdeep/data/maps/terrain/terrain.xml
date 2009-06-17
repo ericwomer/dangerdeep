@@ -4,6 +4,6 @@
 	<bounds x="21600" y="10800" />
 	<origin x="10800" y="5400" />
 	<tile_size value="256" />
-	<noise h=".287" lacunarity="1.923724" offset="0.0" scale="50.0" coord_factor="0.005" gain="2.0" />
+	<noise h="0.25" lacunarity="1.37657" offset="0" scale="20.0" coord_factor="0.01" gain="3.657" octaves="8.867345"/>
 	<sample_spacing value="50.0"/>
 </dftd-map>
