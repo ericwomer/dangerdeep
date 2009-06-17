@@ -29,15 +29,15 @@
 class fractal_noise {
 
 protected:
-	float H, lacunarity, offset, gain;
+	double H, lacunarity, offset, gain;
 	int octaves;
-	std::vector<float> exponent_array;
+	std::vector<double> exponent_array;
 
 public:
-	fractal_noise(float _H, float _lacunarity, int _octaves, float _offset, float _gain) 
+	fractal_noise(double _H, double _lacunarity, int _octaves, double _offset, double _gain) 
 		: H(_H), lacunarity(_lacunarity), offset(_offset), gain(_gain), octaves(_octaves), exponent_array(octaves)
 	{   
-		float frequency = 1.0;
+		double frequency = 1.0;
 		for (int i = 0; i < octaves; i++) {
 			/* compute weight for each frequency */
     	exponent_array[i] = pow(frequency, -H);
@@ -45,13 +45,13 @@ public:
 		}
 	}
 	
-	float get_value_hybrid(vector3f point, int octave) {
+	double get_value_hybrid(vector3 point, int octave) {
 
 		int i;
-		float weight, result = 0.0, signal;
+		double weight, result = 0.0, signal;
 
 		/* get first octave of function */
-		result = (simplex_noise::noise(point, 1)+offset) * exponent_array[0];
+		result = (simplex_noise::noise(point)+offset) * exponent_array[0];
 		weight = result;
 
 		/* increase frequency */
@@ -63,7 +63,7 @@ public:
 	    if (weight > 1.0) weight = 1.0;
 
 		    /* get next higher frequency */
-    		signal = (simplex_noise::noise(point, i+1)+offset) * exponent_array[i];
+    		signal = (simplex_noise::noise(point)+offset) * exponent_array[i];
 				result += weight * signal;
 
     		/* update the (monotonically decreasing) weighting value */
@@ -75,18 +75,18 @@ public:
 		} /* for */
 
 		/* take care of remainder in “octaves” */
-		float remainder = octaves - (int)octaves;
+		double remainder = octaves - (int)octaves;
 		if (remainder != 0.0) {
     	/* “i” and spatial freq. are preset in loop above */
-	    result += remainder * simplex_noise::noise(point, i+1) * exponent_array[i];
+	    result += remainder * simplex_noise::noise(point) * exponent_array[i];
 		}
 		return result;
 	}
 
-	float get_value_ridged(vector3f point, int octave) {
+	double get_value_ridged(vector3 point, int octave) {
 
 		int i;
-		float weight, result = 0.0, signal;
+		double weight, result = 0.0, signal;
 
 		/* get first octave of function */
 		signal = simplex_noise::noise(point);
@@ -112,7 +112,7 @@ public:
 			weight = signal * gain;
 			if (weight > 1.0) weight = 1.0;
 			if (weight < 0.0) weight = 0.0;
-   		signal = simplex_noise::noise(point, i+1);
+   		signal = simplex_noise::noise(point);
 			if (signal < 0.0) signal = -signal;
 			signal = offset - signal;
 			signal *= signal;
@@ -125,54 +125,54 @@ public:
 		return result;
 	}
 
-	float get_value_fbm2(vector2f point, int octave) {
+	double get_value_fbm(vector2 point, int octave) {
 
 		int i;
-		float result = 0.0;
+		double result = 0.0;
 
 		/* inner loop of fractal construction */
 		for (i=0; i<octave; i++) {
-			result += simplex_noise::noise(point, i+1) * exponent_array[i];
+			result += simplex_noise::noise(point) * exponent_array[i];
      	point *= lacunarity;
 		}
 
-		float remainder = octaves - (int)octaves;
+		double remainder = octaves - (int)octaves;
 		if (remainder != 0.0) {
     	/* ‘i’ and spatial freq. are preset in loop above */
-    	result += remainder * simplex_noise::noise(point, i+1) * exponent_array[i];
+    	result += remainder * simplex_noise::noise(point) * exponent_array[i];
 		}
 		return result;
 	}
 
-	float get_value_fbm3(vector3f point, int octave) {
+	double get_value_fbm(vector3 point, int octave) {
 
 		int i;
-		float result = 0.0;
+		double result = 0.0;
 
 		/* inner loop of fractal construction */
 		for (i=0; i<octave; i++) {
-			result += simplex_noise::noise(point, i+1) * exponent_array[i];
+			result += simplex_noise::noise(point) * exponent_array[i];
      	point *= lacunarity;
 		}
 
-		float remainder = octaves - (int)octaves;
+		double remainder = octaves - (int)octaves;
 		if (remainder != 0.0) {
     	/* ‘i’ and spatial freq. are preset in loop above */
-    	result += remainder * simplex_noise::noise(point, i+1) * exponent_array[i];
+    	result += remainder * simplex_noise::noise(point) * exponent_array[i];
 		}
 		return result;
 	}
 
-	std::vector<Uint8> get_map_fbm(const vector2i& bl, const vector2i& sz) {
+	std::vector<Uint8> get_map_fbm(const vector2i& sz) {
 
-		float min = 1.0, max = 0.0, scale = 0.0;;
-		std::vector<float> values(sz.x*sz.y);
+		double min = 1.0, max = 0.0, scale = 0.0;;
+		std::vector<double> values(sz.x*sz.y);
 		std::vector<Uint8> map(sz.x*sz.y);
 		
 		
 		for(int y=0; y<sz.y; y++) {
 			for(int x=0; x<sz.x; x++) {
-				values[y*sz.x+x] = get_value_fbm2(vector2f((bl.x+x)*0.001, (bl.y+y)*0.001), octaves);
+				values[y*sz.x+x] = get_value_fbm(vector2(x*0.001, y*0.001), octaves);
 				if(values[y*sz.x+x]>max)max=values[y*sz.x+x];
 				if(values[y*sz.x+x]<min)min=values[y*sz.x+x];
 			}
