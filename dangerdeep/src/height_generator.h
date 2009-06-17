@@ -83,11 +83,16 @@ class height_generator
 		}
 	}
 	*/
+	const texture& get_base_texture()	const   { return *base_texture; }
+	const texture& get_noise_texture()	const   { return *noise_texture; }
 	const texture& get_sand_texture()	const   { return *sand_texture; }
 	const texture& get_mud_texture()	const   { return *mud_texture; }
+	const texture& get_grass_texture()	const   { return *grass_texture; }
 	const texture& get_forest_texture()	const   { return *forest_texture; }
 	const texture& get_rock_texture()	const   { return *rock_texture; }
 	const texture& get_snow_texture()	const   { return *snow_texture; }
+	const texture& get_forest_brdf_texture()	const   { return *forest_brdf_texture; }
+	const texture& get_rock_brdf_texture()	const   { return *rock_brdf_texture; }
 		
 	float get_tex_stretch_factor()	{ return tex_stretch_factor; }
 	/// compute normal values of given detail and coordinate area (including given coordinates)
@@ -137,7 +142,10 @@ class height_generator
 	// fixme: is this still needed?
 	unsigned log2_color_res_factor; // colors have 2^x more values as vertices
 		
-	std::auto_ptr<texture> sand_texture, mud_texture, forest_texture, rock_texture, snow_texture;
+	std::auto_ptr<texture> sand_texture, mud_texture, forest_texture, 
+												grass_texture, rock_texture, snow_texture, 
+												forest_brdf_texture, rock_brdf_texture,
+												base_texture, noise_texture;
 	float tex_stretch_factor;
 };
 
