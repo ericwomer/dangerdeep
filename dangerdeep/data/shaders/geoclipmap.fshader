@@ -70,21 +70,6 @@ vec3 get_color(sampler2D texture, vec2 coord) {
 			   );
 }
 
-//for antialiasing
-float filterwidth(vec2 v) {
-  vec2 fw = max(abs(ddx(v)), abs(ddy(v)));
-  return max(fw.x, fw.y);
-}
-
-float fadeout(float f, float fAverage, float fFeatureSize, float fWidth) {
-	return lerp(f, fAverage, smoothstep(0.3, 0.5, fWidth/fFeatureSize));
-}
-
-float filterednoise(vec2 c, float w) {
-	return fadeout(get_color(noise_texture, c).r, 0.5, 1, w);
-}
-
-
 void main()
 {
 #ifdef MIRROR
