@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "geoclipmap.h"
 #include "global_data.h"
-
+#include <fstream>
 /*
 Note: the geoclipmap renderer code can't handle levels < 0 yet, so no
 extra geometry is rendered that is finer than the stored data and thus generated.
@@ -78,11 +78,6 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 					     get_shader_dir() + "geoclipmap.fshader", defines));
 
 	
-
-	fractal_noise frac(0.25, 1.9767, 15.0, 0.0, 0.0);
-	texture noisemap(frac.get_map_fbm(vector2i(-512, -512), vector2i(1024, 1024)), 1024, 1024, GL_LUMINANCE, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT, false);
-	
-
 	// do not use too high w_fac with too small resolutions.
 	// Otherwise the decaying transition factor (going from 1.0 at outer border
 	// down to 0.0 at center), won't have reached 0.0 at inner border,
@@ -109,25 +104,16 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
 		myshader[i]->set_uniform(loc_w_rcp[i], 1.0f/(resolution_vbo * w_fac));
 		myshader[i]->set_uniform(loc_N_rcp[i], 1.0f/resolution_vbo);
 
-		unsigned loc_tmp;
-
-		loc_tmp = myshader[i]->get_uniform_location("noise_texture");
-		myshader[i]->set_gl_texture(noisemap, loc_tmp, 2);
-	
-		loc_tmp = myshader[i]->get_uniform_location("sand_texture");
-		myshader[i]->set_gl_texture(height_gen.get_sand_texture(), loc_tmp, 4);
-		
-		loc_tmp = myshader[i]->get_uniform_location("mud_texture");
-		myshader[i]->set_gl_texture(height_gen.get_mud_texture(), loc_tmp, 5);
-		 
-		loc_tmp = myshader[i]->get_uniform_location("forest_texture");
-		myshader[i]->set_gl_texture(height_gen.get_forest_texture(), loc_tmp, 6);
-
-		loc_tmp = myshader[i]->get_uniform_location("rock_texture");
-		myshader[i]->set_gl_texture(height_gen.get_rock_texture(), loc_tmp, 7);
-
-		loc_tmp = myshader[i]->get_uniform_location("snow_texture");
-		myshader[i]->set_gl_texture(height_gen.get_snow_texture(), loc_tmp, 8);
+		loc_base_texture[i] = myshader[i]->get_uniform_location("base_texture");
+		loc_sand_texture[i] = myshader[i]->get_uniform_location("sand_texture");
+		loc_grass_texture[i] = myshader[i]->get_uniform_location("grass_texture");
+		loc_mud_texture[i] = myshader[i]->get_uniform_location("mud_texture");
+		loc_forest_texture[i] = myshader[i]->get_uniform_location("forest_texture");
+		loc_rock_texture[i] = myshader[i]->get_uniform_location("rock_texture");
+		loc_snow_texture[i] = myshader[i]->get_uniform_location("snow_texture");
+		loc_noise_texture[i] = myshader[i]->get_uniform_location("noise_texture");
+		loc_forest_brdf_texture[i] = myshader[i]->get_uniform_location("forest_brdf_texture");
+		loc_rock_brdf_texture[i] = myshader[i]->get_uniform_location("rock_brdf_texture");
 	}
 	// set a texture for normals outside coarsest level, just 0,0,1
 	std::vector<Uint8> pxl(3, 128);
@@ -205,6 +191,18 @@ void geoclipmap::display(const frustum& f, const vector3& view_delta, bool is_mi
 	frustum f2 = f;
 	if (is_mirror) f2 = f.get_mirrored();
 	myshader[si]->set_uniform(loc_above_water[si], above_water);
+
+	
+  myshader[si]->set_gl_texture(height_gen.get_sand_texture(), loc_sand_texture[si], 4);
+	myshader[si]->set_gl_texture(height_gen.get_mud_texture(), loc_mud_texture[si], 5);
+	myshader[si]->set_gl_texture(height_gen.get_forest_texture(), loc_forest_texture[si], 6);
+	myshader[si]->set_gl_texture(height_gen.get_rock_texture(), loc_rock_texture[si], 7);
+	myshader[si]->set_gl_texture(height_gen.get_snow_texture(), loc_snow_texture[si], 8);
+	myshader[si]->set_gl_texture(height_gen.get_grass_texture(), loc_grass_texture[si], 9);
+	myshader[si]->set_gl_texture(height_gen.get_rock_brdf_texture(), loc_rock_brdf_texture[si], 10);
+	myshader[si]->set_gl_texture(height_gen.get_forest_brdf_texture(), loc_forest_brdf_texture[si], 11);
+	myshader[si]->set_gl_texture(height_gen.get_noise_texture(), loc_noise_texture[si], 12);
+	myshader[si]->set_gl_texture(height_gen.get_base_texture(), loc_base_texture[si], 3);
 
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
 		myshader[si]->set_uniform(loc_tex_stretch_factor[si], height_gen.get_tex_stretch_factor()/pow(2,lvl));

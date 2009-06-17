@@ -176,9 +176,19 @@ class geoclipmap
 	unsigned loc_texcshift2[2];
 	unsigned loc_tex_stretch_factor[2];
 	unsigned loc_above_water[2];
-	
-	texture::ptr horizon_normal;
+	unsigned 	loc_base_texture[2], 
+						loc_sand_texture[2], 
+						loc_grass_texture[2], 
+						loc_mud_texture[2], 
+						loc_forest_texture[2], 
+						loc_rock_texture[2], 
+						loc_snow_texture[2], 
+						loc_noise_texture[2],
+						loc_forest_brdf_texture[2],
+						loc_rock_brdf_texture[2];
 
+	texture::ptr horizon_normal;
+	texture::ptr noise_texture;
  public:
 	bool wireframe;	// for testing purposes only
 };
