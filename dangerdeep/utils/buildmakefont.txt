@@ -1,0 +1,1 @@
+g++ -Wall -o makefont makefont.cpp -I/usr/include/freetype2 -lfreetype
