@@ -111,8 +111,9 @@ void tone_reproductor::xyY_to_RGB(float* color)
 	float Z = (1.f - color[0] - color[1]) * color[2] / color[1];
 
 	// Use a XYZ to Adobe RGB (1998) matrix which uses a D65 reference white
-	color[0] = 2.04148f  *X - 0.564977f*Y - 0.344713f *Z;
-	color[1] =-0.969258f *X + 1.87599f *Y + 0.0415557f*Z;
-	color[2] = 0.0134455f*X - 0.118373f*Y + 1.01527f  *Z;
+	// Oh no you don't, use rec.709 HDTV instead (D65 white point as well)
+	color[0] = 3.240479f * X - 1.537150f * Y - 0.498535f * Z;
+	color[1] =-0.969256f * X + 1.875992f * Y + 0.041556f * Z;
+	color[2] = 0.055648f * X - 0.204043f * Y + 1.057311f * Z;
 }
 
