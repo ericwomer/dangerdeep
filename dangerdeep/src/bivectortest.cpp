@@ -1,5 +1,6 @@
 #include "bivector.h"
 #include <fstream>
+#include <stdint.h>
 using namespace std;
 
 void save(const bivector<uint8_t>& b, const char* n)
