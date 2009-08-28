@@ -46,6 +46,7 @@ class tests
 		int do_vshader_check();
 		int do_shaderobj_check();
 		int do_compression_check();
+		int do_halffloat_check();
 
 		int pt_out( std::string message, enum status );
 

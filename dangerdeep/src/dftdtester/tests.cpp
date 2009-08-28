@@ -305,6 +305,19 @@ int tests::do_compression_check()
 	return pt_out( "Support for texture compression", status );
 }
 
+int tests::do_halffloat_check()
+{
+	enum status status;
+	if (extension_supported( "ARB_half_float_pixel" ) || extension_supported( "GL_NV_half_float" ) )
+	{
+		status = sGOOD;
+	} else {
+		status = sMED;
+	}
+
+	return pt_out( "Support for 16bit floats", status );
+}
+
 int tests::do_gl_tests()
 {
 	int retval = 1;
@@ -336,6 +349,9 @@ int tests::do_gl_tests()
 		retval = 0;
 	
 	if ( 0 == do_compression_check() )
+		retval = 0;
+
+	if ( 0 == do_halffloat_check() )
 		retval = 0;
 
 	return retval;
