@@ -39,6 +39,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 class xml_elem;
 
+#define DFTD_MAX_TEXTURE_UNITS 8
+
 ///\brief Handles a 3D model, it's animation and OpenGL based rendering and display.
 class model {
 public:
@@ -133,9 +135,9 @@ public:
 		bool use_default_shader() const { return false; }
 		glsl_shader_setup& get_shadersetup() { return shadersetup; }
 
-		std::auto_ptr<map> texmaps[4]; // up to four texture units
-		std::string texnames[4];
-		unsigned loc_texunit[4];
+		std::auto_ptr<map> texmaps[DFTD_MAX_TEXTURE_UNITS]; // up to DFTD_MAX_TEXTURE_UNITS texture units
+		std::string texnames[DFTD_MAX_TEXTURE_UNITS];
+		unsigned loc_texunit[DFTD_MAX_TEXTURE_UNITS];
 		unsigned nrtex;
 	};
 

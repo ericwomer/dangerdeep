@@ -1566,7 +1566,7 @@ model::material_glsl::material_glsl(const std::string& nm, const std::string& vs
 	  shadersetup(get_shader_dir() + vsfn, get_shader_dir() + fsfn),
 	  nrtex(0)
 {
-	for (unsigned i = 0; i < 4; ++i)
+	for (unsigned i = 0; i < DFTD_MAX_TEXTURE_UNITS; ++i)
 		loc_texunit[i] = 0;
 }
 
@@ -1575,10 +1575,11 @@ model::material_glsl::material_glsl(const std::string& nm, const std::string& vs
 void model::material_glsl::compute_texloc()
 {
 	shadersetup.use();
+
 	for (unsigned i = 0; i < nrtex; ++i) {
 		loc_texunit[i] = shadersetup.get_uniform_location(texnames[i]);
 		if (loc_texunit[i] == unsigned(-1))
-			throw error(std::string("unable to lookup uniform location of shader for material_glsl, texname=") + texnames[i]);
+			throw error(std::string("unable to lookup uniform location of shader for material_glsl, texname=") + texnames[i] + ", NOTE: shader needs to _USE_ the uniform (definging the symbol is not enough, use means it has to contribute to the output) to be linked into the shader program!");
 	}
 }
 
@@ -1588,7 +1589,7 @@ void model::material_glsl::set_gl_values(const texture * /*caustic_map*/) const
 {
 	shadersetup.use();
 	// set up up to four tex units
-	for (unsigned i = 0; i < 4; ++i) {
+	for (unsigned i = 0; i < nrtex; ++i) {
 		if (texmaps[i].get()) {
 			glActiveTexture(GL_TEXTURE0 + i);
 			texmaps[i]->set_gl_texture(shadersetup, loc_texunit[i], i);
@@ -1608,7 +1609,7 @@ void model::material_glsl::set_gl_values_mirror_clip() const
 
 void model::material_glsl::register_layout(const std::string& name, const std::string& basepath)
 {
-	for (unsigned i = 0; i < 4; ++i) {
+	for (unsigned i = 0; i < nrtex; ++i) {
 		if (texmaps[i].get()) {
 			// fixme: any specific mapping here?? see material::register_layout
 			texmaps[i]->register_layout(name, basepath, model::mapping);
@@ -1620,7 +1621,7 @@ void model::material_glsl::register_layout(const std::string& name, const std::s
 
 void model::material_glsl::unregister_layout(const std::string& name)
 {
-	for (unsigned i = 0; i < 4; ++i) {
+	for (unsigned i = 0; i < nrtex; ++i) {
 		if (texmaps[i].get()) {
 			texmaps[i]->unregister_layout(name);
 		}
@@ -1631,7 +1632,7 @@ void model::material_glsl::unregister_layout(const std::string& name)
 
 void model::material_glsl::set_layout(const std::string& layout)
 {
-	for (unsigned i = 0; i < 4; ++i) {
+	for (unsigned i = 0; i < nrtex; ++i) {
 		if (texmaps[i].get()) {
 			texmaps[i]->set_layout(name);
 		}
@@ -1642,7 +1643,7 @@ void model::material_glsl::set_layout(const std::string& layout)
 
 void model::material_glsl::get_all_layout_names(std::set<std::string>& result) const
 {
-	for (unsigned i = 0; i < 4; ++i) {
+	for (unsigned i = 0; i < nrtex; ++i) {
 		if (texmaps[i].get()) {
 			texmaps[i]->get_all_layout_names(result);
 		}
@@ -2352,7 +2353,7 @@ void model::read_dftd_model_file(const std::string& filename)
 				// check here for possible children of type "skin", fixme
 				string type = emap.attr("type");
 				if (is_shader_material) {
-					if (matglsl->nrtex >= 4)
+					if (matglsl->nrtex >= DFTD_MAX_TEXTURE_UNITS)
 						throw xml_error(string("too many material maps for glsl material ") + type, emap.doc_name());
 					matglsl->texmaps[matglsl->nrtex].reset(new material::map(emap));
 					matglsl->texnames[matglsl->nrtex] = type;
