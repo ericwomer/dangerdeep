@@ -1579,7 +1579,7 @@ void model::material_glsl::compute_texloc()
 	for (unsigned i = 0; i < nrtex; ++i) {
 		loc_texunit[i] = shadersetup.get_uniform_location(texnames[i]);
 		if (loc_texunit[i] == unsigned(-1))
-			throw error(std::string("unable to lookup uniform location of shader for material_glsl, texname=") + texnames[i] + ", NOTE: shader needs to _USE_ the uniform (definging the symbol is not enough, use means it has to contribute to the output) to be linked into the shader program!");
+			throw error(std::string("unable to lookup uniform location of shader for material_glsl, texname=") + texnames[i] + ", NOTE: shader needs to _USE_ the uniform (defining the symbol is not enough, use means it has to contribute to the output) to be linked into the shader program!");
 	}
 }
 
