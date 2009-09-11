@@ -73,7 +73,7 @@ void tests::load_gl_info()
 {
 	const char *c_vendor = (const char *)glGetString( GL_VENDOR );
 	const char *c_render = (const char *)glGetString( GL_RENDERER );
-#ifdef defined(__APPLE__) || defined(__MACOSX__)
+#if defined(__APPLE__) || defined(__MACOSX__)
 	const char *c_glsl = "Not available";
 #else
 	const char *c_glsl = (const char *)glGetString( GL_SHADING_LANGUAGE_VERSION );
