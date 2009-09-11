@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<dftd-airplane>
+  <classification identifier="swordfishmkii" modelname="swordfishmkii.ddxml" country="DE"/>
+  <description>
+    <far lang="en">Airplane</far>
+    <far lang="de">Flugzeug</far>
+    <far lang="it">Aeroplano</far>
+    <medium lang="en">Airlane</medium>
+    <medium lang="de">Flugzeug</medium>
+    <medium lang="it">Aeroplano</medium>
+    <near lang="en">Fairey Swordfish Mk.2</near>
+    <near lang="de">Fairey Swordfish Mk.2</near>
+    <near lang="it">Fairey Swordfish Mk.2</near>
+  </description>
+  <motion maxspeed="222" maxrevspeed="0" acceleration="1.0" turnrate="1.0"/>
+  <sensors>
+    <sensor type="lookout"/>
+  </sensors>
+  <ai type="dumb"/>
+  <fuel capacity="1200" consumption_a="1" consumption_t="1"/>
+</dftd-airplane>
