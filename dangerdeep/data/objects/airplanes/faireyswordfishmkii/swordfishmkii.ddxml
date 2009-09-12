@@ -3,7 +3,9 @@
     <diffuse color="1 1 1" />
     <specular color="1 1 1" />
     <shininess exponent="65" />
-    <map type="diffuse" filename="swordfishmkii_camo1color.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0"/>
+    <map type="diffuse" filename="swordfishmkii_camo1color.jpg" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0" >
+      <skin filename="swordfishmkii_camo2color.jpg" layout="dday"/>
+    </map>
     <map type="normal" filename="swordfishmkii_camo1bump.png" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0"/>
     <map type="specular" filename="swordfishmkii_camo1spec.png" uscal="1" vscal="1" uoffset="0" voffset="0" angle="0"/>
   </material>

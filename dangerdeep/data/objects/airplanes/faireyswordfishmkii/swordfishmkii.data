@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-airplane>
-  <classification identifier="swordfishmkii" modelname="swordfishmkii.ddxml" country="DE"/>
+  <classification identifier="swordfishmkii" modelname="swordfishmkii.ddxml" country="GB" >
+    <skin name="dday" regions="WA,NS,NA,CA,MS,BB,CH" countries="GB" from="1944/06/06" until="1945/12/31" /> 
+  </classification>
   <description>
     <far lang="en">Airplane</far>
     <far lang="de">Flugzeug</far>
