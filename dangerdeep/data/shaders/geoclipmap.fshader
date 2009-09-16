@@ -32,11 +32,11 @@ struct region {
 	float min;
 };
 
-region reg_sand = region(0, -9000);
-region reg_mud = region(100, 1);
-region reg_grass = region(2000, 101);
-region reg_rock = region(4000, 2001);
-region reg_snow = region(9000, 4001);
+region reg_sand = region(float(0), float(-9000));
+region reg_mud = region(float(100), float(1));
+region reg_grass = region(float(2000), float(101));
+region reg_rock = region(float(4000), float(2001));
+region reg_snow = region(float(9000), float(4001));
 
 uniform float tex_stretch_factor;
 
