@@ -52,7 +52,7 @@ class bv_tree
 	static std::auto_ptr<bv_tree> create(const std::vector<vector3f>& vertices, std::list<leaf_data>& nodes);
 	bool is_inside(const vector3f& v) const;
 	bool collides(const bv_tree& other, std::list<vector3f>& contact_points) const;
-	bool collides(const bv_tree& other, std::list<vector3f>& contact_points, const matrix4f& other_transform, bool use_transform = true) const;
+	bool collides(const bv_tree& other, std::list<vector3f>& contact_points, const matrix4f& transform, const matrix4f& other_transform) const;
 	void transform(const matrix4f& mat);
 	void compute_min_max(vector3f& minv, vector3f& maxv) const;
 	void debug_dump(unsigned level = 0) const;
