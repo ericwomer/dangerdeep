@@ -167,6 +167,16 @@ class matrix3t
 				   v.z*v.x, v.z*v.y, v.z*v.z);
 	}
 
+	/// determinate
+	D determinant() const {
+		return    values[0]*values[4]*values[8]
+			+ values[1]*values[5]*values[6]
+			+ values[2]*values[3]*values[7]
+			- values[0]*values[5]*values[7]
+			- values[1]*values[3]*values[8]
+			- values[2]*values[4]*values[6];
+	}
+
 	D& elem(unsigned col, unsigned row) { return values[col + row * 3]; }
 	const D& elem(unsigned col, unsigned row) const { return values[col + row * 3]; }
 };

@@ -77,6 +77,10 @@ class vector3t
 	template<class E> void assign(const vector3t<E>& other) { x = D(other.x); y = D(other.y); z = D(other.z); }
 	void to_mem(float* p) const { p[0] = x; p[1] = y; p[2] = z; }
 	vector3t<D> rcp() const { return vector3t(D(1)/x, D(1)/y, D(1)/z); }
+	D determinant(const vector3t<D>& b, const vector3t<D>& c) const {
+		return      x*b.y*c.z + b.x*c.y*z   + c.x*  y*b.z
+			-   x*c.y*b.z - b.x*  y*c.z - c.x*b.y*  z;
+	}
 };
 
 template<class D2> inline vector3t<D2> operator* (const D2& scalar, const vector3t<D2>& v) { return v * scalar; }
