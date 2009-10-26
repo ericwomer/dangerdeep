@@ -1,6 +1,6 @@
 "CODE";"en";"de";"it";"es";"fr";"cz";"pt_BR";"nl";"tr"
 0;"English";"German";"Italian";"Spanish";"French";"Czech";"Portuguese (Brazil)";"Dutch";"Türkçe"
-1;"Heading";"Kurs";"Prua";"Rumbo";"Course";"Kurz";;"Koers";"Başlık"
+1;"Heading";"Kurs";"Prua";"Rumbo";"Cap";"Kurz";;"Koers";"Başlık"
 2;"Bearing";"Peilung";"Rilevamento";"Orientación";"Relèvement";;;"Positie";"Kerteriz"
 3;"Range";"Entfernung";"Distanza";"Alcance";"Distance";"Vzdálenost";;"Afstand";"Menzil"
 4;"Speed";"Fahrt";"Velocità";"Velocidad";"Vitesse";"Rychlost";;"Snelheid";"Hız"
@@ -11,7 +11,7 @@
 9;"Convoy battle";"Geleitzugschlacht";"Attacco a convoglio";"Ataque a convoy";"Attaquer un convoi";"Útok na konvoj";"Ataque a comboio";"Konvooi gevecht";"Konvoy Savaşı"
 10;"Historical mission";"Historische Mission";"Missione storica";"Misión histórica";"Missions historiques";"Historická mise";"Missao historica";"Historische missie";"Tarihi Görev"
 11;"Return to main menu";"Zurück zum Hauptmenü";"Ritorna al menu principale";"Volver al menú principal";"Retour au menu principal";"Návrat do hlavního menu";"Voltar ao menu principal";"Terug naar het hoofdmenu";"Ana Menüye Dön"
-12;"Target bearing";"Peilung zum Ziel";"Rilevamento del bersaglio";"Orientación del objetivo";"Cap de la cible";"Směr útoku";;"Positie doel";"Hedef Kerterizi"
+12;"Target bearing";"Peilung zum Ziel";"Rilevamento del bersaglio";"Orientación del objetivo";"Relèvement de la cible";"Směr útoku";;"Positie doel";"Hedef Kerterizi"
 13;"Target range";"Entfernung zum Ziel";"Distanza dal bersaglio";"Alcance del objetivo";"Distance de la cible";"Vzdálnost cíle";;"Afstand doel";"Hedef Menzili"
 14;"Target speed";"Fahrt des Zieles";"Velocità del bersaglio";"Velocidad del objetivo";"Vitesse de la cible";"Rychlost cíle";;"Snelheid doel";"Hedef Hızı"
 15;"Target course";"Kurs des Zieles";"Rotta del bersaglio";"Ruta del objetivo";"Course de la cible";"Kurz cíle";;"Koers doel";"Hedef Rotası"
@@ -19,7 +19,7 @@
 17;"type VIIc";"Typ VIIc";"tipo VIIc";"tipo VIIc";"type VIIc";"typ VIIc";;"type VIIc";"VIIc Tipi"
 18;"type XXI";"Typ XXI";"tipo XXI";"tipo XXI";"type XXI";"typ XXI";;"type XXI";"XXI Tipi"
 19;"Start mission";"Mission starten";"Inizia la missione";"Comenzar misión";"Commencer la mission";"Start mise";;"Start missie";"Görevi Başlat"
-20;"Return to previous menu";"Zurück zum vorherigen Menü";"Ritorna al menu precedente";"Volver al menú anterior";"Retourn au menu précédent";"Návrat do předchozího menu";"Voltar";"Terug naar het vorige menu";"Önceki Menüye Dön"
+20;"Return to previous menu";"Zurück zum vorherigen Menü";"Ritorna al menu precedente";"Volver al menú anterior";"Retour au menu précédent";"Návrat do předchozího menu";"Voltar";"Terug naar het vorige menu";"Önceki Menüye Dön"
 21;"Play single mission";"Einzelne Mission spielen";"Effettua una singola missione";"Realizar misión individual";"Jouer une mission seul";"Hra pro jednoho hráče";"Missao rapida";"Speel enkele missie";"Tek Oyunculu Görev"
 22;"Multiplayer menu";"Mehrspieler-Menü";"Menu per piú giocatori";"Menú multijugador";"Menu multijoueurs";"Multiplayer menu";;"Multiplayer menu";"Çok Oyunculu Görev"
 23;"Career menu";"Karriere-Menü";"Menu della carriera";"Menú de carrera";"Menu de carrière";"Kariérní menu";;"Cariere menu";"Kariyer Menüsü"
@@ -36,9 +36,9 @@
 34;"Rudder right";"Ruder steuerbord";"Timone a dritta";"Timón derecha";"Barre à droite";"Kormilo vpravo";;"Roer rechts";"Dümen Sağa"
 35;"Rudder hard left";"Ruder hart backbord";"Timone tutto a sinistra";"Timón todo izquierda";"Barre à gauche toute";"Kormilo ostře doleva";;"Roer sterk links";"Dümen Hızla Sola"
 36;"Rudder hard right";"Ruder hart steuerbord";"Timone tutto a dritta";"Timón todo derecha";"Barre à droite toute";"Kormidlo ostře doprava";;"Roer sterk rechts";"Dümen Hızla Sağa"
-37;"Planes up";"Tiefenruder oben";"Timoni di profondità su";"Timón de profundidad arriba";"Barres de profondeur montées";"Hloubkové kormidlo nahoru";;"Diepteroer omhoog";"Kanatlar Yukarı"
-38;"Planes down";"Tiefenruder runter";"Timoni di profondità giú";"Timón de profundidad abajo";"Barres de profondeur descendues";"Hloubkové kormidlo dolu";;"Diepteroer omlaag";"Kanatlar Aşağı"
-39;"Go to surface";"Auftauchen";"Emersione";"Ir a la superficie";"Aller à la surface";"Vynořit se";;"Ga naar het wateroppervlak";"Yüzeye Gidiş"
+37;"Planes up";"Tiefenruder oben";"Timoni di profondità su";"Timón de profundidad arriba";"Barres de plongée montées";"Hloubkové kormidlo nahoru";;"Diepteroer omhoog";"Kanatlar Yukarı"
+38;"Planes down";"Tiefenruder runter";"Timoni di profondità giú";"Timón de profundidad abajo";"Barres de plongée descendues";"Hloubkové kormidlo dolu";;"Diepteroer omlaag";"Kanatlar Aşağı"
+39;"Go to surface";"Auftauchen";"Emersione";"Ir a la superficie";"Faire surface";"Vynořit se";;"Ga naar het wateroppervlak";"Yüzeye Gidiş"
 40;"Go to periscope depth";"Periskoptiefe ansteuern";"Quota periscopio";"Profundidad de periscopio";"Aller à profondeur périscopique";"Na periskopovou hloubku";;"Ga naar periscoop diepte";"Periskop Derinliğine Gidiş"
 41;"Crash dive!";"Alarmtauchen!";"Immersione rapida!";"¡Inmersión de emergencia!";"Immersion d'urgence";"Poplachové ponoření!";;"Alarm duik!";"Pike Yap!"
 42;"Rudder midships";"Ruder mittschiffs";"Timone al centro";"Timón al centro";"Barre au centre";"Kormidlo na střed";;"Roer midscheeps";"Gemi Orta Dümeni"
@@ -61,7 +61,7 @@
 59;"Torpedo dud - range too short";"Torpedoversager - Laufstrecke zu kurz";"Siluro inesploso - distanza troppo breve";"Torpedo inútil - distancia demasiado corta";"La torpille a fait long-feu - distance trop courte";"Torpédo selhaho - rozsah je příliž krátký";;"Torpedo gefaald - afstand te klein";"Torpido kör patlayıcısı – menzil çok kısa"
 60;"Torpedo dud";"Torpedoversager!";"Siluro inesploso ";"Torpedo inútil";"La torpille a fait long-feu";"Torpédo minulo cíl";;"Torpedo mislukt";"Torpido kör patlayıcısı "
 61;"Time";"Uhrzeit";"Tempo";"Tiempo";"Temps";"Čas";;"Tijd";"Zaman"
-62;"Time period";"Zeitabschnitt";"Periodo di guerra";"Periodo de tiempo";"Epoque";"Perioda času";;"Tijd periode";"Zaman Periyotu"
+62;"Time period";"Zeitabschnitt";"Periodo di guerra";"Periodo de tiempo";"Époque";"Perioda času";;"Tijd periode";"Zaman Periyotu"
 63;"First moves (Sept. 1939 - May 1940)";"Eröffnung (Sept. 1939 - Mai 1940)";"Prime mosse (Settembre 1939 - Maggio 1940)";"Primeros movimientos (Sept. 1939 - Mayo 1940)";"Premiers mouvements (Sept. 1939 - Mai 1940)";"První plavba (září 1939 – květen 1940)";;"Eerste acties (Sept. 1939 - Mei 1940";"İlk Hareket (Eylül 1939 – Mayıs 1940)"
 64;"Happy time (June 1940 - March 1941)";"Glückliche Zeit (Juni 1940 - März 1941)";"Tempi felici (Giugno 1940 - Marzo 1941)";"Tiempo feliz (Junio 1940 - Marzo 1941)";"Temps heureux (Juin 1940 - Mars 1941)";"Šťastné časy (září 1940 – březen 1941)";;"Vrolijke tijd (Juni 1940 - Maart 1941)";"Mutlu Zaman (Haziran 1940 – Mart 1941)"
 65;"Stale mate (April 1941 - Dez. 1941)";"Patt (April 1941 - Dez. 1941)";"Stallo (Aprile 1941 - Dicembre 1941)";"Punto muerto (Abril 1941 - Dic. 1941)";"Temps mort (Avril 1941 - Déc. 1941)";"Pat (duben 1941 - prosinec 1941)";;"Gelijkwaardig (April 1941 - Dec. 1941)";"İkinci Kaptan (Nisan 1941 – Kasım 1941)"
@@ -104,18 +104,18 @@
 102;"Batteries";"Batterien";"Batterie";"Baterias";"Batteries";"Baterie";;"Batterij";"Bataryalar"
 103;"You have been sunk!";"Sie wurden versenkt!";"Sei stato affondato!";"¡Te han hundido!";"Vous avez été coulé !";"Byl jsi potopen!";;"Je bent gezonden";"Battın!"
 104;"Main menu";"Hauptmenü";"Menu principale";"Menú principal";"Menu principal";"Hlavní menu";"Menu principal";"Hoofd menu";"Ana Menü"
-105;"continue";"weiter";"continua";"continuar";"continuer";"pokračovat";"continuar";"Doorgaan";"devam"
+105;"continue";"weiter";"continua";"continuar";"Continuer";"pokračovat";"continuar";"Doorgaan";"devam"
 106;"Change screen resolution";"Bildschirmauflösung ändern";"Cambia la risoluzione dello schermo";"Cambiar la resolución de pantalla";"Changer la résolution d'écran";"Změnit rozlišení obrazovky";;"Verander scherm resolutie";"Ekran Çözünürlüğünü Değiş"
 107;"Miscellaneous";"Verschiedenes";"Miscellaneous";"Miscellaneous";"Divers";"Miscellaneous";"Miscellaneous";"Miscellaneous";"Miscellaneous"
-108;"Use GLSL shaders";"Benutze GLSL Shader";"Use GLSL shaders";"Use GLSL shaders";"Utiliser les GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders"
+108;"Use GLSL shaders";"Benutze GLSL Shader";"Use GLSL shaders";"Use GLSL shaders";"Utiliser les shaders GLSL";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders";"Use GLSL shaders"
 109;"Use shaders for water rendering";"Benutze Shader für Wasser-Darstellung";"Use shaders for water rendering";"Use shaders for water rendering";"Utiliser les shaders pour le rendu de l'océan";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering";"Use shaders for water rendering"
 110;"not implemented yet, sorry";"Leider noch nicht implementiert";"not implemented yet, sorry";"Lo siento, no implementado aún";"Pas encore implémenté, désolé";"Promiňte, zatím nebylo implementováno";;"Nog niet geïmplementeerd";"henüz yerine getirilmedi, üzgünüm"
 111;"Use high quality effects";"Benutze extra Shader-Effekte";"Use high quality effects";"Use high quality effects";"Utiliser les effets haute définition";"Use high quality effects";"Use high quality effects";"Use high quality effects";"Use high quality effects"
 112;"Terrain detail";"Terrain detail";"Terrain detail";"Terrain detail";"Terrain detail";"Terrain detail";"Terrain detail";"Terrain detail";"Terrain detail"
 113;;;;;;;;;
 114;;;;;;;;;
-115;"next vessel";"nächstes Fahrzeug";"vascello successivo";"siguiente barco";"navire suivant";"další plavidlo";"proximo";"volgend voertuig";"sonraki gemi"
-116;"previous vessel";"vorheriges Fahrzeug";"vascello precedente";"anterior barco";"navire précédent";"předchozí plavidlo";"anterior";"vorig voertuig";"önceki gemi"
+115;"next vessel";"nächstes Fahrzeug";"vascello successivo";"siguiente barco";"Navire suivant";"další plavidlo";"proximo";"volgend voertuig";"sonraki gemi"
+116;"previous vessel";"vorheriges Fahrzeug";"vascello precedente";"anterior barco";"Nnavire précédent";"předchozí plavidlo";"anterior";"vorig voertuig";"önceki gemi"
 117;"cancel";"Abbrechen";"cancella";"cancelar";"Annuler";"storno";"voltar";"annuleer";"iptal"
 118;"Load game";"Spiel laden";"Carica il gioco";"Cargar juego";"Charger une partie";"Nahrát hru";"Carregar jogo";"Laad spel";"Kayıtlı oyun"
 119;"Save game";"Spiel speichern";"Salva il gioco";"Guardar juego";"Sauvegarder la partie";"Uložit hru";;"Bewaar spel";"Oyunu kaydet"
@@ -159,34 +159,34 @@
 157;;;;;;;;;
 158;;;;;;;;;
 159;;;;;;;;;
-160;"Apply";"Übernehmen";"Apply";"Apply";"Apply";"Apply";"Apply";"Apply";
-161;"More info";"Mehr Info";"More info";"More info";"More info";"More info";"More info";"More info";"More info"
-162;"Choose photo";"Photo wählen:";"Click on photo to change it";"Click on photo to change it";"Click on photo to change it";"Click on photo to change it";"Click on photo to change it";"Click on photo to change it";"Click on photo to change it"
-163;"Flotilla location:";"Flotillenstützpunkt:";"Flotilla location:";"Flotilla location:";"Flotilla location:";"Flotilla location:";"Flotilla location:";"Flotilla location:";"Flotilla location:"
-164;"Flotilla #";"#. U-Bootsflotille";"Flotilla #";"Flotilla #";"Flotilla #";"Flotilla #";"Flotilla #";"Flotilla #";"Flotilla #"
+160;"Apply";"Übernehmen";"Apply";"Apply";"Appliquer";"Apply";"Apply";"Apply";
+161;"More info";"Mehr Info";"More info";"More info";"Plus d'informations";"More info";"More info";"More info";"More info"
+162;"Choose photo";"Photo wählen:";"Click on photo to change it";"Click on photo to change it";"Cliquer sur la photo pour la changer";"Click on photo to change it";"Click on photo to change it";"Click on photo to change it";"Click on photo to change it"
+163;"Flotilla location:";"Flotillenstützpunkt:";"Flotilla location:";"Flotilla location:";"Base de l'escadrille:";"Flotilla location:";"Flotilla location:";"Flotilla location:";"Flotilla location:"
+164;"Flotilla #";"#. U-Bootsflotille";"Flotilla #";"Flotilla #";"Escadrille n°";"Flotilla #";"Flotilla #";"Flotilla #";"Flotilla #"
 165;"Damage: ";"Schaden: ";"Danno: ";"Daño:";"Dommages :";"Poškození:";;"Schade";"Hasar:"
-166;"percent";"Prozent";"percento";"porcentaje";"Pourcents";"procent";;"procent";"yüzde"
+166;"percent";"Prozent";"percento";"porcentaje";"pourcent";"procent";;"procent";"yüzde"
 167;"Repair in progress.";"Reparatur wird ausgeführt.";"Riparazioni in corso.";"Reparación en curso";"Réparations en cours";"Opravy probíhají.";;"Bezig met repareren";"Onarım durumu"
 168;"Repair will continue when we're surfaced.";"Reparatur wird fortgesetzt";" sobald wir aufgetaucht sind.";"La reparación continuará cuando estemos en la superficie";"La réparation continuera quand nous ferons surface.";"Opravy budou probíhat, když se vynoříme.";;"Het repareren gaat verder als we aan de oppervlakte liggen";"Onarım yüzeye çıktığımızda devam edecek"
 169;"This damage can not be repaired at sea.";"Reparatur kann nicht auf See ausgeführt werden.";"Questo danno non può essere riparato in mare.";"Este daño no puede reparado en el mar.";"La panne ne peut pas être réparée en mer.";"Toto poškození nemůže být opraveno v moři.";;"Deze schade kan niet op zee gerepareerd worden";"Bu hasar denizde tamir edilemez"
 170;"Repair time: ";"Reparaturzeit: ";"Tempo per le riparazioni: ";"Tiempo de reparación:";"Temps pour la réparation :";"Čas potřebný na opravu:";;"Repareer tijd: ";"Onarım zamanı:"
 171;" minute.";" Minute.";" minute.";" minute.";" minute.";" minuta.";;"minuut";"dakika"
 172;" minutes.";" Minuten.";" minutes.";" minutes.";" minutes.";" minuty.";;" minuten";"dakika"
-173;"Torpedo transfer complete.";"Torpedo-Transfer abgeschlossen.";"Torpedo transfer complete.";"Torpedo transfer complete.";"Torpedo transfer complete.";"Torpedo transfer complete.";"Torpedo transfer complete.";"Torpedo transfer complete.";"Torpedo transfer complete."
+173;"Torpedo transfer complete.";"Torpedo-Transfer abgeschlossen.";"Torpedo transfer complete.";"Torpedo transfer complete.";"Transfert de torpille achevé.";"Torpedo transfer complete.";"Torpedo transfer complete.";"Torpedo transfer complete.";"Torpedo transfer complete."
 174;"type IXc/40";"Typ IXc/40";"tipo IXc/40";"tipo Ixc/40";"type IXc/40";"typ IXc/40";;"type IXc/40";"IXc/40 Tipi"
-175;"Choose your flotilla:";"Wählen Sie die Flotille:";"Choose your flotilla:";"Choose your flotilla:";"Choose your flotilla:";"Choose your flotilla:";"Choose your flotilla:";"Choose your flotilla:";"Choose your flotilla:"
-176;"Choose your U-Boat ID:";"Wählen Sie Ihre Bootsnummer:";"Choose your U-Boat ID:";"Choose your U-Boat ID:";"Choose your U-Boat ID:";"Choose your U-Boat ID:";"Choose your U-Boat ID:";"Choose your U-Boat ID:";"Choose your U-Boat ID:"
+175;"Choose your flotilla:";"Wählen Sie die Flotille:";"Choose your flotilla:";"Choose your flotilla:";"Choisissez votre escadrille :";"Choose your flotilla:";"Choose your flotilla:";"Choose your flotilla:";"Choose your flotilla:"
+176;"Choose your U-Boat ID:";"Wählen Sie Ihre Bootsnummer:";"Choose your U-Boat ID:";"Choose your U-Boat ID:";"Choisissez l'identifiant du U-Boat :";"Choose your U-Boat ID:";"Choose your U-Boat ID:";"Choose your U-Boat ID:";"Choose your U-Boat ID:"
 177;"Game menu";"Spielmenü";"Menu del gioco";"Menú del juego";"Menu du jeu";"Herní menu:";;"Spel menu";"Oyun Menüsü"
 178;"Savegame:";"Spielstand:";"Salva il gioco:";"Juego:";"Enregistrer la partie :";"Uložit hru:";;"Bewaard spel:";"Oyun Kayıtı"
 179;"Erase game";"Spiel löschen";"Cancella il gioco";"Borrar juego";"Supprimer la partie";"Smazat hru";;"Verwijder spel";"Oyunu Sil"
-180;"Savegame '";"Spielstand '";"Salva il gioco '";"Juego '";"Sauvegarder '";"Uložit hru'";;"Bewaard spel '";"Oyun Kayıtı"
-181;" has been loaded.";" wurde geladen.";" è stato caricato.";" ha sido cargado.";"a été chargé.";" byla nahrána.";;" is geladen";"yüklendi."
+180;"Savegame '";"Spielstand '";"Salva il gioco '";"Juego '";"La sauvegarde '";"Uložit hru'";;"Bewaard spel '";"Oyun Kayıtı"
+181;" has been loaded.";" wurde geladen.";" è stato caricato.";" ha sido cargado.";"a été chargée.";" byla nahrána.";;" is geladen";"yüklendi."
 182;"Attention!";"Achtung!";"Attenzione!";"¡Atención!";"Attention !";"Nebezpečí!";;"Let op!";"Dikkat!"
 183;"Overwrite savegame {}?";"Spielstand {} überschreiben?";"Sovrascrivi il gioco {}?";"Sobreescribir el juego {}?";"Écraser la sauvegarde {}?";"Přepsat uloženou hru {}?";;;"Kayıtlı Oyunun Üstüne Kaydetmek {}?"
-184;"Tube {} has been loaded.";"Rohr {} geladen.";"Tube {} has been loaded.";"Tube {} has been loaded.";"Tube {} has been loaded.";"Tube {} has been loaded.";"Tube {} has been loaded.";"Tube {} has been loaded.";"Tube {} has been loaded."
+184;"Tube {} has been loaded.";"Rohr {} geladen.";"Tube {} has been loaded.";"Tube {} has been loaded.";"Tube {} a été chargé.";"Tube {} has been loaded.";"Tube {} has been loaded.";"Tube {} has been loaded.";"Tube {} has been loaded."
 185;"Game loaded";"Spiel geladen";"Gioco caricato";"Juego cargado";"Partie chargée";"Hra nahrána";;"Spel geladen";"Oyun geri yüklendi"
 186;"Game saved";"Spiel gespeichert";"Gioco salvato";"Juego guardado";"Partie sauvegardée";"Hra uložena";;"Spel bewaard";"Oyun kaydedildi"
-187;" has been saved.";" wurde gespeichert.";" è stato salvato.";" ha sido guardado.";" a été sauvegardé.";" byla uložena.";;" is opgeslagen";"oyun kaydedildi"
+187;" has been saved.";" wurde gespeichert.";" è stato salvato.";" ha sido guardado.";" a été sauvegardée.";" byla uložena.";;" is opgeslagen";"oyun kaydedildi"
 188;"Erase savegame '";"Spielstand '";"Cancella il gioco '";"Borrar juego  '";"Supprimer la sauvegarde '";"Smazat uloženou hru'";;"Verwijder bewaard spel '";"Oyunu Sil"
 189;" ?";" löschen?";" ?";" ?";" ?";" ?";;" ?";"?"
 190;"Quit without saving?";"Spiel verlassen ohne zu speichern?";"Esci senza salvare?";"¿Salir sin guardar?";"Quitter sans sauvegarder ?";"Konec bez uložení?";;"Afsluiten zonder te bewaren?";"Kaydetmeden Çıkış"
@@ -207,7 +207,7 @@
 205;"Depth charges in the water!";"Wasserbomben abgeworfen!";"Cariche di profondità in acqua!";"¡Cargas de profundidad en el agua!";"Grenades sous-marines dans l'eau !";"Hlubinné pumy ve vodě!";;"Diepte bommen in het water!";"Suda mayınlar var!"
 206;"m";"m";"m";"m";"m";"m";"m";"m";"m"
 207;"degr";"Grad";"gradi";"grado";"degr";"degr";"degr";"degr";"derc"
-208;"kts";"kt";"nodi";"nudos";"kts";"kts";"kts";"kts";"kts"
+208;"kts";"kt";"nodi";"nudos";"nœuds";"kts";"kts";"kts";"kts"
 209;"km";"km";"km";"km";"km";"km";"km";"km";"km"
 210;"sm";"sm";"sm";"sm";"sm";"sm";"sm";"sm";"sm"
 211;"Time until\ntransfer completes:\n";"Zeit bis zum\nEnde des Transfers:\n";"Tempo necessario per\ncompletare il trasbordo:\n";"Tiempo para\ncompletar la transferencia:\n";"Temps restant\npour le transfert :\n";"Zbývající čas \n ke kompletnímu přesunu:\n";;"Tijd totdat\ntransfer afgerond is";"Zamana kadar\ntransfer tamamladı:\n"
@@ -216,7 +216,7 @@
 214;"Configure keys";"Konfiguriere Tasten";"Configura la tastiera";"Configurar el teclado";"Configurer les touches";"Konfigutovat klávesy";"Configurar teclas";"Configureer toetsen";"Oyun tuşlarını ayarla"
 215;"Change this key";"Diese Taste verändern";"Cambia questo tasto";"Cambiar esta tecla";"Changer cette touche";"Změnit tuto klávesu";;"Verander deze toets";"Bu tuşu değiştir"
 216;"Give a key combination for this action";"Tastenkombination für Aktion eingeben";"Dai un combinazione di tasti per questa funzione";"Asignar combinación de teclas para esta acción";"Donner une combinaison de touches pour cette action";"Zadej kombinaci kláves pro tuto akci";;"Verander de toetscombinatie voor deze actie";"Bu aksiyon için bir tuş kombinasyonu ver"
-217;"Press ESC when done";"ESC drücken";" wenn fertig";"Pulsar ESC cuando haya finalizado";"Pressez Echap quand fini";"Stiskněte ESC až budete hotovi";;"Druk op ESC als je klaar bent";"ESC'ye basınca gerçekleşecek"
+217;"Press ESC when done";"ESC drücken";" wenn fertig";"Pulsar ESC cuando haya finalizado";"Pressez Echap quand terminé";"Stiskněte ESC až budete hotovi";;"Druk op ESC als je klaar bent";"ESC'ye basınca gerçekleşecek"
 218;"Target out of deck gun range";"Ziel außer Reichweite des Deckgeschützes!";"Il bersaglio è fuori portata del cannone";"Objetivo fuera del alcance del cañón";"Cible hors de portée de tir du canon";"Cíl je mimo dostřel palubní zbraně";;"Doel buiten bereik van het dek wapen";"Güverte silahının menzili hedefin dışında"
 219;"No deck gun ammo remaining";"Keine Munition für das Deckgeschütz vorhanden!";"Le munizioni del cannone sono finite";"No queda munición del cañón";"Plus de munitions pour le canon";"Zásobník palubní zbraně je prázdný";;"Geen ammunitie meer voor het dek wapen";"Güverte silahını yeniden dolduracak yeterli mermi yok"
 220;"Set bearing relative to course";"Setze Sicht relativ zum Kurs";"Rilevamento relativo alla rotta";"Fijar orientación relativa a la ruta";"Fixer le cap relatif à la course";"Nastavit pohled podle kurzu";;"Stel de richting in, relatief t.o.v. de koers";"İstikametle ilgili rota alınıyor"
@@ -226,7 +226,7 @@
 224;"Add ship";"Neues Schiff";"Aggiungi nave";"Add ship";"Ajouter navire";"Přidat loď";;"Voeg schip toe";"Gemi ekle"
 225;"Remove ship";"Schiff löschen";"Togli nave";"Remove ship";"Supprimer navire";"Odebrat loď";;"Verwijder schip";"Gemiyi kaldır"
 226;"Motion";"Bewegung";"Movimento";"Motion";"Mouvement";"Pohyb";;"Beweging";"Hareket"
-227;"Clone";"Duplizieren";"Copia";"Clone";"Clone";"Klon";;"Kloon";"Koloni"
+227;"Clone";"Duplizieren";"Copia";"Clone";"Cloner";"Klon";;"Kloon";"Koloni"
 228;"Convoy menu";"Konvoimenü";"Menu del convoglio";"Convoy menu";"Menu de convoi";"Menu konvoje";;"Konvooi menu";"Konvoy menüsü"
 229;"Edit Time";"Zeit setzen";"Cambia il tempo";"Edit Time";"Changer l'heure";"Editovat čas";;"Bewerk tijd";"Zamanı düzenle"
 230;"Help";"Hilfe";"Aiuto";"Help";"Aide";"Nápověda";;"Help";"Yardım"
@@ -269,14 +269,14 @@
 267;"Cycle substations";"Andere Unterstation";"Cycle substations";"Cycle substations";"Affichage cyclique des postes";"Perioda substanice";;"Verander station";"Alt istasyonları karıştır"
 268;"Toggle pause";"Pause an/aus";"Toggle pause";"Toggle pause";"Mettre en pause";"Pauza zap/vyp";;"schakel pause";"Bağlantının durdurulması"
 269;"No deck gun available";"Kein Deckgeschütz verfügbar";"No deck gun available";"No deck gun available";"Pas de canon disponible";"Palubní zbraň není použitelná";;"Geen dek wapen aanwezig";"Güverte silahı yok"
-270;"Deck gun fired!";"Deckgeschütz abgefeuert!";"Deck gun fired!";"Deck gun fired!";"Canon a fait feu";"Palubní zbraň vystřelila";;"Dek wapen afgevuurd";"Güverte silahı ateşlendi!"
+270;"Deck gun fired!";"Deckgeschütz abgefeuert!";"Deck gun fired!";"Deck gun fired!";"Le canon a fait feu";"Palubní zbraň vystřelila";;"Dek wapen afgevuurd";"Güverte silahı ateşlendi!"
 271;"Captain's cabin";"Kapitänskajüte";"Captain's cabin";"Captain's cabin";"Cabine du Commandant";"Captain's cabin";"Captain's cabin";"Kapiteinskut";"Kaptanın kabini"
 272;"Successes and medals";"Erfolge und Auszeichnungen";"Successes and medals";"Successes and medals";"Succès et médailles";"Successes and medals";"Successes and medals";"Successen en medailes";"Başarılar ve madalyalar"
-273;"Ship recognition manual";"Schiffshandbuch";"Ship recognition manual";"Ship recognition manual";"Ship recognition manual";"Ship recognition manual";"Ship recognition manual";"Ship recognition manual";"Ship recognition manual"
+273;"Ship recognition manual";"Schiffshandbuch";"Ship recognition manual";"Ship recognition manual";"Manuel de reconnaissance";"Ship recognition manual";"Ship recognition manual";"Ship recognition manual";"Ship recognition manual"
 400;"rudder";"Ruder";"timone";"timón";"gouvernail de direction";"kormidlo";;"roer";"dümen"
 401;"screws";"Schrauben";"eliche";"hélices";"hélices";"šrouby";;"schroeven";"gemi pervaneleri"
 402;"screw shaft";"Schraubenwelle";"albero dell'elica";"eje de la hélice";"axe des hélices";"šroubová hřídel";;"schroef as";"pervane şaftı"
-403;"stern dive planes";"Hecktiefenruder";"timoni di profondità di poppa";"timón de profundidad de popa";"barre de profondeur de poupe";"záďové hloubkové křídlo";;"achterduikroeren";"pupa dalış kanatları"
+403;"stern dive planes";"Hecktiefenruder";"timoni di profondità di poppa";"timón de profundidad de popa";"barre de plongée de poupe";"záďové hloubkové křídlo";;"achterduikroeren";"pupa dalış kanatları"
 404;"stern water pump";"Heck-Lenzpumpe";"Pompe di poppa";"bomba de agua de popa";"Pompe d'eau de poupe";"záďová vodní pumpa";;"achter waterpomp";"pupa su pompası"
 405;"stern pressure hull";"Heck-Druckkörper";"Poppa dello scafo resistente";"casco a presión de popa";"pression à la poupe";"záďový měřič tlaku na trup";;"druk op de wand achter";"pupa basınç gövdesi"
 406;"stern hatch";"Maschinen-Ausstiegsluk";"Boccaporto di poppa";"escotilla de popa";"écoutille de poupe";"záďový poklop";;"achter klep";"pupa bölmesi"
@@ -284,15 +284,15 @@
 408;"air compressor";"Luftkompressor";"compressore";"compresor";"compresseur d'air";"kompresor vzduchu";;"lucht compressor";"kompresör"
 409;"machine water pump";"Maschinenraum-Lenzpumpe";"motori delle pompe";"bomba de agua del motor";"Pompe d'eau des machines";"vodní pumpa";;"Machine water pomp";"makine su pompası"
 410;"machine pressure hull";"Maschinenraum-Druckkörper";"Scafo resistente - zona macchine";"casco a presión del motor";"Pression aux machines";"měřič tlaku na trup";;"druk wand machinekamer";"makine basınç gövdesi"
-411;"after battery";"Hintere Batterie";"Batteria posteriore";"bateria posterior";"première batterie";"za baterií";;"Achter batterij";"bataryadan sonra"
+411;"after battery";"Hintere Batterie";"Batteria posteriore";"bateria posterior";"batterie arrière";"za baterií";;"Achter batterij";"bataryadan sonra"
 412;"diesel engines";"Dieselmaschinen";"motori diesel";"motores diesel";"moteur diesel";"naftové motory";;"diesel motoren";"dizel motorlar"
 413;"kitchen hatch";"Kombüsenluk";"boccaporto della cucina";"escotilla de la cocina";"écoutille de la cuisine";"kuchyňský poklop";;"keuken luik";"mutfak bölmesi"
-414;"balance tank valves";"Trimmtankventile";"valvole delle vasche di compensazione";"válvulas del tanque de compensación";"valve de compensation";"vyvažovací nádrže";;"balans tank kleppen";"tank supaplarının dengesi"
-415;"forward battery";"Vordere Batterie";"batteria anteriore";"baterias anteriores";"seconde batterie";"přední baterie";;"voorste batterij";"ön batarya"
+414;"balance tank valves";"Trimmtankventile";"valvole delle vasche di compensazione";"válvulas del tanque de compensación";"valves de compensation";"vyvažovací nádrže";;"balans tank kleppen";"tank supaplarının dengesi"
+415;"forward battery";"Vordere Batterie";"batteria anteriore";"baterias anteriores";"batterie avant";"přední baterie";;"voorste batterij";"ön batarya"
 416;"periscope";"Sehrohr";"periscopio";"periscopio";"périscope";"periskop";;"periscoop";"periskop"
 417;"central pressure hull";"Zentralen-Druckkörper";"scafo resistente centrale";"casco a presión central";"pression centrale";"centrální měřič tlaku na trup";;"druk wand centrale gedeelte";"orta basınç gövdesi"
 418;"bilge water pump";"Bilge-Lenzpumpe";"pompe di sentina";"bilge water pump";"pompe à eau de la cale";"vodní pumpa dna lodě";;"ruim water pomp";"bilge su pompası"
-419;"conning tower hatch";"Turmluk";"boccaporto della torretta";"escotilla de la torreta";"écoutille de la tourelle";"poklop velitelské veže";;"conning toren luik";"komuta kule bölmesi"
+419;"conning tower hatch";"Turmluk";"boccaporto della torretta";"escotilla de la torreta";"écoutille du massif";"poklop velitelské veže";;"conning toren luik";"komuta kule bölmesi"
 420;"listening device";"Horchgerät";"idrofono";"hidrófono";"hydrophone";"odposlechové zařízení";;"luister apparaat";"aygıt dinleniyor"
 421;"radio device";"Funkgerät";"radio";"radio";"radio";"rádio";;"radio";"radyo aygıtı"
 422;"inner bow tubes";"Innenklappen der Bugtorpedorohre";"tubi di prua interni";"tubos internos de proa";"tubes internes de proue";"vnitřní příďové hlavně";;"binnenste boegbuizen";"dahili yay tüpleri"
@@ -300,12 +300,12 @@
 424;"bow water pump";"Bug-Lenzpumpe";"pompe di prua";"bomba de agua de proa";"pompe à eau de la proue";"příďová vodní pumpa";;"boeg waterpomp";"yay su pompası"
 425;"bow hatch";"Vorderes Ausstiegsluk";"boccaporto di prua";"escotilla de proa";"écoutille de proue";"příďový poklop";;"boeg luik";"yay bölmesi"
 426;"bow pressure hull";"Bugraum-Druckkörper";"prua dello scafo resistente";"casco a presión de proa";"pression à la proue";"příďový měřič tlaku na trup";;"druk op de wand bij de boeg";"yay basınç gövdesi"
-427;"bow dive planes";"Bugtiefenruder";"timoni di profondità di prua";"timones de profundidad de proa";"barre de profondeur de proue";"příďové hloubkové křídlo";;"boeg duikroeren";"yay dalış kanatları"
+427;"bow dive planes";"Bugtiefenruder";"timoni di profondità di prua";"timones de profundidad de proa";"barre de plongée de proue";"příďové hloubkové křídlo";;"boeg duikroeren";"yay dalış kanatları"
 428;"anti aircraft gun";"Flak";"mitragliatrice antiaerea";"cañón antiaereo";"canon anti-aérien";"protiletecký kulomet";;"anti vliegtuig wapen";"uçaksavar silahı"
 429;"ammunition depot";"Munitionsdepot";"santabarbara";"depósito de munición";"dépôt de munitions";"zásobník nábojů";;"ammunitie depot";"cephanelik"
 430;"outer fuel tanks port";"Äußere Treibstofftanks backbord";"serbatoi esterni di sinistra";"depósitos de combustible externos de babor";"réservoir de fuel bâbord";"vnější uzávěr palivové nádrže";;"buitenste benzinetanken bakboord";"harici yakıt tanklarının portu"
 431;"outer fuel tanks starboard";"Äußere Treibstofftanks steuerbord";"serbatoi esterni di dritta";"depósitos de combustible externos de estribor";"réservoir de fuel tribord";"vnější palivové nádrže na pravoboku";;"buitenste benzinetanken stuurboord";"harici yakıt tanklarının sancağı"
-432;"outer stern tube doors";"Außenklappen der Hecktorpedorohre";"porte esterne dei tubi lanciasiluri di prua";"puertas de los tubos externos de popa";"porte externe de tube de proue";"vnější záďové hlavňové poklopy";;"buitenste achtersteven buis deuren";"harici pupa tüp kapakları"
+432;"outer stern tube doors";"Außenklappen der Hecktorpedorohre";"porte esterne dei tubi lanciasiluri di prua";"puertas de los tubos externos de popa";"porte externe de tube de poupe";"vnější záďové hlavňové poklopy";;"buitenste achtersteven buis deuren";"harici pupa tüp kapakları"
 433;"inner stern tube doors";"Innenklappen der Hecktorpedorohre";"porte interne dei tubi lanciasiluri di prua";"puertas de los tubos internos de popa";"porte interne de tube de poupe";"vnitřní záďové hlavňové poklopy";;"binnenste achtersteven-buis-deuren";"dahili pupa tüp kapakları"
 434;"snorkel";"Schnorchel";"snorkel";"snorkel";"Tube à air";"šnorchl";;"snorkel";"şnorkel"
 435;"deck gun";"Deckgeschütz";"cannone di coperta";"cañón de cubierta";"canon";"palubní zbraň";;"dek wapen";"güverte silahı"
@@ -329,9 +329,9 @@
 615;"Rudder hard right";"Ruder hart steuerbord";"Timone tutto a destra";"Timón todo derecha";"Barre à gauche toute";"Kormidlo ostře vpravo";;"Roer sterk rechts";"Dümen hızla sağa"
 616;"Rudder up";"Ruder oben";"Timone su";"Timón arriba";"Barres de plongée montées";"Kormidlo nahoru";;"Roer omhoog";"Dümen ileri"
 617;"Rudder hard up";"Ruder hart oben";"Timone tutto su";"Timón todo arriba";"Barres de plongée montées au max.";"Kormidlo ostře nahoru";;"Roer sterk omhoog";"Dümen hızla ileri"
-618;"Rudder down";"Ruder unten";"Timone giù";"Timón abajo";"Barre de plongée descendues";"Kormidlo dolů";;"Roer omlaag";"Dümen aşağı"
+618;"Rudder down";"Ruder unten";"Timone giù";"Timón abajo";"Barres de plongée descendues";"Kormidlo dolů";;"Roer omlaag";"Dümen aşağı"
 619;"Rudder hard down";"Ruder hart unten";"Timone tutto giù";"Timón todo abajo";"Barres de plongée descendues au max.";"Kormidlo ostře dolů";;"Roer sterk omlaag";"Dümen hızla aşağı"
-620;"Center rudders";"Ruder mittschiffs";"Timone al centro";"Centrar timón";"Barre au centre";"Kormidla na střed";;"Roer neutraal";"Orta dümenler"
+620;"Center rudders";"Ruder mittschiffs";"Timone al centro";"Centrar timón";"Barre à zéro";"Kormidla na střed";;"Roer neutraal";"Orta dümenler"
 621;"Throttle listen";"Kleine Fahrt";"Throttle listen";"Throttle listen";"En avant en silence";"Tichý chod";;"Heel langzaam varen";"Bağlantının dinlenmesi"
 622;"Throttle slow";"Langsame Fahrt";"Avanti piano";"Avance lento";"En avant lente";"Plyn polamu";;"Langzaam varen";"Bağlantının gevşetilmesi"
 623;"Throttle half";"Halbe Fahrt";"Avanti mezza";"Avance medio";"En avant";"Plyn na polovinu";;"Op halve snelheid varen";"Yarım bağlantı"
@@ -352,12 +352,12 @@
 638;"Crash dive";"Alarmtauchen";"Immersione rapida";"Inmersión de emergencia";"Immersion d'urgence";"Okamžité ponoření";;"Nood duik";"Pike yap"
 639;"Go to snorkel depth";"Auf Schnorcheltiefe";"Quota snorkel";"Ir a profundidad de snorkel";"Aller à profondeur pour tube à air";"Ponořit se na šnorchlovou hloubku";;"Ga naar snorkel diepte";"Şnorkel derinliğine git"
 640;"Toggle snorkel";"Schnorchel ein/-ausfahren";"Snorkel su/giù";"Alternar snorkel";"Tube à air haut/bas";"Šnorchl zap/vyp";;"Schakel snorkel";"Şnorkel bağlantısı"
-641;"Set heading to view";"Setze Kurs nach Sicht";"Prua nella direzione di osservazione";"Fijar rumbo a la vista";"Fixer la vue à la course";"Nastavit kurz podle pohledu";;"Zet de koers aan de hand van het zicht";"Başlıktan görüntü al"
+641;"Set heading to view";"Setze Kurs nach Sicht";"Prua nella direzione di osservazione";"Fijar rumbo a la vista";"Fixer le cap à la vue";"Nastavit kurz podle pohledu";;"Zet de koers aan de hand van het zicht";"Başlıktan görüntü al"
 642;"Identify target";"Identifiziere Ziel";"Identifica il bersaglio";"Identificar objetivo";"Identifier la cible";"Identifikovat cíl";;"Identificeer doel";"Hedef tanımlaması"
 643;"Go to periscope depth";"Periskoptiefe";"Quota periscopio";"Ir a profundidad de periscopio";"Aller à profondeur périscopique";"Ponořit se na periskopovou hloubku";;"Ga naar periscoop diepte";"Periskop derinliğine git"
-644;"Go to surface";"Auftauchen";"Emersione";"Ir a la superficie";"Aller en surface";"Vynořit se";"Emergir";"Ga naar oppervlakte";"Yüzeye git"
+644;"Go to surface";"Auftauchen";"Emersione";"Ir a la superficie";"Faire surface";"Vynořit se";"Emergir";"Ga naar oppervlakte";"Yüzeye git"
 645;"Fire torpedo";"Torpedo feuern";"Siluro fuori";"Disparar torpedo";"Lancer la torpille";"Vypálit torpédo";;"Vuur torpedo";"Torpidoyu ateşle"
-646;"Set view to heading";"Setze Sicht nach Kurs";"Direzione di osservazione a prua";"Fijar vista al rumbo";"Fixer la course à la vue ";"Nastavit pohled na kurz";;"Zet zicht aan de hand van de koers";"Başlıktan görüntü al"
+646;"Set view to heading";"Setze Sicht nach Kurs";"Direzione di osservazione a prua";"Fijar vista al rumbo";"Fixer la vue au cap";"Nastavit pohled na kurz";;"Zet zicht aan de hand van de koers";"Başlıktan görüntü al"
 647;"Toggle zoom of view";"Wähle Sichtvergrößerungsfaktor";"Zoom/unzoom della visione";"Alternar escala de la vista";"Zoom +/-";"Přiblížit/oddálit pohled";;"Schakel zoom van het beeld";"Alınan görüntüyü büyült"
 648;"Turn view left";"Drehe Sicht nach links";"Cambia la direzione di osservazione a sinistra";"Girar la vista a la izquierda";"Tourner la vue à gauche";"Otočit pohled doleva";;"Draai beeld links";"Görüntüyü sola çevir"
 649;"Turn view left fast";"Drehe Sicht schnell nach links";"Cambia velocemente la direzione di osservazione a sinistra";"Girar rápido la vista a la izquierda";"Tourner rapidement la vue à gauche";"Otočit pohled ostře doleva";;"Draai beeld snel links";"Görüntüyü hızla sola çevir"
@@ -365,7 +365,7 @@
 651;"Turn view right fast";"Drehe Sicht schnell nach rechts";"Cambia velocemente la direzione di osservazione a destra";"Girar rápido la vista a la derecha";"Tourner rapidement la vue à droite";"Otočit pohled ostře doprava";;"Draai beeld snel rechts";"Görüntüyü hızla sağa çevir"
 652;"Time scale up";"Zeit schneller";"Aumenta la scala del tempo";"Aumentar escala de tiempo";"Augmenter la compression du temps";"Zvýšit rychlost plynutí času";;"Tijdschaal omhoog";"Zamanı arttır"
 653;"Time scale down";"Zeit langsamer";"Riduci la scala del tempo";"Disminuir escala de tiempo";"Diminuer la compression du temps";"Snížit rychlost plynutí času";;"Tijdschaal omlaag";"Zamanı düşürt"
-654;"Fire deck gun";"Deckgeschütz abfeuern";"Fuoco!";"Disparar cañón";"Canon feu!";"Vystřelit z palubní zbraně";;"Vuur dek wapen";"Güverte silahının ateşle"
+654;"Fire deck gun";"Deckgeschütz abfeuern";"Fuoco!";"Disparar cañón";"Tirer au canon";"Vystřelit z palubní zbraně";;"Vuur dek wapen";"Güverte silahının ateşle"
 655;"Toggle relative bearing";"Relative Sicht an/aus";"Rilevamento relativo on/off";"Alternar orientación relativa";"Vue relative oui/non";"Zap/vyp relativní orientaci";;"Schakel relatieve positie";"Rotaya ait bağlantı"
 656;"Toggle man deck gun";"Deckgeschütz besetzen/sichern";"Servente al cannone si/no";"Alternar cañonero";"Équipage au canon oui/non";"Zap/vyp muže u palubní zbraně";;"Schakel beman dek wapen";"Güverte silahına adam atamak"
 657;"Show Torpedo Data Computer";"Zeige Torpedodaten-Rechner";"Mostra il calcolatore per i siluri";"Mostrar computadora de torpedos";"Ordinateur de torpilles";"Ukázat počítač pro výpočet nastavení torpéda";;"Toon torpedo data computer";"Torpido Veri Bilgisayarını göster"
@@ -375,28 +375,28 @@
 661;"type IIb";"Typ IIb";"tipo IIb";"tipo IIb";"type IIb";"typ IIb";;"type IIb";"Iıb tipi"
 662;"type IIc";"Typ IIc";"tipo IIc";"tipo IIc";"type IIc";"typ IIc";;"type IIc";"Iıc tipi"
 663;"type IId";"Typ IId";"tipo IId";"tipo IId";"type IId";"typ IId";;"type IId";"Iıd tipi"
-700;"Lieutenant";"Oberleutnant z. See";;;;;;;
-701;"Lieutenant 1st Class";"Kapitänleutnant";;;;;;;
-702;"Lt Commander";"Korvettenkapitän";;;;;;;
-703;"Commander";"Fregattenkapitän";;;;;;;
-704;"Captain";"Kapitän z. See";;;;;;;
-705;"Input";;;;;;;;
-706;"Audio";;;;;;;;
-707;"Graphics";;;;;;;;
-708;"Network";;;;;;;;
-709;"Mouse";;;;;;;;
-710;"Low";;;;;;;;
-711;"High";;;;;;;;
-712;"GPU melter";;;;;;;;
-713;"Quality";;;;;;;;
-714;"Post-processing";;;;;;;;
-715;"None";;;;;;;;
-716;"Bloom";;;;;;;;
-717;"HDR";;;;;;;;
-718;"Anisotropic filtering";;;;;;;;
-719;"Anti-aliasing";;;;;;;;
-720;"V-Sync";;;;;;;;
-721;"Texture Compression";;;;;;;;
-722;"Anisotropic filtering level";;;;;;;;
-723;"Anti-aliasing level";;;;;;;;
-724;"Off";;;;;;;;
+700;"Lieutenant";"Oberleutnant z. See";;;"Enseigne de vaisseau de 1re classe";;;;
+701;"Lieutenant 1st Class";"Kapitänleutnant";;;"Lieutenant de vaisseau";;;;
+702;"Lt Commander";"Korvettenkapitän";;;"Capitaine de corvette";;;;
+703;"Commander";"Fregattenkapitän";;;"Capitaine de frégate";;;;
+704;"Captain";"Kapitän z. See";;;"Capitaine de vaisseau";;;;
+705;"Input";;;;"Contrôles";;;;
+706;"Audio";;;;"Audio";;;;
+707;"Graphics";;;;"Graphiques";;;;
+708;"Network";;;;"Réseau";;;;
+709;"Mouse";;;;"Souris";;;;
+710;"Low";;;;"Bas";;;;
+711;"High";;;;"Haut";;;;
+712;"GPU melter";;;;"Mélangeur GPU";;;;
+713;"Quality";;;;"Qualité";;;;
+714;"Post-processing";;;;"Post-processing";;;;
+715;"None";;;;"Aucun";;;;
+716;"Bloom";;;;"Éblouissement";;;;
+717;"HDR";;;;"HDR";;;;
+718;"Anisotropic filtering";;;;"Filtrage anisotropique";;;;
+719;"Anti-aliasing";;;;"Anti-crénelage";;;;
+720;"V-Sync";;;;"Synchro verticale";;;;
+721;"Texture Compression";;;;"Compression des textures";;;;
+722;"Anisotropic filtering level";;;;"Niveau du filtrage aniso.";;;;
+723;"Anti-aliasing level";;;;"Niveau de l'anti-crénelage";;;;
+724;"Off";;;;"Désactivé";;;;
