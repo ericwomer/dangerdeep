@@ -143,6 +143,9 @@ env.Default(treegentest)
 geoclipmaptest = env.Program('geoclipmaptest', ['geoclipmaptest.cpp', 'height_generator_map.cpp', 'bitstream.cpp', 'bzip.cpp', 'simplex_noise.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj, globaldataobj], LIBS = alllibs)
 env.Default(geoclipmaptest)
 
+triintersecttest = env.Program(target = 'triintersecttest', source = ['triintersecttest.cpp', osspecificsrc_obj, threads_obj], LIBS = alllibs)
+env.Default(triintersecttest)
+
 if ffmpeg_available:
 	env.Append(CPPPATH = '/usr/include/ffmpeg')
 	videoplaytest = env.Program('videoplaytest', ['videoplaytest.cpp', datadirsobj, filehelper_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs + ['avcodec', 'avformat'])

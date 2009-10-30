@@ -39,20 +39,25 @@ class bv_tree
 	struct leaf_data
 	{
 		uint32_t tri_idx[3];
-		uint32_t triangle;
+		leaf_data() { tri_idx[0] = tri_idx[1] = tri_idx[2] = uint32_t(-1); }
 		const vector3f& get_pos(const std::vector<vector3f>& vertices, unsigned corner) const {
 			return vertices[tri_idx[corner]];
 		}
 		vector3f get_center(const std::vector<vector3f>& vertices) const { return (get_pos(vertices, 0) + get_pos(vertices, 1) + get_pos(vertices, 2)) * (1.f/3); }
 	};
 
-	bv_tree(const spheref& sph, unsigned triangle_)
-		: volume(sph), triangle(triangle_) {}
+	bv_tree(const spheref& sph, const leaf_data& ld)
+		: volume(sph), leafdata(ld) {}
 	bv_tree(const spheref& sph, std::auto_ptr<bv_tree> left_tree, std::auto_ptr<bv_tree> right_tree);
 	static std::auto_ptr<bv_tree> create(const std::vector<vector3f>& vertices, std::list<leaf_data>& nodes);
 	bool is_inside(const vector3f& v) const;
-	bool collides(const bv_tree& other, std::list<vector3f>& contact_points) const;
-	bool collides(const bv_tree& other, std::list<vector3f>& contact_points, const matrix4f& transform, const matrix4f& other_transform) const;
+	bool collides(const std::vector<vector3f>& vertices,
+		      const bv_tree& other, const std::vector<vector3f>& other_vertices,
+		      std::list<vector3f>& contact_points) const;
+	bool collides(const std::vector<vector3f>& vertices,
+		      const bv_tree& other, const std::vector<vector3f>& other_vertices,
+		      std::list<vector3f>& contact_points,
+		      const matrix4f& transform, const matrix4f& other_transform) const;
 	void transform(const matrix4f& mat);
 	void compute_min_max(vector3f& minv, vector3f& maxv) const;
 	void debug_dump(unsigned level = 0) const;
@@ -60,7 +65,7 @@ class bv_tree
 
  protected:
 	spheref volume;
-	unsigned triangle; // -1 except for leafs
+	leaf_data leafdata;
 	std::auto_ptr<bv_tree> children[2];
 	bool is_leaf() const { return children[0].get() == 0; }
 

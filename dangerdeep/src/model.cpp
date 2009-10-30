@@ -1285,7 +1285,6 @@ void model::mesh::compute_bv_tree()
 		ld.tri_idx[0] = tit->i0();
 		ld.tri_idx[1] = tit->i1();
 		ld.tri_idx[2] = tit->i2();
-		ld.triangle = tri_index;
 		leaf_nodes.push_back(ld);
 		++tri_index;
 	} while (tit->next());

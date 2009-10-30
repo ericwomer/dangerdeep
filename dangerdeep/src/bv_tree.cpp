@@ -54,7 +54,7 @@ std::auto_ptr<bv_tree> bv_tree::create(const std::vector<vector3f>& vertices, st
 	}
 	// if list has one entry, return that
 	if (nodes.size() == 1) {
-		result.reset(new bv_tree(bound_sphere, nodes.front().triangle));
+		result.reset(new bv_tree(bound_sphere, nodes.front()));
 		return result;
 	}
 	//
@@ -105,7 +105,7 @@ std::auto_ptr<bv_tree> bv_tree::create(const std::vector<vector3f>& vertices, st
 
 
 bv_tree::bv_tree(const spheref& sph, std::auto_ptr<bv_tree> left_tree, std::auto_ptr<bv_tree> right_tree)
-	: volume(sph), triangle(unsigned(-1))
+	: volume(sph)
 {
 	children[0] = left_tree;
 	children[1] = right_tree;
@@ -126,7 +126,7 @@ bool bv_tree::is_inside(const vector3f& v) const
 
 
 
-bool bv_tree::collides(const bv_tree& other, std::list<vector3f>& contact_points) const
+bool bv_tree::collides(const std::vector<vector3f>& vertices, const bv_tree& other, const std::vector<vector3f>& other_vertices, std::list<vector3f>& contact_points) const
 {
 	// if bounding volumes do not intersect, there can't be any collision of leaf elements
 	if (!volume.intersects(other.volume))
@@ -151,8 +151,8 @@ bool bv_tree::collides(const bv_tree& other, std::list<vector3f>& contact_points
 			return true;
 		} else {
 			// other node is no leaf, recurse there
-			bool col1 = other.children[0]->collides(*this, contact_points);
-			bool col2 = other.children[1]->collides(*this, contact_points);
+			bool col1 = other.children[0]->collides(other_vertices, *this, vertices, contact_points);
+			bool col2 = other.children[1]->collides(other_vertices, *this, vertices, contact_points);
 			return col1 || col2;
 		}
 	}
@@ -160,20 +160,20 @@ bool bv_tree::collides(const bv_tree& other, std::list<vector3f>& contact_points
 	// split larger volume of this and other, go recursivly down all children
 	if (volume.radius > other.volume.radius || other.is_leaf()) {
 		// recurse this node
-		bool col1 = children[0]->collides(other, contact_points);
-		bool col2 = children[1]->collides(other, contact_points);
+		bool col1 = children[0]->collides(vertices, other, other_vertices, contact_points);
+		bool col2 = children[1]->collides(vertices, other, other_vertices, contact_points);
 		return col1 || col2;
 	} else {
 		// recurse other node - other is no leaf here
-		bool col1 = other.children[0]->collides(*this, contact_points);
-		bool col2 = other.children[1]->collides(*this, contact_points);
+		bool col1 = other.children[0]->collides(other_vertices, *this, vertices, contact_points);
+		bool col2 = other.children[1]->collides(other_vertices, *this, vertices, contact_points);
 		return col1 || col2;
 	}
 }
 
 
 
-bool bv_tree::collides(const bv_tree& other, std::list<vector3f>& contact_points, const matrix4f& transform, const matrix4f& other_transform) const
+bool bv_tree::collides(const std::vector<vector3f>& vertices, const bv_tree& other, const std::vector<vector3f>& other_vertices, std::list<vector3f>& contact_points, const matrix4f& transform, const matrix4f& other_transform) const
 {
 	// if bounding volumes do not intersect, there can't be any collision of leaf elements
 	//printf("collision check\n");
@@ -193,14 +193,22 @@ bool bv_tree::collides(const bv_tree& other, std::list<vector3f>& contact_points
 		// we have a leaf node
 		if (other.is_leaf()) {
 			// direct face to face collision test
-			// fixme ... handle also transform here!
+			// handle transform here
+			vector3f v0t = transform.mul4vec3xlat(vertices[leafdata.tri_idx[0]]);
+			vector3f v1t = transform.mul4vec3xlat(vertices[leafdata.tri_idx[1]]);
+			vector3f v2t = transform.mul4vec3xlat(vertices[leafdata.tri_idx[2]]);
+			vector3f v3t = other_transform.mul4vec3xlat(other_vertices[other.leafdata.tri_idx[0]]);
+			vector3f v4t = other_transform.mul4vec3xlat(other_vertices[other.leafdata.tri_idx[1]]);
+			vector3f v5t = other_transform.mul4vec3xlat(other_vertices[other.leafdata.tri_idx[2]]);
 			//printf("leaf collision\n");
-			return true;
+			bool c = triangle_collision_t<float>::compute(v0t, v1t, v2t, v3t, v4t, v5t);
+			//if (c) printf("tri-tri coll\n");
+			return c;
 		} else {
 			//printf("other is no leaf\n");
 			// other node is no leaf, recurse there, swap roles of this and other
-			bool col1 = other.children[0]->collides(*this, contact_points, other_transform, transform);
-			bool col2 = other.children[1]->collides(*this, contact_points, other_transform, transform);
+			bool col1 = other.children[0]->collides(other_vertices, *this, vertices, contact_points, other_transform, transform);
+			bool col2 = other.children[1]->collides(other_vertices, *this, vertices, contact_points, other_transform, transform);
 			return col1 || col2;
 		}
 	}
@@ -209,14 +217,14 @@ bool bv_tree::collides(const bv_tree& other, std::list<vector3f>& contact_points
 	if (volume.radius > other.volume.radius || other.is_leaf()) {
 		//printf("go down1\n");
 		// recurse this node, so don't swap roles of this and other
-		bool col1 = children[0]->collides(other, contact_points, transform, other_transform);
-		bool col2 = children[1]->collides(other, contact_points, transform, other_transform);
+		bool col1 = children[0]->collides(vertices, other, other_vertices, contact_points, transform, other_transform);
+		bool col2 = children[1]->collides(vertices, other, other_vertices, contact_points, transform, other_transform);
 		return col1 || col2;
 	} else {
 		//printf("go down2\n");
 		// recurse other node - other is no leaf here, swap roles of this and other
-		bool col1 = other.children[0]->collides(*this, contact_points, other_transform, transform);
-		bool col2 = other.children[1]->collides(*this, contact_points, other_transform, transform);
+		bool col1 = other.children[0]->collides(other_vertices, *this, vertices, contact_points, other_transform, transform);
+		bool col2 = other.children[1]->collides(other_vertices, *this, vertices, contact_points, other_transform, transform);
 		return col1 || col2;
 	}
 }
