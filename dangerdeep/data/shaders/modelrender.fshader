@@ -70,8 +70,13 @@ void main()
 //	float fog_factor = clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0);
 
 	// output color is a mix between fog and final color
-//	gl_FragColor = vec4(mix(vec3(gl_Fog.color), final_color, fog_factor), 1.0);
-	gl_FragColor = vec4( vec3(final_color), 1.0);
+#ifdef USE_COLORMAP
+	float alpha = 1.0;
+#else
+	float alpha = color.a;
+#endif
+//	gl_FragColor = vec4(mix(vec3(gl_Fog.color), final_color, fog_factor), alpha);
+	gl_FragColor = vec4( vec3(final_color), alpha);
 
 /* fog:
 	// maybe the vertex shader needs to do this: no, it doesn't. It works without that command.
