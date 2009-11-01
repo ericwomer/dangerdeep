@@ -34,6 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <SDL.h>
 #include "oglext/OglExt.h"
 #include "shader.h"
+#include "ptrvector.h"
 #include "make_mesh.h"
 #include "mymain.cpp"
 
@@ -104,6 +105,7 @@ int mymain(list<string>& args)
 	unsigned axis = 0;
 	bool intersects = false;
 	bool render_spheres = false;
+	unsigned splevel = 0;
 
 	// hier laufen lassen
 	for (bool doquit = false; !doquit; ) {
@@ -138,6 +140,16 @@ int mymain(list<string>& args)
 					break;
 				case SDLK_s:
 					render_spheres = !render_spheres;
+					break;
+				case SDLK_1:
+					if (splevel > 0)
+						--splevel;
+					break;
+				case SDLK_2:
+					++splevel;
+					break;
+				case SDLK_3:
+					splevel = 0;
 					break;
 				default: break;
 				}
@@ -195,26 +207,38 @@ int mymain(list<string>& args)
 		modelB->display();
 
 		if (render_spheres) {
+			std::list<spheref> volumesA, volumesB;
 			bv_tree& b0 = *modelA->get_base_mesh().bounding_volume_tree;
 			bv_tree& b1 = *modelA->get_base_mesh().bounding_volume_tree;
-			model::mesh* msp0 = make_mesh::sphere(b0.get_sphere().radius, 2*b0.get_sphere().radius);
-			model::mesh* msp1 = make_mesh::sphere(b1.get_sphere().radius, 2*b1.get_sphere().radius);
-			msp0->compile();
-			msp1->compile();
-			msp0->transformation = modelA->get_base_mesh().transformation;
-			msp1->transformation = modelB->get_base_mesh().transformation;
-			//msp->transformation.to_stream(std::cout);
-			//std::cout << "radius: " << b.get_sphere().radius << " center " << b.get_sphere().center << "\n";
-			msp0->mymaterial = new model::material("mat");
-			msp1->mymaterial = new model::material("mat");
-			msp0->mymaterial->diffuse = color(255, 255, 255, 128);
-			msp1->mymaterial->diffuse = color(128,  32,  32, 128);
-			msp0->display();
-			msp1->display();
-			delete msp0->mymaterial;
-			delete msp1->mymaterial;
-			delete msp0;
-			delete msp1;
+			b0.collect_volumes_of_tree_depth(volumesA, splevel);
+			b1.collect_volumes_of_tree_depth(volumesB, splevel);
+			std::auto_ptr<model::material> mat0(new model::material());
+			std::auto_ptr<model::material> mat1(new model::material());
+			mat0->diffuse = color(255, 255, 255, 128);
+			mat1->diffuse = color(128,  32,  32, 128);
+			ptrvector<model::mesh> spheresA, spheresB;
+			spheresA.resize(volumesA.size());
+			spheresB.resize(volumesB.size());
+			unsigned k = 0;
+			for (std::list<spheref>::iterator it = volumesA.begin(); it != volumesA.end(); ++it) {
+				spheresA.reset(k, make_mesh::sphere(it->radius, 2*it->radius));
+				spheresA[k]->transform(matrix4f::trans(it->center));
+				spheresA[k]->compile();
+				spheresA[k]->transformation = modelA->get_base_mesh().transformation;
+				spheresA[k]->mymaterial = mat0.get();
+				spheresA[k]->display();
+				++k;
+			}
+			k = 0;
+			for (std::list<spheref>::iterator it = volumesB.begin(); it != volumesB.end(); ++it) {
+				spheresB.reset(k, make_mesh::sphere(it->radius, 2*it->radius));
+				spheresB[k]->transform(matrix4f::trans(it->center));
+				spheresB[k]->compile();
+				spheresB[k]->transformation = modelB->get_base_mesh().transformation;
+				spheresB[k]->mymaterial = mat1.get();
+				spheresB[k]->display();
+				++k;
+			}
 		}
 		
 		sys().swap_buffers();

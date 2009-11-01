@@ -656,7 +656,8 @@ model::mesh::mesh(const string& nm)
 	  vbo_colors(false),
 	  index_data(true),
 	  vertex_attrib_index(0),
-	  inertia_tensor(matrix3::one())
+	  inertia_tensor(matrix3::one()),
+	  volume(0.0)
 {
 	set_indices_type(pt_triangles);
 }
@@ -675,7 +676,8 @@ model::mesh::mesh(unsigned w, unsigned h, const std::vector<float>& heights, con
 	  vbo_tangents_righthanded(false),
 	  vbo_colors(false),
 	  index_data(true),
-	  vertex_attrib_index(0)
+	  vertex_attrib_index(0),
+	  volume(0.0)
 {
 	set_indices_type(pt_triangle_strip);
 	if (w < 2 || h < 2 || heights.size() != w * h)
@@ -894,8 +896,8 @@ pair<model::mesh*, model::mesh*> model::mesh::split(const vector3f& abc, float d
 {
 	if (indices_type != pt_triangles) throw std::runtime_error("split: can't handle primitives other than triangles!");
 
-	model::mesh* part0 = new model::mesh();
-	model::mesh* part1 = new model::mesh();
+	model::mesh* part0 = new model::mesh("split0");
+	model::mesh* part1 = new model::mesh("split1");
 	part0->name = name + "_part0";
 	part1->name = name + "_part1";
 	part0->transformation = part1->transformation = transformation;
@@ -2263,7 +2265,7 @@ void model::read_off_file(const string& fn)
 	unsigned i;
 	unsigned nr_vertices, nr_faces;
 	fscanf(f, "OFF\n%u %u %u\n", &nr_vertices, &nr_faces, &i);
-	mesh* m = new mesh();
+	mesh* m = new mesh("offread");
 	m->name = basename;
 	m->vertices.resize(nr_vertices);
 	m->indices.resize(3*nr_faces);
@@ -2382,7 +2384,7 @@ void model::read_dftd_model_file(const std::string& filename)
 			materials.back() = mat.release();
 		} else if (etype == "mesh") {
 			// meshes.
-			mesh* msh = new mesh();
+			mesh* msh = new mesh("ddxmlread");
 			meshes.push_back(msh);
 			msh->name = e.attr("name");
 			// material

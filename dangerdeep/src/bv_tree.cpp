@@ -215,3 +215,17 @@ void bv_tree::debug_dump(unsigned level) const
 		if (children[i].get())
 			children[i]->debug_dump(level + 1);
 }
+
+
+
+void bv_tree::collect_volumes_of_tree_depth(std::list<spheref>& volumes, unsigned depth) const
+{
+	if (depth == 0) {
+		volumes.push_back(volume);
+		return;
+	}
+	if (!is_leaf()) {
+		children[0]->collect_volumes_of_tree_depth(volumes, depth - 1);
+		children[1]->collect_volumes_of_tree_depth(volumes, depth - 1);
+	}
+}

@@ -76,7 +76,7 @@ void quadface(model::mesh* m, unsigned bv, float uscal, float vscal, bool out, i
 
 model::mesh* cube(float w, float l, float h, float uscal, float vscal, bool out, const string& name)
 {
-	model::mesh* m = new model::mesh();
+	model::mesh* m = new model::mesh("cube");
 	m->name = name;
 	m->vertices.resize(6*4);
 	m->indices.resize(6*2*3);
@@ -106,7 +106,7 @@ model::mesh* sphere(float radius, float height,
 {
 	if (slices < 3) slices = 3;
 	if (stacks < 2) stacks = 2;
-	model::mesh* m = new model::mesh();
+	model::mesh* m = new model::mesh("sphere");
 	m->name = name;
 
 	unsigned nrvert = 2+(stacks-1)*(slices+1);
@@ -191,7 +191,7 @@ model::mesh* cone(float r0, float r1, float h, unsigned rsegs,
 {
 	//fixme: out?, fixme cap map falsch, rest auch checken
 	if (rsegs < 3) rsegs = 3;
-	model::mesh* m = new model::mesh();
+	model::mesh* m = new model::mesh("cone");
 	m->name = name;
 
 	unsigned nrvert = 2*(rsegs+1);
@@ -276,7 +276,7 @@ model::mesh* torus(float outerr, float innerr, unsigned outerrsegs,
 {
 	if (outerrsegs < 3) outerrsegs = 3;
 	if (innerrsegs < 3) innerrsegs = 3;
-	model::mesh* m = new model::mesh();
+	model::mesh* m = new model::mesh("torus");
 	m->name = name;
 	unsigned nrvert = (outerrsegs+1)*(innerrsegs+1);
 	m->vertices.resize(nrvert);
@@ -332,7 +332,7 @@ model::mesh* heightfield(unsigned resx, unsigned resy, const vector<Uint8>& heig
 			     const string& name)
 {
 	if (resx < 2 || resy < 2 || heights.size() != resx*resy) return 0;
-	model::mesh* m = new model::mesh();
+	model::mesh* m = new model::mesh("heightfield");
 	m->name = name;
 	unsigned nrvert = resx*resy;
 	m->vertices.resize(nrvert);

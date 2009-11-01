@@ -218,7 +218,7 @@ public:
 		void compute_normals();
 		bool compute_tangentx(unsigned i0, unsigned i1, unsigned i2);
 
-		mesh(const std::string& nm = "Unnamed mesh");
+		mesh(const std::string& nm);
 
 		/// create mesh from height map - around world origin
 		///@param w - width of 2d field's data values
@@ -274,6 +274,7 @@ public:
 		void (model::mesh::*get_triangle_ptr) (unsigned triangle, Uint32 indices[3]) const;
 
 	private:
+		mesh();
 		mesh(const mesh& );
 		mesh& operator= (const mesh& );
 	};

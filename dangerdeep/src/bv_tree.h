@@ -69,6 +69,7 @@ class bv_tree
 	void compute_min_max(vector3f& minv, vector3f& maxv) const;
 	void debug_dump(unsigned level = 0) const;
 	const spheref& get_sphere() const { return volume; }
+	void collect_volumes_of_tree_depth(std::list<spheref>& volumes, unsigned depth) const;
 
  protected:
 	spheref volume;
