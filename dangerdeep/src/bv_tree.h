@@ -46,18 +46,25 @@ class bv_tree
 		vector3f get_center(const std::vector<vector3f>& vertices) const { return (get_pos(vertices, 0) + get_pos(vertices, 1) + get_pos(vertices, 2)) * (1.f/3); }
 	};
 
+	/// parameters for collision
+	struct param
+	{
+		bv_tree& tree;
+		const std::vector<vector3f>& vertices;
+		const matrix4f& transform;
+		param(bv_tree& t, const std::vector<vector3f>& v, const matrix4f& m)
+			: tree(t), vertices(v), transform(m) {}
+		param children(unsigned i) const {
+			return param(*tree.children[i], vertices, transform);
+		}
+	};
+
 	bv_tree(const spheref& sph, const leaf_data& ld)
 		: volume(sph), leafdata(ld) {}
 	bv_tree(const spheref& sph, std::auto_ptr<bv_tree> left_tree, std::auto_ptr<bv_tree> right_tree);
 	static std::auto_ptr<bv_tree> create(const std::vector<vector3f>& vertices, std::list<leaf_data>& nodes);
 	bool is_inside(const vector3f& v) const;
-	bool collides(const std::vector<vector3f>& vertices,
-		      const bv_tree& other, const std::vector<vector3f>& other_vertices,
-		      std::list<vector3f>& contact_points) const;
-	bool collides(const std::vector<vector3f>& vertices,
-		      const bv_tree& other, const std::vector<vector3f>& other_vertices,
-		      std::list<vector3f>& contact_points,
-		      const matrix4f& transform, const matrix4f& other_transform) const;
+	static bool collides(const param& p0, const param& p1, std::list<vector3f>& contact_points);
 	void transform(const matrix4f& mat);
 	void compute_min_max(vector3f& minv, vector3f& maxv) const;
 	void debug_dump(unsigned level = 0) const;
