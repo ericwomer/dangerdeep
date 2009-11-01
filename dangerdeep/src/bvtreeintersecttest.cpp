@@ -34,6 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <SDL.h>
 #include "oglext/OglExt.h"
 #include "shader.h"
+#include "make_mesh.h"
 #include "mymain.cpp"
 
 using std::vector;
@@ -102,6 +103,7 @@ int mymain(list<string>& args)
 	bool move_not_rotate = true;
 	unsigned axis = 0;
 	bool intersects = false;
+	bool render_spheres = false;
 
 	// hier laufen lassen
 	for (bool doquit = false; !doquit; ) {
@@ -133,6 +135,9 @@ int mymain(list<string>& args)
 					break;
 				case SDLK_z:
 					axis = 2;
+					break;
+				case SDLK_s:
+					render_spheres = !render_spheres;
 					break;
 				default: break;
 				}
@@ -188,6 +193,30 @@ int mymain(list<string>& args)
 		glRotatef(viewangles.x, 1, 0, 0);
 		modelA->display();
 		modelB->display();
+
+		if (render_spheres) {
+			bv_tree& b0 = *modelA->get_base_mesh().bounding_volume_tree;
+			bv_tree& b1 = *modelA->get_base_mesh().bounding_volume_tree;
+			model::mesh* msp0 = make_mesh::sphere(b0.get_sphere().radius, 2*b0.get_sphere().radius);
+			model::mesh* msp1 = make_mesh::sphere(b1.get_sphere().radius, 2*b1.get_sphere().radius);
+			msp0->compile();
+			msp1->compile();
+			msp0->transformation = modelA->get_base_mesh().transformation;
+			msp1->transformation = modelB->get_base_mesh().transformation;
+			//msp->transformation.to_stream(std::cout);
+			//std::cout << "radius: " << b.get_sphere().radius << " center " << b.get_sphere().center << "\n";
+			msp0->mymaterial = new model::material("mat");
+			msp1->mymaterial = new model::material("mat");
+			msp0->mymaterial->diffuse = color(255, 255, 255, 128);
+			msp1->mymaterial->diffuse = color(128,  32,  32, 128);
+			msp0->display();
+			msp1->display();
+			delete msp0->mymaterial;
+			delete msp1->mymaterial;
+			delete msp0;
+			delete msp1;
+		}
+		
 		sys().swap_buffers();
 	}
 
