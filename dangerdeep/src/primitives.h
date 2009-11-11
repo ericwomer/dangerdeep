@@ -69,10 +69,10 @@ class primitive_col
 	primitive_col(int type_) : type(type_) {}
 	void render_plain() {
 		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glColorPointer(4, GL_UNSIGNED_BYTE, 0, &colors[0]);
+		glVertexAttribPointer(glsl_shader_setup::idx_c_color, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, &colors[0]);
+		glEnableVertexAttribArray(glsl_shader_setup::idx_c_color);
 		glDrawArrays(type, 0, size);
-		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableVertexAttribArray(glsl_shader_setup::idx_c_color);
 	}
 	void render() {
 		glsl_shader_setup::default_col->use();
@@ -123,10 +123,10 @@ class primitive_coltex
 		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glColorPointer(4, GL_UNSIGNED_BYTE, 0, &colors[0]);
+		glVertexAttribPointer(glsl_shader_setup::idx_ct_color, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, &colors[0]);
+		glEnableVertexAttribArray(glsl_shader_setup::idx_ct_color);
 		glDrawArrays(type, 0, size);
-		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableVertexAttribArray(glsl_shader_setup::idx_ct_color);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 	void render() {

@@ -22,6 +22,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "primitives.h"
 
+// this class is a bit pointless, can't be used with default shaders...
+
 primitives_plain::primitives_plain(int type_, unsigned size, bool with_colors, bool with_tex)
 	: type(type_),
 	  vertices(size)
@@ -93,6 +95,7 @@ void primitives::render()
 			glsl_shader_setup::default_opaque->set_uniform(glsl_shader_setup::loc_o_color, col);
 		} else {
 			glEnableClientState(GL_COLOR_ARRAY);
+	//fixme vertex attrib pointer here!
 			glColorPointer(4, GL_UNSIGNED_BYTE, 0, &colors[0]);
 			glsl_shader_setup::default_col->use();
 		}
@@ -105,6 +108,7 @@ void primitives::render()
 			glsl_shader_setup::default_tex->set_gl_texture(*tex, glsl_shader_setup::loc_t_tex, 0);
 		} else {
 			glsl_shader_setup::default_coltex->use();
+	//fixme vertex attrib pointer here! for colors
 			glsl_shader_setup::default_coltex->set_gl_texture(*tex, glsl_shader_setup::loc_ct_tex, 0);
 		}
 	}

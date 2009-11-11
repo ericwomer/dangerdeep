@@ -236,9 +236,11 @@ class glsl_shader_setup
 	static std::auto_ptr<glsl_shader_setup> default_tex;
 	static std::auto_ptr<glsl_shader_setup> default_coltex;
 	static unsigned loc_o_color;
+	static unsigned idx_c_color;
 	static unsigned loc_t_tex;
 	static unsigned loc_t_color;
 	static unsigned loc_ct_tex;
+	static unsigned idx_ct_color;
 	static void default_init();
 	static void default_deinit();
 

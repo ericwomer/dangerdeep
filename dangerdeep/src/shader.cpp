@@ -51,9 +51,11 @@ std::auto_ptr<glsl_shader_setup> glsl_shader_setup::default_col;
 std::auto_ptr<glsl_shader_setup> glsl_shader_setup::default_tex;
 std::auto_ptr<glsl_shader_setup> glsl_shader_setup::default_coltex;
 unsigned glsl_shader_setup::loc_o_color = 0;
+unsigned glsl_shader_setup::idx_c_color = 0;
 unsigned glsl_shader_setup::loc_t_tex = 0;
 unsigned glsl_shader_setup::loc_t_color = 0;
 unsigned glsl_shader_setup::loc_ct_tex = 0;
+unsigned glsl_shader_setup::idx_ct_color = 0;
 
 void glsl_shader_setup::default_init()
 {
@@ -64,6 +66,7 @@ void glsl_shader_setup::default_init()
 		"varying vec2 texcoord;\n"
 		"#endif\n"
 		"#ifdef USE_COL\n"
+		"attribute vec4 vcolor;\n"
 		"varying vec4 color;\n"
 		"#endif\n"
 		"void main(){\n"
@@ -71,7 +74,7 @@ void glsl_shader_setup::default_init()
 		"texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;\n"
 		"#endif\n"
 		"#ifdef USE_COL\n"
-		"color = gl_Color;\n"
+		"color = vcolor;\n"
 		"#endif\n"
 		"gl_Position = ftransform();\n"
 		"}\n";
@@ -97,19 +100,27 @@ void glsl_shader_setup::default_init()
 	std::string fss(fs);
 	glsl_shader::defines_list dl;
 
+	// fixme: which index is returned for gl_Position?
+	// if we don't use gl_Position in shaders, but use our own vertex
+	// attrib for positions, does the gl2 driver handles this efficiently,
+	// i.e. without interpolating the gl_Position additionally?
+
 	default_opaque.reset(new glsl_shader_setup(vss, fss, dl, true));
 	default_opaque->use();
 	loc_o_color = default_opaque->get_uniform_location("color");
 
 	dl.push_back("USE_COL");
 	default_col.reset(new glsl_shader_setup(vss, fss, dl, true));
+	default_col->use();
+	idx_c_color = default_col->get_vertex_attrib_index("vcolor");
 
 	dl.push_back("USE_TEX");
 	default_coltex.reset(new glsl_shader_setup(vss, fss, dl, true));
 	default_coltex->use();
 	loc_ct_tex = default_coltex->get_uniform_location("tex");
+	idx_ct_color = default_coltex->get_vertex_attrib_index("vcolor");
 
-	dl.pop_front();
+	dl.pop_front(); // remove "USE_COL"
 	default_tex.reset(new glsl_shader_setup(vss, fss, dl, true));
 	default_tex->use();
 	loc_t_color = default_tex->get_uniform_location("color");

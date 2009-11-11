@@ -319,17 +319,17 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	glScaled(scale, scale, scale);
 
 	// render sky
-	glEnableClientState(GL_COLOR_ARRAY);
+	glsl_shader_setup::default_col->use();
 	sky_colors.bind();
-	glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0);
+	glVertexAttribPointer(glsl_shader_setup::idx_c_color, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, 0);
+	glEnableVertexAttribArray(glsl_shader_setup::idx_c_color);
 	sky_vertices.bind();
 	glVertexPointer(3, GL_FLOAT, sizeof(vector3f), 0);
 	sky_vertices.unbind();
 	sky_indices.bind();
-	glsl_shader_setup::default_col->use();
 	glDrawRangeElements(GL_QUAD_STRIP, 0, nr_sky_vertices-1, nr_sky_indices, GL_UNSIGNED_INT, 0);
 	sky_indices.unbind();
-	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableVertexAttribArray(glsl_shader_setup::idx_c_color);
 
 	glPopMatrix(); // sky scale
 

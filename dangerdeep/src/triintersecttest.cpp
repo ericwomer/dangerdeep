@@ -82,14 +82,6 @@ int mymain(list<string>& args)
 		triab[i].y = rnd()*2-1;
 		triab[i].z = rnd()*2-1;
 	}
-	/*
-	triab[0] = vector3f(0,0,0);
-	triab[1] = vector3f(1,0,0);
-	triab[2] = vector3f(0,1,0);
-	triab[3] = vector3f(1,0,0);
-	triab[4] = vector3f(1,1,0);
-	triab[5] = vector3f(0,1,0);
-	*/
 	bool intersects = false;
 	unsigned tria_or_b = 0;
 	unsigned vn = 0;
@@ -166,20 +158,24 @@ int mymain(list<string>& args)
 		glRotatef(viewangles.z, 0, 0, 1);
 		glRotatef(viewangles.y, 0, 1, 0);
 		glRotatef(viewangles.x, 1, 0, 0);
-		glBegin(GL_TRIANGLES);
-		glColor3f(0, 1, 0);
-		glVertex3fv(&triab[0].x);
-		glColor3f(0, 1, 0.5);
-		glVertex3fv(&triab[1].x);
-		glColor3f(0, 1, 1);
-		glVertex3fv(&triab[2].x);
-		glColor3f(1, 1, 0);
-		glVertex3fv(&triab[3].x);
-		glColor3f(1, 0.75, 0);
-		glVertex3fv(&triab[4].x);
-		glColor3f(1, 0.5, 0);
-		glVertex3fv(&triab[5].x);
-		glEnd();
+		float tmp[6*8];
+		for (unsigned i = 0; i < 6; ++i) {
+			tmp[i*8+0] = triab[i].x;
+			tmp[i*8+1] = triab[i].y;
+			tmp[i*8+2] = triab[i].z;
+		}
+		colorf(0, 1, 0).store_rgba(tmp + 0*8 + 4);
+		colorf(0, 1, 0.5).store_rgba(tmp + 1*8 + 4);
+		colorf(0, 1, 1).store_rgba(tmp + 2*8 + 4);
+		colorf(1, 1, 0).store_rgba(tmp + 3*8 + 4);
+		colorf(1, 0.75, 0).store_rgba(tmp + 4*8 + 4);
+		colorf(1, 0.5, 0).store_rgba(tmp + 5*8 + 4);
+		glsl_shader_setup::default_col->use();
+		glVertexPointer(3, GL_FLOAT, sizeof(float)*8, tmp);
+		glVertexAttribPointer(glsl_shader_setup::idx_c_color, 4, GL_FLOAT, GL_FALSE, sizeof(float)*8, tmp+4);
+		glEnableVertexAttribArray(glsl_shader_setup::idx_c_color);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDisableVertexAttribArray(glsl_shader_setup::idx_c_color);
 		sys().swap_buffers();
 	}
 
