@@ -269,6 +269,9 @@ public:
 		void set_indices_type(primitive_type pt);
 		primitive_type get_indices_type() const { return indices_type; }
 
+		/// slow intersection test on triangle-triangle tests
+		bool intersects(const mesh& other) const;
+
 	protected:
 		primitive_type indices_type;
 		void (model::mesh::*get_triangle_ptr) (unsigned triangle, Uint32 indices[3]) const;

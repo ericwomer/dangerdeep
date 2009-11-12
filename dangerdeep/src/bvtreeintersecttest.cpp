@@ -104,6 +104,7 @@ int mymain(list<string>& args)
 	bool move_not_rotate = true;
 	unsigned axis = 0;
 	bool intersects = false;
+	bool intersects_tri = false;
 	bool render_spheres = false;
 	unsigned splevel = 0;
 
@@ -182,7 +183,8 @@ int mymain(list<string>& args)
 					bv_tree::param p1(*mB.bounding_volume_tree, mB.vertices, mB.transformation);
 					std::list<vector3f> contact_points;
 					intersects = bv_tree::collides(p0, p1, contact_points);
-					//fixme make check tri-tri of all combinations as error test
+					//fixme only when flag active, too slow else
+					intersects_tri = mA.intersects(mB);
 				} else if (event.motion.state & SDL_BUTTON_LMASK) {
 					viewangles.x += event.motion.xrel;
 					viewangles.y += event.motion.yrel;
@@ -193,10 +195,19 @@ int mymain(list<string>& args)
 			}
 		}
 
-		if (intersects)
-			glClearColor(1.0, 0.2, 0.2, 0.0);
-		else
-			glClearColor(0.2, 0.2, 1.0, 0.0);
+		if (intersects) {
+			if (intersects_tri) {
+				glClearColor(1.0, 0.2, 0.2, 0.0);
+			} else {
+				glClearColor(1.0, 0.8, 0.2, 0.0);
+			}
+		} else {
+			if (intersects_tri) {
+				glClearColor(0.2, 0.8, 1.0, 0.0);
+			} else {
+				glClearColor(0.2, 0.2, 1.0, 0.0);
+			}
+		}
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		glLoadIdentity();
 		glTranslated(-pos.x, -pos.y, -pos.z);

@@ -38,6 +38,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "binstream.h"
 #include "xml.h"
 #include "log.h"
+#include "triangle_collision.h"
 #include <sstream>
 #include <map>
 
@@ -799,6 +800,34 @@ void model::mesh::set_indices_type(primitive_type pt)
 		return;
 	}
 	indices_type = pt;
+}
+
+
+
+bool model::mesh::intersects(const mesh& other) const
+{
+	// we need to handle transformation of meshes.
+	// compare transformed vertices: T * v == o.T * o.v
+	// equivalent to o.T^-1 * T * v == o.v
+	matrix4f compare_transform = other.transformation.inverse() * transformation;
+	std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+	do {
+		const vector3f& v0_ = vertices[tit->i0()];
+		const vector3f& v1_ = vertices[tit->i1()];
+		const vector3f& v2_ = vertices[tit->i2()];
+		vector3f v0 = compare_transform * v0_;
+		vector3f v1 = compare_transform * v1_;
+		vector3f v2 = compare_transform * v2_;
+		std::auto_ptr<triangle_iterator> otit(other.get_tri_iterator());
+		do {
+			const vector3f& v3 = other.vertices[otit->i0()];
+			const vector3f& v4 = other.vertices[otit->i1()];
+			const vector3f& v5 = other.vertices[otit->i2()];
+			if (triangle_collisionf::compute(v0, v1, v2, v3, v4, v5))
+				return true;
+		} while (otit->next());
+	} while (tit->next());
+	return false;
 }
 
 
