@@ -508,9 +508,8 @@ void model::mesh::compute_vertex_bounds()
 void model::mesh::compute_bounds(vector3f& totmin, vector3f& totmax, const matrix4f& transmat)
 {
 	if (vertices.size() == 0) return;
-	matrix4f mytransmat = transmat * transformation;
 	for (vector<vector3f>::iterator it2 = vertices.begin(); it2 != vertices.end(); ++it2) {
-		vector3f tmp = mytransmat * *it2;
+		vector3f tmp = transmat * *it2;
 		totmin = tmp.min(totmin);
 		totmax = tmp.max(totmax);
 	}
@@ -648,7 +647,6 @@ bool model::mesh::compute_tangentx(unsigned i0, unsigned i1, unsigned i2)
 
 model::mesh::mesh(const string& nm)
 	: name(nm),
-	  transformation(matrix4f::one()),
 	  mymaterial(0),
 	  vbo_positions(false),
 	  vbo_normals(false),
@@ -669,7 +667,6 @@ model::mesh::mesh(unsigned w, unsigned h, const std::vector<float>& heights, con
 		  const vector3f& trans,
 		  const std::string& nm)
 	: name(nm),
-	  transformation(matrix4f::one()),
 	  mymaterial(0),
 	  vbo_positions(false),
 	  vbo_normals(false),
@@ -804,20 +801,19 @@ void model::mesh::set_indices_type(primitive_type pt)
 
 
 
-bool model::mesh::intersects(const mesh& other) const
+bool model::mesh::intersects(const mesh& other, const matrix4f& transformation_this_to_other) const
 {
 	// we need to handle transformation of meshes.
 	// compare transformed vertices: T * v == o.T * o.v
-	// equivalent to o.T^-1 * T * v == o.v
-	matrix4f compare_transform = other.transformation.inverse() * transformation;
+	// equivalent to v == T^-1 * o.T * o.v
 	std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
 	do {
 		const vector3f& v0_ = vertices[tit->i0()];
 		const vector3f& v1_ = vertices[tit->i1()];
 		const vector3f& v2_ = vertices[tit->i2()];
-		vector3f v0 = compare_transform * v0_;
-		vector3f v1 = compare_transform * v1_;
-		vector3f v2 = compare_transform * v2_;
+		vector3f v0 = transformation_this_to_other * v0_;
+		vector3f v1 = transformation_this_to_other * v1_;
+		vector3f v2 = transformation_this_to_other * v2_;
 		std::auto_ptr<triangle_iterator> otit(other.get_tri_iterator());
 		do {
 			const vector3f& v3 = other.vertices[otit->i0()];
@@ -929,7 +925,6 @@ pair<model::mesh*, model::mesh*> model::mesh::split(const vector3f& abc, float d
 	model::mesh* part1 = new model::mesh("split1");
 	part0->name = name + "_part0";
 	part1->name = name + "_part1";
-	part0->transformation = part1->transformation = transformation;
 	part0->mymaterial = part1->mymaterial = mymaterial;
 	part0->vertices.reserve(vertices.size()/2);
 	part1->vertices.reserve(vertices.size()/2);
@@ -1696,10 +1691,6 @@ void model::mesh::display(const texture *caustic_map) const
 							       colorf(1,1,1,1));
 	}
 
-	// local transformation matrix.
-	glPushMatrix();
-	transformation.multiply_glf();
-
 	bool has_texture_u0 = false, has_texture_u1 = false;
 	if (mymaterial != 0) {
 		has_texture_u0 = mymaterial->needs_texcoords();
@@ -1758,9 +1749,6 @@ void model::mesh::display(const texture *caustic_map) const
 		glEnable(GL_CULL_FACE);
 	}
 	
-	// local transformation matrix.
-	glPopMatrix();
-
 	// clean up for material
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
@@ -1770,9 +1758,6 @@ void model::mesh::display(const texture *caustic_map) const
 void model::mesh::display_mirror_clip() const
 {
 	// matrix mode is GL_MODELVIEW and active texture is GL_TEXTURE1 here
-	glPushMatrix();
-	transformation.multiply_glf();
-
 	bool has_texture_u0 = false;
 	if (mymaterial != 0) {
 		has_texture_u0 = mymaterial->needs_texcoords();
@@ -1808,8 +1793,6 @@ void model::mesh::display_mirror_clip() const
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);	// disable tex0
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glPopMatrix();
 }
 
 
@@ -2088,6 +2071,7 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 	xml_doc doc(filename);
 	xml_elem root = doc.add_child("dftd-model");
 	root.set_attr(1.1f, "version");//fixme: write relations too and increase to 1.2
+	//fixme: mesh transformations are obsolete since 1.3, update to 1.3!
 
 	// save materials.
 	unsigned nr = 0;
@@ -2204,16 +2188,6 @@ void model::write_to_dftd_model_file(const std::string& filename, bool store_nor
 			}
 			nrmls.add_child_text(ossn.str());
 		}
-
-		// transformation.
-		xml_elem trans = msh.add_child("transformation");
-		ostringstream osst;
-		for (unsigned y = 0; y < 4; ++y) {
-			for (unsigned x = 0; x < 4; ++x) {
-				osst << mp->transformation.elem(x, y) << " ";
-			}
-		}
-		trans.add_child_text(osst.str());
 	}
 
 	// finally save file.
@@ -2499,17 +2473,6 @@ void model::read_dftd_model_file(const std::string& filename)
 					msh->normals.push_back(vector3f(x, y, z));
 				}
 			}
-
-			// transformation
-			if (e.has_child("transformation")) {
-				values = e.child("transformation").child_text();
-				istringstream isst(values);
-				for (unsigned y = 0; y < 4; ++y) {
-					for (unsigned x = 0; x < 4; ++x) {
-						isst >> msh->transformation.elem(x, y);
-					}
-				}
-			}
 		} else if (etype == "objecttree") {
 			++nr_of_objecttrees;
 			if (nr_of_objecttrees > 1)
@@ -2697,7 +2660,7 @@ matrix4f model::get_base_mesh_transformation() const
 {
 	if (scene.children.empty())
 		return matrix4f::one();
-	return scene.children.front().get_transformation() * scene.children.front().mymesh->transformation;
+	return scene.children.front().get_transformation();
 }
 
 

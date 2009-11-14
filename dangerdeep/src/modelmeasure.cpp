@@ -450,7 +450,6 @@ int mymain(list<string>& args)
 		glTranslated(-mmin.y, -mmin.z, 0);
 		glRotated(-90.0, 0, 1, 0);
 		glRotated(-90.0, 1, 0, 0);
-		mdl->get_base_mesh().transformation.inverse().multiply_gl();
 		glClear(GL_COLOR_BUFFER_BIT);
 		mdl->get_base_mesh().display();
 		sys().swap_buffers();

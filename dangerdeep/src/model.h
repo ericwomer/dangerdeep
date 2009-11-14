@@ -42,15 +42,18 @@ class xml_elem;
 #define DFTD_MAX_TEXTURE_UNITS 8
 
 ///\brief Handles a 3D model, it's animation and OpenGL based rendering and display.
-class model {
+class model
+{
 public:
 	typedef std::auto_ptr<model> ptr;
 
-	class material {
+	class material
+	{
 		material(const material& );
 		material& operator= (const material& );
 	public:
-		class map {
+		class map
+		{
 			map(const map& );
 			map& operator= (const map& );
 		public:
@@ -194,7 +197,6 @@ public:
 		// save fetching the colors to the vertex shader and thus spare memory bandwidth.
 		std::vector<Uint8> righthanded;	// a vector of bools. takes more space than a bitvector, but faster access.
 		std::vector<Uint32> indices;	// 3 indices per face
-		matrix4f transformation;	// rot., transl., scaling
 		material* mymaterial;
 		vector3f min, max;
 		// OpenGL VBOs for the data
@@ -270,7 +272,7 @@ public:
 		primitive_type get_indices_type() const { return indices_type; }
 
 		/// slow intersection test on triangle-triangle tests
-		bool intersects(const mesh& other) const;
+		bool intersects(const mesh& other, const matrix4f& transformation_this_to_other) const;
 
 	protected:
 		primitive_type indices_type;
@@ -311,7 +313,8 @@ public:
 
 protected:	
 	// a 3d object, references meshes
-	struct object {
+	struct object
+	{
 		unsigned id;
 		std::string name;
 		mesh* mymesh;
@@ -430,6 +433,8 @@ public:
 	~model();
 	static const std::string default_layout;
 	void set_layout(const std::string& layout = default_layout);
+	// extend method by matrix4(f) for additional transformation, to avoid
+	// that the user has to du glPushMatrix/manipulate/glPopMatrix
 	void display(const texture *caustic_map = 0) const;
 	/** display model but clip away coords with z < 0 in world space.
 	    @note! set up texture matrix for unit 1 so that it contains

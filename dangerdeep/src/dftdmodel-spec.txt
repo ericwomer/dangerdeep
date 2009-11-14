@@ -37,7 +37,6 @@ dftd-model
 |     +----indices
 |     +----texcoords ?
 |     +----normals ?
-|     +----transformation ?
 |
 +---light * ?
 |
@@ -130,8 +129,8 @@ Attributes:
 (int) id - unique id, used as reference from the object tree.
 (int) material - material id to use for this mesh
 
-Children: vertices, indices (both mandatory), texcoords, normals,
-transformation (each optional)
+Children: vertices, indices (both mandatory), texcoords, normals
+(each optional)
 
 
 Node: vertices
@@ -177,18 +176,6 @@ none
 
 Sub-text-node:
 (list of triple of float) data
-
-
-Node: transformation
-====================
-Transformation matrix for vertices. Optional.  Sixteen floats in the
-following order: row after row, four float values each.
-
-Attributes:
-none
-
-Sub-text-node:
-(sixteen floats) data
 
 
 Node: light
@@ -322,11 +309,6 @@ can there be no maps? yes...
        ...endless line of floats, divided by (white)spaces, 3x nr of vertices in number.
     </normals>
 
-    <transformation>
-       ...sixteen floats, forming a transformation matrix for this mesh.
-       order is 4x float for first row, 4x float for second row...
-    </transformation>
-
   </mesh>
 
 --> Lights:
@@ -346,3 +328,5 @@ Changes for Version:
      Shininess of material can be given now.
 
 1.2: added node objecttree
+
+1.3: removed transformation nodes as child from mesh node. Deprecated/obsolete.

@@ -107,6 +107,9 @@ int mymain(list<string>& args)
 	bool intersects_tri = false;
 	bool render_spheres = false;
 	unsigned splevel = 0;
+	matrix4f transformA = matrix4f::one();
+	matrix4f transformB = matrix4f::one();
+	matrix4f* curr_transform = &transformA;
 
 	// hier laufen lassen
 	for (bool doquit = false; !doquit; ) {
@@ -120,9 +123,11 @@ int mymain(list<string>& args)
 					break;
 				case SDLK_a:
 					curr_model = modelA.get();
+					curr_transform = &transformA;
 					break;
 				case SDLK_b:
 					curr_model = modelB.get();
+					curr_transform = &transformB;
 					break;
 				case SDLK_m:
 					move_not_rotate = true;
@@ -174,17 +179,19 @@ int mymain(list<string>& args)
 							break;
 						}
 					}
-					matrix4f& mt = curr_model->get_base_mesh().transformation;
-					mt = transf * mt;
+					*curr_transform = transf * *curr_transform;
+					matrix4f transA = transformA * modelA->get_base_mesh_transformation();
+					matrix4f transB = transformB * modelB->get_base_mesh_transformation();
 					model::mesh& mA = modelA->get_base_mesh();
 					model::mesh& mB = modelB->get_base_mesh();
-					// fixme: handle model-object-transformation
-					bv_tree::param p0(*mA.bounding_volume_tree, mA.vertices, mA.transformation);
-					bv_tree::param p1(*mB.bounding_volume_tree, mB.vertices, mB.transformation);
+					// here we transform in world space
+					bv_tree::param p0(*mA.bounding_volume_tree, mA.vertices, transA);
+					bv_tree::param p1(*mB.bounding_volume_tree, mB.vertices, transB);
 					std::list<vector3f> contact_points;
 					intersects = bv_tree::collides(p0, p1, contact_points);
 					//fixme only when flag active, too slow else
-					intersects_tri = mA.intersects(mB);
+					matrix4f transformAtoB = transB.inverse() * transA;
+					intersects_tri = mA.intersects(mB, transformAtoB);
 				} else if (event.motion.state & SDL_BUTTON_LMASK) {
 					viewangles.x += event.motion.xrel;
 					viewangles.y += event.motion.yrel;
@@ -214,8 +221,15 @@ int mymain(list<string>& args)
 		glRotatef(viewangles.z, 0, 0, 1);
 		glRotatef(viewangles.y, 0, 1, 0);
 		glRotatef(viewangles.x, 1, 0, 0);
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		transformA.multiply_gl();
 		modelA->display();
+		glPopMatrix();
+		glPushMatrix();
+		transformB.multiply_gl();
 		modelB->display();
+		glPopMatrix();
 
 		if (render_spheres) {
 			std::list<spheref> volumesA, volumesB;
@@ -235,9 +249,11 @@ int mymain(list<string>& args)
 				spheresA.reset(k, make_mesh::sphere(it->radius, 2*it->radius));
 				spheresA[k]->transform(matrix4f::trans(it->center));
 				spheresA[k]->compile();
-				spheresA[k]->transformation = modelA->get_base_mesh().transformation;
+				glPushMatrix();
+				(transformA * modelA->get_base_mesh_transformation()).multiply_gl();
 				spheresA[k]->mymaterial = mat0.get();
 				spheresA[k]->display();
+				glPopMatrix();
 				++k;
 			}
 			k = 0;
@@ -245,9 +261,11 @@ int mymain(list<string>& args)
 				spheresB.reset(k, make_mesh::sphere(it->radius, 2*it->radius));
 				spheresB[k]->transform(matrix4f::trans(it->center));
 				spheresB[k]->compile();
-				spheresB[k]->transformation = modelB->get_base_mesh().transformation;
+				glPushMatrix();
+				(transformB * modelB->get_base_mesh_transformation()).multiply_gl();
 				spheresB[k]->mymaterial = mat1.get();
 				spheresB[k]->display();
+				glPopMatrix();
 				++k;
 			}
 		}
