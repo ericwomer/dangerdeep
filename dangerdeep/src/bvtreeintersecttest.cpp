@@ -110,6 +110,7 @@ int mymain(list<string>& args)
 	matrix4f transformA = matrix4f::one();
 	matrix4f transformB = matrix4f::one();
 	matrix4f* curr_transform = &transformA;
+	bool check_tri_tri = false;
 
 	// hier laufen lassen
 	for (bool doquit = false; !doquit; ) {
@@ -157,6 +158,10 @@ int mymain(list<string>& args)
 				case SDLK_3:
 					splevel = 0;
 					break;
+				case SDLK_t:
+					check_tri_tri = !check_tri_tri;
+					intersects_tri = false;
+					break;
 				default: break;
 				}
 			} else if (event.type == SDL_MOUSEMOTION) {
@@ -189,9 +194,10 @@ int mymain(list<string>& args)
 					bv_tree::param p1(*mB.bounding_volume_tree, mB.vertices, transB);
 					std::list<vector3f> contact_points;
 					intersects = bv_tree::collides(p0, p1, contact_points);
-					//fixme only when flag active, too slow else
-					matrix4f transformAtoB = transB.inverse() * transA;
-					intersects_tri = mA.intersects(mB, transformAtoB);
+					if (check_tri_tri) {
+						matrix4f transformAtoB = transB.inverse() * transA;
+						intersects_tri = mA.intersects(mB, transformAtoB);
+					}
 				} else if (event.motion.state & SDL_BUTTON_LMASK) {
 					viewangles.x += event.motion.xrel;
 					viewangles.y += event.motion.yrel;

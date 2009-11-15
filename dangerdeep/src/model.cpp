@@ -807,22 +807,43 @@ bool model::mesh::intersects(const mesh& other, const matrix4f& transformation_t
 	// compare transformed vertices: T * v == o.T * o.v
 	// equivalent to v == T^-1 * o.T * o.v
 	std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+	//std::cout << "check intersection\n";
 	do {
 		const vector3f& v0_ = vertices[tit->i0()];
 		const vector3f& v1_ = vertices[tit->i1()];
 		const vector3f& v2_ = vertices[tit->i2()];
-		vector3f v0 = transformation_this_to_other * v0_;
-		vector3f v1 = transformation_this_to_other * v1_;
-		vector3f v2 = transformation_this_to_other * v2_;
-		std::auto_ptr<triangle_iterator> otit(other.get_tri_iterator());
-		do {
-			const vector3f& v3 = other.vertices[otit->i0()];
-			const vector3f& v4 = other.vertices[otit->i1()];
-			const vector3f& v5 = other.vertices[otit->i2()];
-			if (triangle_collisionf::compute(v0, v1, v2, v3, v4, v5))
-				return true;
-		} while (otit->next());
+		if (!is_degenerated(v0_, v1_, v2_)) {
+			vector3f v0 = transformation_this_to_other * v0_;
+			vector3f v1 = transformation_this_to_other * v1_;
+			vector3f v2 = transformation_this_to_other * v2_;
+			std::auto_ptr<triangle_iterator> otit(other.get_tri_iterator());
+			do {
+				const vector3f& v3 = other.vertices[otit->i0()];
+				const vector3f& v4 = other.vertices[otit->i1()];
+				const vector3f& v5 = other.vertices[otit->i2()];
+				if (!is_degenerated(v3, v4, v5)) {
+					if (triangle_collisionf::compute(v0, v1, v2, v3, v4, v5)) {
+						/*std::cout << "v0: " << v0 << "v1: " << v1 << "v2: " << v2 << "\n";
+						std::cout << "v3: " << v3 << "v4: " << v4 << "v5: " << v5 << "\n";
+						std::cout << "sqd " << v0.distance(v1) << "," << v0.distance(v2) << "," << v1.distance(v2) << "\n";
+						std::cout << "sqd " << v3.distance(v4) << "," << v3.distance(v5) << "," << v4.distance(v5) << "\n";*/
+						return true;
+					}
+				}
+			} while (otit->next());
+		}
 	} while (tit->next());
+	return false;
+}
+
+
+
+bool model::mesh::is_degenerated(const vector3f& v0, const vector3f& v1, const vector3f& v2, const float eps)
+{
+	float eps2 = eps * eps;
+	if (v0.square_distance(v1) < eps2) return true;
+	if (v0.square_distance(v2) < eps2) return true;
+	if (v1.square_distance(v2) < eps2) return true;
 	return false;
 }
 

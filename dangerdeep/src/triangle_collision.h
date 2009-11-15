@@ -27,17 +27,24 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector3.h"
 #include "vector2.h"
 
+//#define PRINT_TRICOL(x) std::cout << x
+#define PRINT_TRICOL(x) do { } while (0)
+
 /// an algorithm for computing triangle to triangle intersections
 template <class T>
 class triangle_collision_t
 {
  public:
+	// fixme: use bitwise and here, test if that is same code (disassemble!)
+	static bool is_null(T v, const T eps) { return (v > -eps) && (v < eps); }
+
 	static bool compute(const vector3t<T>& va0,
 			    const vector3t<T>& va1,
 			    const vector3t<T>& va2,
 			    const vector3t<T>& vb0,
 			    const vector3t<T>& vb1,
-			    const vector3t<T>& vb2)
+			    const vector3t<T>& vb2,
+			    const T eps = T(1e-5))
 	{
 		// To compute for intersection we have the two triangles as
 		// parametric form: P + a0 * p0 + a1 * p1
@@ -86,7 +93,9 @@ class triangle_collision_t
 		T dp2 = p0.x * p1.y - p1.x * p0.y;
 		T detAq0 = q0.x * dp0 - q0.y * dp1 + q0.z * dp2;
 		T detAq1 = q1.x * dp0 - q1.y * dp1 + q1.z * dp2;
-		if (detAq0 == nullT && detAq1 == nullT) {
+		//fixme: sometimes detAr is 0, other det's are close to 0, gives wrong positive result!
+		//we use || here not && to avoid such cases a bit
+		if (is_null(detAq0, eps) || is_null(detAq1, eps)) {
 			// either triangles are on parallel planes when detAr != 0
 			// or triangles are on the same plane
 			return false;
@@ -95,8 +104,8 @@ class triangle_collision_t
 		T b0 = - detAr * detAq0;
 		T b1 = - detAr * detAq1;
 		// fixme use bit-wise AND here, faster!
-		bool b0_legal = (b0 >= nullT) && (b0 <= detAq0*detAq0) && (detAq0 != nullT);
-		bool b1_legal = (b1 >= nullT) && (b1 <= detAq1*detAq1) && (detAq1 != nullT);
+		bool b0_legal = (b0 >= nullT) && (b0 <= detAq0*detAq0) && !is_null(detAq0, eps);
+		bool b1_legal = (b1 >= nullT) && (b1 <= detAq1*detAq1) && !is_null(detAq1, eps);
 
 		// this can be computed because of linearity of determinant computing
 		T detAq2 = detAq1 - detAq0;
@@ -147,8 +156,8 @@ class triangle_collision_t
 		T dx2 = d.x * d.x;
 		T dy2 = d.y * d.y;
 		// fixme: use bitwise and here
-		bool delta0_legal = (d.y != nullT) && (delta0 >= nullT) && (delta0 <= dy2);
-		bool delta1_legal = (d.x != nullT) && (delta1 >= nullT) && (delta1 <= dx2);
+		bool delta0_legal = !is_null(d.y, eps) && (delta0 >= nullT) && (delta0 <= dy2);
+		bool delta1_legal = !is_null(d.x, eps) && (delta1 >= nullT) && (delta1 <= dx2);
 		// there are either two deltas legal or none (if one of delta0, delta1 is
 		// legal we assume delta2 would be legal as well)
 		if (delta0_legal) {
@@ -156,14 +165,18 @@ class triangle_collision_t
 			if (delta1_legal) {
 				// this case is most common
 				T gamma1 = -t.x * d.x; // scaled by d.x^2
-				//printf("gamma0 1 %f %f dy2 x2 %f %f\n",gamma0,gamma1,dy2,dx2);
+				PRINT_TRICOL("gamma0="<<gamma0<<" gamma1="<<gamma1<<" dy2="<<dy2<<" dx2="<<dx2<<"\n");
+				PRINT_TRICOL("delta0="<<delta0<<" delta1="<<delta1<<" b0="<<b0<<" b1="<<b1<<"\n");
+				PRINT_TRICOL("p0: "<<p0<<" p1: "<<p1<<" q0: "<<q0<<" q1: "<<q1<<" det "<<detAr<<","<<detAq0<<","<<detAq1<<"\n");
 				return	((gamma0 >= nullT) && (gamma0 <= dy2)) ||
 					((gamma1 >= nullT) && (gamma1 <= dx2)) ||
 					gamma0 * gamma1 < 0;
 			} else {
 				T dxpdy = d.x + d.y;
 				T gamma2 = (T(1) - t.x - t.y) * dxpdy; // scaled by dxpdy^2
-				//printf("gamma0 2 %f %f dy2 dxpdy*dxpdy %f %f\n",gamma0,gamma2,dy2,dxpdy*dxpdy);
+				PRINT_TRICOL("gamma0="<<gamma0<<" gamma2="<<gamma2<<" dy2="<<dy2<<" dxpdy*dxpdy="<<dxpdy*dxpdy<<"\n");
+				PRINT_TRICOL("delta0="<<delta0<<" delta1="<<delta1<<" b0="<<b0<<" b1="<<b1<<"\n");
+				PRINT_TRICOL("p0: "<<p0<<" p1: "<<p1<<" q0: "<<q0<<" q1: "<<q1<<" det "<<detAr<<","<<detAq0<<","<<detAq1<<"\n");
 				return	((gamma0 >= nullT) && (gamma0 <= dy2)) ||
 					((gamma2 >= nullT) && (gamma2 <= dxpdy*dxpdy)) ||
 					gamma0 * gamma2 < 0;
@@ -172,7 +185,9 @@ class triangle_collision_t
 			T gamma1 = -t.x * d.x; // scaled by d.x^2
 			T dxpdy = d.x + d.y;
 			T gamma2 = (T(1) - t.x - t.y) * dxpdy; // scaled by dxpdy^2
-			//printf("d1l %i  gamma1 2 %f %f dx2 dxpdy*dxpdy %f %f\n",delta1_legal,gamma1,gamma2,dx2,dxpdy*dxpdy);
+			PRINT_TRICOL("gamma1="<<gamma1<<" gamma2="<<gamma2<<" dx2="<<dx2<<" dxpdy*dxpdy="<<dxpdy*dxpdy<<"\n");
+			PRINT_TRICOL("delta0="<<delta0<<" delta1="<<delta1<<" b0="<<b0<<" b1="<<b1<<"\n");
+			PRINT_TRICOL("p0: "<<p0<<" p1: "<<p1<<" q0: "<<q0<<" q1: "<<q1<<" det "<<detAr<<","<<detAq0<<","<<detAq1<<"\n");
 			return	((gamma1 >= nullT) && (gamma1 <= dx2)) ||
 				((gamma2 >= nullT) && (gamma2 <= dxpdy*dxpdy)) ||
 				gamma1 * gamma2 < 0;

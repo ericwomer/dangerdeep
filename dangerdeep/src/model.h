@@ -274,6 +274,9 @@ public:
 		/// slow intersection test on triangle-triangle tests
 		bool intersects(const mesh& other, const matrix4f& transformation_this_to_other) const;
 
+		/// check wether a triangle is degenerated
+		static bool is_degenerated(const vector3f& v0, const vector3f& v1, const vector3f& v2, const float eps = 1e-3f);
+
 	protected:
 		primitive_type indices_type;
 		void (model::mesh::*get_triangle_ptr) (unsigned triangle, Uint32 indices[3]) const;

@@ -152,6 +152,10 @@ bool bv_tree::collides(const param& p0, const param& p1, std::list<vector3f>& co
 			vector3f v3t = p1.transform.mul4vec3xlat(p1.vertices[p1.tree.leafdata.tri_idx[0]]);
 			vector3f v4t = p1.transform.mul4vec3xlat(p1.vertices[p1.tree.leafdata.tri_idx[1]]);
 			vector3f v5t = p1.transform.mul4vec3xlat(p1.vertices[p1.tree.leafdata.tri_idx[2]]);
+			// note that degenerated triangles would be a critical problem here, but
+			// they would have a bounding sphere of radius zero and thus we
+			// never would compare with them, so we don't need to check for them
+			// here.
 			//printf("leaf collision\n");
 			bool c = triangle_collision_t<float>::compute(v0t, v1t, v2t, v3t, v4t, v5t);
 			//if (c) printf("tri-tri coll\n");
