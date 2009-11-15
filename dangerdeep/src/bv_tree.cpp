@@ -133,8 +133,8 @@ bool bv_tree::collides(const param& p0, const param& p1, std::list<vector3f>& co
 	spheref transformed_volume0(p0.transform.mul4vec3xlat(p0.tree.volume.center), p0.tree.volume.radius);
 	spheref transformed_volume1(p1.transform.mul4vec3xlat(p1.tree.volume.center), p1.tree.volume.radius);
 	// hier von other was ausgeben
-	//printf("collision check hit THIS  volume=%f,%f,%f r=%f tri=%u\n",transformed_volume.center.x,transformed_volume.center.y,transformed_volume.center.z,transformed_volume.radius,triangle);
-	//printf("collision check hit OTHER volume=%f,%f,%f r=%f tri=%u\n",transformed_other_volume.center.x,transformed_other_volume.center.y,transformed_other_volume.center.z,transformed_other_volume.radius,other.triangle);
+	//printf("collision check hit THIS  volume=%f,%f,%f r=%f\n",transformed_volume0.center.x,transformed_volume0.center.y,transformed_volume0.center.z,transformed_volume0.radius);
+	//printf("collision check hit OTHER volume=%f,%f,%f r=%f\n",transformed_volume1.center.x,transformed_volume1.center.y,transformed_volume1.center.z,transformed_volume1.radius);
 	if (!transformed_volume0.intersects(transformed_volume1)) {
 		//printf("abort\n");
 		return false;

@@ -149,30 +149,35 @@ class triangle_collision_t
 		// fixme: use bitwise and here
 		bool delta0_legal = (d.y != nullT) && (delta0 >= nullT) && (delta0 <= dy2);
 		bool delta1_legal = (d.x != nullT) && (delta1 >= nullT) && (delta1 <= dx2);
+		// there are either two deltas legal or none (if one of delta0, delta1 is
+		// legal we assume delta2 would be legal as well)
 		if (delta0_legal) {
 			T gamma0 = -t.y * d.y; // scaled by d.y^2
 			if (delta1_legal) {
 				// this case is most common
 				T gamma1 = -t.x * d.x; // scaled by d.x^2
+				//printf("gamma0 1 %f %f dy2 x2 %f %f\n",gamma0,gamma1,dy2,dx2);
 				return	((gamma0 >= nullT) && (gamma0 <= dy2)) ||
 					((gamma1 >= nullT) && (gamma1 <= dx2)) ||
 					gamma0 * gamma1 < 0;
 			} else {
 				T dxpdy = d.x + d.y;
 				T gamma2 = (T(1) - t.x - t.y) * dxpdy; // scaled by dxpdy^2
+				//printf("gamma0 2 %f %f dy2 dxpdy*dxpdy %f %f\n",gamma0,gamma2,dy2,dxpdy*dxpdy);
 				return	((gamma0 >= nullT) && (gamma0 <= dy2)) ||
 					((gamma2 >= nullT) && (gamma2 <= dxpdy*dxpdy)) ||
 					gamma0 * gamma2 < 0;
 			}
-		} else {
-			// delta1 must be legal
+		} else if (delta1_legal) {
 			T gamma1 = -t.x * d.x; // scaled by d.x^2
 			T dxpdy = d.x + d.y;
 			T gamma2 = (T(1) - t.x - t.y) * dxpdy; // scaled by dxpdy^2
+			//printf("d1l %i  gamma1 2 %f %f dx2 dxpdy*dxpdy %f %f\n",delta1_legal,gamma1,gamma2,dx2,dxpdy*dxpdy);
 			return	((gamma1 >= nullT) && (gamma1 <= dx2)) ||
 				((gamma2 >= nullT) && (gamma2 <= dxpdy*dxpdy)) ||
 				gamma1 * gamma2 < 0;
 		}
+		return false;
 	}
 };
 
