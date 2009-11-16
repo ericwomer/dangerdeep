@@ -35,8 +35,11 @@ template <class T>
 class triangle_collision_t
 {
  public:
-	// fixme: use bitwise and here, test if that is same code (disassemble!)
-	static bool is_null(T v, const T eps) { return (v > -eps) && (v < eps); }
+	static bool is_null(T v, const T eps) {
+		// we need to use eps here, otherwise wrong results occur.
+		//return v == T(0);
+		return (v > -eps) & (v < eps);
+	}
 
 	static bool compute(const vector3t<T>& va0,
 			    const vector3t<T>& va1,
@@ -93,9 +96,10 @@ class triangle_collision_t
 		T dp2 = p0.x * p1.y - p1.x * p0.y;
 		T detAq0 = q0.x * dp0 - q0.y * dp1 + q0.z * dp2;
 		T detAq1 = q1.x * dp0 - q1.y * dp1 + q1.z * dp2;
-		//fixme: sometimes detAr is 0, other det's are close to 0, gives wrong positive result!
-		//we use || here not && to avoid such cases a bit
-		if (is_null(detAq0, eps) || is_null(detAq1, eps)) {
+		// Note: we use bitwise and/or, because it is faster on modern
+		// processors and the result is the same as with logical and/or
+		// in these comparisons.
+		if (is_null(detAq0, eps) & is_null(detAq1, eps)) {
 			// either triangles are on parallel planes when detAr != 0
 			// or triangles are on the same plane
 			return false;
@@ -103,16 +107,18 @@ class triangle_collision_t
 		T detAr  =  R.x * dp0 -  R.y * dp1 +  R.z * dp2; // = detAr0 = detAr1
 		T b0 = - detAr * detAq0;
 		T b1 = - detAr * detAq1;
-		// fixme use bit-wise AND here, faster!
-		bool b0_legal = (b0 >= nullT) && (b0 <= detAq0*detAq0) && !is_null(detAq0, eps);
-		bool b1_legal = (b1 >= nullT) && (b1 <= detAq1*detAq1) && !is_null(detAq1, eps);
+		// use > 0 and < max here or the result is wrong. If edge q_i lies in
+		// plane of triangle A then detAr is zero and b0_legal would be true
+		// even if b0 is not really legal.
+		bool b0_legal = (b0 > nullT) & (b0 < detAq0*detAq0) & !is_null(detAq0, eps);
+		bool b1_legal = (b1 > nullT) & (b1 < detAq1*detAq1) & !is_null(detAq1, eps);
 
 		// this can be computed because of linearity of determinant computing
 		T detAq2 = detAq1 - detAq0;
 
 		// not at least one intersection (there must be totally two), then no
 		// intersection at all
-		if (!b0_legal && !b1_legal) {
+		if (!b0_legal & !b1_legal) {
 			return false;
 		}
 
@@ -155,9 +161,8 @@ class triangle_collision_t
 		T delta1 = -dtd * d.x; // scaled by d.x^2
 		T dx2 = d.x * d.x;
 		T dy2 = d.y * d.y;
-		// fixme: use bitwise and here
-		bool delta0_legal = !is_null(d.y, eps) && (delta0 >= nullT) && (delta0 <= dy2);
-		bool delta1_legal = !is_null(d.x, eps) && (delta1 >= nullT) && (delta1 <= dx2);
+		bool delta0_legal = !is_null(d.y, eps) & (delta0 >= nullT) & (delta0 <= dy2);
+		bool delta1_legal = !is_null(d.x, eps) & (delta1 >= nullT) & (delta1 <= dx2);
 		// there are either two deltas legal or none (if one of delta0, delta1 is
 		// legal we assume delta2 would be legal as well)
 		if (delta0_legal) {
@@ -168,18 +173,18 @@ class triangle_collision_t
 				PRINT_TRICOL("gamma0="<<gamma0<<" gamma1="<<gamma1<<" dy2="<<dy2<<" dx2="<<dx2<<"\n");
 				PRINT_TRICOL("delta0="<<delta0<<" delta1="<<delta1<<" b0="<<b0<<" b1="<<b1<<"\n");
 				PRINT_TRICOL("p0: "<<p0<<" p1: "<<p1<<" q0: "<<q0<<" q1: "<<q1<<" det "<<detAr<<","<<detAq0<<","<<detAq1<<"\n");
-				return	((gamma0 >= nullT) && (gamma0 <= dy2)) ||
-					((gamma1 >= nullT) && (gamma1 <= dx2)) ||
-					gamma0 * gamma1 < 0;
+				return	((gamma0 >= nullT) & (gamma0 <= dy2)) |
+					((gamma1 >= nullT) & (gamma1 <= dx2)) |
+					(gamma0 * gamma1 < 0);
 			} else {
 				T dxpdy = d.x + d.y;
 				T gamma2 = (T(1) - t.x - t.y) * dxpdy; // scaled by dxpdy^2
 				PRINT_TRICOL("gamma0="<<gamma0<<" gamma2="<<gamma2<<" dy2="<<dy2<<" dxpdy*dxpdy="<<dxpdy*dxpdy<<"\n");
 				PRINT_TRICOL("delta0="<<delta0<<" delta1="<<delta1<<" b0="<<b0<<" b1="<<b1<<"\n");
 				PRINT_TRICOL("p0: "<<p0<<" p1: "<<p1<<" q0: "<<q0<<" q1: "<<q1<<" det "<<detAr<<","<<detAq0<<","<<detAq1<<"\n");
-				return	((gamma0 >= nullT) && (gamma0 <= dy2)) ||
-					((gamma2 >= nullT) && (gamma2 <= dxpdy*dxpdy)) ||
-					gamma0 * gamma2 < 0;
+				return	((gamma0 >= nullT) & (gamma0 <= dy2)) |
+					((gamma2 >= nullT) & (gamma2 <= dxpdy*dxpdy)) |
+					(gamma0 * gamma2 < 0);
 			}
 		} else if (delta1_legal) {
 			T gamma1 = -t.x * d.x; // scaled by d.x^2
@@ -188,9 +193,9 @@ class triangle_collision_t
 			PRINT_TRICOL("gamma1="<<gamma1<<" gamma2="<<gamma2<<" dx2="<<dx2<<" dxpdy*dxpdy="<<dxpdy*dxpdy<<"\n");
 			PRINT_TRICOL("delta0="<<delta0<<" delta1="<<delta1<<" b0="<<b0<<" b1="<<b1<<"\n");
 			PRINT_TRICOL("p0: "<<p0<<" p1: "<<p1<<" q0: "<<q0<<" q1: "<<q1<<" det "<<detAr<<","<<detAq0<<","<<detAq1<<"\n");
-			return	((gamma1 >= nullT) && (gamma1 <= dx2)) ||
-				((gamma2 >= nullT) && (gamma2 <= dxpdy*dxpdy)) ||
-				gamma1 * gamma2 < 0;
+			return	((gamma1 >= nullT) & (gamma1 <= dx2)) |
+				((gamma2 >= nullT) & (gamma2 <= dxpdy*dxpdy)) |
+				(gamma1 * gamma2 < 0);
 		}
 		return false;
 	}
