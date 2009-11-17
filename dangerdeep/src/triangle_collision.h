@@ -161,8 +161,8 @@ class triangle_collision_t
 		T delta1 = -dtd * d.x; // scaled by d.x^2
 		T dx2 = d.x * d.x;
 		T dy2 = d.y * d.y;
-		bool delta0_legal = !is_null(d.y, eps) & (delta0 >= nullT) & (delta0 <= dy2);
-		bool delta1_legal = !is_null(d.x, eps) & (delta1 >= nullT) & (delta1 <= dx2);
+		bool delta0_legal = !is_null(d.y, eps) & (delta0 > nullT) & (delta0 < dy2);
+		bool delta1_legal = !is_null(d.x, eps) & (delta1 > nullT) & (delta1 < dx2);
 		// there are either two deltas legal or none (if one of delta0, delta1 is
 		// legal we assume delta2 would be legal as well)
 		if (delta0_legal) {
