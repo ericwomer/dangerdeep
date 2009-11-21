@@ -205,6 +205,12 @@ int mymain(list<string>& args)
 					viewangles.y += event.motion.xrel;
 					viewangles.z += event.motion.yrel;
 				}
+			} else if (event.type == SDL_MOUSEBUTTONDOWN) {
+				if (event.button.button == SDL_BUTTON_WHEELUP) {
+					pos.z -= 1;
+				} else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
+					pos.z += 1;
+				}
 			}
 		}
 
