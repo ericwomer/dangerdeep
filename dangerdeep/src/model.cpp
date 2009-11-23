@@ -38,7 +38,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "binstream.h"
 #include "xml.h"
 #include "log.h"
-#include "triangle_collision.h"
+#include "triangle_intersection.h"
 #include <sstream>
 #include <map>
 
@@ -822,7 +822,7 @@ bool model::mesh::intersects(const mesh& other, const matrix4f& transformation_t
 				const vector3f& v4 = other.vertices[otit->i1()];
 				const vector3f& v5 = other.vertices[otit->i2()];
 				if (!is_degenerated(v3, v4, v5)) {
-					if (triangle_collisionf::compute(v0, v1, v2, v3, v4, v5)) {
+					if (triangle_intersectionf::compute(v0, v1, v2, v3, v4, v5)) {
 						/*std::cout << "v0: " << v0 << "v1: " << v1 << "v2: " << v2 << "\n";
 						std::cout << "v3: " << v3 << "v4: " << v4 << "v5: " << v5 << "\n";
 						std::cout << "sqd " << v0.distance(v1) << "," << v0.distance(v2) << "," << v1.distance(v2) << "\n";
@@ -1338,6 +1338,15 @@ void model::mesh::compute_bv_tree()
 	// clear memory first
 	bounding_volume_tree.reset();
 	bounding_volume_tree = bv_tree::create(vertices, leaf_nodes);
+}
+
+
+
+const bv_tree& model::mesh::get_bv_tree() const
+{
+	if (!has_bv_tree())
+		throw std::runtime_error("bv_tree not existing");
+	return *bounding_volume_tree.get();
 }
 
 

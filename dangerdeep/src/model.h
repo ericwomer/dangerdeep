@@ -263,7 +263,8 @@ public:
 		unsigned get_triangle_of_vertex(unsigned vertex) const { return vertex_triangle_adjacency[vertex]; }
 
 		void compute_bv_tree();
-		std::auto_ptr<bv_tree> bounding_volume_tree;
+		bool has_bv_tree() const { return bounding_volume_tree.get(); }
+		const bv_tree& get_bv_tree() const;
 
 		void get_plain_triangle(unsigned triangle, Uint32 indices[3]) const;
 		void get_strip_triangle(unsigned triangle, Uint32 indices[3]) const;
@@ -279,6 +280,7 @@ public:
 
 	protected:
 		primitive_type indices_type;
+		std::auto_ptr<bv_tree> bounding_volume_tree;
 		void (model::mesh::*get_triangle_ptr) (unsigned triangle, Uint32 indices[3]) const;
 
 	private:

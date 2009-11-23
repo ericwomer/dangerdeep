@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 
 #include "system.h"
-#include "triangle_collision.h"
+#include "triangle_intersection.h"
 #include "log.h"
 #include "cfg.h"
 #include <SDL.h>
@@ -137,7 +137,7 @@ int mymain(list<string>& args)
 					float& f1 = (&v.x)[(moveaxis+1)%3];
 					f0 += event.motion.xrel * 0.01f;
 					f1 += event.motion.yrel * 0.01f;
-					intersects = triangle_collision_t<float>::compute(triab[0], triab[1], triab[2], triab[3], triab[4], triab[5]);
+					intersects = triangle_intersection_t<float>::compute(triab[0], triab[1], triab[2], triab[3], triab[4], triab[5]);
 				} else if (event.motion.state & SDL_BUTTON_LMASK) {
 					viewangles.x += event.motion.xrel;
 					viewangles.y += event.motion.yrel;

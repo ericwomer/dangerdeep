@@ -302,6 +302,9 @@ sea_object::sea_object(game& gm_, const string& modelname_)
 {
 	// no specfile, so specfilename is empty, do not call get_rel_path with empty string!
 	mymodel = modelcache().ref(/*data_file().get_rel_path(specfilename) + */ modelname);
+	if (!mymodel->get_base_mesh().has_bv_tree()) {
+		mymodel->get_base_mesh().compute_bv_tree();
+	}
 	// this constructor is used only for simple models that have no skin support,
 	// so register default layout.
 	skin_name = model::default_layout;
@@ -370,6 +373,9 @@ sea_object::sea_object(game& gm_, const xml_elem& parent)
 	}
 
 	mymodel = modelcache().ref(data_file().get_rel_path(specfilename) + modelname);
+	if (!mymodel->get_base_mesh().has_bv_tree()) {
+		mymodel->get_base_mesh().compute_bv_tree();
+	}
 	size3d = vector3f(mymodel->get_width(), mymodel->get_length(), mymodel->get_height());
 
 	// read mass from spec file

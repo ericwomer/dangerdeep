@@ -153,6 +153,15 @@ class event_shell_splash : public event
 	void evaluate(user_interface& ui);
 };
 
+/// Ship-ship collision
+class event_ship_collision : public event
+{
+	vector3 position;
+ public:
+	event_ship_collision(const vector3& p) : position(p) {}
+	void evaluate(user_interface& ui);
+};
+
 /// torpedo explodes
 class event_torpedo_explosion : public event
 {

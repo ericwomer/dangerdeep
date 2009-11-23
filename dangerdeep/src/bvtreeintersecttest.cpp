@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 
 #include "system.h"
-#include "triangle_collision.h"
+#include "triangle_intersection.h"
 #include "datadirs.h"
 #include "model.h"
 #include "log.h"
@@ -190,8 +190,8 @@ int mymain(list<string>& args)
 					model::mesh& mA = modelA->get_base_mesh();
 					model::mesh& mB = modelB->get_base_mesh();
 					// here we transform in world space
-					bv_tree::param p0(*mA.bounding_volume_tree, mA.vertices, transA);
-					bv_tree::param p1(*mB.bounding_volume_tree, mB.vertices, transB);
+					bv_tree::param p0(mA.get_bv_tree(), mA.vertices, transA);
+					bv_tree::param p1(mB.get_bv_tree(), mB.vertices, transB);
 					std::list<vector3f> contact_points;
 					intersects = bv_tree::collides(p0, p1, contact_points);
 					if (check_tri_tri) {
@@ -245,8 +245,8 @@ int mymain(list<string>& args)
 
 		if (render_spheres) {
 			std::list<spheref> volumesA, volumesB;
-			bv_tree& b0 = *modelA->get_base_mesh().bounding_volume_tree;
-			bv_tree& b1 = *modelA->get_base_mesh().bounding_volume_tree;
+			const bv_tree& b0 = modelA->get_base_mesh().get_bv_tree();
+			const bv_tree& b1 = modelA->get_base_mesh().get_bv_tree();
 			b0.collect_volumes_of_tree_depth(volumesA, splevel);
 			b1.collect_volumes_of_tree_depth(volumesB, splevel);
 			std::auto_ptr<model::material> mat0(new model::material());

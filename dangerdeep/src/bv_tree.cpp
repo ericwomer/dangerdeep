@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
 #include "bv_tree.h"
-#include "triangle_collision.h"
+#include "triangle_intersection.h"
 
 //#define PRINT(x) std::cout << x
 #define PRINT(x) do { } while (0)
@@ -157,9 +157,11 @@ bool bv_tree::collides(const param& p0, const param& p1, std::list<vector3f>& co
 			// never would compare with them, so we don't need to check for them
 			// here.
 			//printf("leaf collision\n");
-			bool c = triangle_collision_t<float>::compute(v0t, v1t, v2t, v3t, v4t, v5t);
+			bool c = triangle_intersection_t<float>::compute(v0t, v1t, v2t, v3t, v4t, v5t);
 			//if (c) printf("tri-tri coll\n");
 			if (c) {
+				// fixme: compute more accurate position here, maybe
+				// weight by triangle area between centers of triangles.
 				contact_points.push_back((v0t+v1t+v2t+v3t+v4t+v5t)*(1.f/6));
 			}
 			return c;

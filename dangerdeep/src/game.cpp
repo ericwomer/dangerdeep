@@ -1552,6 +1552,7 @@ template<class C>
 ship* game::check_units ( torpedo* t, const ptrset<C>& units )
 {
 	for (unsigned k = 0; k < units.size(); ++k) {
+		//fixme use bv_trees here with special code for magnetic ignition torpedoes
 		if ( is_collision ( t, units[k] ) )
 			return units[k];
 	}
@@ -1933,105 +1934,6 @@ vector<ship*> game::get_all_ships() const
 
 
 
-bool game::check_collision_bboxes(const sea_object& a, const sea_object& b, vector3& collision_pos)
-{
-	// compute bbox of actor and partner (inversed)
-	vector<polygon> bboxa = a.get_bounding_box(false);
-	vector<polygon> bboxb = b.get_bounding_box(true);
-	unsigned nrempty = 0;
-	for (unsigned k = 0; k < bboxa.size(); ++k) {
-		for (unsigned j = 0; j < bboxb.size(); ++j) {
-			bboxa[k] = bboxa[k].clip(bboxb[j].get_plane());
-		}
-		if (bboxa[k].empty()) ++nrempty;
-	}
-	if (nrempty == bboxa.size())
-		return false;
-	log_debug("bboxes overlap between objects "<<&a<<" and "<<&b);
-	// now find out bounding range of voxels of a (and b) of overlapping
-	// volume. To do that rotate the resulting points by a/b's orientation's
-	// conjugation and then find their minimum/maximum.
-	// Collect all vertices of all non-empty polygons as points.
-	//log_debug("nrempty="<<nrempty);
-	vector3i vxmin_a, vxmax_a, vxmin_b, vxmax_b;
-	unsigned nvx_a = a.get_min_max_voxel_index_for_polyset(bboxa, vxmin_a, vxmax_a);
-	unsigned nvx_b = b.get_min_max_voxel_index_for_polyset(bboxa, vxmin_b, vxmax_b);
-	log_debug("voxel stuff nvx a="<<nvx_a<<" b="<<nvx_b<<" vxidx a="<<vxmin_a<<" to "<<vxmax_a
-		  <<" b="<<vxmin_b<<" to "<<vxmax_b);
-	// if either one object has no voxels covering that volume abort
-	// (should never be the case)
-	if (nvx_a * nvx_b == 0)
-		return false;
-	// now for every voxel of a with a check intersection with every voxel of b.
-	// if any voxels intersect we have the collision and also the contact point.
-	// we treat every voxel as sphere with a radius of 1/2 of its volume fill.
-	// that way voxels that are partly filled need more overlap for collision,
-	// a way to handle the fact that voxels collide but may not be fully covered
-	// by the model. sphere to sphere collision tests are faster as box to box.
-	// a box to box test for every voxel of a and b would be very costly and overkill.
-	// we need to transform b's voxel to a's voxel space to compare them.
-	// it is easier but not less efficient to transform a's and b's voxels to world
-	// space, so we do that instead. We need to handle also translation between
-	// a and b, so we add a's translation to b's matrix first.
-	// This is world space with object a at origin. The difference between a and b
-	// is numerically much smaller than a's position (or b's position), that's why we
-	// don't use real world space for comparing here.
-	const model& mdl_a = a.get_model();
-	const model& mdl_b = b.get_model();
-	const vector3f& voxel_size_a = mdl_a.get_voxel_size();
-	const vector3f& voxel_size_b = mdl_b.get_voxel_size();
-	float voxel_radius_a = mdl_a.get_voxel_radius();
-	float voxel_radius_b = mdl_b.get_voxel_radius();
-	matrix4f transmat_a = a.get_orientation().rotmat4()
-		* mdl_a.get_base_mesh_transformation()
-		* matrix4f::diagonal(voxel_size_a);
-	matrix4f transmat_b = matrix4f::trans(vector3f(b.get_pos() - a.get_pos()))
-		* b.get_orientation().rotmat4()
-		* mdl_b.get_base_mesh_transformation()
-		* matrix4f::diagonal(voxel_size_b);
-	matrix4f transmat_b2 = b.get_orientation().rotmat4()
-		* mdl_b.get_base_mesh_transformation()
-		* matrix4f::diagonal(voxel_size_b);
-	for (int az = vxmin_a.z; az <= vxmax_a.z; ++az) {
-		for (int ay = vxmin_a.y; ay <= vxmax_a.y; ++ay) {
-			for (int ax = vxmin_a.x; ax <= vxmax_a.x; ++ax) {
-				const model::voxel* voxa = mdl_a.get_voxel_by_pos(vector3i(ax, ay, az));
-				if (!voxa) continue;
-				vector3f pa = transmat_a.mul4vec3xlat(voxa->relative_position);
-				for (int bz = vxmin_b.z; bz <= vxmax_b.z; ++bz) {
-					for (int by = vxmin_b.y; by <= vxmax_b.y; ++by) {
-						for (int bx = vxmin_b.x; bx <= vxmax_b.x; ++bx) {
-							const model::voxel* voxb = mdl_b.get_voxel_by_pos(vector3i(bx, by, bz));
-							if (!voxb) continue;
-							vector3f pb = transmat_b.mul4vec3xlat(voxb->relative_position);
-							// spheres of voxels intersect when their distance
-							// is less than the sum of their radii
-							// or their square distance is less than
-							// the square of the sum of their radii
-							float sqd = pa.square_distance(pb);
-							float rs = voxel_radius_a * voxa->root3_part_of_volume
-								+ voxel_radius_b * voxb->root3_part_of_volume;
-							if (sqd <= rs * rs) {
-								log_debug("Voxel intersection found a="<<vector3f(ax,ay,az)<<" b="<<vector3f(bx,by,bz));
-								//log_debug("relative voxel pos A="<<voxa->relative_position<<" B="<<voxb->relative_position);
-								// real world pos of intersection
-								// is now a.get_pos() + (pa + pb) * 0.5
-								//log_debug("sub rel collis pos: "<<a.get_orientation().conj().rotate((pa+pb)*0.5));
-								collision_pos = a.get_pos() + (pa + pb) * 0.5;
-								//spawn_particle(new marker_particle(collision_pos));
-								return true;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	return false;
-}
-
-
-
 void game::check_collisions()
 {
 	// torpedoes are special... check collision only for impact fuse?
@@ -2043,47 +1945,40 @@ void game::check_collisions()
 	// we don't check for torpedo<->torpedo collisions.
 	for (unsigned i = 0; i < allships.size(); ++i) {
 		const ship* actor = allships[i];
-		const double actrad = actor->get_model().get_bounding_sphere_radius();
+		const vector3& actor_pos = actor->get_pos();
+		matrix4 actor_rotmat = actor->get_orientation().rotmat4();
+		const model& model_actor = actor->get_model();
+		const model::mesh& basemesh_actor = model_actor.get_base_mesh();
+		matrix4f basemeshtrans_actor = model_actor.get_base_mesh_transformation();
+		const bv_tree& bv_tree_actor = basemesh_actor.get_bv_tree();
+		// use partner's position relative to actor
+		bv_tree::param p0(bv_tree_actor, basemesh_actor.vertices, actor_rotmat * basemeshtrans_actor);
 		for (unsigned j = std::max(i+1, m); j < allships.size(); ++j) {
 			const ship* partner = allships[j];
-			// this check not limited to ships, would work with every sea_object
-			double rsum = actrad + partner->get_model().get_bounding_sphere_radius();
-			double d2 = actor->get_pos().square_distance(partner->get_pos());
-			if (d2 <= rsum*rsum) {
-				log_debug("possible collision between objects "<<actor<<" and "<<partner);
-				vector3 collision_pos;
-				if (check_collision_bboxes(*actor, *partner, collision_pos)) {
-					// handle collision response here, because its logical
-					// and since actor/partner can be made non-const only here.
-					collision_response(*allships[i], *allships[j], collision_pos);
+			const vector3& partner_pos = partner->get_pos();
+			matrix4 partner_rotmat = partner->get_orientation().rotmat4();
+			const model& model_partner = partner->get_model();
+			const model::mesh& basemesh_partner = model_partner.get_base_mesh();
+			matrix4f basemeshtrans_partner = model_partner.get_base_mesh_transformation();
+			const bv_tree& bv_tree_partner = basemesh_partner.get_bv_tree();
+			matrix4 rel_trans = matrix4::trans(partner_pos - actor_pos);
+			bv_tree::param p1(bv_tree_partner, basemesh_partner.vertices, rel_trans * partner_rotmat * basemeshtrans_partner);
+			std::list<vector3f> contact_points;
+			bool intersects = bv_tree::collides(p0, p1, contact_points);
+			if (intersects) {
+				// compute intersection pos, sum of contact points
+				vector3f sum;
+				unsigned sum_count = 0;
+				for (std::list<vector3f>::iterator it = contact_points.begin(); it != contact_points.end(); ++it) {
+					sum += *it;
+					++sum_count;
 				}
+				sum *= 1.0f/sum_count;
+				collision_response(*allships[i], *allships[j], vector3(sum) + actor_pos);
 			}
 		}
 	}
 		
-	// if bounding spheres intersect, what next?
-	// a direct voxel to voxel intersection test is very costly,
-	// with ca. 80 voxels per object it could give up to 6400 tests.
-	// We use spheres with ca. voxel's size for that intersection test,
-	// true box<->box tests are too costly, especially when boxes
-	// can be arbitrarily oriented.
-	// So next test could be a bounding box to bounding box intersection test.
-	// It would handle the orientation of each object and exact maxima/minima.
-	// how can we compute that? either with clipping or with solving a
-	// gaussian system. Each box defines a subspace of R3, given by base
-	// vector and the 3 spanning vectors, each with a scalar.
-	// So we have 6 scalars to solve, if all 6 scalars are within 0...1
-	// range we have an intersection.
-	// better reuse polygon/plane/frustum and generate 6 polygons of the first
-	// bbox and clip them by the 6 planes of the second bbox. If the remaining
-	// parts are all empty polygons, we have no intersections.
-	// if we have an intersection, we do a voxel-to-voxel test with sphere
-	// intersection check like above using a sphere per voxel that has same
-	// volume as the voxel (like for buoyancy). Then we have 80*80=6400 sphere
-	// tests, which is acceptable.
-	// the remaining volume can give precise hints which voxels have to be checked
-	// for collisions, so the number of tests can be cut down much more.
-
 	// collision response:
 	// the two objects collide at a position P that is relative to their center
 	// (P(a) and P(b)). We have to compute their velocity (direction and strength,
@@ -2098,6 +1993,8 @@ void game::check_collisions()
 	// fixme: collision checks between fast moving small objects and bigger objects
 	// (like shells vs. ships) should be done here too, and not only in gun_shell
 	// class. Later other objects may need that code too (machine cannons, guns etc).
+
+	// fixme remove obsolete code from bbox/voxel collision checking
 }
 
 

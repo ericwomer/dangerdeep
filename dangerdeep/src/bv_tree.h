@@ -49,10 +49,10 @@ class bv_tree
 	/// parameters for collision
 	struct param
 	{
-		bv_tree& tree;
+		const bv_tree& tree;
 		const std::vector<vector3f>& vertices;
 		const matrix4f& transform;
-		param(bv_tree& t, const std::vector<vector3f>& v, const matrix4f& m)
+		param(const bv_tree& t, const std::vector<vector3f>& v, const matrix4f& m)
 			: tree(t), vertices(v), transform(m) {}
 		param children(unsigned i) const {
 			return param(*tree.children[i], vertices, transform);
