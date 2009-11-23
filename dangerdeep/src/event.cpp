@@ -24,8 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "user_interface.h"
 #include "texts.h"
 #include "music.h"
-#include "particle.h"
-#include "game.h"
 
 void event_torpedo_dud_shortrange::evaluate(user_interface& ui)
 {
@@ -136,10 +134,7 @@ void event_shell_splash::evaluate(user_interface& ui)
 
 void event_ship_collision::evaluate(user_interface& ui)
 {
-	// modifying game because of events is probably wrong, but here we use it for debugging only.
-#if 1
-	ui.get_game().spawn_particle(new marker_particle(position));
-#endif
+	// nothing yet
 }
 
 

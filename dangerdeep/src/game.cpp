@@ -2001,6 +2001,10 @@ void game::check_collisions()
 
 void game::collision_response(sea_object& a, sea_object& b, const vector3& collision_pos)
 {
+#if 0
+	// for debugging
+	spawn_particle(new marker_particle(position));
+#endif
 	// compute directions to A, B to compute collision response direction
 	const vector3& A = a.get_pos();
 	const vector3& B = b.get_pos();
