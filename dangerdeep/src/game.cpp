@@ -1553,6 +1553,7 @@ ship* game::check_units ( torpedo* t, const ptrset<C>& units )
 {
 	for (unsigned k = 0; k < units.size(); ++k) {
 		//fixme use bv_trees here with special code for magnetic ignition torpedoes
+		//like intersection of sphere around torpedo head with bv tree
 		if ( is_collision ( t, units[k] ) )
 			return units[k];
 	}

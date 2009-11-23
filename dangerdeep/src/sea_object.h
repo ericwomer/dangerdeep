@@ -388,9 +388,6 @@ public:
 	/// get reference to model of this object, throws error if no model
 	class model& get_model() const;
 
-	/// get bounding box of model (not axis aligned, handles orientation)
-	std::vector<polygon> get_bounding_box(bool inverse = false) const;
-
 	/// get minimum and maximum voxel index covering a point (polygon) set
 	///@returns number of voxels covered
 	unsigned get_min_max_voxel_index_for_polyset(const std::vector<polygon>& polys, vector3i& vxmin, vector3i& vxmax) const;

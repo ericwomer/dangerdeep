@@ -84,6 +84,8 @@ void gun_shell::save(xml_elem& parent) const
 
 void gun_shell::check_collision()
 {
+	// fixme use bv trees for this: tree/sphere with ray intersection
+
 	/* For gun shells we need to check for intersection of a line to all ships.
 	   The line is determined by the movement of the shell between two simulation
 	   steps. Let it be b + t * d, where b, d are vectors and d has length 1.

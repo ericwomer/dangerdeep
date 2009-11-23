@@ -867,46 +867,6 @@ model& sea_object::get_model() const
 
 
 
-std::vector<polygon> sea_object::get_bounding_box(bool inverse) const
-{
-	std::vector<polygon> bbox;
-	bbox.reserve(6);
-	vector3f pmin = get_model().get_min();
-	vector3f pmax = get_model().get_max();
-	// order:
-	// bottom layer:
-	// 2--3
-	// |  |
-	// 0--1  -> x
-	// top layer is 4-7 accordingly
-	vector3 p0 = orientation.rotate(vector3(pmin.x, pmin.y, pmin.z)) + position;
-	vector3 p1 = orientation.rotate(vector3(pmax.x, pmin.y, pmin.z)) + position;
-	vector3 p2 = orientation.rotate(vector3(pmin.x, pmax.y, pmin.z)) + position;
-	vector3 p3 = orientation.rotate(vector3(pmax.x, pmax.y, pmin.z)) + position;
-	vector3 p4 = orientation.rotate(vector3(pmin.x, pmin.y, pmax.z)) + position;
-	vector3 p5 = orientation.rotate(vector3(pmax.x, pmin.y, pmax.z)) + position;
-	vector3 p6 = orientation.rotate(vector3(pmin.x, pmax.y, pmax.z)) + position;
-	vector3 p7 = orientation.rotate(vector3(pmax.x, pmax.y, pmax.z)) + position;
-	if (inverse) {
-		bbox.push_back(polygon(p0, p1, p3, p2));
-		bbox.push_back(polygon(p0, p4, p5, p1));
-		bbox.push_back(polygon(p1, p5, p7, p3));
-		bbox.push_back(polygon(p3, p7, p6, p2));
-		bbox.push_back(polygon(p2, p6, p4, p0));
-		bbox.push_back(polygon(p4, p6, p7, p5));
-	} else {
-		bbox.push_back(polygon(p0, p2, p3, p1));
-		bbox.push_back(polygon(p0, p1, p5, p4));
-		bbox.push_back(polygon(p1, p3, p7, p5));
-		bbox.push_back(polygon(p3, p2, p6, p7));
-		bbox.push_back(polygon(p2, p0, p4, p6));
-		bbox.push_back(polygon(p4, p5, p7, p6));
-	}
-	return bbox;
-}
-
-
-
 unsigned sea_object::get_min_max_voxel_index_for_polyset(const std::vector<polygon>& polys,
 							 vector3i& vxmin, vector3i& vxmax) const
 {
