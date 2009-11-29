@@ -29,9 +29,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 template<class D>
 class plane_t
 {
-// static const variables must not be double/float, some compilers are picky.
-#define plane_t__EPSILON 0.001
 public:
+	// static const variables must not be double/float, some compilers are picky.
+	// so use a const member returning value
+	D epsilon() const { return D(0.001); }
+
 	vector3t<D> N;
 	D d;
 
@@ -52,7 +54,7 @@ public:
 	/// determine if point is left of/right of/in plane (>0,<0,==0)
 	int test_side(const vector3t<D>& a) const {
 		D r = N * a + d;
-		return (r > plane_t__EPSILON) ? 1 : ((r < -plane_t__EPSILON) ? -1 : 0);
+		return (r > epsilon()) ? 1 : ((r < -epsilon()) ? -1 : 0);
 	}
 	/// determine distance of point to plane
 	D distance(const vector3t<D>& a) const {

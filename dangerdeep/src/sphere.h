@@ -29,8 +29,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 template<class D>
 class sphere_t
 {
-// static const variables must not be double/float, some compilers are picky.
-#define sphere_t__EPSILON 0.001
 public:
 	vector3t<D> center;
 	D radius;
