@@ -1964,6 +1964,7 @@ void game::check_collisions()
 			const bv_tree& bv_tree_partner = basemesh_partner.get_bv_tree();
 			matrix4 rel_trans = matrix4::trans(partner_pos - actor_pos);
 			bv_tree::param p1(bv_tree_partner, basemesh_partner.vertices, rel_trans * partner_rotmat * basemeshtrans_partner);
+#if 0
 			std::list<vector3f> contact_points;
 			bool intersects = bv_tree::collides(p0, p1, contact_points);
 			if (intersects) {
@@ -1977,6 +1978,13 @@ void game::check_collisions()
 				sum *= 1.0f/sum_count;
 				collision_response(*allships[i], *allships[j], vector3(sum) + actor_pos);
 			}
+#else
+			vector3f contact_point;
+			bool intersects = bv_tree::closest_collision(p0, p1, contact_point);
+			if (intersects) {
+				collision_response(*allships[i], *allships[j], contact_point + actor_pos);
+			}
+#endif
 		}
 	}
 		
@@ -2009,6 +2017,9 @@ void game::collision_response(sea_object& a, sea_object& b, const vector3& colli
 	// compute directions to A, B to compute collision response direction
 	const vector3& A = a.get_pos();
 	const vector3& B = b.get_pos();
+//fixme: relative position is ok, why there arent any visible markers?!
+//	printf("pos %f %f %f   a %f %f %f    b %f %f %f\n",collision_pos.x,collision_pos.y,collision_pos.z,
+//	       A.x,A.y,A.z,B.x,B.y,B.z);
 	vector3 dA = (A - collision_pos).normal();
 	vector3 dB = (B - collision_pos).normal();
 	vector3 N;

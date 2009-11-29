@@ -57,6 +57,16 @@ class bv_tree
 		param children(unsigned i) const {
 			return param(*tree.children[i], vertices, transform);
 		}
+		spheref get_transformed_sphere() const {
+			return spheref(transform.mul4vec3xlat(tree.volume.center), tree.volume.radius);
+		}
+		unsigned get_index_of_closer_child(const vector3f& pos) const {
+			if (tree.is_leaf())
+				return 2; // invalid index
+			vector3f cp0 = transform.mul4vec3xlat(tree.children[0]->volume.center);
+			vector3f cp1 = transform.mul4vec3xlat(tree.children[1]->volume.center);
+			return (cp0.square_distance(pos) < cp1.square_distance(pos)) ? 0 : 1;
+		}
 	};
 
 	bv_tree(const spheref& sph, const leaf_data& ld)
@@ -65,17 +75,18 @@ class bv_tree
 	static std::auto_ptr<bv_tree> create(const std::vector<vector3f>& vertices, std::list<leaf_data>& nodes);
 	bool is_inside(const vector3f& v) const;
 	static bool collides(const param& p0, const param& p1, std::list<vector3f>& contact_points);
+	static bool closest_collision(const param& p0, const param& p1, vector3f& contact_point);
 	void transform(const matrix4f& mat);
 	void compute_min_max(vector3f& minv, vector3f& maxv) const;
 	void debug_dump(unsigned level = 0) const;
 	const spheref& get_sphere() const { return volume; }
 	void collect_volumes_of_tree_depth(std::list<spheref>& volumes, unsigned depth) const;
+	bool is_leaf() const { return children[0].get() == 0; }
 
  protected:
 	spheref volume;
 	leaf_data leafdata;
 	std::auto_ptr<bv_tree> children[2];
-	bool is_leaf() const { return children[0].get() == 0; }
 
  private:
 	bv_tree();

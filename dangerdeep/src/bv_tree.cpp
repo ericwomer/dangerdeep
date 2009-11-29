@@ -130,8 +130,8 @@ bool bv_tree::collides(const param& p0, const param& p1, std::list<vector3f>& co
 {
 	// if bounding volumes do not intersect, there can't be any collision of leaf elements
 	//printf("collision check\n");
-	spheref transformed_volume0(p0.transform.mul4vec3xlat(p0.tree.volume.center), p0.tree.volume.radius);
-	spheref transformed_volume1(p1.transform.mul4vec3xlat(p1.tree.volume.center), p1.tree.volume.radius);
+	spheref transformed_volume0 = p0.get_transformed_sphere();
+	spheref transformed_volume1 = p1.get_transformed_sphere();
 	// hier von other was ausgeben
 	//printf("collision check hit THIS  volume=%f,%f,%f r=%f\n",transformed_volume0.center.x,transformed_volume0.center.y,transformed_volume0.center.z,transformed_volume0.radius);
 	//printf("collision check hit OTHER volume=%f,%f,%f r=%f\n",transformed_volume1.center.x,transformed_volume1.center.y,transformed_volume1.center.z,transformed_volume1.radius);
@@ -187,6 +187,75 @@ bool bv_tree::collides(const param& p0, const param& p1, std::list<vector3f>& co
 		bool col1 = collides(p1.children(0), p0, contact_points);
 		bool col2 = collides(p1.children(1), p0, contact_points);
 		return col1 || col2;
+	}
+}
+
+
+
+bool bv_tree::closest_collision(const param& p0, const param& p1, vector3f& contact_point)
+{
+	// if bounding volumes do not intersect, there can't be any collision of leaf elements
+	//printf("collision check\n");
+	spheref transformed_volume0 = p0.get_transformed_sphere();
+	spheref transformed_volume1 = p1.get_transformed_sphere();
+	// hier von other was ausgeben
+	//printf("collision check hit THIS  volume=%f,%f,%f r=%f\n",transformed_volume0.center.x,transformed_volume0.center.y,transformed_volume0.center.z,transformed_volume0.radius);
+	//printf("collision check hit OTHER volume=%f,%f,%f r=%f\n",transformed_volume1.center.x,transformed_volume1.center.y,transformed_volume1.center.z,transformed_volume1.radius);
+	if (!transformed_volume0.intersects(transformed_volume1)) {
+		//printf("abort\n");
+		return false;
+	}
+
+	// handle case that this is a leaf node
+	if (p0.tree.is_leaf()) {
+		// we have a leaf node
+		if (p1.tree.is_leaf()) {
+			// direct face to face collision test
+			// handle transform here
+			vector3f v0t = p0.transform.mul4vec3xlat(p0.vertices[p0.tree.leafdata.tri_idx[0]]);
+			vector3f v1t = p0.transform.mul4vec3xlat(p0.vertices[p0.tree.leafdata.tri_idx[1]]);
+			vector3f v2t = p0.transform.mul4vec3xlat(p0.vertices[p0.tree.leafdata.tri_idx[2]]);
+			vector3f v3t = p1.transform.mul4vec3xlat(p1.vertices[p1.tree.leafdata.tri_idx[0]]);
+			vector3f v4t = p1.transform.mul4vec3xlat(p1.vertices[p1.tree.leafdata.tri_idx[1]]);
+			vector3f v5t = p1.transform.mul4vec3xlat(p1.vertices[p1.tree.leafdata.tri_idx[2]]);
+			// note that degenerated triangles would be a critical problem here, but
+			// they would have a bounding sphere of radius zero and thus we
+			// never would compare with them, so we don't need to check for them
+			// here.
+			//printf("leaf collision\n");
+			bool c = triangle_intersection_t<float>::compute(v0t, v1t, v2t, v3t, v4t, v5t);
+			//if (c) printf("tri-tri coll\n");
+			if (c) {
+				// fixme: compute more accurate position here, maybe
+				// weight by triangle area between centers of triangles.
+				contact_point = (v0t+v1t+v2t+v3t+v4t+v5t)*(1.f/6);
+			}
+			return c;
+		} else {
+			//printf("other is no leaf\n");
+			// other node is no leaf, recurse there, swap roles of this and other
+			// use logical or to return on first true result
+			unsigned i = p1.get_index_of_closer_child(transformed_volume0.center);
+			return closest_collision(p1.children(i), p0, contact_point) ||
+				closest_collision(p1.children(1-i), p0, contact_point);
+		}
+	}
+
+	// split larger volume of this and other, go recursivly down all children
+	if (p0.tree.volume.radius > p1.tree.volume.radius || p1.tree.is_leaf()) {
+		//printf("go down1\n");
+		// recurse this node, so don't swap roles of this and other
+		// use logical or to return on first true result
+		unsigned i = p0.get_index_of_closer_child(transformed_volume1.center);
+		return closest_collision(p0.children(i), p1, contact_point) ||
+			closest_collision(p0.children(1-i), p1, contact_point);
+	} else {
+		//printf("go down2\n");
+		// recurse other node - other is no leaf here, swap roles of this and other
+		// use logical or to return on first true result
+		unsigned i = p1.get_index_of_closer_child(transformed_volume0.center);
+		return closest_collision(p1.children(i), p0, contact_point) ||
+			closest_collision(p1.children(1-i), p0, contact_point);
 	}
 }
 
