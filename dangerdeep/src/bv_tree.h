@@ -76,6 +76,7 @@ class bv_tree
 	bool is_inside(const vector3f& v) const;
 	static bool collides(const param& p0, const param& p1, std::list<vector3f>& contact_points);
 	static bool closest_collision(const param& p0, const param& p1, vector3f& contact_point);
+	static bool collides(const param& p, const spheref& sp);
 	void transform(const matrix4f& mat);
 	void compute_min_max(vector3f& minv, vector3f& maxv) const;
 	void debug_dump(unsigned level = 0) const;

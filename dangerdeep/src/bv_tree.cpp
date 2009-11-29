@@ -132,7 +132,6 @@ bool bv_tree::collides(const param& p0, const param& p1, std::list<vector3f>& co
 	//printf("collision check\n");
 	spheref transformed_volume0 = p0.get_transformed_sphere();
 	spheref transformed_volume1 = p1.get_transformed_sphere();
-	// hier von other was ausgeben
 	//printf("collision check hit THIS  volume=%f,%f,%f r=%f\n",transformed_volume0.center.x,transformed_volume0.center.y,transformed_volume0.center.z,transformed_volume0.radius);
 	//printf("collision check hit OTHER volume=%f,%f,%f r=%f\n",transformed_volume1.center.x,transformed_volume1.center.y,transformed_volume1.center.z,transformed_volume1.radius);
 	if (!transformed_volume0.intersects(transformed_volume1)) {
@@ -198,7 +197,6 @@ bool bv_tree::closest_collision(const param& p0, const param& p1, vector3f& cont
 	//printf("collision check\n");
 	spheref transformed_volume0 = p0.get_transformed_sphere();
 	spheref transformed_volume1 = p1.get_transformed_sphere();
-	// hier von other was ausgeben
 	//printf("collision check hit THIS  volume=%f,%f,%f r=%f\n",transformed_volume0.center.x,transformed_volume0.center.y,transformed_volume0.center.z,transformed_volume0.radius);
 	//printf("collision check hit OTHER volume=%f,%f,%f r=%f\n",transformed_volume1.center.x,transformed_volume1.center.y,transformed_volume1.center.z,transformed_volume1.radius);
 	if (!transformed_volume0.intersects(transformed_volume1)) {
@@ -257,6 +255,30 @@ bool bv_tree::closest_collision(const param& p0, const param& p1, vector3f& cont
 		return closest_collision(p1.children(i), p0, contact_point) ||
 			closest_collision(p1.children(1-i), p0, contact_point);
 	}
+}
+
+
+
+bool bv_tree::collides(const param& p, const spheref& sp)
+{
+	// if bounding volumes do not intersect, there can't be any collision of leaf elements
+	//printf("collision check\n");
+	spheref transformed_volume = p.get_transformed_sphere();
+	if (!transformed_volume.intersects(sp)) {
+		//printf("abort\n");
+		return false;
+	}
+
+	// handle case that this is a leaf node
+	if (p.tree.is_leaf()) {
+		// leaf's bounding sphere and sp intersect, so we have a collision
+		return true;
+	}
+
+	// split larger volume of this, go recursivly down all children
+	// use logical or to return on first true result
+	unsigned i = p.get_index_of_closer_child(sp.center);
+	return collides(p.children(i), sp) || collides(p.children(1-i), sp);
 }
 
 
