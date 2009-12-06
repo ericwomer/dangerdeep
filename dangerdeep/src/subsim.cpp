@@ -1896,6 +1896,7 @@ int mymain(list<string>& args)
 	mycfg.register_key(key_names[KEY_TOGGLE_POPUP].name, SDLK_TAB, 0, 0, 0);
 	mycfg.register_key(key_names[KEY_SHOW_TORPSETUP_SCREEN].name, SDLK_F12, 0, 0, 0);
 	mycfg.register_key(key_names[KEY_SHOW_TORPEDO_CAMERA].name, SDLK_k, 0, 0, 0);
+	mycfg.register_key(key_names[KEY_TAKE_SCREENSHOT].name,  SDLK_PRINT, 0, 0, 0);
 
 	//mycfg.register_option("invert_mouse", false);
 	//mycfg.register_option("ocean_res_x", 128);

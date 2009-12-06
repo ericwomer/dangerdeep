@@ -501,6 +501,10 @@ void submarine_interface::process_input(const SDL_Event& event)
 			} else {
 				add_message(texts::get(269));
 			}
+		} else if ( cfg::instance().getkey( KEY_TAKE_SCREENSHOT ).equal( event.key.keysym ) )
+		{
+			sys().screenshot();
+			log_info("screenshot taken.");
 		
 		// DEFAULT
 		} else {
@@ -510,10 +514,10 @@ void submarine_interface::process_input(const SDL_Event& event)
 			case SDLK_ESCAPE:
 				request_abort();
 				break;
-			case SDLK_PRINT:
+/*			case SDLK_PRINT:
 				sys().screenshot();
 				log_info("screenshot taken.");
-				break;
+				break;*/
 			case SDLK_PAUSE:
 				toggle_pause();
 				break;
