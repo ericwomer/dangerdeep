@@ -923,10 +923,10 @@ void create_convoy_mission()
 	wsubtype->append_entry(texts::get(17));
 	wsubtype->append_entry(texts::get(174));
 	wsubtype->append_entry(texts::get(18));
-	wsubtype->append_entry(texts::get(660));
-	wsubtype->append_entry(texts::get(661));
-	wsubtype->append_entry(texts::get(662));
-	wsubtype->append_entry(texts::get(663));
+	wsubtype->append_entry(texts::get(800));
+	wsubtype->append_entry(texts::get(801));
+	wsubtype->append_entry(texts::get(802));
+	wsubtype->append_entry(texts::get(803));
 	wcvsize->append_entry(texts::get(85));
 	wcvsize->append_entry(texts::get(86));
 	wcvsize->append_entry(texts::get(87));

@@ -371,10 +371,8 @@
 657;"Show Torpedo Data Computer";"Zeige Torpedodaten-Rechner";"Mostra il calcolatore per i siluri";"Mostrar computadora de torpedos";"Ordinateur de torpilles";"Ukázat počítač pro výpočet nastavení torpéda";;"Toon torpedo data computer";"Torpido Veri Bilgisayarını göster"
 658;"Toggle pop-up display";"Extra-Anzeigen wechseln";"Seleziona pop-up display";"Alternar visualizador emergente";"Alterner la vue immergé";"Zap/vyp vyskakovací okno";;"Schakel pop-up scherm";"Ekrana ek gösterge ekle"
 659;"Show Torpedo Setup screen";"Zeige Torpedoeinstellungen";"Mostra la configurazione dei siluri";"Mostrar configuración de torpedos";"Configuration des torpilles";"Ukaž obrazovku pro nastavení torpéda";"Tela de torpedos";"Toon torpedo setup scherm";"Torpido ayar ekranını göster"
-660;"type IIa";"Typ IIa";"tipo IIa";"tipo IIa";"type IIa";"typ IIa";;"type IIa";"Iıa tipi"
-661;"type IIb";"Typ IIb";"tipo IIb";"tipo IIb";"type IIb";"typ IIb";;"type IIb";"Iıb tipi"
-662;"type IIc";"Typ IIc";"tipo IIc";"tipo IIc";"type IIc";"typ IIc";;"type IIc";"Iıc tipi"
-663;"type IId";"Typ IId";"tipo IId";"tipo IId";"type IId";"typ IId";;"type IId";"Iıd tipi"
+660;"Show torpedo camera";;;;;;;;
+661;"Take screenshot";;;;;;;;
 700;"Lieutenant";"Oberleutnant z. See";;;"Enseigne de vaisseau de 1re classe";;;;
 701;"Lieutenant 1st Class";"Kapitänleutnant";;;"Lieutenant de vaisseau";;;;
 702;"Lt Commander";"Korvettenkapitän";;;"Capitaine de corvette";;;;
@@ -400,3 +398,7 @@
 722;"Anisotropic filtering level";;;;"Niveau du filtrage aniso.";;;;
 723;"Anti-aliasing level";;;;"Niveau de l'anti-crénelage";;;;
 724;"Off";;;;"Désactivé";;;;
+800;"type IIa";"Typ IIa";"tipo IIa";"tipo IIa";"type IIa";"typ IIa";;"type IIa";"Iıa tipi"
+801;"type IIb";"Typ IIb";"tipo IIb";"tipo IIb";"type IIb";"typ IIb";;"type IIb";"Iıb tipi"
+802;"type IIc";"Typ IIc";"tipo IIc";"tipo IIc";"type IIc";"typ IIc";;"type IIc";"Iıc tipi"
+803;"type IId";"Typ IId";"tipo IId";"tipo IId";"type IId";"typ IId";;"type IId";"Iıd tipi"
