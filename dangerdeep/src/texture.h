@@ -221,7 +221,7 @@ public:
 	// w,h are more for information purposes.
 	texture(unsigned w, unsigned h,
 		int format_, mapping_mode mapping_,
-		clamping_mode clamp);
+		clamping_mode clamp, bool force_no_compression = false);
 	
 	// load a compressed DDS file (DXT1, DXT3, DXT5)
 	texture(const std::string& filename, bool dummy, mapping_mode mapping_ = NEAREST, clamping_mode clamp = REPEAT);

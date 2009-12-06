@@ -802,7 +802,7 @@ texture::texture(const vector<Uint8>& pixels, unsigned w, unsigned h, int format
 
 
 texture::texture(unsigned w, unsigned h, int format_,
-		 mapping_mode mapping_, clamping_mode clamp)
+		 mapping_mode mapping_, clamping_mode clamp, bool force_no_compression )
 {
 	dimension = GL_TEXTURE_2D;
 	mapping = mapping_;
@@ -837,7 +837,8 @@ texture::texture(unsigned w, unsigned h, int format_,
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
 
 	int internalformat = format;
-	if(cfg::instance().getb("use_compressed_textures")) {
+	if(cfg::instance().getb("use_compressed_textures") && !force_no_compression ) {
+		log_debug("Using compression, force =  " << force_no_compression );
 		switch (format) {
 			case GL_RGB:
 				internalformat = GL_COMPRESSED_RGB_ARB;
