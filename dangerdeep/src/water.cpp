@@ -236,7 +236,7 @@ water::water(double tm) :
 	}
 	// fixme: make ^ that configureable! reflection doesn't need to have that high detail...
 	// fixme: auto mipmap?
-	reflectiontex.reset(new texture(rx, ry, GL_RGB, texture::LINEAR, texture::CLAMP));
+	reflectiontex.reset(new texture(rx, ry, GL_RGB, texture::LINEAR, texture::CLAMP, true));
 
 	log_info("wave resolution " << wave_resolution << " (shift=" << wave_resolution_shift << ")");
 	log_info("reflection image size " << rx << "x" << ry);
@@ -272,7 +272,7 @@ water::water(double tm) :
 	loc_uw_tex_normal = glsl_under_water->get_uniform_location("tex_normal");
 
 	foamtex.reset(new texture(get_texture_dir() + "foam.png", texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
-	foamamounttex.reset(new texture(FOAMAMOUNTRES, FOAMAMOUNTRES, GL_RGB, texture::LINEAR, texture::CLAMP));
+	foamamounttex.reset(new texture(FOAMAMOUNTRES, FOAMAMOUNTRES, GL_RGB, texture::LINEAR, texture::CLAMP, true));
 
 	foamamounttrail.reset(new texture(get_texture_dir() + "foamamounttrail.png", texture::LINEAR, texture::REPEAT));//fixme maybe mipmap it
 
