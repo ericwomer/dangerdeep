@@ -1403,17 +1403,18 @@ void menu_opt_video()
 
 	if ( 1.0f != max_ani )
 	{
-		unsigned count = 1;
+		unsigned count = 0;
+		float base = 1.0f;
 
-		while( max_ani >= 2.0f )
+		while( base < max_ani )
 		{
-			anisotropic_level->append_entry( str( max_ani ) );
-
-			if ( cfg::instance().getf("anisotropic_level") == max_ani )
-				anisotropic_level->set_selected( count );
-
+			base *= 2;
 			count++;
-			max_ani /= 2.0f;
+
+			anisotropic_level->append_entry( str( base ) );
+
+			if ( cfg::instance().getf("anisotropic_level") == base )
+				anisotropic_level->set_selected( count );
 		}
 	}
 
