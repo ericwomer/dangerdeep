@@ -26,7 +26,7 @@
 #include "condvar.h"
 #include <stdexcept>
 
-#ifdef WIN32
+#if defined  WIN32 && defined _MSC_VER
 	// win32 lacks stdint.h (thankfully SDL provides...)
 	#include <SDL_config_win32.h>
 #else

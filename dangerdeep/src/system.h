@@ -36,7 +36,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif
 #endif
 
-#ifdef WIN32
+#if defined WIN32 && !(defined MINGW32)
 #define system System
 #endif
 

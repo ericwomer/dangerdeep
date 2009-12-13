@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Win32 and MacOsX do not suppport backtracking
 */
 
-#if (defined (__APPLE__) && defined (__MACH__))
+#if (defined (__APPLE__) && defined (__MACH__)) || defined MINGW32
 
 #include <stdio.h>
 

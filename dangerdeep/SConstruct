@@ -9,6 +9,8 @@ sdlimagebase = 'D:\\sdl-devel\\SDL_image'
 sdlmixerbase = 'D:\\sdl-devel\\SDL_mixer'
 fftw3base = 'D:\\fftw3'
 glbase = 'D:\\Dev-Cpp\\include\\gl'
+
+mingw32root = '/usr/mingw32'
 #sdlbase = os.environ['SDL']
 #sdlimagebase = os.environ['SDLIMAGE']
 #sdlmixerbase = os.environ['SDLMIXER']
@@ -24,6 +26,7 @@ usex86sse = int(ARGUMENTS.get('usex86sse', 0))
 useefence = int(ARGUMENTS.get('useefence', 0))
 useduma = int(ARGUMENTS.get('useduma', 0))
 archflag = ARGUMENTS.get('arch', '')
+mingw32 = ARGUMENTS.get('mingw32', 0)
 
 ################ set environment
 
@@ -116,7 +119,38 @@ elif (sys.platform == 'freebsd5') or (sys.platform == 'freebsd6') or (sys.platfo
                         # I'm not sure which option will hopefully fix the problem... so i use both...
                         env.Append(LINKFLAGS = '--unresolved-symbols=ignore-all')
                         env.Append(LINKFLAGS = '-Xlinker --unresolved-symbols -Xlinker ignore-all')
+elif 0 != mingw32:
+	print "Compiling for mingw32 Environment"
+	env = Environment(ENV = os.environ, tools = ['mingw'])
 
+	env.Append(CPPPATH = [ mingw32root + '/usr/include/', mingw32root + '/usr/include/GL/', mingw32root + '/usr/include/SDL/' ] )
+
+	# allow env to override defaults
+	try:
+		env.Replace(CXX = os.environ['CXX'])
+	except:
+		pass
+	try:
+		env.Replace(AR = os.environ['AR'])
+	except:
+		pass
+	try:
+		env.Replace(RANLIB = os.environ['RANLIB'])
+	except:
+		pass
+
+	libpath = [ mingw32root + '/lib' ]
+	gllibs = ['opengl32', 'glu32']
+	sdllibs = ['SDL', 'SDL_image']
+	env.Append(CPPDEFINES = ['MINGW32'])
+	env.Append(CCFLAGS = '-Wall -O2') # for mingw!
+	if (usex86sse >= 1):
+		osspecificsrc += []
+		env.Append(CCFLAGS = '-msse')
+		env.Append(CPPDEFINES = ['USE_SSE'])
+		print 'Using x86 SSE/MMX optimizations with GCC intrinsics.'
+	datadir = './data'	# use slashes as separator always. C/C++ want it so.
+	build_dir = 'mingw32'
 else:
 	SConsignFile()
 	print "Compiling for GNU/Linux Environment (" + sys.platform + ")"

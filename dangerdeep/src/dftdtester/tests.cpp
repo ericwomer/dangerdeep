@@ -73,7 +73,7 @@ void tests::load_gl_info()
 {
 	const char *c_vendor = (const char *)glGetString( GL_VENDOR );
 	const char *c_render = (const char *)glGetString( GL_RENDERER );
-#if defined(__APPLE__) || defined(__MACOSX__)
+#if defined(__APPLE__) || defined(__MACOSX__) || defined( MINGW32 )
 	const char *c_glsl = "Not available";
 #else
 	const char *c_glsl = (const char *)glGetString( GL_SHADING_LANGUAGE_VERSION );
@@ -193,8 +193,10 @@ int tests::do_texunit_check()
 	int texture_image_units = 0;
 	enum status status;
 
+#ifndef MINGW32
 	glGetIntegerv( GL_MAX_TEXTURE_UNITS, &texture_units );
 	glGetIntegerv( GL_MAX_TEXTURE_IMAGE_UNITS, &texture_image_units );
+#endif
 
 	if ( texture_units > 8 ) {
 		status = sGOOD;
