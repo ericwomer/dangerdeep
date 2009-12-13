@@ -42,21 +42,33 @@ postprocessor::postprocessor() :	filter( get_shader_dir() + "postp_null.vshader"
 	unsigned w = sys().get_res_x();
 	unsigned h = sys().get_res_y();
 
-	use_hqsfx = cfg::instance().getb("use_hqsfx");
-	bloom_enabled = cfg::instance().getb("bloom_enabled");
-	hdr_enabled = cfg::instance().getb("hdr_enabled");
+	unsigned pp_fx = cfg::instance().geti("postprocessing");
 
-	if ( bloom_enabled && hdr_enabled )
-		throw runtime_error("can't have both bloom AND hdr");
+	switch( cfg::instance().geti("postprocessing") )
+	{
+		case 1:
+			bloom_enabled = true;
+		break;
 
+		case 2:
+			hdr_enabled = true;
+		break;
+
+		default:
+			// not really needed
+			bloom_enabled = false;
+			hdr_enabled = false;
+	}
+
+	use_hqsfx = (cfg::instance().geti("sfx_quality") >= 1);
 
 	// only alloc buffers if needed
 	if ( bloom_enabled || hdr_enabled )
 	{
 		for( unsigned ix=0; ix < PP_FILTERS; ix++ )
 		{
-			h_textures[ ix ] = new texture( w >> ix, h >> ix, GL_RGB, texture::LINEAR, texture::CLAMP );
-			v_textures[ ix ] = new texture( w >> ix, h >> ix, GL_RGB, texture::LINEAR, texture::CLAMP );
+			h_textures[ ix ] = new texture( w >> ix, h >> ix, GL_RGB, texture::LINEAR, texture::CLAMP, true );
+			v_textures[ ix ] = new texture( w >> ix, h >> ix, GL_RGB, texture::LINEAR, texture::CLAMP, true );
 
 			h_pass[ ix ] = new framebufferobject( *h_textures[ ix ], false );
 			v_pass[ ix ] = new framebufferobject( *v_textures[ ix ], false );
@@ -64,7 +76,7 @@ postprocessor::postprocessor() :	filter( get_shader_dir() + "postp_null.vshader"
 		}
 
 		// only use floats if doing HDR
-		scene_t = new texture( w, h, ( hdr_enabled ) ? GL_RGB16F_ARB : GL_RGB, texture::LINEAR, texture::CLAMP );
+		scene_t = new texture( w, h, ( hdr_enabled ) ? GL_RGB16F_ARB : GL_RGB, texture::LINEAR, texture::CLAMP, true );
 		scene_fbo = new framebufferobject( *scene_t, true );
 	}
 }
