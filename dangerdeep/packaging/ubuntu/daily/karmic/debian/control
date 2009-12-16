@@ -1,0 +1,15 @@
+Source: dangerdeep
+Section: games
+Priority: optional
+Maintainer: Matthias Bady <aegirxx@googlemail.com>
+Build-Depends: debhelper (>= 7),scons,libc6-dev,libfftw3-dev,libsdl1.2-dev,libsdl-image1.2-dev,libsdl-mixer1.2-dev,libbz2-dev,libglu1-mesa-dev,libgl1-mesa-dev,libx11-dev
+Standards-Version: 3.8.1
+Homepage: http://dangerdeep.sourceforge.net
+
+Package: dangerdeep
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Danger from the Deep is a free Open Source World War II german submarine simulator.
+ Danger from the Deep (known as dangerdeep or DftD) is a free (as in free speech), Open Source World War II german submarine simulator. The  program and source code is available under the GPL license and most of the artwork/data is released under a Creative Commons license (Attribution/NonCommercial/Non-Derivative works).
+ DftD is currently being developed on Linux (i386 and AMD64) and Windows. There are binarys available for Linux (i386 and amd64), Windows (32bit) and there are some old packages for MacOSX. Danger from the Deep makes use of SDL/OpenGL and thus should be portable to other operating systems or platforms.
+ This game is planned as tactical simulation and will be as realistic as our time and knowledge of physics allows. It’s current state is ALPHA, but it is playable. If anyone want’s to contribute in development, you’re welcome, just visit us in #dangerdeep on freenode irc. Contributing binary packages for various Linux distributions would also be much appreciated.
