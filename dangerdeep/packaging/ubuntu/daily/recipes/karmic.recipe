@@ -1,4 +1,4 @@
 # bzr-builder format 0.2 deb-version 0~dangerdeep{revno}+0.0ubuntu~9.10
-/home/ad-530/prog/dangerdeep/bzr/dangerdeep/trunk/dangerdeep
-merge packaging lp:~aegirxx-googlemail/dftd-daily/karmic
+dangerdeep/trunk/dangerdeep
+nest packaging dangerdeep/trunk/dangerdeep/packaging/ubuntu/daily/karmic/ debian
 
