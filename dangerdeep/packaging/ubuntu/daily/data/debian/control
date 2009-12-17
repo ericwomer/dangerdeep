@@ -1,0 +1,13 @@
+Source: dangerdeep-latest-data
+Section: games
+Priority: optional
+Maintainer: Matthias Bady <aegirxx@googlemail.com>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.1
+Homepage: http://dangerdeep.sourceforge.net
+
+Package: dangerdeep-latest-data
+Architecture: all
+Depends: ${misc:Depends}
+Description: Danger from the Deep is a free Open Source World War II german submarine simulator.
+ This package contains all data files needed by dangerdeep.

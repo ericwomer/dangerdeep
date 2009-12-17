@@ -13,7 +13,7 @@ ADD="${ADD}:dangerdeep/logo.xpm"
 ADD="${ADD}:dangerdeep/README"
 ADD="${ADD}:dangerdeep/SConstruct"
 ADD="${ADD}:dangerdeep/version.txt"
-ADD="${ADD}:dangerdeep/packaging/ubuntu/daily/karmic/debian/"
+ADD="${ADD}:dangerdeep/packaging/ubuntu/daily/src/debian/"
 
 REMOVE=""
 DPKG_ARGS="-I.svn -ICVS"
