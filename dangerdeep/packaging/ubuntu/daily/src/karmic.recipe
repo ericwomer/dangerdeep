@@ -1,0 +1,23 @@
+#!/bin/bash
+PACKAGE="dangerdeep-latest"
+DIST="karmic"
+
+ADD="dangerdeep/build"
+ADD="${ADD}:dangerdeep/src"
+ADD="${ADD}:dangerdeep/CREDITS"
+ADD="${ADD}:dangerdeep/dftd_icon.png"
+ADD="${ADD}:dangerdeep/dftd_icon.xpm"
+ADD="${ADD}:dangerdeep/LICENSE"
+ADD="${ADD}:dangerdeep/logo.bmp"
+ADD="${ADD}:dangerdeep/logo.xpm"
+ADD="${ADD}:dangerdeep/README"
+ADD="${ADD}:dangerdeep/SConstruct"
+ADD="${ADD}:dangerdeep/version.txt"
+ADD="${ADD}:dangerdeep/packaging/ubuntu/daily/karmic/debian/"
+
+REMOVE=""
+DPKG_ARGS="-I.svn -ICVS"
+PUT="ppa:aegirxx-googlemail/dftd-latest"
+
+
+

@@ -1,4 +1,0 @@
-# bzr-builder format 0.2 deb-version 0~dangerdeep{revno}+0.0ubuntu~9.10
-trunk/dangerdeep
-nest packaging trunk/dangerdeep/packaging/ubuntu/daily/karmic/ debian
-

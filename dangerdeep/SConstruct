@@ -2,6 +2,7 @@
 import os
 import sys
 import subprocess
+import platform
 
 ################ base paths (needed for Win32 OS)
 sdlbase = 'D:\\sdl-devel\\SDL'
@@ -27,13 +28,19 @@ useefence = int(ARGUMENTS.get('useefence', 0))
 useduma = int(ARGUMENTS.get('useduma', 0))
 archflag = ARGUMENTS.get('arch', '')
 mingw32 = ARGUMENTS.get('mingw32', 0)
+conf = ARGUMENTS.get('conf', 1)
+tests = ARGUMENTS.get('tests', 1)
 
 ################ set environment
-
 osspecificsrc = []
 extralibs = ['bz2']
-
 fftwlib = 'fftw3'
+
+env = Environment()
+checkconf = True
+if (env.GetOption('clean') or conf == '0'):
+	checkconf = False;
+
 if sys.platform == 'win32':
 	print "Compiling for Win32 Environment"
 	env = Environment(ENV = os.environ, tools = ['mingw'])
@@ -103,7 +110,7 @@ elif (sys.platform == 'freebsd5') or (sys.platform == 'freebsd6') or (sys.platfo
         datadir = '/usr/local/share/dangerdeep'
         build_dir = 'freebsd'
 	
-        if (os.system('grep glBindProgram ' + X11BASE + '/include/GL/gl*.h > /dev/null') == 0):
+        if (checkconf == True and os.system('grep glBindProgram ' + X11BASE + '/include/GL/gl*.h > /dev/null') == 0):
                 gllibdirs = [X11BASE + '/lib/', '/usr/lib/', LOCALBASE + '/lib/']
                 gllibdir = ''
                 for i in gllibdirs:
@@ -165,23 +172,7 @@ else:
 
 	ccflags = '-Wall `sdl-config --cflags` `pkg-config --cflags x11`'
 
-	# work out the system arch, i3d3 or amd64 etc.
-	uname_arch = subprocess.Popen( 'uname -m', 1024, None, None, subprocess.PIPE, None, None, False, True ).communicate( None )[0].strip();
-
-	if ( 'x86_64' == uname_arch ):
-		arch = 'x86-64'
-	else:
-		arch = 'i686'
-
-	# Set libpath accordingly
-	
-	if arch == 'x86-64':
-		archlib = '/usr/lib64'
-	else:
-		archlib = '/usr/lib'
-
-	# Set libpath for real
-	libpath = [archlib, '/usr/lib/X11', '/usr/X11R6/lib']
+	arch = platform.machine()
 
 	# allow arch to be over-ridden if need be.
 	if archflag != '':
@@ -190,21 +181,33 @@ else:
 	else:
 		print 'Using architecture: ' + arch
 
+	# Set libpath accordingly
+	if arch == 'x86_64':
+		archlib = '/usr/lib64'
+		arch = 'x86-64'
+	else:
+		archlib = '/usr/lib'
+
+	# Set libpath for real
+	libpath = [archlib, archlib + '/X11', '/usr/X11R6/lib']
+
+	ccflags += ' -march=' + arch
+
 	env.Append(LINKFLAGS = '`pkg-config --libs-only-L x11`')
 	if (debug >= 3):
-		ccflags += ' -g -pg -O3 -march=' + arch	# profiling
+		ccflags += ' -g -pg -O3' # profiling
 	elif (debug == 2):
-		ccflags += ' -g -O0 -march=' + arch
+		ccflags += ' -g -O0'
 		env.Append(CPPDEFINES = ['DEBUG'])
 	elif (debug == 1):
-		ccflags += ' -g -O1 -march=' + arch
+		ccflags += ' -g -O1'
 		env.Append(CPPDEFINES = ['DEBUG'])
 	elif (debug == -1):
-		ccflags += ' -g -O3 -march=' + arch + ' -mfpmath=sse -mmmx -msse -m3dnow'
+		ccflags += ' -g -O3 -mfpmath=sse -mmmx -msse -m3dnow'
 	elif (debug == -2):	# special g++4.0+ auto vectorization
-		ccflags += ' -g -O3 -march=' + arch + ' -mfpmath=sse -mmmx -msse -m3dnow -ftree-vectorize'
+		ccflags += ' -g -O3 -mfpmath=sse -mmmx -msse -m3dnow -ftree-vectorize'
 	elif (debug == -3):	# special g++4.0+ auto vectorization
-		ccflags += ' -g -O3 -march=' + arch + ' -mfpmath=sse -mmmx -msse -msse2 -m3dnow -ftree-vectorize'
+		ccflags += ' -g -O3 -mfpmath=sse -mmmx -msse -msse2 -m3dnow -ftree-vectorize'
 	else:
 		if (useicc >= 1):
 			env.Replace(CC = "icc")
@@ -212,7 +215,7 @@ else:
 			ccflags += ' -ip -w '
 			build_dir = 'linux-icc'
 		else:
-			ccflags += ' -g -O2 -march=' + arch # debug symbols will be stripped by the linker for a debian package
+			ccflags += ' -g -O2' # debug symbols will be stripped by the linker for a debian package
 
 	if (useefence >= 1):
 		extralibs += ['efence']
@@ -222,20 +225,7 @@ else:
 		print 'Linking to DUMA (EletricFence successor) library!'
 	if (cvedit == 1):
 		env.Append(CPPDEFINES = ['CVEDIT'])
-	# check for mmx/sse support
-	cpuinfof = open('/proc/cpuinfo', 'r')
-	cpuinfol = cpuinfof.readlines()
-	mmxsupported = False
-	ssesupported = False
-	for i in cpuinfol:
-		if i.startswith('flags'):
-			m = Split(i)
-			if 'mmx' in m:
-				mmxsupported = True
-			if 'sse' in m:
-				ssesupported = True
-	if (usex86sse == 0) and (mmxsupported and ssesupported):
-		usex86sse = 1
+
 	if usex86sse >= 1:
 		env.Append(CPPDEFINES = ['USE_SSE'])
 		env.Append(CCFLAGS = '-msse')
@@ -248,7 +238,7 @@ else:
 	env.Append(CCFLAGS = ccflags)
 
 	# check for broken libGL, ignore undefined symbols then
-	if (os.system('grep glBindProgram /usr/include/GL/gl*.h > /dev/null') == 0):
+	if (checkconf == True and os.system('grep glBindProgram /usr/include/GL/gl*.h > /dev/null') == 0):
 		gllibdirs = ['/usr/X11R6/lib/', '/usr/lib/', '/usr/local/lib/']
 		gllibdir = ''
 		for i in gllibdirs:
@@ -281,30 +271,33 @@ libpath = libpath + [target_dir]
 env.Append(LIBPATH = libpath)
 
 ################ configure
-conf = Configure(env)
-ffmpeg_available = False
-if (devel == 0):
-	for i in ['GL', 'GLU', 'SDL', 'SDL_image', 'SDL_mixer', 'fftw3', 'bz2']:
-		if not conf.CheckLib(i):
-			print 'Library ' + i + ' is missing, it must be installed!'
-			Exit(1)
-	for i in ['gl.h', 'glu.h', 'SDL.h', 'SDL_image.h', 'SDL_mixer.h', 'fftw3.h', 'bzlib.h']:
-		if not conf.CheckHeader(i):
-			print 'Include file ' + i + ' is missing, install matching development library!'
-			Exit(1)
-	if conf.CheckLibWithHeader('fftw3f', 'fftw3.h', 'C'):
-		print 'fftw3 library supports float type. Using it...'
-		fftwlib = 'fftw3f'
-		conf.env.Append(CPPDEFINES = ['WITH_FLOAT_FFTW'])
+if(checkconf == True):
+	conf = Configure(env)
+	ffmpeg_available = False
+	if (devel == 0):
+		for i in ['GL', 'GLU', 'SDL', 'SDL_image', 'SDL_mixer', 'fftw3', 'bz2']:
+			if not conf.CheckLib(i):
+				print 'Library ' + i + ' is missing, it must be installed!'
+				Exit(1)
+		for i in ['gl.h', 'glu.h', 'SDL.h', 'SDL_image.h', 'SDL_mixer.h', 'fftw3.h', 'bzlib.h']:
+			if not conf.CheckHeader(i):
+				print 'Include file ' + i + ' is missing, install matching development library!'
+				Exit(1)
+		if conf.CheckLibWithHeader('fftw3f', 'fftw3.h', 'C'):
+			print 'fftw3 library supports float type. Using it...'
+			fftwlib = 'fftw3f'
+			conf.env.Append(CPPDEFINES = ['WITH_FLOAT_FFTW'])
+		else:
+			print 'fftw3 library does not support float type.'
+		if conf.CheckLibWithHeader('avutil', 'ffmpeg/libavutil/avutil.h', 'C'):
+			print 'libavutil found...'
+			ffmpeg_available = True
 	else:
-		print 'fftw3 library does not support float type.'
-	if conf.CheckLibWithHeader('avutil', 'ffmpeg/libavutil/avutil.h', 'C'):
-		print 'libavutil found...'
-		ffmpeg_available = True
+		fftwlib = 'fftw3f'
+		conf.env.Append(CPPDEFINES = ['WITH_FLOAT_FFTW'])	# developers always use float...
+	env = conf.Finish()
 else:
-	fftwlib = 'fftw3f'
-	conf.env.Append(CPPDEFINES = ['WITH_FLOAT_FFTW'])	# developers always use float...
-env = conf.Finish()
+	ffmpeg_available = True
 
 ######################### source file lists
 gfxlibs = ['oglext'] + gllibs + sdllibs
@@ -330,7 +323,7 @@ f = open('version.txt', 'r')
 version = f.readlines()[0][:-1]
 f.close()
 
-Export('env', 'gfxlibs', 'alllibs', 'installbindir', 'datadir', 'version', 'osspecificsrc', 'ffmpeg_available')
+Export('env', 'gfxlibs', 'alllibs', 'installbindir', 'datadir', 'version', 'osspecificsrc', 'ffmpeg_available', 'tests')
 
 SConscript(source_base_dir + os.sep + 'SConscript', build_dir = target_dir, duplicate = 0)
 

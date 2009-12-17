@@ -1,33 +1,25 @@
 This package was debianized by:
 
-    Maskierter Muchacho <aegirxx@googlemail.com> on Wed, 16 Dec 2009 06:08:08 +0100
+    Matthias Bady <aegirxx@googlemail.com> on Wed, 16 Dec 2009 06:08:08 +0100
 
 It was downloaded from:
 
-    <url://example.com>
+    <http://dangerdeep.sourceforge.net>
 
 Upstream Author(s):
 
-    <put author's name and email here>
-    <likewise for another author>
+    <Torsten Jordan, Luis Barrancos, Matthias Bady and others>
 
 Copyright:
 
-    <Copyright (C) YYYY Firtname Lastname>
-    <likewise for another author>
+    <Copyright (C) 2003-2009 Torsten Jordan, Luis Barrancos, Matthias Bady and others>
 
 License:
 
-### SELECT: ###
     This package is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
-### OR ###
-   This package is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License version 2 as
-   published by the Free Software Foundation.
-##########
 
     This package is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -43,7 +35,7 @@ Public License version 2 can be found in `/usr/share/common-licenses/GPL-2'.
 
 The Debian packaging is:
 
-    Copyright (C) 2009 Maskierter Muchacho <aegirxx@googlemail.com>
+    Copyright (C) 2009 Matthias Bady <aegirxx@googlemail.com>
 
 and is licensed under the GPL version 3, 
 see `/usr/share/common-licenses/GPL-3'.
