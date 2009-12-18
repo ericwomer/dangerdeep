@@ -56,7 +56,7 @@ protected:
 
 template<class T>
 tile<T>::tile(const char *filename, vector2i& _bottom_left, unsigned size) 
-: data(size), bottom_left(_bottom_left), last_access(sys().millisec())
+: data(size, -200), bottom_left(_bottom_left), last_access(sys().millisec())
 {
 	std::ifstream file;
 	file.open(filename);
@@ -77,7 +77,7 @@ tile<T>::tile(const char *filename, vector2i& _bottom_left, unsigned size)
 template<class T>
 void tile<T>::load(const char *filename, vector2i& _bottom_left, unsigned size)
 {
-	data.resize(size);
+	data.resize(size, -200);
 	bottom_left = _bottom_left;
 	last_access = sys().millisec();
 	
