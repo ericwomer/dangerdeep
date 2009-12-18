@@ -4,6 +4,13 @@
 	<bounds x="21600" y="10800" />
 	<origin x="10800" y="5400" />
 	<tile_size value="256" />
-	<noise h="0.25" lacunarity="1.37657" offset="0" scale="20.0" coord_factor="0.01" gain="3.657" octaves="8.867345"/>
 	<sample_spacing value="50.0"/>
+	<slope texture="terrain_rock.dds" />
+	<regions>
+		<region min="-200" max="-5" texture="terrain_sand.dds" />
+		<region min="-6" max="5" texture="terrain_mud.dds" />
+		<region min="6" max="3000" texture="terrain_forest.dds" />
+		<region min="3001" max="9000" texture="terrain_snow.dds" />
+	</regions>
+	<noise h="0.25" lacunarity="1.37657" offset="0" scale="20.0" coord_factor="0.01" gain="3.657" octaves="8.867345"/>
 </dftd-map>
