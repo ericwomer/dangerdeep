@@ -61,6 +61,6 @@ dch -v $VERSION --create --package $PACKAGE -D $DIST -c ${PKGDIR}debian/changelo
 cd $PKGDIR
 dpkg-buildpackage -k${KEY_ID} -S $DPKG_ARGS
 
-dput $PUT ${WORKDIR}${PACKAGE}_${VERSION}_source.changes 
+`${DPUT_PRE} dput ${PUT} ${WORKDIR}${PACKAGE}_${VERSION}_source.changes`
 
 rm -rf $WORKDIR
