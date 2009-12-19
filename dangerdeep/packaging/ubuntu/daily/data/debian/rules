@@ -36,7 +36,7 @@ install: build
 	dh_prep  
 	dh_installdirs
 
-	cp -r data/* $(CURDIR)/debian/dangerdeep-latest-data/usr/share
+	cp -r data/* $(CURDIR)/debian/dangerdeep-latest-data/usr/share/dangerdeep
 
 
 # Build architecture-independent files here.
