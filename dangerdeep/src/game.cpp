@@ -1551,11 +1551,21 @@ void game::unregister_job(job* j)
 template<class C>
 ship* game::check_units ( torpedo* t, const ptrset<C>& units )
 {
+	const vector3& t_pos = t->get_pos();
+	bv_tree::param p0 = t->compute_bv_tree_params();
 	for (unsigned k = 0; k < units.size(); ++k) {
 		//fixme use bv_trees here with special code for magnetic ignition torpedoes
 		//like intersection of sphere around torpedo head with bv tree
-		if ( is_collision ( t, units[k] ) )
+		const vector3& partner_pos = units[k]->get_pos();
+		matrix4 rel_trans = matrix4::trans(partner_pos - t_pos);
+		bv_tree::param p1 = units[k]->compute_bv_tree_params();
+		p1.transform = rel_trans * p1.transform;
+		vector3f contact_point;
+		if (bv_tree::closest_collision(p0, p1, contact_point))
 			return units[k];
+		// old code:
+		//if ( is_collision ( t, units[k] ) )
+		//	return units[k];
 	}
 
 	return 0;
@@ -1681,6 +1691,7 @@ const torpedo* game::get_torpedo_for_camera_track(unsigned nr) const
 
 
 
+/* old code for torpedo collision. to be removed later, fixme.
 bool game::is_collision(const sea_object* s1, const sea_object* s2) const
 {
 	// bounding volume collision test
@@ -1758,6 +1769,7 @@ bool game::is_collision(const sea_object* s, const vector2& pos) const
 	}
 	return false;
 }
+*/
 
 double game::get_depth_factor ( const vector3& sub ) const
 {
@@ -1945,25 +1957,14 @@ void game::check_collisions()
 	// so we have N^2/2 tests and not N^2.
 	// we don't check for torpedo<->torpedo collisions.
 	for (unsigned i = 0; i < allships.size(); ++i) {
-		const ship* actor = allships[i];
-		const vector3& actor_pos = actor->get_pos();
-		matrix4 actor_rotmat = actor->get_orientation().rotmat4();
-		const model& model_actor = actor->get_model();
-		const model::mesh& basemesh_actor = model_actor.get_base_mesh();
-		matrix4f basemeshtrans_actor = model_actor.get_base_mesh_transformation();
-		const bv_tree& bv_tree_actor = basemesh_actor.get_bv_tree();
+		const vector3& actor_pos = allships[i]->get_pos();
 		// use partner's position relative to actor
-		bv_tree::param p0(bv_tree_actor, basemesh_actor.vertices, actor_rotmat * basemeshtrans_actor);
+		bv_tree::param p0 = allships[i]->compute_bv_tree_params();
 		for (unsigned j = std::max(i+1, m); j < allships.size(); ++j) {
-			const ship* partner = allships[j];
-			const vector3& partner_pos = partner->get_pos();
-			matrix4 partner_rotmat = partner->get_orientation().rotmat4();
-			const model& model_partner = partner->get_model();
-			const model::mesh& basemesh_partner = model_partner.get_base_mesh();
-			matrix4f basemeshtrans_partner = model_partner.get_base_mesh_transformation();
-			const bv_tree& bv_tree_partner = basemesh_partner.get_bv_tree();
+			const vector3& partner_pos = allships[j]->get_pos();
 			matrix4 rel_trans = matrix4::trans(partner_pos - actor_pos);
-			bv_tree::param p1(bv_tree_partner, basemesh_partner.vertices, rel_trans * partner_rotmat * basemeshtrans_partner);
+			bv_tree::param p1 = allships[j]->compute_bv_tree_params();
+			p1.transform = rel_trans * p1.transform;
 #if 0
 			std::list<vector3f> contact_points;
 			bool intersects = bv_tree::collides(p0, p1, contact_points);

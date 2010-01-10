@@ -51,7 +51,7 @@ class bv_tree
 	{
 		const bv_tree& tree;
 		const std::vector<vector3f>& vertices;
-		const matrix4f& transform;
+		matrix4f transform;
 		param(const bv_tree& t, const std::vector<vector3f>& v, const matrix4f& m)
 			: tree(t), vertices(v), transform(m) {}
 		param children(unsigned i) const {

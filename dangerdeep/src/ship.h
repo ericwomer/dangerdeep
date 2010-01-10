@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <map>
 #include "sea_object.h"
+#include "bv_tree.h"
 
 class game;
 
@@ -326,6 +327,9 @@ public:
 	   Nobody else should manipulate objects like this.
 	*/
 	virtual void manipulate_heading(angle hdg);
+
+	/// compute bv_tree parameter values for collision tests
+	virtual bv_tree::param compute_bv_tree_params() const;
 };
 
 #endif

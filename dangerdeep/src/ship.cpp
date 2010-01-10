@@ -1231,3 +1231,14 @@ void ship::manipulate_heading(angle hdg)
 	head_to = hdg;
 	head_to_fixed = true;
 }
+
+
+
+bv_tree::param ship::compute_bv_tree_params() const
+{
+	const model::mesh& basemesh = get_model().get_base_mesh();
+	const bv_tree& bv_tree = basemesh.get_bv_tree();
+	matrix4 rotmat = get_orientation().rotmat4();
+	matrix4f basemeshtrans = get_model().get_base_mesh_transformation();
+	return bv_tree::param(bv_tree, basemesh.vertices, rotmat * basemeshtrans);
+}
