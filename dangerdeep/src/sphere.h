@@ -36,9 +36,7 @@ public:
 	sphere_t() : radius(0) {}
 	sphere_t(const vector3t<D>& c, const D& r) : center(c), radius(r) {}
 	/// construct from three points (triangle).
-	sphere_t(const vector3t<D>& a, const vector3t<D>& b, const vector3t<D>& c)
-	{
-	}
+	//sphere_t(const vector3t<D>& a, const vector3t<D>& b, const vector3t<D>& c) { }
 	/// determine if point is inside sphere
 	bool is_inside(const vector3t<D>& a) const {
 		return center.square_distance(a) < radius*radius;

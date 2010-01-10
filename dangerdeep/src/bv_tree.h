@@ -74,8 +74,12 @@ class bv_tree
 	bv_tree(const spheref& sph, std::auto_ptr<bv_tree> left_tree, std::auto_ptr<bv_tree> right_tree);
 	static std::auto_ptr<bv_tree> create(const std::vector<vector3f>& vertices, std::list<leaf_data>& nodes);
 	bool is_inside(const vector3f& v) const;
+
+	/** determine if two bv_trees intersect each other (are colliding). A list of contact points is computed. */
 	static bool collides(const param& p0, const param& p1, std::list<vector3f>& contact_points);
+	/** determine if two bv_trees intersect each other (are colliding). The closest contact point is computed. */
 	static bool closest_collision(const param& p0, const param& p1, vector3f& contact_point);
+	/** determine if two bv_trees intersect each other (are colliding). */
 	static bool collides(const param& p, const spheref& sp);
 	void transform(const matrix4f& mat);
 	void compute_min_max(vector3f& minv, vector3f& maxv) const;
