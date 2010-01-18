@@ -190,7 +190,7 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 	if (!glsl_supported) {
 		throw std::runtime_error("GLSL shaders are not supported!");
 	}
-	if (extension_supported("GL_NV_texture_env_combine4"))
+	if (vendor.find("NVIDIA") != std::string::npos)
 		// we have an Nvidia card (most probably)
 		glsl_shader::is_nvidia_card = true;
 
