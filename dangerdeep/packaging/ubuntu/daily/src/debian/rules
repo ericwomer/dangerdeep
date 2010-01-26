@@ -38,7 +38,7 @@ install: build
 	dh_prep  
 	dh_installdirs
 
-	scons conf=0 tests=0 datadir="/usr/share/dangerdeep" installbindir=$(CURDIR)/debian/dangerdeep/usr/bin install
+	scons conf=0 tests=0 datadir="/usr/share/dangerdeep" installbindir=$(CURDIR)/debian/dangerdeep-latest/usr/bin install
 
 
 # Build architecture-independent files here.

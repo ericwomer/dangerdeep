@@ -1,6 +1,6 @@
 #!/bin/bash
 # Dont forget to set the environment variables SOURCE, DEBFULLNAME, EMAIL and KEY_ID (todo: add check)
-CACHE_DIR="/tmp/cache/dailydeb/"
+CACHE_DIR="/var/tmp/dailydeb/"
 
 . $1
 
@@ -61,6 +61,6 @@ dch -v $VERSION --create --package $PACKAGE -D $DIST -c ${PKGDIR}debian/changelo
 cd $PKGDIR
 dpkg-buildpackage -k${KEY_ID} -S $DPKG_ARGS
 
-`${DPUT_PRE} dput ${PUT} ${WORKDIR}${PACKAGE}_${VERSION}_source.changes`
+dput ${PUT} ${WORKDIR}${PACKAGE}_${VERSION}_source.changes
 
 rm -rf $WORKDIR
