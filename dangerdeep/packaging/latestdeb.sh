@@ -56,7 +56,7 @@ done
 IFS=$OLDIFS
 
 svn2cl --break-before-msg $SOURCE -o ${PKGDIR}ChangeLog -r $REVNO
-dch -v $VERSION --create --package $PACKAGE -D $DIST -c ${PKGDIR}debian/changelog "Initial release"
+dch -v $VERSION --create --package $PACKAGE -D $DIST -c ${PKGDIR}debian/changelog "New upstream snapshot"
 
 cd $PKGDIR
 dpkg-buildpackage -k${KEY_ID} -S $DPKG_ARGS
