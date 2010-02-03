@@ -129,7 +129,7 @@ class torpedo : public ship
 	double warhead_weight;	// in kg
 	warhead_types warhead_type;
 	double arming_distance;	// meters
-	fuse fuses[2];
+	fuse contact_fuse, magnetic_fuse;
 	double range[NR_SPEEDRANGE_TYPES];
 	double speed[NR_SPEEDRANGE_TYPES];
 	steering_devices steering_device;
@@ -182,6 +182,12 @@ public:
 
 	virtual double get_range() const;
 	double get_torp_speed() const;
+
+	/// fire fuse and test if it works. depends also on angle to target, to be added later as parameter.
+	bool test_contact_fuse() const;
+
+	/// fire fuse and test if it works. depends on distance/angle to target, to be added later as parameter.
+	bool test_magnetic_fuse() const;
 };
 
 #endif

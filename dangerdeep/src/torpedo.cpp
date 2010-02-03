@@ -163,7 +163,6 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	// ---------- fuse(s)
 	xml_elem efuse = parent.child("fuse");
 	fuse latest_fuse;
-	unsigned fuse_count = 0;
 	latest = date("1/1/1");
 	for (xml_elem::iterator it = efuse.iterate("period"); !it.end(); it.next()) {
 		date from = it.elem().attr("from");
@@ -173,14 +172,18 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 			latest_fuse = fuse(it.elem(), dt);
 		}
 		if (from <= dt && dt <= until) {
-			if (fuse_count == 2)
-				throw xml_error("too many fuses for time period, at most 2 are allowed", parent.doc_name());
-			fuses[fuse_count++] = fuse(it.elem(), dt);
+			fuse f(it.elem(), dt);
+			if (f.type == fuse::IMPACT || f.type == fuse::INERTIAL)
+				contact_fuse = f;
+			else
+				magnetic_fuse = f;
 		}
 	}
-	if (fuse_count == 0) {
-		if (dt >= latest && latest_fuse.type != fuse::NONE)
-			fuses[fuse_count++] = latest_fuse;
+	if (contact_fuse.type == fuse::NONE && magnetic_fuse.type == fuse::NONE) {
+		if (latest_fuse.type == fuse::IMPACT || latest_fuse.type == fuse::INERTIAL)
+			contact_fuse = latest_fuse;
+		else if (latest_fuse.type == fuse::INFLUENCE)
+			magnetic_fuse = latest_fuse;
 		else
 			throw xml_error("no period subtags of fuse that match current equipment date!", parent.doc_name());
 	}
@@ -335,9 +338,7 @@ void torpedo::simulate(double delta_time)
 	// check for collisions with other subs or ships
 	if (run_length > 10) {	// avoid collision with parent after initial creation
 		bool runlengthfailure = (run_length < arming_distance);
-		bool failure = false;	// calculate additional probability of torpedo failure
-		//fixme: depends on fuse. compute this once and not for every test...
-		if (gm.check_torpedo_hit(this, runlengthfailure, failure))
+		if (gm.check_torpedo_hit(this, runlengthfailure))
 			kill();
 	}
 }
@@ -497,4 +498,20 @@ double torpedo::get_torp_speed() const
 	default:
 		return speed[NORMAL];
 	}
+}
+
+
+
+bool torpedo::test_contact_fuse() const
+{
+	// compute if contact fuse fails (if fuse type is NONE, probability is 1.0, so it fails always)
+	return gm.randomf() > contact_fuse.failure_probability;
+}
+
+
+
+bool torpedo::test_magnetic_fuse() const
+{
+	// compute if magnetic fuse fails (if fuse type is NONE, probability is 1.0, so it fails always)
+	return gm.randomf() > magnetic_fuse.failure_probability;
 }

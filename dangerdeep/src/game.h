@@ -366,11 +366,9 @@ public:
 
 	template<class C> ship* check_units ( torpedo* t, const ptrvector<C>& units );
 
-	// fixme why is this not const? if it changes game, it must be send over network, and
-	// then it can't be a function!
-	bool check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure);
+	/// check if torpedo t hits any ship/sub and in that case spawn events
+	bool check_torpedo_hit(torpedo* t, bool runlengthfailure);
 
-	// dito, see check_torpedo_hit-comment
 	sea_object* contact_in_direction(const sea_object* o, const angle& direction) const;
 	ship* ship_in_direction_from_pos(const sea_object* o, const angle& direction) const;
 	submarine* sub_in_direction_from_pos(const sea_object* o, const angle& direction) const;

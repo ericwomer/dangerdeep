@@ -1573,13 +1573,8 @@ ship* game::check_units ( torpedo* t, const ptrvector<C>& units )
 	return 0;
 }
 
-bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
+bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure)
 {
-	if (failure) {
-		events.push_back(new event_torpedo_dud());
-		return true;
-	}
-
 	ship* s = check_units ( t, ships );
 
 	if ( !s )
@@ -1591,15 +1586,22 @@ bool game::check_torpedo_hit(torpedo* t, bool runlengthfailure, bool failure)
 		} else {
 			// Only ships that are alive can be sunk. Already sinking
 			// or destroyed ships cannot be destroyed again.
-			if (s->is_alive()) {
-				if (s->damage(t->get_pos(), t->get_hit_points())) {
-					ship_sunk(s);
-				} else {
-					s->ignite();
-				}
+			if (!s->is_alive())
+				return false;
+
+			// now check if torpedo fuse works
+			if (!t->test_contact_fuse()) {
+				events.push_back(new event_torpedo_dud());
+				return true;
+			}
+
+			if (s->damage(t->get_pos(), t->get_hit_points())) {
+				ship_sunk(s);
+			} else {
+				s->ignite();
 			}
 			
-			//test: explosion:
+			// explosion of torpedo
 			spawn_particle(new explosion_particle(s->get_pos() + vector3(0, 0, 5)));
 			torp_explode ( t );
 		}
