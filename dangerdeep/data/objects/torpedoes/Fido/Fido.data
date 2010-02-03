@@ -15,7 +15,7 @@
 		</arming>
 		
 		<fuse>
-		 <period type="concatct" from="1939/1/1" until="1945/12/31"/>
+		 <period type="Fido" from="1939/1/1" until="1945/12/31"/>
 		</fuse>
 		
 		<ranges>

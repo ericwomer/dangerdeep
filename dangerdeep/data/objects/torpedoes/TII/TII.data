@@ -23,7 +23,8 @@
   </arming>
   <fuse>
     <period type="Pi1" from="1939/1/1" until="1942/11/30"/>
-    <period type="TZ3,Pi3" from="1941/12/1" until="1945/12/31"/>
+    <period type="Pi3" from="1941/12/1" until="1945/12/31"/>
+    <period type="TZ3" from="1941/12/1" until="1945/12/31"/>
   </fuse>
   <ranges>
     <range distance="5000" speed="30" preheated="1"/>

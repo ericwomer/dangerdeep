@@ -79,15 +79,15 @@ class torpedo : public ship
 	class fuse
 	{
 	public:
-		fuse();
-		enum models { Pi1, Pi2, Pi3, Pi4a, Pi4b, Pi4c, Pi6, TZ3, TZ5, TZ6 };
-		enum types { IMPACT, INFLUENCE, INERTIAL };
-		models model;
+		enum types { NONE, IMPACT, INFLUENCE, INERTIAL };
 		types type;
 		float failure_probability;	// in [0...1]
+
+		fuse() : type(NONE), failure_probability(1.0f) {}
+		fuse(const xml_elem& parent, date equipdate);
+
 		// this function computes if the fuse ignites or fails, call it once
 		//bool handle_impact(angle impactangle) const;
-		fuse(const xml_elem& parent, date equipdate);
 	};
 
 	/// data about setup of a torpedo while it is still in the tube
@@ -129,7 +129,7 @@ class torpedo : public ship
 	double warhead_weight;	// in kg
 	warhead_types warhead_type;
 	double arming_distance;	// meters
-	std::list<fuse> fuses;
+	fuse fuses[2];
 	double range[NR_SPEEDRANGE_TYPES];
 	double speed[NR_SPEEDRANGE_TYPES];
 	steering_devices steering_device;

@@ -26,10 +26,7 @@
   </arming>
   <fuse>
     <period type="Pi4c" from="1944/1/1" until="1945/12/31"/>
-<!-- we need to specify the TZ5 magnetic too, since it was coupled to Pi4c, for
-now, the mock tag:
-		 <period type="Pi4c+TZ5" from="1944/1/1" until="1945/12/31"/>
--->
+    <period type="TZ5" from="1944/1/1" until="1945/12/31"/>
   </fuse>
   <ranges>
     <range distance="8000" speed="21.5" preheated="1"/>

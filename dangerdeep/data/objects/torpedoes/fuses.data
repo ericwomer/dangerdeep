@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<dftd-torpedo-fuses>
+  <Pi1 type="impact" failure_probability="0.3"/>
+  <Pi2 type="impact" failure_probability="0.2"/>
+  <Pi3 type="impact" failure_probability="0.1"/>
+  <Pi4a type="impact" failure_probability="0.1"/>
+  <Pi4b type="impact" failure_probability="0.1"/>
+  <Pi4c type="impact" failure_probability="0.1"/>
+  <Pi6 type="inertial" failure_probability="0.02"/>
+  <TZ3 type="influence" failure_probability="0.5"/>
+  <TZ5 type="influence" failure_probability="0.2"/>
+  <TZ6 type="influence" failure_probability="0.1"/>
+  <Fido type="impact" failure_probability="0.1"/>
+</dftd-torpedo-fuses>

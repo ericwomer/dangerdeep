@@ -42,10 +42,7 @@ feature. Suggestions needed for this. -->
   <fuse>
     <period type="Pi4a" from="1943/9/1" until="1943/12/1"/>
     <period type="Pi4c" from="1943/12/2" until="1945/12/31"/>
-<!-- we need to specify the TZ5 magnetic too, since it was coupled to Pi4c, for
-now, the mock tag:
-		 <period type="Pi4c+TZ5" from="1943/12/2" until="1945/12/31"/>
--->
+    <period type="TZ5" from="1943/12/2" until="1945/12/31"/>
   </fuse>
   <ranges>
     <range distance="5750" speed="24.5" preheated="1"/>

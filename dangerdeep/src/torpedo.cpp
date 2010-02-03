@@ -28,126 +28,30 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "sensors.h"
 #include "log.h"
 #include "submarine.h"
+#include "datadirs.h"
 using std::string;
 using std::vector;
-
-
-/**
- * This is just a default fuse constructor so that the
- * code in the fuse(s) section of the torpedo constructor
- * can actually work.  Quick and dirty hack.
- */
-torpedo::fuse::fuse()
-{
-	model = Pi1;
-	failure_probability = 0.3f;
-	type = IMPACT;
-}
-
-/** Tokenize a string.
- *  This function will accept a string and add tokens from it to
- *  your vector (which needn't even be empty) separated by
- *  arbitrary delimiters.  While any character in the delimiters
- *  string will be treated as a delimiter, this function will not
- *  treat different delimiters differently.  The tokens vector
- *  ends up as a simple, sequential list of tokens regardless of
- *  how exactly the delimiters occur.
- *
- *  Usage: <br />
- *  string sentence("All work and no play makes Jack a dull boy."); //<br />
- *  vector<string> words; //<br />
- *  tokenize(sentence, words); //<br />
- *  string typelist("TZ1,Pi1|TZ3,Pi3"); //<br />
- *  vector<string> types; //<br />
- *  tokenize(typelist, types, ",|");
- *
- *  @param str	arbitrary string which is to be parsed for tokens.
- *  @param tokens	vector which is to contain the tokens.  Look for your result here.
- *  @param delimiters	characters which this function should consider separate tokens.
- */
-void tokenize(	const string& str, 
-		vector<string>& tokens, 
-		const string& delimiters = " ") {
-	// Skip any delimiters at the beginning
-	string::size_type last_position = str.find_first_not_of(delimiters, 0);
-	// Find the beginning of our first token
-	string::size_type position = str.find_first_of(delimiters, last_position);
-	
-	while (string::npos != position || string::npos != last_position) {
-		// Hey!  A token!
-		tokens.push_back(str.substr(last_position, position - last_position));
-		// Skip all delimiters
-		last_position = str.find_first_not_of(delimiters, position);
-		// Find the beginning of our next token
-		position = str.find_first_of(delimiters, last_position);
-	}
-}
 
 
 torpedo::fuse::fuse(const xml_elem& parent, date equipdate)
 {
 	string modelstr = parent.attr("type");
-	// fixme: TI_FaTI.xml uses "TZ3,Pi3" as the fuse type.  Implement random fuse choice?
-	if (modelstr.find(",") != string::npos) {
-		vector<string> types;
-		tokenize(modelstr, types, ",");
-		unsigned r = rnd(types.size());
-		modelstr = types.at(r);
-	}
-	if (modelstr == "Pi1") model = Pi1;
-	else if (modelstr == "Pi2") model = Pi2;
-	else if (modelstr == "Pi3") model = Pi3;
-	else if (modelstr == "Pi4a") model = Pi4a;
-	else if (modelstr == "Pi4b") model = Pi4b;
-	else if (modelstr == "Pi4c") model = Pi4c;
-	else if (modelstr == "Pi6") model = Pi6;
-	else if (modelstr == "TZ3") model = TZ3;
-	else if (modelstr == "TZ5") model = TZ5;
-	else if (modelstr == "TZ6") model = TZ6;
-	else throw xml_error(string("illegal fuse model given: ") + modelstr, parent.doc_name());
-	// fixme: check here if that is correct!!! Pi4 intertial?
-	switch (model) {
-	case Pi1:
-		failure_probability = 0.3f;	// fixme depends on date!
+	xml_doc doc(get_data_dir() + "objects/torpedoes/fuses.data");
+	doc.load();
+	xml_elem fs = doc.child("dftd-torpedo-fuses");
+	if (!fs.has_child(modelstr))
+		throw xml_error("unknown fuse type!", parent.doc_name());
+	xml_elem f = fs.child(modelstr);
+	string ts = f.attr("type");
+	if (ts == "impact")
 		type = IMPACT;
-		break;
-	case Pi2:
-		failure_probability = 0.2f;	// fixme depends on date!
-		type = IMPACT;
-		break;
-	case Pi3:
-		failure_probability = 0.1f;	// fixme depends on date!
-		type = IMPACT;
-		break;
-	case Pi4a:
-		failure_probability = 0.1f;	// fixme depends on date!
-		type = IMPACT;
-		break;
-	case Pi4b:
-		failure_probability = 0.1f;	// fixme depends on date!
-		type = IMPACT;
-		break;
-	case Pi4c:
-		failure_probability = 0.1f;	// fixme depends on date!
-		type = IMPACT;
-		break;
-	case Pi6:
-		failure_probability = 0.02f;	// fixme depends on date!
+	else if (ts == "inertial")
 		type = INERTIAL;
-		break;
-	case TZ3:
-		failure_probability = 0.5f;	// fixme depends on date!
+	else if (ts == "influence")
 		type = INFLUENCE;
-		break;
-	case TZ5:
-		failure_probability = 0.2f;	// fixme depends on date!
-		type = INFLUENCE;
-		break;
-	case TZ6:
-		failure_probability = 0.1f;	// fixme depends on date!
-		type = INFLUENCE;
-		break;
-	}
+	else
+		throw xml_error("illegal fuse tyoe!", f.doc_name());
+	failure_probability = f.attrf("failure_probability");
 }
 
 
@@ -259,6 +163,7 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	// ---------- fuse(s)
 	xml_elem efuse = parent.child("fuse");
 	fuse latest_fuse;
+	unsigned fuse_count = 0;
 	latest = date("1/1/1");
 	for (xml_elem::iterator it = efuse.iterate("period"); !it.end(); it.next()) {
 		date from = it.elem().attr("from");
@@ -268,12 +173,14 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 			latest_fuse = fuse(it.elem(), dt);
 		}
 		if (from <= dt && dt <= until) {
-			fuses.push_back(fuse(it.elem(), dt));
+			if (fuse_count == 2)
+				throw xml_error("too many fuses for time period, at most 2 are allowed", parent.doc_name());
+			fuses[fuse_count++] = fuse(it.elem(), dt);
 		}
 	}
-	if (fuses.empty()) {
-		if (dt >= latest)
-			fuses.push_back(latest_fuse);
+	if (fuse_count == 0) {
+		if (dt >= latest && latest_fuse.type != fuse::NONE)
+			fuses[fuse_count++] = latest_fuse;
 		else
 			throw xml_error("no period subtags of fuse that match current equipment date!", parent.doc_name());
 	}
