@@ -36,6 +36,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "thread.h"
 #include "mutex.h"
 #include "condvar.h"
+#include "random_generator.h"
 
 // use forward declarations to avoid unneccessary compile dependencies
 class ship;
@@ -60,7 +61,7 @@ class height_generator;
 #include "vector3.h"
 #include "color.h"
 #include "logbook.h"
-#include "ptrset.h"
+#include "ptrvector.h"
 #include "xml.h"
 #include "sensors.h"
 #include "sonar.h"
@@ -155,15 +156,15 @@ public:
 
 protected:
 	// begin [SAVE]
-	ptrset<ship> ships;
-	ptrset<submarine> submarines;
-	ptrset<airplane> airplanes;
-	ptrset<torpedo> torpedoes;
-	ptrset<depth_charge> depth_charges;
-	ptrset<gun_shell> gun_shells;
-	ptrset<water_splash> water_splashes;
-	ptrset<convoy> convoys;
-	ptrset<particle> particles;
+	ptrvector<ship> ships;
+	ptrvector<submarine> submarines;
+	ptrvector<airplane> airplanes;
+	ptrvector<torpedo> torpedoes;
+	ptrvector<depth_charge> depth_charges;
+	ptrvector<gun_shell> gun_shells;
+	ptrvector<water_splash> water_splashes;
+	ptrvector<convoy> convoys;
+	ptrvector<particle> particles;
 	// end [SAVE]
 	run_state my_run_state;
 
@@ -236,6 +237,8 @@ protected:
 	/// check objects collide with any other object
 	void check_collisions();
 	void collision_response(sea_object& a, sea_object& b, const vector3& collision_pos);
+
+	random_generator random_gen;
 
 	game();	
 	game& operator= (const game& other);
@@ -361,7 +364,7 @@ public:
 	void unregister_job(job* j);
 	const std::list<ping>& get_pings() const { return pings; };	// fixme: maybe vector not list
 
-	template<class C> ship* check_units ( torpedo* t, const ptrset<C>& units );
+	template<class C> ship* check_units ( torpedo* t, const ptrvector<C>& units );
 
 	// fixme why is this not const? if it changes game, it must be send over network, and
 	// then it can't be a function!
@@ -417,6 +420,12 @@ public:
 	std::vector<ship*> get_all_ships() const;
 
 	virtual const player_info& get_player_info() const { return playerinfo; }
+
+	/// return random integer number determining game behaviour
+	unsigned random() { return random_gen.rnd(); }
+
+	/// return random float number [0...1] determining game behaviour
+	float randomf() { return random_gen.rndf(); }
 };
 
 #endif

@@ -493,7 +493,7 @@ void map_display::edit_convoy_menu(game_editor& gm)
 	}
 	// fill list of convoy names
 	edit_cvlist->clear();
-	const ptrset<convoy>& convoys = gm.get_convoy_list();
+	const ptrvector<convoy>& convoys = gm.get_convoy_list();
 	for (unsigned i = 0; i < convoys.size(); ++i) {
 		string nm = convoys[i]->get_name();
 		if (nm.length() == 0)

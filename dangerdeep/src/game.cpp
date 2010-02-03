@@ -688,6 +688,8 @@ void game::save(const string& savefilename, const string& description) const
 	xml_elem pi = sg.add_child("player_info");
 	playerinfo.save(pi);
 
+	// fixme: later save and load random_gen seed value, to make randomness repeatable
+
 	// finally save file
 	doc.save();
 }
@@ -721,7 +723,7 @@ void game::compute_max_view_dist()
 
 
 
-template<class T> void cleanup(ptrset<T>& s)
+template<class T> void cleanup(ptrvector<T>& s)
 {
 	for (unsigned i = 0; i < s.size(); ++i) {
 		if (s[i] && s[i]->is_defunct()) {
@@ -1038,7 +1040,7 @@ void game::add_logbook_entry(const string& s)
 	
 ******************************************************************************************/
 
-template <class T> inline vector<T*> visible_obj(const game* gm, const ptrset<T>& v, const sea_object* o)
+template <class T> inline vector<T*> visible_obj(const game* gm, const ptrvector<T>& v, const sea_object* o)
 {
 	vector<T*> result;
 	const sensor* s = o->get_sensor(o->lookout_system);
@@ -1549,7 +1551,7 @@ void game::unregister_job(job* j)
 }
 
 template<class C>
-ship* game::check_units ( torpedo* t, const ptrset<C>& units )
+ship* game::check_units ( torpedo* t, const ptrvector<C>& units )
 {
 	const vector3& t_pos = t->get_pos();
 	bv_tree::param p0 = t->compute_bv_tree_params();

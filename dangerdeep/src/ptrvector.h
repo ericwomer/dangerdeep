@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-// ptrset - set of ptrs, like auto_ptr
+// ptrvector - vector of ptrs, like std::auto_ptr, but with std::vector interface
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #ifndef PTRVECTOR_H
@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <stdexcept>
 #include <memory>
 
-// same as std::vector regarding the interface, but handles pointers.
+/// same as std::vector regarding the interface, but handles pointers like std::auto_ptr.
 template <class T>
 class ptrvector
 {
@@ -48,7 +48,7 @@ class ptrvector
 				delete data[i];
 				// set to zero, because if resize throws an exception,
 				// objects could get destructed twice
-				data[i] = 0;
+				data[i] = NULL;
 			}
 		}
 		data.resize(newsize);
@@ -60,22 +60,48 @@ class ptrvector
 			delete data[i];
 			// set to zero, because if clear throws an exception,
 			// objects could get destructed twice
-			data[i] = 0;
+			data[i] = NULL;
 		}
 		data.clear();
 	}
 
-	// exception safe, so first create space, then store
+	/// push_back element. exception safe, so first create space, then store
 	void push_back(std::auto_ptr<T> ptr) {
-		data.push_back(0);
+		data.push_back(NULL);
 		data.back() = ptr.release();
+	}
+
+	/// push_back a pointer exception safe.
+	void push_back(T* ptr) {
+		std::auto_ptr<T> p(ptr);
+		data.push_back(NULL);
+		data.back() = p.release();
 	}
 
 	T* const& operator[](size_t n) const { return data[n]; }
 	T* const& at(size_t n) const { return data.at(n); }
 
-	void reset(size_t n, T* ptr) { delete data[n]; data[n] = ptr; }
+	void reset(size_t n, T* ptr = NULL) { delete data[n]; data[n] = ptr; }
 	bool empty() const { return data.empty(); }
+
+	T* release(unsigned n) {
+		T* res = data[n];
+		data[n] = NULL;
+		return res;
+	}
+
+	void compact() {
+		unsigned j = 0;
+		for (unsigned i = 0; i < data.size(); ++i) {
+			if (data[i]) {
+				T* tmp = data[i];
+				data[i] = NULL;
+				data[j] = tmp;
+				++j;
+			}
+		}
+		data.resize(j);
+	}
 };
 
 

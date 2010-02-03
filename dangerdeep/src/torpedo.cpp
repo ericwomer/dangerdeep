@@ -152,13 +152,15 @@ torpedo::fuse::fuse(const xml_elem& parent, date equipdate)
 
 
 
+/*
 bool torpedo::fuse::handle_impact(angle impactangle) const
 {
 	// compute failure depending on angle, type and probability
-	if (rnd() < failure_probability)
+	if (gm.randomf() < failure_probability)
 		return false;
 	return true;
 }
+*/
 
 
 

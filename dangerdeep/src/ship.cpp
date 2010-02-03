@@ -777,7 +777,7 @@ bool ship::damage(const vector3& fromwhere, unsigned strength)
 	int dmg = int(where) + strength;
 	if (dmg > wrecked) where = wrecked; else where = damage_status(dmg);
 	// fixme:
-	if (rand() % 2 == 0) {
+	if (gm.random() % 2 == 0) {
 		stern_damage = midship_damage = bow_damage = wrecked;
 		sink();
 		return true;

@@ -86,7 +86,7 @@ class torpedo : public ship
 		types type;
 		float failure_probability;	// in [0...1]
 		// this function computes if the fuse ignites or fails, call it once
-		bool handle_impact(angle impactangle) const;
+		//bool handle_impact(angle impactangle) const;
 		fuse(const xml_elem& parent, date equipdate);
 	};
 

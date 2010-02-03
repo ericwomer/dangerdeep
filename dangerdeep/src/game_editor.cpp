@@ -119,7 +119,7 @@ game_editor::~game_editor()
 
 
 // copied from class game
-template<class T> void cleanup(ptrset<T>& s)
+template<class T> void cleanup(ptrvector<T>& s)
 {
 	for (unsigned i = 0; i < s.size(); ++i) {
 		if (s[i] && s[i]->is_defunct()) {
