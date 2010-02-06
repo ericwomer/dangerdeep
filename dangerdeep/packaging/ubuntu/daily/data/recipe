@@ -2,10 +2,10 @@
 PACKAGE="dangerdeep-latest-data"
 DIST="karmic"
 
-ADD="dangerdeep/data"
-ADD="${ADD}:dangerdeep/packaging/ubuntu/daily/data/debian/"
-
+ADD="data"
+ADD="${ADD}:packaging/ubuntu/daily/data/debian/"
 REMOVE="data/LICENSE"
+
 DPKG_ARGS="-I.svn -ICVS"
 PUT="ppa:aegirxx-googlemail/dftd-latest"
 
