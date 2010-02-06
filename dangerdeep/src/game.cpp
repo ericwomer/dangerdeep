@@ -569,7 +569,7 @@ void game::save(const string& savefilename, const string& description) const
 	sg.set_attr(GAMETYPE, "type");
 
 	xml_elem sh = sg.add_child("ships");
-	sh.set_attr(ships.size(), "nr");
+	sh.set_attr(unsigned(ships.size()), "nr");
 	for (unsigned k = 0; k < ships.size(); ++k) {
 		xml_elem e = sh.add_child("ship");
 		e.set_attr(ships[k]->get_specfilename(), "type");
@@ -577,7 +577,7 @@ void game::save(const string& savefilename, const string& description) const
 	}
 
 	xml_elem su = sg.add_child("submarines");
-	su.set_attr(submarines.size(), "nr");
+	su.set_attr(unsigned(submarines.size()), "nr");
 	for (unsigned k = 0; k < submarines.size(); ++k) {
 		xml_elem e = su.add_child("submarine");
 		e.set_attr(submarines[k]->get_specfilename(), "type");
@@ -585,7 +585,7 @@ void game::save(const string& savefilename, const string& description) const
 	}
 
 	xml_elem ap = sg.add_child("airplanes");
-	ap.set_attr(airplanes.size(), "nr");
+	ap.set_attr(unsigned(airplanes.size()), "nr");
 	for (unsigned k = 0; k < airplanes.size(); ++k) {
 		xml_elem e = ap.add_child("airplane");
 		e.set_attr(airplanes[k]->get_specfilename(), "type");
@@ -593,7 +593,7 @@ void game::save(const string& savefilename, const string& description) const
 	}
 
 	xml_elem tp = sg.add_child("torpedoes");
-	tp.set_attr(torpedoes.size(), "nr");
+	tp.set_attr(unsigned(torpedoes.size()), "nr");
 	for (unsigned k = 0; k < torpedoes.size(); ++k) {
 		xml_elem e = tp.add_child("torpedo");
 		e.set_attr(torpedoes[k]->get_specfilename(), "type");
@@ -601,7 +601,7 @@ void game::save(const string& savefilename, const string& description) const
 	}
 
 	xml_elem dc = sg.add_child("depth_charges");
-	dc.set_attr(depth_charges.size(), "nr");
+	dc.set_attr(unsigned(depth_charges.size()), "nr");
 	for (unsigned k = 0; k < depth_charges.size(); ++k) {
 		xml_elem e = dc.add_child("depth_charge");
 		//e.set_attr(depth_charges[k]->get_specfilename(), "type");//no specfilename for DCs
@@ -609,7 +609,7 @@ void game::save(const string& savefilename, const string& description) const
 	}
 
 	xml_elem gs = sg.add_child("gun_shells");
-	gs.set_attr(gun_shells.size(), "nr");
+	gs.set_attr(unsigned(gun_shells.size()), "nr");
 	for (unsigned k = 0; k < gun_shells.size(); ++k) {
 		xml_elem e = gs.add_child("gun_shell");
 		//e.set_attr(gun_shells[k]->get_specfilename(), "type");//no specfilename for shells
@@ -617,7 +617,7 @@ void game::save(const string& savefilename, const string& description) const
 	}
 
 	xml_elem cv = sg.add_child("convoys");
-	cv.set_attr(convoys.size(), "nr");
+	cv.set_attr(unsigned(convoys.size()), "nr");
 	for (unsigned k = 0; k < convoys.size(); ++k) {
 		xml_elem e = cv.add_child("convoy");
 		//e.set_attr(convoys[k]->get_specfilename(), "type");//no specfilename for convoys
