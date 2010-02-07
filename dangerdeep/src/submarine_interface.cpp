@@ -414,9 +414,7 @@ void submarine_interface::process_input(const SDL_Event& event)
 				}
 			}
 		} else if (mycfg.getkey(KEY_SET_HEADING_TO_VIEW).equal(event.key.keysym)) {
-			angle new_course = get_absolute_bearing();
-			bool turn_left = !player->get_heading().is_cw_nearer(new_course);
-			player->head_to_ang(new_course, turn_left);
+			player->head_to_course(get_absolute_bearing());
 		} else if (mycfg.getkey(KEY_IDENTIFY_TARGET).equal(event.key.keysym)) {
 			// calculate distance to target for identification detail
 			if (player->get_target()) {

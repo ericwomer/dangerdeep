@@ -161,9 +161,9 @@ void ai::act(class game& gm, double delta_time)
 	if (zigzagstate > 0) {	// this depends on ai type, convoys zigzag different! fixme
 		// course diff up to 45 deg for dd's, depends on ship type
 		if (zigzagstate == 7)
-			parent->head_to_ang(main_course - angle(45), true);
+			parent->head_to_course(main_course - angle(45), -1);
 		else if (zigzagstate == 13)
-			parent->head_to_ang(main_course + angle(45), false);
+			parent->head_to_course(main_course + angle(45), 1);
 		++zigzagstate;
 		if (zigzagstate > 18)
 			zigzagstate = 1;
@@ -366,23 +366,23 @@ bool ai::set_course_to_pos(game& gm, const vector2& pos)
 	if (a <= 0) {	// target is behind us
 		if (b < 0) {	// target is left
 			main_course = parent->get_heading() - angle(180);
-			parent->head_to_ang(main_course, true);
+			parent->head_to_course(main_course, -1);
 		} else {
 			main_course = parent->get_heading() + angle(180);
-			parent->head_to_ang(main_course, false);
+			parent->head_to_course(main_course, 1);
 		}
 		return false;
 	} else if (r2 > r1) {	// target can not be reached with smallest curve possible
 		if (b < 0) {	// target is left
 			main_course = parent->get_heading() + angle(180);
-			parent->head_to_ang(main_course, false);
+			parent->head_to_course(main_course, 1);
 		} else {
 			main_course = parent->get_heading() - angle(180);
-			parent->head_to_ang(main_course, true);
+			parent->head_to_course(main_course, -1);
 		}
 		return false;
 	} else {	// target can be reached, steer curve
-		parent->head_to_ang(angle::from_math(atan2(d.y, d.x)), (b < 0));
+		parent->head_to_course(angle::from_math(atan2(d.y, d.x)), (b < 0) ? -1 : 1);
 //	this code computes the curve that hits the target
 //	but it is much better to turn fast and then steam straight ahead.
 //	however, the straight path does not hit the target exactly, since the ship moves

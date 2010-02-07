@@ -1037,7 +1037,8 @@ void submarine::depth_steering_logic()
 	double error0 = depthdiff;
 	double error1 = (bow_depth_rudder.max_angle/bow_depth_rudder.max_turn_speed +
 			 stern_depth_rudder.max_angle/stern_depth_rudder.max_turn_speed) * local_velocity.z * 1.0;
-	double error2 = 0;//-rudder_pos/max_rudder_turn_speed * turn_velocity;
+	double error2 = (bow_depth_rudder.angle/bow_depth_rudder.max_turn_speed +
+			 stern_depth_rudder.angle/stern_depth_rudder.max_turn_speed) * local_velocity.z * 0.1;
 	double error = error0 + error1 + error2;
 	//DBGOUT7(anglediff, turn_velocity, rudder_pos, error0, error1, error2, error);
 	double rd = myclamp(error, -5.0, 5.0);
@@ -1287,7 +1288,7 @@ bool submarine::launch_torpedo(int tubenr, sea_object* target)
 		xml_doc doc(data_file().get_filename(torpedoes[tubenr].specfilename));
 		doc.load();
 		std::auto_ptr<torpedo> torp(new torpedo(gm, doc.first_child()));
-		torp->head_to_ang(torp_head_to, torp_head_to.is_cw_nearer(fired_at_angle));
+		torp->head_to_course(torp_head_to, fired_at_angle.is_cw_nearer(torp_head_to) ? 1 : -1);
 		// just hand the torpedo object over to class game. tube is empty after that...
 		vector3 torppos = position + (fired_at_angle.direction() * (get_length()/2 + 5 /*5m extra*/)).xy0();
 		torp->launch(torppos, fired_at_angle);

@@ -66,6 +66,7 @@ class angle
 	angle& operator+=(const angle& other) { val += other.val; return *this; };
 	angle& operator-=(const angle& other) { val -= other.val; return *this; };
 	double diff(const angle& other) const { double d = clamped(other.val - val); if (d > 180.0) d = 360.0 - d; return d; };
+	double diff_in_direction(bool ccw, const angle& other) const { return ccw ? clamped(val - other.val) : clamped(other.val - val); }
 	double sin() const { return ::sin(rad()); };
 	double cos() const { return ::cos(rad()); };
 	double tan() const { return ::tan(rad()); };

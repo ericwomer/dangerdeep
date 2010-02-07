@@ -114,8 +114,7 @@ void sub_gauges_display::process_input(class game& gm, const SDL_Event& event)
 		my = event.button.y;
 		//if mouse is over control c, compute angle a, set matching command, fixme
 		if (indicator_compass->is_over(mx, my)) {
-			angle mang = indicator_compass->get_angle(mx, my);
-			sub->head_to_ang(mang, mang.is_cw_nearer(sub->get_heading()));
+			sub->head_to_course(indicator_compass->get_angle(mx, my));
 		} else if (indicator_depth->is_over(mx, my)) {
 			angle mang = indicator_depth->get_angle(mx, my) - angle(225);
 			// 135° are 100m

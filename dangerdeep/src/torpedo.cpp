@@ -81,6 +81,7 @@ void torpedo::setup::load(const xml_elem& parent)
 	secondaryrange = parent.attru("secondaryrange");
 	initialturn_left = parent.attrb("initialturn_left");
 	turnangle = angle(parent.attrf("turnangle"));
+	lut_angle = angle(parent.attrf("lut_angle"));
 	torpspeed = parent.attru("torpspeed");
 	rundepth = parent.attrf("rundepth");
 }
@@ -93,6 +94,7 @@ void torpedo::setup::save(xml_elem& parent) const
 	parent.set_attr(secondaryrange, "secondaryrange");
 	parent.set_attr(initialturn_left, "initialturn_left");
 	parent.set_attr(turnangle.value(), "turnangle");
+	parent.set_attr(lut_angle.value(), "lut_angle");
 	parent.set_attr(torpspeed, "torpspeed");
 	parent.set_attr(rundepth, "rundepth");
 }
@@ -193,9 +195,9 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	unsigned haslut = emotion.attru("LUT");
 	if (hasfat > 0) {
 		if (haslut > 0) throw xml_error("steering device must be EITHER LuT OR FaT!", parent.doc_name());
-		steering_device = FaT;
+		steering_device = (hasfat == 1) ? FATI : FATII;
 	} else if (haslut > 0) {
-		steering_device = (haslut == 1) ? LuTI : LuTII;
+		steering_device = (haslut == 1) ? LUTI : LUTII;
 	} else {
 		steering_device = STRAIGHT;
 	}
@@ -260,6 +262,7 @@ void torpedo::load(const xml_elem& parent)
 	temperature = parent.child("temperature").attrf();
 	probability_of_rundepth_failure = parent.child("probability_of_rundepth_failure").attrf();
 	run_length = parent.child("run_length").attrf();
+	steering_device_phase = parent.child("steering_device_phase").attru();
 	dive_planes.load(parent.child("dive_planes"));
 }
 
@@ -273,6 +276,7 @@ void torpedo::save(xml_elem& parent) const
 	parent.add_child("temperature").set_attr(temperature);
 	parent.add_child("probability_of_rundepth_failure").set_attr(probability_of_rundepth_failure);
 	parent.add_child("run_length").set_attr(run_length);
+	parent.add_child("steering_device_phase").set_attr(steering_device_phase);
 	xml_elem ed = parent.add_child("dive_planes");
 	rudder.save(ed);
 }
@@ -311,11 +315,26 @@ void torpedo::simulate(double delta_time)
 		if (target) {
 			angle targetang(target->get_engine_noise_source() - get_pos().xy());
 			bool turnright = get_heading().is_cw_nearer(targetang);
-			head_to_ang(targetang, !turnright);
+			head_to_course(targetang, !turnright);
 		}
 	}
 
 	if (steering_device != STRAIGHT) {
+		// Here we handle the special steering devices, FaT I/II and LuT I/II.
+		// The devices have three phases:
+		// 0 - initial straight run with angle to target
+		// 1 - turning in one direction to new course and then running straight
+		// 2 - turning in opposite direction to new course and then running straight
+		// phase change happens because of run_length, from phase 0 to phase 1, then 2, then 1 and 2 alternating.
+		// Angles between phases differ between the devices and can be set up by the player.
+		if (steering_device_phase == 0) {
+			if (run_length >= mysetup.primaryrange)
+				steering_device_phase = 1;
+		} else if (steering_device_phase == 1) {
+		} else {
+			// steering_device_phase = 2 here
+		}
+
 		unsigned old_phase = unsigned(floor((old_run_length < mysetup.primaryrange) ? old_run_length/mysetup.primaryrange : 1.0+(old_run_length - mysetup.primaryrange)/mysetup.secondaryrange));
 		unsigned phase = unsigned(floor((run_length < mysetup.primaryrange) ? run_length/mysetup.primaryrange : 1.0+(run_length - mysetup.primaryrange)/mysetup.secondaryrange));
 		//fixme rather see if we are on turn or run straight and count
@@ -326,11 +345,11 @@ void torpedo::simulate(double delta_time)
 				// FaT always 180 degrees, LuT variable. Angle is stored, use that
 				//fixme: LuT worked different to what we simulate here.
 				angle turn = mysetup.initialturn_left ? -mysetup.turnangle : mysetup.turnangle;
-				head_to_ang(get_heading() + turn, mysetup.initialturn_left);
+				head_to_course(get_heading() + turn, mysetup.initialturn_left);
 			} else {
 				// further turns, always 180 degrees.
 				bool turn_is_left = mysetup.initialturn_left ? ((phase & 1) != 0) : ((phase & 1) == 0);
-				head_to_ang(get_heading() + angle(180), turn_is_left);
+				head_to_course(get_heading() + angle(180), turn_is_left);
 			}
 		}
 	}
@@ -381,7 +400,7 @@ void torpedo::steering_logic()
 	double error0 = anglediff;
 	// using 1.5 as extra factor here leads to some oscillation, 2.0 is too much
 	// damped. With 1.5 it misses target course temporally up to ~ 5 degrees,
-	// but converges quickly.
+	// but converges quickly. fixme, make this work better!
 	double error1 = (rudder.max_angle/rudder.max_turn_speed) * turn_velocity * 1.5;
 	double error = error0 + error1;
 	//log_debug("torpedo steering, speed="<<local_velocity.y<<" anglediff="<<anglediff<<" error="<<error0<<"+"<<error1<<"="<<error<<" angle="<<rudder.angle<<" turn_v="<<turn_velocity);

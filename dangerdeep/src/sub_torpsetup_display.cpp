@@ -206,8 +206,7 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 /*
 		//if mouse is over control c, compute angle a, set matching command, fixme
 		if (indicators[compass].is_over(mx, my)) {
-			angle mang = angle(180)-indicators[compass].get_angle(mx, my);
-			sub->head_to_ang(mang, mang.is_cw_nearer(sub->get_heading()));
+			sub->head_to_course(angle(180)-indicators[compass].get_angle(mx, my));
 		} else if (indicators[depth].is_over(mx, my)) {
 			angle mang = angle(-39) - indicators[depth].get_angle(mx, my);
 			if (mang.value() < 270) {

@@ -99,6 +99,7 @@ class torpedo : public ship
 		unsigned secondaryrange;// 800/1600, [SAVE]
 		bool initialturn_left;	// initital turn is left (true) or right (false), [SAVE]
 		angle turnangle;	// (0...180 degrees, for LUT, FAT has 180), [SAVE]
+		angle lut_angle;	// angle to turn to after initial run for LuT [SAVE]
 		unsigned torpspeed;	// torpspeed (0-2 slow-fast, only for G7a torps), [SAVE]
 		double rundepth;	// depth the torpedo should run at, [SAVE]
 
@@ -108,7 +109,7 @@ class torpedo : public ship
 
 	enum warhead_types { Ka, Kb, Kc, Kd, Ke, Kf };
 
-	enum steering_devices { STRAIGHT, FaT, LuTI, LuTII };
+	enum steering_devices { STRAIGHT, FATI, FATII, LUTI, LUTII };
 
 	enum propulsion_types { STEAM, ELECTRIC, WALTER };
 
@@ -144,6 +145,7 @@ class torpedo : public ship
 	double temperature;	// only useful for electric torpedoes, [SAVE]
 	double probability_of_rundepth_failure;	// basically high before mid 1942, [SAVE]
 	double run_length;	// how long the torpedo has run, [SAVE]
+	unsigned steering_device_phase;	// [SAVE]
 
 	generic_rudder dive_planes;
 
