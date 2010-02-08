@@ -28,7 +28,7 @@
     <range distance="5000" speed="30" preheated="1"/>
     <range distance="3000" speed="28" preheated="0"/>
   </ranges>
-  <motion acceleration="1.0" turnrate="1.0" FAT="1"/>
+  <motion acceleration="1.0" turnrate="1.0" FAT="2"/>
 <!-- For electric torpedos, the speed is fixed, but affected by preheating, so this would be id = 5. A mockup would look like:
 
   <motion id="5" acceleration="0.85" turnrate="1.0" from="1942/12/1" until="1945/12/31" />
