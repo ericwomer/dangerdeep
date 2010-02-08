@@ -42,7 +42,7 @@ class sub_torpsetup_display : public user_display
 		// but only when this doesn't trash the image cache
 		std::auto_ptr<texture> torpspeed[3];	// slow/medium/fast
 		std::auto_ptr<texture> firstturn[2];	// left/right
-		std::auto_ptr<texture> secondaryrange[2];	// 800/1600m
+		std::auto_ptr<texture> secondaryrange[2];	// short/long
 		std::auto_ptr<texture> preheating[2];	// on/off
 		std::auto_ptr<texture> temperaturescale;
 		rotat_tex primaryrangeknob[6];

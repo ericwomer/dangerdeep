@@ -64,12 +64,12 @@ const unsigned GAMETYPE = 0;//fixme, 0-mission , 1-patrol etc.
 
 /***************************************************************************/
 
-game_editor::game_editor()
+game_editor::game_editor(const date& start_date)
 {
 	networktype = 0;
 	servercon = 0;
-	time = date(1939, 9, 1).get_time() + 86400/2;	// 12.00 o'clock
-	equipment_date = date(1939, 9, 1);
+	time = start_date.get_time() + 86400/2;	// 12.00 o'clock
+	equipment_date = start_date;
 
 	// standard sub type, can be changed later
 	string subtype = "submarine_VIIc";
@@ -80,7 +80,7 @@ game_editor::game_editor()
 		doc.load();
 		submarine* sub = new submarine(*this, doc.first_child());
 		sub->set_skin_layout(model::default_layout);
-		sub->init_fill_torpedo_tubes(date(1939, 9, 1) /*currentdate*/);
+		sub->init_fill_torpedo_tubes(start_date);
 		sub->manipulate_invulnerability(true);
 		if (i == 0) {
 			psub = sub;

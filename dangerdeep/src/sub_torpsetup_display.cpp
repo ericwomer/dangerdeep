@@ -120,8 +120,7 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 			unsigned idx = (mx < firstturn_pos.x + int(s.firstturn[0]->get_width()/2)) ? 1 : 0;
 			tbsetup.setup.initialturn_left = idx;
 		} else if (s.is_over(s.secondaryrange[0], secrange_pos, mx, my)) {
-			unsigned idx = (mx < secrange_pos.x + int(s.secondaryrange[0]->get_width()/2)) ? 0 : 1;
-			tbsetup.setup.secondaryrange = 800 + idx * 800;
+			tbsetup.setup.short_secondary_run = (mx < secrange_pos.x + int(s.secondaryrange[0]->get_width()/2));
 		} else if (s.is_over(s.preheating[0], preheat_pos, mx, my)) {
 			tbsetup.preheating = (my < preheat_pos.y + int(s.preheating[0]->get_height()/2)) ? true : false;
 		} else if (s.is_over(s.torpspeed[0], torpspeed_pos, mx, my)) {
@@ -298,7 +297,7 @@ void sub_torpsetup_display::display(class game& gm) const
 	unsigned ftidx = tbsetup.setup.initialturn_left ? 0 : 1;
 	s.firstturn[ftidx]->draw(firstturn_pos.x, firstturn_pos.y);
 
-	unsigned sridx = (tbsetup.setup.secondaryrange - 800) / 800;
+	unsigned sridx = tbsetup.setup.short_secondary_run ? 0 : 1;
 	s.secondaryrange[sridx]->draw(secrange_pos.x, secrange_pos.y);
 
 	unsigned preheatingidx = tbsetup.preheating ? 1 : 0;

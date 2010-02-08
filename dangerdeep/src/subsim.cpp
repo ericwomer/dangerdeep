@@ -1171,7 +1171,7 @@ void menu_mission_editor()
 */
 		// reset loading screen here to show user we are doing something
 		reset_loading_screen();
-		run_game_editor(auto_ptr<game>(new game_editor(/*st*/)));
+		run_game_editor(auto_ptr<game>(new game_editor(date(1939, 9, 1)/*st*/)));
 	}
 }
 
@@ -1655,6 +1655,7 @@ int mymain(list<string>& args)
 	unsigned maxfps = 60;
 	bool override_lang = false;
 	bool use_sound = true;
+	date editor_start_date(1939, 9, 1);
 
 	// parse commandline
 	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
@@ -1665,6 +1666,7 @@ int mymain(list<string>& args)
 			     << "--nofullscreen\tdon't use fullscreen\n"
 			     << "--debug\t\tdebug mode: no fullscreen, resolution 800\n"
 			     << "--editor\trun mission editor directly\n"
+			     << "--editordate yyyy/mm/dd\tset start date for editor\n"
 			     << "--mission fn\trun mission from file fn (just the filename in the mission directory)\n"
 			     << "--nosound\tdon't use sound\n"
 			     << "--datadir path\tset base directory of data, must point to a directory with subdirs images/ textures/ objects/ and so on. Default on Unix e.g. /usr/local/share/dangerdeep.\n"
@@ -1690,6 +1692,12 @@ int mymain(list<string>& args)
 			}
 		} else if (*it == "--editor") {
 			runeditor = true;
+		} else if (*it == "--editordate") {
+			list<string>::iterator it2 = it; ++it2;
+			if (it2 != args.end()) {
+				editor_start_date = date(*it2);
+				++it;
+			}
 		} else if (*it == "--consolelog") {
 			log::copy_output_to_console = true;
 		} else if (*it == "--nosound") {
@@ -2081,7 +2089,7 @@ int mymain(list<string>& args)
 	if (runeditor) {
 		// reset loading screen here to show user we are doing something
 		reset_loading_screen();
-		run_game_editor(auto_ptr<game>(new game_editor(/*st*/)));
+		run_game_editor(auto_ptr<game>(new game_editor(editor_start_date)));
 	} else if (cmdmissionfilename.length() > 0) {
 		// fixme: check here that the file exists or tinyxml faults with a embarassing error message
 		auto_ptr<game> gm;

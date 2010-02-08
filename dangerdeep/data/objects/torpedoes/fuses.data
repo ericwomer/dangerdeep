@@ -5,10 +5,10 @@
   <Pi3 type="impact" failure_probability="0.1"/>
   <Pi4a type="impact" failure_probability="0.1"/>
   <Pi4b type="impact" failure_probability="0.1"/>
-  <Pi4c type="impact" failure_probability="0.1"/>
+  <Pi4c type="inertial" failure_probability="0.1"/>
   <Pi6 type="inertial" failure_probability="0.02"/>
   <TZ3 type="influence" failure_probability="0.5"/>
   <TZ5 type="influence" failure_probability="0.2"/>
-  <TZ6 type="influence" failure_probability="0.1"/>
-  <Fido type="impact" failure_probability="0.1"/>
+  <TZ6 type="influence" failure_probability="0.1"/> <!-- active influence -->
+  <Fido type="impact" failure_probability="0.1"/> <!-- US device -->
 </dftd-torpedo-fuses>

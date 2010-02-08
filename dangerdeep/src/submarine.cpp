@@ -627,62 +627,67 @@ void submarine::init_fill_torpedo_tubes(const date& d)
 	// we could also read all xml's, parse them, and create torpedoes accordingly,
 	// but it was faster to do it hardcoded, and that data is historic and thus does not
 	// change.
-	if (d < date(1940, 6, 1)) {
-		// available until that date: TI/TII/TIII
-		standard1 = "TI";
-		standard2 = stern = "TIII";
-		special1 = "TII";
-		special2 = "TII";
-		deck = "TI";
-	} else if (d < date(1942, 12, 1)) {
-		// available until that date: TI/TII/TIII, only use TI/TIII here
-		standard1 = "TIII";
-		standard2 = stern = "TIII";
-		special1 = "TI";
-		special2 = "TIII";
-		deck = "TI";
-	} else if (d < date(1943, 3, 1)) {
-		// available until that date: TI_FaTI, TIII_FaTII, TIIIa_FaTII
-		standard1 = stern = "TIII";
-		standard2 = "TI";
-		special1 = "TIIIa_FaTII";
-		special2 = "TIII_FaTII";
-		deck = "TI_FaTI";
-	} else if (d < date(1943, 9, 1)) {
-		// available until that date: TIV
-		standard1 = stern = "TIII";
-		standard2 = "TI";
-		special1 = "TIIIa_FaTII";
-		special2 = "TIV";
-		deck = "TI_FaTI";
-	} else if (d < date(1944, 1, 1)) {
-		// available until that date: TV
-		standard1 = "TIII";
-		standard2 = "TIIIa_FaTII";
+	// totally available:
+	// TI - standard, fat1 since dec. 42, lut1 since feb. 44, lut2 since june 44
+	// TII
+	// TIII - standard since nov. 42, fat2 since may 43
+	// TIIIa - standard since june 43, fat2 since june 43, lut1 since feb 44, lut2 since june 44
+	// TIV - since march 43
+	// TV - standard since sep. 43, b since jan. 44
+	// TVI / TXI - not used in war, TVI was G7e with improved warhead
+	// so there are changes on the following dates:
+	// nov 42 - TIII
+	// dec 42 - TI fat1
+	// mar 43 - TIV
+	// may 43 - TIII fat2
+	// jun 43 - TIIIa, TIIIa fat2
+	// sep 43 - TV
+	// jan 44 - TVb
+	// feb 44 - TI lut1, TIIIa lut1
+	// jun 44 - TI lut2, TIIIa lut2
+	standard1 = "TI";
+	standard2 = "TII";
+	stern = "TII";
+	special1 = "TI";
+	special2 = "TII";
+	deck = "TI";
+	if (d >= date(1942, 11, 1)) {
+		standard2 = stern = special2 = "TIII";
+	}
+	if (d >= date(1942, 12, 1)) {
 		special1 = "TI_FaTI";
-		special2 = "TV";
-		stern = "TV";
-		deck = "TI_FaTI";
-	} else if (d < date(1944, 6, 1)) {
-		// available until that date: TVb
-		standard1 = "TIII";
-		standard2 = "TIIIa_FaTII";
-		special1 = "TIIIa_LuTI";
-		special2 = "TVb";
-		stern = "TV";
-		deck = "TI_LuTI";
-	} else if (d < date(1945, 4, 1)) {
-		// available until that date: TIIIa_LuTI, TIIIa_LuTII, TI_LuTI, TI_LuTII, TVI_LuTI
-		standard1 = "TIII";
-		standard2 = "TIIIa_FaTII";
-		special1 = "TIIIa_LuTI";
-		special2 = "TV";
-		stern = "TV";
-		deck = "TI_LuTI";
-	} else {
-		// available since april 1945: TXI
-		standard1 = "TIII";
-		standard2 = "TIIIa_FaTII";
+	}
+	if (d >= date(1943, 3, 1)) {
+		special2 = "TIV";
+	}
+	if (d >= date(1943, 5, 1)) {
+		special1 = "TI_FaTI";
+		special1 = stern = "TIII_FaTII";
+	}
+	if (d >= date(1943, 6, 1)) {
+		standard2 = "TIIIa";
+		special1 = "TI_FaTI";
+		special2 = stern = "TIIIa_FaTII";
+	}
+	if (d >= date(1943, 9, 1)) {
+		special2 = stern = "TV";
+	}
+	if (d >= date(1944, 1, 1)) {
+		standard1 = "TI_FaTI";
+		special2 = stern = "TVb";
+	}
+	if (d >= date(1944, 2, 1)) {
+		standard1 = "TI_LuTI";
+		special2 = "TIIIa_LuTI";
+	}
+	if (d >= date(1944, 6, 1)) {
+		standard1 = "TI_LuTII";
+		special2 = "TIIIa_LuTII";
+	}
+	if (d >= date(1945, 4, 1)) {
+		// available since april 1945: TXI, TVI specials
+		standard1 = "TI_LuTII";
+		standard2 = "TIIIa_LuTII";
 		special1 = "TVI_LuTI";
 		special2 = "TXI";
 		stern = "TXI";

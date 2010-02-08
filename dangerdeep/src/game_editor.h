@@ -29,13 +29,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class game_editor : public game
 {
 protected:
-	//game_editor();
+	game_editor();
 	game_editor& operator= (const game_editor& other);
 	game_editor(const game_editor& other);
 
 public:
 	/// create new editor instance. subtype can be changed later.
-	game_editor(/*const std::string& subtype*/);
+	game_editor(const date& start_date /*const std::string& subtype*/);
 
 	// create from mission file or savegame (xml file)
 	game_editor(const std::string& filename);

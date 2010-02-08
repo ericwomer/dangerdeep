@@ -96,7 +96,7 @@ class torpedo : public ship
 	public:
 		setup();
 		unsigned primaryrange;	// 1600...3200, [SAVE]
-		unsigned secondaryrange;// 800/1600, [SAVE]
+		bool short_secondary_run; // [SAVE]
 		bool initialturn_left;	// initital turn is left (true) or right (false), [SAVE]
 		angle turnangle;	// (0...180 degrees, for LUT, FAT has 180), [SAVE]
 		angle lut_angle;	// angle to turn to after initial run for LuT [SAVE]
@@ -109,7 +109,14 @@ class torpedo : public ship
 
 	enum warhead_types { Ka, Kb, Kc, Kd, Ke, Kf };
 
-	enum steering_devices { STRAIGHT, FATI, FATII, LUTI, LUTII };
+	enum steering_devices { STRAIGHT = 0,
+				FAT_TYPE = 2,
+				FATI = 2,
+				FATII = 3,
+				LUT_TYPE = 4, 
+				LUTI = 4,
+				LUTII = 5
+	};
 
 	enum propulsion_types { STEAM, ELECTRIC, WALTER };
 
@@ -159,6 +166,7 @@ class torpedo : public ship
 	double get_turn_drag_area() const;
 	double get_turn_drag_coeff() const { return 10.0; }
 	double get_throttle_speed() const;
+	double get_secondary_run_lenth() const;
 
 	virtual bool causes_spray() const { return false; }//causes wake, only true for steam torpedoes and maybe for Walter engine
 

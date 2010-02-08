@@ -61,7 +61,7 @@ Note: as you can see, different hp values, as you can read in the info tag, and
 this explains why different speed/range combinations, as specified in the
 motion tag, altough equivalent, but in different periods of war, have different
 acceleration values (and as consequence, different turn ratios). -->
-  <availability date="1944/6/1"/>
+  <availability date="1944/2/1"/>
 <!-- max rudder turn angle? -->
 <!-- default run depth? or run depth range? this seems fixed, 1 to 25 anyway, so i wouldn't bother with this. What changed was later with type XXI, the capability to launch torpedos from much lower depths, up to 50m, but the torpedo run was still made between 1 to 25m. About the boyance (untertrieb), probably i wouldn't bother doing this as well -->
 <!-- note: do we add characteristics for LuT runs? primary/secondary -->

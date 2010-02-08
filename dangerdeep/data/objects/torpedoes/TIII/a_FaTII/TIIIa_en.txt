@@ -1,0 +1,16 @@
+TIIIa G7e
+
+Gerate-Nr:	20
+Diameter:	534,6mm
+Weight:		1760Kg
+Lenght:		7163mm
+Charge:		Ka280, 280Kg (Hexanite)
+Pistol:		Pi2 G7H
+Arming:		150m
+Range/Speed:	7500m/30Kn at 1700U/min, preheated at 30'C
+		4500m/28Kn not preheated.
+Power:		Siemens GL231/75 E-Motor, 100hp, 2x 17T210 batteries
+		91V/950A	72KW at 1755U/min (preheated at 30'C)
+		83V/885A	60KW at 1590U/min (not preheated)
+
+This unit used a 100hp Siemens GL231/75 electric motor, that drive two contra-rotating propellers. The above range and speed of 5000m/30Kn could be reached only if the batteries were preheated to 30'C, however, instead of the 13T210 batteries, this torpedo used two 17T210 batteries, with a larger capacity, of 125Amperes/hour, compared to the previous model capacity, of 93Amperes/hour, which in turn, reflected in an increased range of 7500m at 30Kn, when preheated at 30'C, and 4500 at 28Kn, when not preheated.	These torpedoes had to be serviced every 3 to 5 days, in order to maintain their reliability. This torpedo used the Pi2 G7H influence pistol.

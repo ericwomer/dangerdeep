@@ -69,7 +69,13 @@ bool torpedo::fuse::handle_impact(angle impactangle) const
 
 
 torpedo::setup::setup()
-	: primaryrange(1600), secondaryrange(800), initialturn_left(true), turnangle(180.0), torpspeed(0), rundepth(3)
+	: primaryrange(1500),
+	  short_secondary_run(true),
+	  initialturn_left(true),
+	  turnangle(180.0),
+	  lut_angle(0.0),
+	  torpspeed(0),
+	  rundepth(3)
 {
 }
 
@@ -78,7 +84,7 @@ torpedo::setup::setup()
 void torpedo::setup::load(const xml_elem& parent)
 {
 	primaryrange = parent.attru("primaryrange");
-	secondaryrange = parent.attru("secondaryrange");
+	short_secondary_run = parent.attrb("short_secondary_run");
 	initialturn_left = parent.attrb("initialturn_left");
 	turnangle = angle(parent.attrf("turnangle"));
 	lut_angle = angle(parent.attrf("lut_angle"));
@@ -91,7 +97,7 @@ void torpedo::setup::load(const xml_elem& parent)
 void torpedo::setup::save(xml_elem& parent) const
 {
 	parent.set_attr(primaryrange, "primaryrange");
-	parent.set_attr(secondaryrange, "secondaryrange");
+	parent.set_attr(short_secondary_run, "short_secondary_run");
 	parent.set_attr(initialturn_left, "initialturn_left");
 	parent.set_attr(turnangle.value(), "turnangle");
 	parent.set_attr(lut_angle.value(), "lut_angle");
@@ -106,6 +112,7 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	  temperature(15),	// degrees C
 	  probability_of_rundepth_failure(0.2),	// basically high before mid 1942, fixme
 	  run_length(0),
+	  steering_device_phase(0),
   	  dive_planes(vector3(0,-3.5,0 /*not used yet*/), 1, 20, 0.25*0.1/*area*/, 40)//read consts from spec file, fixme
 {
 	date dt = gm.get_equipment_date();
@@ -297,7 +304,6 @@ void torpedo::simulate(double delta_time)
 	depth_steering_logic();
 	dive_planes.simulate(delta_time);
 
-	double old_run_length = run_length;
 	run_length += get_speed() * delta_time;
 	if (run_length > get_range()) {
 		// later: simulate slow sinking to the ground...
@@ -328,28 +334,41 @@ void torpedo::simulate(double delta_time)
 		// phase change happens because of run_length, from phase 0 to phase 1, then 2, then 1 and 2 alternating.
 		// Angles between phases differ between the devices and can be set up by the player.
 		if (steering_device_phase == 0) {
-			if (run_length >= mysetup.primaryrange)
+			if (run_length >= mysetup.primaryrange) {
 				steering_device_phase = 1;
+				if (steering_device & LUT_TYPE) {
+					// for LUT devices we turn now to the LUT main course
+					head_to_course(mysetup.lut_angle, 0 /* auto direction */, false /* larger turn circle */);
+				} else if (steering_device == FATII && mysetup.short_secondary_run) {
+					// for FAT II with short second turns, begin circling
+					set_rudder(mysetup.initialturn_left ? -1.0 : 1.0);
+				} else {
+					// FAT I: turn 180 degrees
+					head_to_course(get_heading() + angle(180), mysetup.initialturn_left ? -1 : 1, false);
+				}
+			}
 		} else if (steering_device_phase == 1) {
+			unsigned phase = unsigned(floor((run_length - mysetup.primaryrange)/get_secondary_run_lenth()));
+			if (phase & 1) {
+				// phase change - FATII with short secondary turn changes nothing,
+				// other setups turn and change phase
+				if (steering_device != FATII || !mysetup.short_secondary_run) {
+					// first LUT turn is on phase 1->2, so invert turn direction
+					bool turn_left = (steering_device & LUT_TYPE) ? mysetup.initialturn_left : !mysetup.initialturn_left;
+					// LUT device sets course according to main course, heading should have reached that course
+					// here, so we can use get_heading() instead of mysetup.lut_angle - fixme test this!
+					head_to_course(get_heading() + mysetup.turnangle, turn_left ? -1 : 1, false);
+					steering_device_phase = 2;
+				}
+			}
 		} else {
 			// steering_device_phase = 2 here
-		}
-
-		unsigned old_phase = unsigned(floor((old_run_length < mysetup.primaryrange) ? old_run_length/mysetup.primaryrange : 1.0+(old_run_length - mysetup.primaryrange)/mysetup.secondaryrange));
-		unsigned phase = unsigned(floor((run_length < mysetup.primaryrange) ? run_length/mysetup.primaryrange : 1.0+(run_length - mysetup.primaryrange)/mysetup.secondaryrange));
-		//fixme rather see if we are on turn or run straight and count
-		if (phase > old_phase) {
-			// phase change.
-			if (phase == 1) {
-				// first turn. Differences between LuT and FaT,
-				// FaT always 180 degrees, LuT variable. Angle is stored, use that
-				//fixme: LuT worked different to what we simulate here.
-				angle turn = mysetup.initialturn_left ? -mysetup.turnangle : mysetup.turnangle;
-				head_to_course(get_heading() + turn, mysetup.initialturn_left);
-			} else {
-				// further turns, always 180 degrees.
-				bool turn_is_left = mysetup.initialturn_left ? ((phase & 1) != 0) : ((phase & 1) == 0);
-				head_to_course(get_heading() + angle(180), turn_is_left);
+			unsigned phase = unsigned(floor((run_length - mysetup.primaryrange)/get_secondary_run_lenth()));
+			if ((phase & 1) == 0) {
+				// first LUT turn is on phase 1->2, so invert turn direction, invert general because of phase
+				bool turn_left = (steering_device & LUT_TYPE) ? !mysetup.initialturn_left : mysetup.initialturn_left;
+				head_to_course(get_heading() + mysetup.turnangle, turn_left ? -1 : 1, false);
+				steering_device_phase = 1;
 			}
 		}
 	}
@@ -427,6 +446,36 @@ void torpedo::depth_steering_logic()
 double torpedo::get_throttle_speed() const
 {
 	return run_length > get_range() ? 0.0 : get_max_speed();
+}
+
+
+
+double torpedo::get_secondary_run_lenth() const
+{
+	if (mysetup.short_secondary_run) {
+		switch (steering_device) {
+		case FATI:
+			return 1200.0;
+		case FATII:
+			return 100000.0; // infinite, because turning in circles
+		case LUTI:
+		case LUTII:
+			return 1350.0;
+		default:
+			return 0.0;
+		}
+	} else {
+		switch (steering_device) {
+		case FATI:
+		case FATII:
+			return 1900.0;
+		case LUTI:
+		case LUTII:
+			return 3840.0;
+		default:
+			return 0.0;
+		}
+	}
 }
 
 

@@ -1,37 +1,39 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <dftd-torpedo>
-  <classification identifier="TIII" modelname="g7e_torpedo.ddxml" type="torpedo" country="DE"/>
+  <classification identifier="TIIIa" modelname="g7e_torpedo.ddxml" type="torpedo" country="DE"/>
   <description>
-    <desc lang="en">Torpedo TIII G7e Eto</desc>
-    <desc lang="de">Torpedo TIII G7e Eto</desc>
-<!-- <info lang="de" lfile="TIII_en.txt"/> -->
-    <info lang="en">TIII G7e Eto</info>
-<!-- <info lang="de" lfile="TIII_de.txt"/> -->
+    <desc lang="en">Torpedo TIIIa G7e</desc>
+    <desc lang="de">Torpedo TIIIa G7e</desc>
+    <info lang="en">TIIIa G7e</info>
+<!-- <info lang="en" lfile="TIIIa_en.txt"/> -->
     <info lang="de">german text here</info>
+<!-- <info lang="de" lfile="TIIIa_de.txt"/> -->
   </description>
-  <weight value="1608"/>
+  <weight value="1760"/>
 <!-- in Kg -->
   <size diameter="0.5334" lenght="7.163"/>
 <!-- all in metric system -->
-  <untertrieb value="21"/>
+  <untertrieb value="32"/>
 <!-- in percent, negative boyancy -->
+<!-- NOTE, normal torpedos have 21% untertrieb, but the data
+		files mention untertrieb of 32% on TIIIa -->
   <warhead weight="280" charge="0"/>
 <!-- weight in Kg and type of explosive, the SW18, 36, 39, 39a mixes-->
 <!-- charge types, normal, early war, hexanite = 60% trinitrotoluene + 40% hexanitrodyphenilamine, then later on, SW18 = 50% TNT, 24% HND, 15% Aluminium, SW36 = 67% THT, 8% HND, 25% aluminium, SW39 = 45% TNT, 5% HND, 30% amonium nitrate + 20% aluminium, and SW39a = 50% TNT, 10% HND, 5% amonium nitrate, 35% aluminium - so, charge="0" > hexanite (60% TNT+40% HND), charge=1=SW18, charge=2=SW36, charge=3=SW39, charge=4=SW39a -->
   <arming>
-    <period runlenght="150" from="1939/01/01" until="1945/12/31"/>
+    <period runlenght="150" from="1942/12/1" until="1945/12/31"/>
   </arming>
   <fuse>
-    <period type="Pi2" from="1939/1/1" until="1942/11/30"/>
+    <period type="Pi2" from="1942/12/1" until="1945/12/31"/>
   </fuse>
   <ranges>
-    <range distance="5000" speed="30" preheated="1"/>
-    <range distance="3000" speed="28" preheated="0"/>
+    <range distance="7500" speed="30" preheated="1"/>
+    <range distance="4500" speed="28" preheated="0"/>
   </ranges>
-  <motion acceleration="1.0" turnrate="1.0"/>
+  <motion acceleration="1.0" turnrate="1.0" FAT="0"/>
 <!-- For electric torpedos, the speed is fixed, but affected by preheating, so this would be id = 5. A mockup would look like:
 
-  <motion id="5" acceleration="0.85" turnrate="0.85" from="1939/1/1" until="1945/12/31" />
+  <motion id="5" acceleration="0.85" turnrate="1.0" from="1942/12/1" until="1945/12/31" />
 
 ( id=5 for electric torpedos only, and we could add an id=6 or 7 or 8 if TIV and TV, and TXI characteristics require it as well. Therefore, their (TIV, TV, etc..) data files, would have id="5", 6, 7, or whatever, defining their characteristics. -->
   <sensors>
@@ -42,10 +44,10 @@
 <!-- 
 So, the id's are exactly the same as referenced earlier in the motion data mockup, and the power tag mockups would be:
 
-  <power type="electric" id="5" hp="100" from="1939/1/1" until="1945/12/31" />
+  <power type="electric" id="5" hp="100" from="1942/12/1" until="1945/12/31" />
 
 -->
-  <availability date="1942/11/1"/>
+  <availability date="1943/6/1"/>
 <!-- max rudder turn angle? -->
 <!-- default run depth? or run depth range? this seems fixed, 1 to 25 anyway, so i wouldn't bother with this. What changed was later with type XXI, the capability to launch torpedos from much lower depths, up to 50m, but the torpedo run was still made between 1 to 25m. About the boyance (untertrieb), probably i wouldn't bother doing this as well -->
 <!-- note: do we add characteristics for LuT runs? primary/secondary -->
