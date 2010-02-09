@@ -111,14 +111,14 @@ the waterline although the ship would swim in total.
 
 
 submarine::stored_torpedo::stored_torpedo()
-	: temperature(15.0), status(st_empty), associated(0), remaining_time(0), preheating(false)
+	: temperature(15.0), status(st_empty), associated(0), remaining_time(0)
 {
 }
 
 
 
 submarine::stored_torpedo::stored_torpedo(game& gm, const std::string& type)
-	: specfilename(type), temperature(15.0), status(st_loaded), associated(0), remaining_time(0), preheating(false)
+	: specfilename(type), temperature(15.0), status(st_loaded), associated(0), remaining_time(0)
 {
 }
 
@@ -137,7 +137,6 @@ void submarine::stored_torpedo::load(game& gm, const xml_elem& parent)
 	associated = parent.attru("associated");
 	remaining_time = parent.attrf("remaining_time");
 	addleadangle = angle(parent.attrf("addleadangle"));
-	preheating = parent.attrb("preheating");
 }
 
 
@@ -154,7 +153,6 @@ void submarine::stored_torpedo::save(xml_elem& parent) const
 	parent.set_attr(associated, "associated");
 	parent.set_attr(remaining_time, "remaining_time");
 	parent.set_attr(addleadangle.value(), "addleadangle");
-	parent.set_attr(preheating, "preheating");
 }
 
 
@@ -422,7 +420,7 @@ void submarine::transfer_torpedo(unsigned from, unsigned to)
 	}
 	if (torpedoes[from].status == stored_torpedo::st_loaded &&
 			torpedoes[to].status == stored_torpedo::st_empty) {
-		torpedoes[to].setup = torpedoes[from].setup;
+		torpedoes[to].specfilename = torpedoes[from].specfilename;
 		torpedoes[to].temperature = torpedoes[from].temperature;
 		torpedoes[from].status = stored_torpedo::st_unloading;
 		torpedoes[to].status = stored_torpedo::st_reloading;
@@ -552,6 +550,7 @@ void submarine::simulate(double delta_time)
 						gm.add_event(new event_tube_reloaded(i + 1));
 				} else {		// unloading
 					st.status = stored_torpedo::st_empty;	// empty
+					st.specfilename = "";
 //					torpedoes[st.associated].status = stored_torpedo::st_loaded;	// loaded
 				}
 			}

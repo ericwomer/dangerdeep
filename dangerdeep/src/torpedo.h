@@ -95,13 +95,14 @@ class torpedo : public ship
 	{
 	public:
 		setup();
-		unsigned primaryrange;	// 1600...3200, [SAVE]
-		bool short_secondary_run; // [SAVE]
-		bool initialturn_left;	// initital turn is left (true) or right (false), [SAVE]
-		angle turnangle;	// (0...180 degrees, for LUT, FAT has 180), [SAVE]
-		angle lut_angle;	// angle to turn to after initial run for LuT [SAVE]
-		unsigned torpspeed;	// torpspeed (0-2 slow-fast, only for G7a torps), [SAVE]
-		double rundepth;	// depth the torpedo should run at, [SAVE]
+		unsigned primaryrange;	///< primary run length in meters, [SAVE]
+		bool short_secondary_run; ///< secondary run short or long [SAVE]
+		bool initialturn_left;	///< initital turn is left (true) or right (false), [SAVE]
+		angle turnangle;	///< (0...180 degrees, for LUT, FAT has 180), [SAVE]
+		angle lut_angle;	///< angle to turn to after initial run for LuT [SAVE]
+		unsigned torpspeed;	///< torpspeed (0-2 slow-fast, only for G7a torps), [SAVE]
+		double rundepth;	///< depth the torpedo should run at, [SAVE]
+		bool preheating;	///< preheating on?
 
 		void load(const xml_elem& parent);
 		void save(xml_elem& parent) const;
@@ -110,12 +111,10 @@ class torpedo : public ship
 	enum warhead_types { Ka, Kb, Kc, Kd, Ke, Kf };
 
 	enum steering_devices { STRAIGHT = 0,
-				FAT_TYPE = 2,
-				FATI = 2,
-				FATII = 3,
-				LUT_TYPE = 4, 
-				LUTI = 4,
-				LUTII = 5
+				FATI = 1,
+				FATII = 2,
+				LUTI = 3,
+				LUTII = 4
 	};
 
 	enum propulsion_types { STEAM, ELECTRIC, WALTER };

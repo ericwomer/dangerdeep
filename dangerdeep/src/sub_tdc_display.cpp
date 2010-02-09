@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "keys.h"
 #include "cfg.h"
 #include "global_data.h"
+#include "log.h"
 #include <sstream>
 
 using std::vector;
@@ -163,6 +164,7 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 				for (unsigned i = 0; i < nrtubes; ++i) {
 					if (s.tubelight[i].is_mouse_over(mx, my)) {
 						si.select_tube(i);
+						log_debug("Torpedo tube selected: #" << i+1);
 					}
 				}
 

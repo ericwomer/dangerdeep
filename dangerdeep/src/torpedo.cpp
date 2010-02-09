@@ -75,7 +75,8 @@ torpedo::setup::setup()
 	  turnangle(180.0),
 	  lut_angle(0.0),
 	  torpspeed(0),
-	  rundepth(3)
+	  rundepth(3),
+	  preheating(false)
 {
 }
 
@@ -90,6 +91,7 @@ void torpedo::setup::load(const xml_elem& parent)
 	lut_angle = angle(parent.attrf("lut_angle"));
 	torpspeed = parent.attru("torpspeed");
 	rundepth = parent.attrf("rundepth");
+	preheating = parent.attrb("preheating");
 }
 
 
@@ -103,6 +105,7 @@ void torpedo::setup::save(xml_elem& parent) const
 	parent.set_attr(lut_angle.value(), "lut_angle");
 	parent.set_attr(torpspeed, "torpspeed");
 	parent.set_attr(rundepth, "rundepth");
+	parent.set_attr(preheating, "preheating");
 }
 
 
@@ -337,26 +340,27 @@ void torpedo::simulate(double delta_time)
 			if (run_length >= mysetup.primaryrange) {
 				log_debug("0: dev="<<steering_device<<" short="<<mysetup.short_secondary_run<<" left="<<mysetup.initialturn_left);
 				steering_device_phase = 1;
-				if (steering_device & LUT_TYPE) {
+				if (steering_device == LUTI || steering_device == LUTII) {
 					// for LUT devices we turn now to the LUT main course
 					head_to_course(mysetup.lut_angle, 0 /* auto direction */, false /* larger turn circle */);
 				} else if (steering_device == FATII && mysetup.short_secondary_run) {
 					// for FAT II with short second turns, begin circling
 					set_rudder(mysetup.initialturn_left ? -1.0 : 1.0);
 				} else {
-					// FAT I: turn 180 degrees
+					// FAT I / FAT II long run: turn 180 degrees
 					head_to_course(get_heading() + angle(180), mysetup.initialturn_left ? -1 : 1, false);
 				}
 			}
 		} else if (steering_device_phase == 1) {
 			unsigned phase = unsigned(floor((run_length - mysetup.primaryrange)/get_secondary_run_lenth()));
+			log_debug("p="<<phase<<" sr"<<get_secondary_run_lenth());
 			if (phase & 1) {
 				log_debug("1: dev="<<steering_device<<" short="<<mysetup.short_secondary_run<<" left="<<mysetup.initialturn_left);
 				// phase change - FATII with short secondary turn changes nothing,
 				// other setups turn and change phase
 				if (steering_device != FATII || !mysetup.short_secondary_run) {
 					// first LUT turn is on phase 1->2, so invert turn direction
-					bool turn_left = (steering_device & LUT_TYPE) ? mysetup.initialturn_left : !mysetup.initialturn_left;
+					bool turn_left = (steering_device == LUTI || steering_device == LUTII) ? mysetup.initialturn_left : !mysetup.initialturn_left;
 					// LUT device sets course according to main course, heading should have reached that course
 					// here, so we can use get_heading() instead of mysetup.lut_angle - fixme test this!
 					head_to_course(get_heading() + mysetup.turnangle, turn_left ? -1 : 1, false);
@@ -369,7 +373,7 @@ void torpedo::simulate(double delta_time)
 			if ((phase & 1) == 0) {
 				log_debug("2: dev="<<steering_device<<" short="<<mysetup.short_secondary_run<<" left="<<mysetup.initialturn_left);
 				// first LUT turn is on phase 1->2, so invert turn direction, invert general because of phase
-				bool turn_left = (steering_device & LUT_TYPE) ? !mysetup.initialturn_left : mysetup.initialturn_left;
+				bool turn_left = (steering_device == LUTI || steering_device == LUTII) ? !mysetup.initialturn_left : mysetup.initialturn_left;
 				head_to_course(get_heading() + mysetup.turnangle, turn_left ? -1 : 1, false);
 				steering_device_phase = 1;
 			}
@@ -417,6 +421,10 @@ void torpedo::compute_force_and_torque(vector3& F, vector3& T) const
 
 void torpedo::steering_logic()
 {
+	// if head_to_fixed is 0, we are not steering to a course
+	if (head_to_fixed == 0)
+		return;
+
 	// this is the same code as in class ship, but with direct rudder control
 	double anglediff = (head_to - heading).value_pm180();
 	double error0 = anglediff;

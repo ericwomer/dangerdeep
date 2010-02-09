@@ -48,15 +48,14 @@ class submarine : public ship
 	struct stored_torpedo
 	{
 		enum st_status { st_empty, st_reloading, st_unloading, st_loaded };
-		// be careful with that...
-		std::string specfilename;
-		torpedo::setup setup;
-		double temperature;
-		st_status status;	// 0 empty 1 reloading 2 unloading 3 loaded
-		unsigned associated;	// reloading from/unloading to
-		double remaining_time;	// remaining time until work is finished
-		angle addleadangle;	// additional lead angle (only per tube) fixme: replace by lead angle reported from TDC
-		bool preheating;	// preheating on? only used for torps in a tube
+		// a torpedo transfer must not copy this structure!
+		std::string specfilename; ///< torpedo type, to be copied on transfer
+		torpedo::setup setup;	///< tube setup, don't copy
+		double temperature;	///< current torpedo temperatue - fixme: as attribute of class torpedo?
+		st_status status;	///< 0 empty 1 reloading 2 unloading 3 loaded
+		unsigned associated;	///< reloading from/unloading to
+		double remaining_time;	///< remaining time until work is finished
+		angle addleadangle;	///< additional lead angle (only per tube) fixme: replace by lead angle reported from TDC
 
 		stored_torpedo();
 		stored_torpedo(game& gm, const std::string& type);
