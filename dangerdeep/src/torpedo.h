@@ -117,10 +117,15 @@ class torpedo : public ship
 				LUTII = 4
 	};
 
-	enum propulsion_types { STEAM, ELECTRIC, WALTER };
+	enum propulsion_types { STEAM, ELECTRIC, INGOLIN };
 
 	// do not change these numbers! must be 0-2 for slow...fast
-	enum speedrange_types { SLOW = 0, PREHEATED = 0, MEDIUM = 1, FAST = 2, NORMAL = 2, NR_SPEEDRANGE_TYPES = 3 };
+	enum speedrange_types { SLOW = 0, // for G7a
+				MEDIUM = 1, // for G7a
+				FAST = 2, // for G7a
+				PREHEATED = 2, // for G7e, same as FAST for G7a
+				NORMAL = 0, // for G7e, same as SLOW for G7a
+				NR_SPEEDRANGE_TYPES = 3 };
 
  private:
 	torpedo();
@@ -159,7 +164,6 @@ class torpedo : public ship
 //	virtual void create_sensor_array ( types t );
 	
 	void compute_force_and_torque(vector3& F, vector3& T) const;
-	void steering_logic();
 	void depth_steering_logic();
 	double get_turn_accel_factor() const { return 50.0; } // rudder area etc.
 	double get_turn_drag_area() const;
@@ -176,7 +180,7 @@ public:
 	// create from spec file, select values by date. date is taken from game. fixme: avoid random values here!
 	// fixme: avoid that a game startet at date x but played until date y takes torpedo settings
 	// from date y instead of x for loading! use a special game::get_equipment_date() function for that...
-	torpedo(game& gm_, const xml_elem& parent);
+	torpedo(game& gm_, const xml_elem& parent, const setup& torpsetup);
 
 	virtual void load(const xml_elem& parent);
 	virtual void save(xml_elem& parent) const;

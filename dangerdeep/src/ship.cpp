@@ -742,6 +742,8 @@ void ship::steering_logic()
 	double error = error0 + error1 + error2;
 	//DBGOUT7(anglediff, turn_velocity, rudder_pos, error0, error1, error2, error);
 	double rd = myclamp(error / 5.0, -1.0, 1.0);
+	//fixme: for fat/lut turns we must not use hard rudder here!
+	//in general torpedo turn circle is too small!
 	rudder.set_to(rd);
 	// set desired direction, so the 180° degree check code above doesn't abort
 	head_to_fixed = rd < 0 ? -1 : 1;

@@ -419,7 +419,7 @@ game::game(const string& filename)
 		for (xml_elem::iterator it = tp.iterate("torpedo"); !it.end(); it.next()) {
 			xml_doc spec(data_file().get_filename(it.elem().attr("type")));
 			spec.load();
-			torpedoes.push_back(new torpedo(*this, spec.first_child()));
+			torpedoes.push_back(new torpedo(*this, spec.first_child(), torpedo::setup()));
 		}
 	}
 

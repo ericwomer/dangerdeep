@@ -20,10 +20,10 @@
 <!-- weight in Kg and type of explosive, the SW18, 36, 39, 39a mixes-->
 <!-- charge types, normal, early war, hexanite = 60% trinitrotoluene + 40% hexanitrodyphenilamine, then later on, SW18 = 50% TNT, 24% HND, 15% Aluminium, SW36 = 67% THT, 8% HND, 25% aluminium, SW39 = 45% TNT, 5% HND, 30% amonium nitrate + 20% aluminium, and SW39a = 50% TNT, 10% HND, 5% amonium nitrate, 35% aluminium - so, charge="0" > hexanite (60% TNT+40% HND), charge=1=SW18, charge=2=SW36, charge=3=SW39, charge=4=SW39a -->
   <arming>
-    <period runlenght="150" from="1944/6/1" until="1945/12/31"/>
+    <period runlenght="150" from="1944/2/1" until="1945/12/31"/>
   </arming>
   <fuse>
-    <period type="Pi2" from="1944/6/1" until="1945/12/31"/>
+    <period type="Pi2" from="1944/2/1" until="1945/12/31"/>
   </fuse>
   <ranges>
     <range distance="5000" speed="30" preheated="1"/>
@@ -43,7 +43,7 @@
 <!-- 
 So, the id's are exactly the same as referenced earlier in the motion data mockup, and the power tag mockups would be:
 
-  <power type="electric" id="5" hp="100" from="1944/6/1" until="1945/12/31" />
+  <power type="electric" id="5" hp="100" from="1944/2/1" until="1945/12/31" />
 
 -->
   <availability date="1944/2/1"/>

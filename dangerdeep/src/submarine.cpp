@@ -1291,7 +1291,7 @@ bool submarine::launch_torpedo(int tubenr, sea_object* target)
 		//cout << "fired at " << fired_at_angle.value() << ", head to " << torp_head_to.value() << ", is cw nearer " << torp_head_to.is_cw_nearer(fired_at_angle) << "\n";
 		xml_doc doc(data_file().get_filename(torpedoes[tubenr].specfilename));
 		doc.load();
-		std::auto_ptr<torpedo> torp(new torpedo(gm, doc.first_child()));
+		std::auto_ptr<torpedo> torp(new torpedo(gm, doc.first_child(), torpedoes[tubenr].setup));
 		torp->head_to_course(torp_head_to, fired_at_angle.is_cw_nearer(torp_head_to) ? 1 : -1);
 		// just hand the torpedo object over to class game. tube is empty after that...
 		vector3 torppos = position + (fired_at_angle.direction() * (get_length()/2 + 5 /*5m extra*/)).xy0();

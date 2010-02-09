@@ -128,6 +128,7 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 		} else if (s.is_over(s.torpspeed[0], torpspeed_pos, mx, my)) {
 			int i = (my - torpspeed_pos.y) * 3 / s.torpspeed[0]->get_height();
 			unsigned idx = 2 - unsigned(myclamp(i, int(0), int(2)));
+			log_debug("torpspeed="<<idx);
 			tbsetup.torpspeed = idx;
 		}
 		break;

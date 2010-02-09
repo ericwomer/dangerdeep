@@ -74,7 +74,7 @@ torpedo::setup::setup()
 	  initialturn_left(true),
 	  turnangle(180.0),
 	  lut_angle(0.0),
-	  torpspeed(0),
+	  torpspeed(NORMAL),
 	  rundepth(3),
 	  preheating(false)
 {
@@ -110,8 +110,9 @@ void torpedo::setup::save(xml_elem& parent) const
 
 
 
-torpedo::torpedo(game& gm, const xml_elem& parent)
+torpedo::torpedo(game& gm, const xml_elem& parent, const setup& torpsetup)
 	: ship(gm, parent),
+	  mysetup(torpsetup),
 	  temperature(15),	// degrees C
 	  probability_of_rundepth_failure(0.2),	// basically high before mid 1942, fixme
 	  run_length(0),
@@ -211,6 +212,24 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 	} else {
 		steering_device = STRAIGHT;
 	}
+	// ------------ power and check of validity of torpspeed setting
+	xml_elem epower = parent.child("power");
+	string powertype = epower.attr("type");
+	if (powertype == "steam") {
+		propulsion_type = STEAM;
+		if (hasfat || haslut)
+			mysetup.torpspeed = NORMAL; // 30kts / slow G7a
+	} else if (powertype == "electric") {
+		propulsion_type = ELECTRIC;
+		if (mysetup.torpspeed != NORMAL && mysetup.torpspeed != PREHEATED)
+			mysetup.torpspeed = NORMAL;
+	} else if (powertype == "ingolin") {
+		propulsion_type = INGOLIN;
+		mysetup.torpspeed = NORMAL;
+	} else {
+		throw xml_error("unknown power type!", parent.doc_name());
+	}
+
 	// ------------ sensors, fixme
 	// ------------ ranges
 	xml_elem eranges = parent.child("ranges");
@@ -241,8 +260,6 @@ torpedo::torpedo(game& gm, const xml_elem& parent)
 		range[srt] = it.elem().attrf("distance");
 		speed[srt] = kts2ms(it.elem().attrf("speed"));
 	}
-	// ------------ power, fixme - not needed yet
-	xml_elem epower = parent.child("power");
 
 	// ------------ set ship turning values, fixme: read from files, more a hack...
 	rudder.max_angle = 20;
@@ -532,7 +549,7 @@ double torpedo::get_range() const
 			double s = myclamp((temperature - 15) / 15, 0.0, 1.0);
 			return myinterpolate(range[NORMAL], range[PREHEATED], s);
 		}
-	case WALTER:
+	case INGOLIN:	// Walther turbine
 	default:
 		return range[NORMAL];
 	}
@@ -551,7 +568,7 @@ double torpedo::get_torp_speed() const
 			double s = myclamp((temperature - 15) / 15, 0.0, 1.0);
 			return myinterpolate(speed[NORMAL], speed[PREHEATED], s);
 		}
-	case WALTER:
+	case INGOLIN:	// Walther turbine
 	default:
 		return speed[NORMAL];
 	}
