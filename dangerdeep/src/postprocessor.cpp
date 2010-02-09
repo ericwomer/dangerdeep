@@ -42,7 +42,7 @@ postprocessor::postprocessor() :	filter( get_shader_dir() + "postp_null.vshader"
 	unsigned w = sys().get_res_x();
 	unsigned h = sys().get_res_y();
 
-	unsigned pp_fx = cfg::instance().geti("postprocessing");
+	//unused//unsigned pp_fx = cfg::instance().geti("postprocessing");
 
 	switch( cfg::instance().geti("postprocessing") )
 	{

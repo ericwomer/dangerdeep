@@ -335,6 +335,7 @@ void torpedo::simulate(double delta_time)
 		// Angles between phases differ between the devices and can be set up by the player.
 		if (steering_device_phase == 0) {
 			if (run_length >= mysetup.primaryrange) {
+				log_debug("0: dev="<<steering_device<<" short="<<mysetup.short_secondary_run<<" left="<<mysetup.initialturn_left);
 				steering_device_phase = 1;
 				if (steering_device & LUT_TYPE) {
 					// for LUT devices we turn now to the LUT main course
@@ -350,6 +351,7 @@ void torpedo::simulate(double delta_time)
 		} else if (steering_device_phase == 1) {
 			unsigned phase = unsigned(floor((run_length - mysetup.primaryrange)/get_secondary_run_lenth()));
 			if (phase & 1) {
+				log_debug("1: dev="<<steering_device<<" short="<<mysetup.short_secondary_run<<" left="<<mysetup.initialturn_left);
 				// phase change - FATII with short secondary turn changes nothing,
 				// other setups turn and change phase
 				if (steering_device != FATII || !mysetup.short_secondary_run) {
@@ -365,6 +367,7 @@ void torpedo::simulate(double delta_time)
 			// steering_device_phase = 2 here
 			unsigned phase = unsigned(floor((run_length - mysetup.primaryrange)/get_secondary_run_lenth()));
 			if ((phase & 1) == 0) {
+				log_debug("2: dev="<<steering_device<<" short="<<mysetup.short_secondary_run<<" left="<<mysetup.initialturn_left);
 				// first LUT turn is on phase 1->2, so invert turn direction, invert general because of phase
 				bool turn_left = (steering_device & LUT_TYPE) ? !mysetup.initialturn_left : mysetup.initialturn_left;
 				head_to_course(get_heading() + mysetup.turnangle, turn_left ? -1 : 1, false);

@@ -631,7 +631,7 @@ void submarine::init_fill_torpedo_tubes(const date& d)
 	// TI - standard, fat1 since dec. 42, lut1 since feb. 44, lut2 since june 44
 	// TII
 	// TIII - standard since nov. 42, fat2 since may 43
-	// TIIIa - standard since june 43, fat2 since june 43, lut1 since feb 44, lut2 since june 44
+	// TIIIa - fat2 since june 43, lut1 since feb 44, lut2 since june 44
 	// TIV - since march 43
 	// TV - standard since sep. 43, b since jan. 44
 	// TVI / TXI - not used in war, TVI was G7e with improved warhead
@@ -640,7 +640,7 @@ void submarine::init_fill_torpedo_tubes(const date& d)
 	// dec 42 - TI fat1
 	// mar 43 - TIV
 	// may 43 - TIII fat2
-	// jun 43 - TIIIa, TIIIa fat2
+	// jun 43 - TIIIa fat2
 	// sep 43 - TV
 	// jan 44 - TVb
 	// feb 44 - TI lut1, TIIIa lut1
@@ -665,7 +665,7 @@ void submarine::init_fill_torpedo_tubes(const date& d)
 		special1 = stern = "TIII_FaTII";
 	}
 	if (d >= date(1943, 6, 1)) {
-		standard2 = "TIIIa";
+		standard2 = "TIIIa_FaTII";
 		special1 = "TI_FaTI";
 		special2 = stern = "TIIIa_FaTII";
 	}
@@ -700,7 +700,7 @@ void submarine::init_fill_torpedo_tubes(const date& d)
 		unsigned r = rnd(6);
 		if (r <= 1) torpedoes[i] = stored_torpedo(gm, standard1);
 		else if (r <= 2) torpedoes[i] = stored_torpedo(gm, standard2);
-		else if (r <= 4) torpedoes[i] = stored_torpedo(gm, special1);
+		else if (r <= 3) torpedoes[i] = stored_torpedo(gm, special1);
 		else torpedoes[i] = stored_torpedo(gm, special2);
 	}
 	idx = get_stern_tube_indices();
@@ -711,7 +711,7 @@ void submarine::init_fill_torpedo_tubes(const date& d)
 	for (unsigned i = idx.first; i < idx.second; ++i) {
 		unsigned r = rnd(6);
 		if (r <= 1) torpedoes[i] = stored_torpedo(gm, standard1);
-		else if (r <= 2) torpedoes[i] = stored_torpedo(gm, standard2);
+		else if (r <= 3) torpedoes[i] = stored_torpedo(gm, standard2);
 		else if (r <= 4) torpedoes[i] = stored_torpedo(gm, special1);
 		else torpedoes[i] = stored_torpedo(gm, special2);
 	}

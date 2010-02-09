@@ -109,7 +109,6 @@ const texture& sub_torpedo_display::torptex(const string& torpname) const
 	if (torpname == "TI_LuTII") return *torp1lut2;
 	if (torpname == "TII") return *torp2;
 	if (torpname == "TIII") return *torp3;
-	if (torpname == "TIIIa") return *torp3; // fixme no special image yet!
 	if (torpname == "TIII_FaTII") return *torp3fat2;
 	if (torpname == "TIIIa_FaTII") return *torp3afat2;
 	if (torpname == "TIIIa_LuTI") return *torp3alut1;

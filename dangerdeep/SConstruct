@@ -194,13 +194,17 @@ else:
 	ccflags += ' -march=' + arch
 
 	env.Append(LINKFLAGS = '`pkg-config --libs-only-L x11`')
-	if (debug >= 3):
+	if (debug >= 4):
 		ccflags += ' -g -pg -O3' # profiling
-	elif (debug == 2):
+	elif (debug == 3):
 		ccflags += ' -g -O0'
 		env.Append(CPPDEFINES = ['DEBUG'])
-	elif (debug == 1):
+	elif (debug == 2):
 		ccflags += ' -g -O1'
+		env.Append(CPPDEFINES = ['DEBUG'])
+	elif (debug == 1):
+		# same as debug==0 but with DEBUG defined to make logging work (and probably other stuff)
+		ccflags += ' -g -O2'
 		env.Append(CPPDEFINES = ['DEBUG'])
 	elif (debug == -1):
 		ccflags += ' -g -O3 -mfpmath=sse -mmmx -msse -m3dnow'

@@ -27,12 +27,19 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <sstream>
 #include "singleton.h"
 
+#ifdef DEBUG
 #define log_template(x, y) do { std::ostringstream oss; oss << x; log::instance().append(log::y, oss.str()); } while(0)
 #define log_debug(x) log_template(x, LOG_DEBUG)
 #define log_info(x) log_template(x, LOG_INFO)
 // use this only internally for special events
 #define log_sysinfo(x) log_template(x, LOG_SYSINFO)
 #define log_warning(x) log_template(x, LOG_WARNING)
+#else
+#define log_debug(x) do { } while (0)
+#define log_info(x) do { } while (0)
+#define log_sysinfo(x) do { } while (0)
+#define log_warning(x) do { } while (0)
+#endif
 
 /// manager class for a global threadsafe log
 class log : public singleton<class log>

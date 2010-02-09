@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector2.h"
 #include "cfg.h"
 #include "global_data.h"
+#include "log.h"
 #include <sstream>
 using namespace std;
 
@@ -117,10 +118,11 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 		} else if (s.rundepthknob[0].is_mouse_over(mx, my)) {
 			turnknobdrag = TK_RUNDEPTH;
 		} else if (s.is_over(s.firstturn[0], firstturn_pos, mx, my)) {
-			unsigned idx = (mx < firstturn_pos.x + int(s.firstturn[0]->get_width()/2)) ? 1 : 0;
-			tbsetup.setup.initialturn_left = idx;
+			tbsetup.setup.initialturn_left = (mx < firstturn_pos.x + int(s.firstturn[0]->get_width()/2));
+			log_debug("left?"<<tbsetup.setup.initialturn_left);
 		} else if (s.is_over(s.secondaryrange[0], secrange_pos, mx, my)) {
 			tbsetup.setup.short_secondary_run = (mx < secrange_pos.x + int(s.secondaryrange[0]->get_width()/2));
+			log_debug("short run?"<<tbsetup.setup.short_secondary_run);
 		} else if (s.is_over(s.preheating[0], preheat_pos, mx, my)) {
 			tbsetup.preheating = (my < preheat_pos.y + int(s.preheating[0]->get_height()/2)) ? true : false;
 		} else if (s.is_over(s.torpspeed[0], torpspeed_pos, mx, my)) {
