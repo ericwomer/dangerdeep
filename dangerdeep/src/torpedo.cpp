@@ -353,9 +353,7 @@ void torpedo::simulate(double delta_time)
 			}
 		} else if (steering_device_phase == 1) {
 			unsigned phase = unsigned(floor((run_length - mysetup.primaryrange)/get_secondary_run_lenth()));
-			log_debug("p="<<phase<<" sr"<<get_secondary_run_lenth());
 			if (phase & 1) {
-				log_debug("1: dev="<<steering_device<<" short="<<mysetup.short_secondary_run<<" left="<<mysetup.initialturn_left);
 				// phase change - FATII with short secondary turn changes nothing,
 				// other setups turn and change phase
 				if (steering_device != FATII || !mysetup.short_secondary_run) {
@@ -363,6 +361,7 @@ void torpedo::simulate(double delta_time)
 					bool turn_left = (steering_device == LUTI || steering_device == LUTII) ? mysetup.initialturn_left : !mysetup.initialturn_left;
 					// LUT device sets course according to main course, heading should have reached that course
 					// here, so we can use get_heading() instead of mysetup.lut_angle - fixme test this!
+					log_debug("1: dev="<<steering_device<<" short="<<mysetup.short_secondary_run<<" left="<<mysetup.initialturn_left<<" turn="<<turn_left);
 					head_to_course(get_heading() + mysetup.turnangle, turn_left ? -1 : 1, false);
 					steering_device_phase = 2;
 				}
@@ -371,9 +370,9 @@ void torpedo::simulate(double delta_time)
 			// steering_device_phase = 2 here
 			unsigned phase = unsigned(floor((run_length - mysetup.primaryrange)/get_secondary_run_lenth()));
 			if ((phase & 1) == 0) {
-				log_debug("2: dev="<<steering_device<<" short="<<mysetup.short_secondary_run<<" left="<<mysetup.initialturn_left);
 				// first LUT turn is on phase 1->2, so invert turn direction, invert general because of phase
 				bool turn_left = (steering_device == LUTI || steering_device == LUTII) ? !mysetup.initialturn_left : mysetup.initialturn_left;
+				log_debug("2: dev="<<steering_device<<" short="<<mysetup.short_secondary_run<<" left="<<mysetup.initialturn_left<<" turn="<<turn_left);
 				head_to_course(get_heading() + mysetup.turnangle, turn_left ? -1 : 1, false);
 				steering_device_phase = 1;
 			}
@@ -415,27 +414,6 @@ void torpedo::compute_force_and_torque(vector3& F, vector3& T) const
 
 	F += orientation.rotate(Fdr);
 	T += orientation.rotate(Tdr);
-}
-
-
-
-void torpedo::steering_logic()
-{
-	// if head_to_fixed is 0, we are not steering to a course
-	if (head_to_fixed == 0)
-		return;
-
-	// this is the same code as in class ship, but with direct rudder control
-	double anglediff = (head_to - heading).value_pm180();
-	double error0 = anglediff;
-	// using 1.5 as extra factor here leads to some oscillation, 2.0 is too much
-	// damped. With 1.5 it misses target course temporally up to ~ 5 degrees,
-	// but converges quickly. fixme, make this work better!
-	double error1 = (rudder.max_angle/rudder.max_turn_speed) * turn_velocity * 1.5;
-	double error = error0 + error1;
-	//log_debug("torpedo steering, speed="<<local_velocity.y<<" anglediff="<<anglediff<<" error="<<error0<<"+"<<error1<<"="<<error<<" angle="<<rudder.angle<<" turn_v="<<turn_velocity);
-	double rd = myclamp(error, -5.0, 5.0);
-	rudder.to_angle = rudder.max_angle * rd / 5.0;
 }
 
 

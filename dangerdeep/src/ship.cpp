@@ -714,8 +714,6 @@ void ship::steering_logic()
 	// rudder to full angle and turn. But only if demanded by special head_to_fixed value.
 	if (head_to_fixed == -2 || head_to_fixed == 2) {
 		if (heading.diff_in_direction(head_to_fixed < 0, head_to) >= 180.0) {
-			//fixme: hier stimmt was nicht, es wird is_cw_nearer verwendet, das wäre turn_right, aber head_to_Course
-			//verlangt turn_left,was denn nun?!
 			rudder.set_to(head_to_fixed < 0 ? -1.0 : 1.0);
 			return;
 		}
