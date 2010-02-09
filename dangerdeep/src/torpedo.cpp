@@ -266,9 +266,12 @@ torpedo::torpedo(game& gm, const xml_elem& parent, const setup& torpsetup)
 	rudder.max_turn_speed = 40;
 	// set turn rate here. With 0.6 a torpedo takes roughly 10 seconds to turn 90 degrees.
 	// With that value the torpedo turn radius is ~98m. Maybe a bit too much.
+	// fixme: only AI requests turn rate!
+	// either precompute it or start with turn rate 0.1 and increase it by measured value
+	// e.g. measure current turn speed in angles/sec and increase turn_rate. depends on speed to...
 	turn_rate = 0.6;
 	// set rudder area
-	rudder.area = 0.25 * 0.1; // diameter 0,53m, rudder ca. half height, 10cm length
+	rudder.area = 0.25 * 0.1 * 0.5; // diameter 0,53m, rudder ca. half height, but parts of that, 10cm length
 
 	size3d = vector3f(0.533, 7, 0.533);	// diameter 53.3cm (21inch), length ~ 7m, fixme read from model file
 	//mass = 1500; // 1.5tons, fixme read from spec file
