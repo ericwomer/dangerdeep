@@ -166,7 +166,7 @@ ship::ship(game& gm_, const xml_elem& parent)
 	  tonnage(0),
 	  throttle(0),
 	  rudder(vector3(0,-30,0 /*not used yet*/), 0, 40, 4/*area*/, 10),//read consts from spec file, fixme
-	  head_to_fixed(0),
+	  head_to_fixed(HEAD_TO_UNDEFINED),
 	  max_accel_forward(1),
 	  max_speed_forward(10),
 	  max_speed_reverse(0),
@@ -309,7 +309,7 @@ void ship::set_rudder(double to)
 {
 	to = myclamp(to*0.5, -1.0, 1.0);
 	rudder.set_to(to);
-	head_to_fixed = 0;
+	head_to_fixed = HEAD_TO_UNDEFINED;
 }
 
 
@@ -413,7 +413,7 @@ void ship::load(const xml_elem& parent)
 	xml_elem st = parent.child("steering");
 	throttle = throttle_status(st.attri("throttle"));
 	rudder.load(st.child("rudder"));
-	head_to_fixed = st.attri("head_to_fixed");
+	head_to_fixed = head_to_param(st.attri("head_to_fixed"));
 	head_to = angle(st.attrf("head_to"));
 	xml_elem dm = parent.child("damage");
 	bow_damage = damage_status(dm.attru("bow"));
@@ -489,7 +489,7 @@ void ship::save(xml_elem& parent) const
 	st.set_attr(int(throttle), "throttle");
 	xml_elem er = st.add_child("rudder");
 	rudder.save(er);
-	st.set_attr(head_to_fixed, "head_to_fixed");
+	st.set_attr(int(head_to_fixed), "head_to_fixed");
 	st.set_attr(head_to.value(), "head_to");
 	xml_elem dm = parent.add_child("damage");
 	dm.set_attr(unsigned(bow_damage), "bow");
@@ -707,18 +707,19 @@ void ship::simulate(double delta_time)
 void ship::steering_logic()
 {
 	// if head_to_fixed is 0, we are not steering to a course
-	if (head_to_fixed == 0)
+	if (head_to_fixed == HEAD_TO_UNDEFINED)
 		return;
 
 	// if angle to target course is > 180° with set steering direction, just set
 	// rudder to full angle and turn. But only if demanded by special head_to_fixed value.
-	if (head_to_fixed == -2 || head_to_fixed == 2) {
-		if (heading.diff_in_direction(head_to_fixed < 0, head_to) >= 180.0) {
-			rudder.set_to(head_to_fixed < 0 ? -1.0 : 1.0);
+	if (head_to_fixed & HEAD_TO_FORCE_DIRECTION) {
+		if (heading.diff_in_direction(head_to_fixed & HEAD_TO_LEFT, head_to) >= 180.0) {
+			double rudderval = head_to_fixed & HEAD_TO_ALLOW_HARD_RUDDER ? 1.0 : 0.5;
+			rudder.set_to(head_to_fixed & HEAD_TO_LEFT ? -rudderval : rudderval);
 			return;
 		}
 		// set back to normal value, to enable normal helmsman logic
-		head_to_fixed = head_to_fixed < 0 ? -1 : 1;
+		head_to_fixed = head_to_param(head_to_fixed & ~HEAD_TO_FORCE_DIRECTION);
 	}
 
 	/* New helmsman simulation.
@@ -741,15 +742,14 @@ void ship::steering_logic()
 	double error2 = rudder.angle/rudder.max_turn_speed * turn_velocity * 0.1;
 	double error = error0 + error1 + error2;
 	//DBGOUT7(anglediff, turn_velocity, rudder_pos, error0, error1, error2, error);
-	double rd = myclamp(error / 5.0, -1.0, 1.0);
-	//fixme: for fat/lut turns we must not use hard rudder here!
-	//in general torpedo turn circle is too small!
+	double clamp = head_to_fixed & HEAD_TO_ALLOW_HARD_RUDDER ? 1.0 : 0.5;
+	double rd = myclamp(error / 5.0, -clamp, clamp);
 	rudder.set_to(rd);
 	// set desired direction, so the 180° degree check code above doesn't abort
-	head_to_fixed = rd < 0 ? -1 : 1;
+	head_to_fixed = head_to_param((head_to_fixed & HEAD_TO_ALLOW_HARD_RUDDER) | (rd < 0 ? HEAD_TO_LEFT : HEAD_TO_RIGHT));
 	// when error below a certain limit, set head_to_fixed=false, rudder_to=ruddermidships
 	if (fabs(anglediff) <= 0.25 && fabs(rudder.angle) < 1.0) {
-		head_to_fixed = 0;
+		head_to_fixed = HEAD_TO_UNDEFINED;
 		rudder.midships();
 		//std::cout << "reached course, diff=" << anglediff << " tv=" << turn_velocity << "\n";
 	}
@@ -761,22 +761,21 @@ void ship::head_to_course(const angle& a, int direction, bool hard_rudder)
 {
 	head_to = a;
 	bool turn_left = false;
+	log_debug("HEAD TO "<<a<<" hdg="<<get_heading()<<" dir="<<direction<<" hard="<<hard_rudder);
 	if (direction != 0) {
 		// if we have to turn more than 180° to the target course,
 		// a helmsman would normally turn in opposite direction,
 		// because target course can be reached faster that way.
 		// But in case of set direction, we have to turn in
 		// that direction, by setting head_to_fixed to special value.
-		turn_left = direction < 0;
-		if (get_heading().diff_in_direction(turn_left, a) >= 180.0) {
-			head_to_fixed = turn_left ? -2 : 2;
-		} else {
-			head_to_fixed = turn_left ? -1 : 1;
-		}
+		head_to_fixed = head_to_param((direction < 0 ? HEAD_TO_LEFT : HEAD_TO_RIGHT) | HEAD_TO_FORCE_DIRECTION);
 	} else {
 		// automatically determine best turn direction
 		turn_left = !get_heading().is_cw_nearer(a);
-		head_to_fixed = turn_left ? -1 : 1;
+		head_to_fixed = turn_left ? HEAD_TO_LEFT : HEAD_TO_RIGHT;
+	}
+	if (hard_rudder) {
+		head_to_fixed = head_to_param(head_to_fixed | HEAD_TO_ALLOW_HARD_RUDDER);
 	}
 	//cout << "head to ang: " << a.value() << " left? " << turn_left << "\n";
 	// we assume here that normal rudder is 1/2 of hard rudder.
@@ -1262,7 +1261,7 @@ void ship::manipulate_heading(angle hdg)
 {
 	sea_object::manipulate_heading(hdg);
 	head_to = hdg;
-	head_to_fixed = 0;
+	head_to_fixed = HEAD_TO_UNDEFINED;
 }
 
 

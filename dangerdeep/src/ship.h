@@ -59,6 +59,14 @@ class ship : public sea_object
 		NO_GUNS = 5
 	};
 
+	enum head_to_param {
+		HEAD_TO_UNDEFINED = 0,
+		HEAD_TO_LEFT  = 0x01,
+		HEAD_TO_RIGHT = 0x02,
+		HEAD_TO_FORCE_DIRECTION = 0x04,
+		HEAD_TO_ALLOW_HARD_RUDDER = 0x08
+	};
+
 	// maximum trail record length
 	static const unsigned TRAIL_LENGTH = 60;
 
@@ -117,7 +125,7 @@ class ship : public sea_object
 
 	generic_rudder rudder;
 
-	int head_to_fixed;	///< -1: turn left to fixed, 1: right to fixed, 0: permanent turning. if !0, change rudder_to so that heading moves to head_to
+	head_to_param head_to_fixed;
 	angle head_to;
 	
 	double turn_rate;	// in angle/time (at max. speed/throttle), read from spec file

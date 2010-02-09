@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector2.h"
 
 #include <cmath>
+#include <iostream>
 
 #ifndef M_PI
 #define M_PI 3.1415926535897932
@@ -74,5 +75,7 @@ class angle
 	bool operator == ( const angle& b ) const { return value() == b.value(); }
 	bool operator != ( const angle& b ) const { return value() != b.value(); }
 };
+
+inline std::ostream& operator<< (std::ostream& os, const angle& a) { os << a.value(); return os; }
 
 #endif
