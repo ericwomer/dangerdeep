@@ -208,6 +208,7 @@ torpedo::torpedo(game& gm, const xml_elem& parent, const setup& torpsetup)
 		if (haslut > 0) throw xml_error("steering device must be EITHER LuT OR FaT!", parent.doc_name());
 		steering_device = (hasfat == 1) ? FATI : FATII;
 	} else if (haslut > 0) {
+		// only difference between LUTI/II is maximum turn angle, LUT I 210 degrees, LUT II more (240?)
 		steering_device = (haslut == 1) ? LUTI : LUTII;
 	} else {
 		steering_device = STRAIGHT;
@@ -362,13 +363,13 @@ void torpedo::simulate(double delta_time)
 				steering_device_phase = 1;
 				if (steering_device == LUTI || steering_device == LUTII) {
 					// for LUT devices we turn now to the LUT main course
-					head_to_course(mysetup.lut_angle, 0 /* auto direction */, false /* larger turn circle */);
+					head_to_course(mysetup.lut_angle, 0 /* auto direction */, true /* small turn circle */);
 				} else if (steering_device == FATII && mysetup.short_secondary_run) {
 					// for FAT II with short second turns, begin circling
 					set_rudder(mysetup.initialturn_left ? -1.0 : 1.0);
 				} else {
 					// FAT I / FAT II long run: turn 180 degrees
-					head_to_course(get_heading() + angle(180), mysetup.initialturn_left ? -1 : 1, false);
+					head_to_course(get_heading() + angle(180), mysetup.initialturn_left ? -1 : 1, false /* large turn circle */);
 				}
 			}
 		} else if (steering_device_phase == 1) {
@@ -378,11 +379,12 @@ void torpedo::simulate(double delta_time)
 				// other setups turn and change phase
 				if (steering_device != FATII || !mysetup.short_secondary_run) {
 					// first LUT turn is on phase 1->2, so invert turn direction
-					bool turn_left = (steering_device == LUTI || steering_device == LUTII) ? mysetup.initialturn_left : !mysetup.initialturn_left;
+					bool is_lut = steering_device == LUTI || steering_device == LUTII;
+					bool turn_left = is_lut ? mysetup.initialturn_left : !mysetup.initialturn_left;
 					// LUT device sets course according to main course, heading should have reached that course
 					// here, so we can use get_heading() instead of mysetup.lut_angle - fixme test this!
 					log_debug("1: dev="<<steering_device<<" short="<<mysetup.short_secondary_run<<" left="<<mysetup.initialturn_left<<" turn="<<turn_left);
-					head_to_course(get_heading() + mysetup.turnangle, turn_left ? -1 : 1, false);
+					head_to_course(get_heading() + mysetup.turnangle, turn_left ? -1 : 1, is_lut /* hard rudder for lut*/);
 					steering_device_phase = 2;
 				}
 			}
@@ -391,9 +393,10 @@ void torpedo::simulate(double delta_time)
 			unsigned phase = unsigned(floor((run_length - mysetup.primaryrange)/get_secondary_run_lenth()));
 			if ((phase & 1) == 0) {
 				// first LUT turn is on phase 1->2, so invert turn direction, invert general because of phase
-				bool turn_left = (steering_device == LUTI || steering_device == LUTII) ? !mysetup.initialturn_left : mysetup.initialturn_left;
+				bool is_lut = steering_device == LUTI || steering_device == LUTII;
+				bool turn_left = is_lut ? !mysetup.initialturn_left : mysetup.initialturn_left;
 				log_debug("2: dev="<<steering_device<<" short="<<mysetup.short_secondary_run<<" left="<<mysetup.initialturn_left<<" turn="<<turn_left);
-				head_to_course(get_heading() + mysetup.turnangle, turn_left ? -1 : 1, false);
+				head_to_course(get_heading() + mysetup.turnangle, turn_left ? -1 : 1, is_lut /* hard rudder for lut*/);
 				steering_device_phase = 1;
 			}
 		}

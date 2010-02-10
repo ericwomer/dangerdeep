@@ -98,7 +98,7 @@ class torpedo : public ship
 		unsigned primaryrange;	///< primary run length in meters, [SAVE]
 		bool short_secondary_run; ///< secondary run short or long [SAVE]
 		bool initialturn_left;	///< initital turn is left (true) or right (false), [SAVE]
-		angle turnangle;	///< (0...180 degrees, for LUT, FAT has 180), [SAVE]
+		angle turnangle;	///< (0...240 degrees, for LUT, FAT has 180), [SAVE]
 		angle lut_angle;	///< angle to turn to after initial run for LuT [SAVE]
 		unsigned torpspeed;	///< torpspeed (0-2 slow-fast, only for G7a torps), [SAVE]
 		double rundepth;	///< depth the torpedo should run at, [SAVE]
