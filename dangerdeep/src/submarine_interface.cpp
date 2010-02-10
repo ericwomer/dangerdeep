@@ -541,16 +541,37 @@ void submarine_interface::process_input(const SDL_Event& event)
 
 
 
+void submarine_interface::set_time(double tm)
+{
+	user_interface::set_time(tm);
+
+	// change current screen if necessary (forcibly)
+	submarine* player = dynamic_cast<submarine*>(mygame->get_player());
+	if ((current_display == display_mode_uzo || current_display == display_mode_bridge) &&
+	    player->is_submerged()) {
+		set_current_display(display_mode_periscope);
+	}
+	if (current_display == display_mode_periscope && player->get_depth() > player->get_periscope_depth()) {
+		set_current_display(display_mode_map);
+	}
+}
+
+
+
 void submarine_interface::goto_gauges()
 {
 	set_current_display(display_mode_gauges);
 }
+
+
 
 void submarine_interface::goto_valves()
 {
 	log_debug("blubb");
 	set_current_display(display_mode_valves);
 }
+
+
 
 void submarine_interface::goto_periscope()
 {
@@ -691,13 +712,6 @@ void submarine_interface::toggle_popup()
 void submarine_interface::display() const
 {
 	submarine* player = dynamic_cast<submarine*>(mygame->get_player());
-	if ((current_display == display_mode_uzo || current_display == display_mode_bridge) &&
-	    player->is_submerged()) {
-		set_current_display(display_mode_periscope);
-	}
-	if (current_display == display_mode_periscope && player->get_depth() > player->get_periscope_depth()) {
-		set_current_display(display_mode_map);
-	}
 
 	// machine sound
 	unsigned thr = 0;

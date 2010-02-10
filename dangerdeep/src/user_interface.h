@@ -84,13 +84,13 @@ protected:
 	bool bearing_is_relative;	// bearing means angle relative to course or absolute? (default = true)
 
 	// which display is active
-	mutable unsigned current_display;
+	unsigned current_display;
 
 	// fixme replace the above with: THE ONE AND ONLY DATA UI SHOULD HAVE
 	ptrvector<user_display> displays;
 
 	// which popup is shown (0 = none)
-	mutable unsigned current_popup;
+	unsigned current_popup;
 
 	// possible popups
 	ptrvector<user_popup> popups;
@@ -126,12 +126,10 @@ protected:
 //	        const string& text) const;
 
 	// adjusts "current_popup" if not set to allowed popup
-	// must be const because it can be called by display(), only mutable members are changed.
-	void set_allowed_popup() const;
+	void set_allowed_popup();
 
 	// set "current_display" only via this function, so that checks can be performed autom.
-	// must be const because it can be called by display(), only mutable members are changed.
-	void set_current_display(unsigned curdis) const;
+	void set_current_display(unsigned curdis);
 
 	virtual void playlist_mode_changed();
 	virtual void playlist_mute();
@@ -147,7 +145,7 @@ public:
 	virtual void display() const;
 
 	// set global time for display (needed for water/sky animation)
-	void set_time(double tm);
+	virtual void set_time(double tm);
 
 	// process common events (common keys, mouse input to panel)
 	virtual void process_input(const SDL_Event& event);

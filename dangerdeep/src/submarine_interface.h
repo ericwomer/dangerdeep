@@ -87,6 +87,9 @@ public:
 	std::auto_ptr<class torpedo_camera_display> torpedo_cam_view;
 	mutable unsigned torpedo_cam_track_nr;
 
+	/// overloaded from user_interface, for forced screen switching
+	virtual void set_time(double tm);
+
  public:
 	// public, because the functions could be called by heirs of user_display,
 	// and should be called only from there.

@@ -707,7 +707,7 @@ void user_interface::play_sound_effect(const string &se,
 
 
 
-void user_interface::set_allowed_popup() const
+void user_interface::set_allowed_popup()
 {
 	// 0 is always valid (no popup)
 	if (current_popup == 0) return;
@@ -726,9 +726,13 @@ void user_interface::set_allowed_popup() const
 
 
 
-void user_interface::set_current_display(unsigned curdis) const
+void user_interface::set_current_display(unsigned curdis)
 {
-	if (current_display == curdis) return;
+	if (current_display == curdis) {
+		// if we are already on the screen, toggle between popups instead.
+		toggle_popup();
+		return;
+	}
 	if (mygame)
 		mygame->freeze_time();
 	displays[current_display]->leave();
