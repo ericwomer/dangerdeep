@@ -91,7 +91,7 @@ sub_tdc_display::scheme_screen2::scheme_screen2(bool day)
 
 
 sub_tdc_display::sub_tdc_display(user_interface& ui_)
-	: user_display(ui_), show_screen1(true)
+	: user_display(ui_), show_screen1(true), tubeselected_time(0.0)
 {
 }
 
@@ -165,6 +165,7 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 					if (s.tubelight[i].is_mouse_over(mx, my)) {
 						si.select_tube(i);
 						log_debug("Torpedo tube selected: #" << i+1);
+						tubeselected_time = gm.get_time();
 					}
 				}
 
@@ -267,15 +268,21 @@ void sub_tdc_display::display(class game& gm) const
 		// background
 		s.background->draw(0, 0);
 
+		unsigned selected_tube = dynamic_cast<const submarine_interface&>(ui).get_selected_tube();
+
 		// draw tubes if ready
+		const double blink_duration = 3.0;
+		const double blink_period_duration = 0.25;
 		for (unsigned i = 0; i < 6; ++i) {
 			if (player->is_tube_ready(i)) {
-				s.tubelight[i].draw();
+				if (selected_tube != i || gm.get_time() > tubeselected_time + blink_duration ||
+				    (unsigned(floor((gm.get_time() - tubeselected_time) / blink_period_duration)) & 1)) {
+					s.tubelight[i].draw();
+				}
 			}
 		}
 
 		// fire button
-		unsigned selected_tube = dynamic_cast<const submarine_interface&>(ui).get_selected_tube();
 		if (player->is_tube_ready(selected_tube) && TDC.solution_valid()) {
 			s.firebutton.draw();
 		}

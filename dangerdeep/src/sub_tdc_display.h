@@ -81,6 +81,9 @@ class sub_tdc_display : public user_display
 	// automatic: means user puts in values or crew - fixme to be defined...
 	unsigned selected_mode;	// 0-1 (automatic on / off)
 
+	///> last time of game that a tube was selected, used for display
+	double tubeselected_time;
+
 public:
 	sub_tdc_display(class user_interface& ui_);
 
