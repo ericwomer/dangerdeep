@@ -68,7 +68,6 @@ ship_probability escortships[] = {
 
 
 ship_probability civilships[] = {
-	{ 0.1, "merchant_medium" },
 	{ 0.1, "troopship_medium" },
 	{ 0.1, "tanker_small" },
 	{ 0.1, "tanker_kennebak" },
