@@ -115,6 +115,9 @@ class glsl_program
 	/// set uniform variable (float)
 	void set_uniform(unsigned loc, float value) const;
 
+	/// set uniform variable (int)
+	void set_uniform(unsigned loc, int value) const;
+
 	/// set uniform variable (doubles)
 	void set_uniform(unsigned loc, const vector3& value) const;
 		
@@ -198,6 +201,16 @@ class glsl_shader_setup
 		
 	/// set uniform variable
 	void set_uniform(unsigned loc, float value) const {
+		prog.set_uniform(loc, value);
+	}
+
+	/// set uniform variable
+	void set_uniform(unsigned loc, double value) const {
+		prog.set_uniform(loc, float(value));
+	}
+
+	/// set uniform variable (int)
+	void set_uniform(unsigned loc, signed int value) const {
 		prog.set_uniform(loc, value);
 	}
 

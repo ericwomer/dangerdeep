@@ -381,6 +381,13 @@ void glsl_program::set_uniform(unsigned loc, float value) const
 	glUniform1f(loc, value);
 }
 
+void glsl_program::set_uniform(unsigned loc, int value) const
+{
+	if (used_program != this)
+		throw runtime_error("glsl_program::set_uniform, program not bound!");
+	glUniform1i(loc, value);
+}
+
 void glsl_program::set_uniform(unsigned loc, const vector3& value) const
 {
 	if (used_program != this)
