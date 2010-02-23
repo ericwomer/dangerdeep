@@ -136,9 +136,11 @@ env.Default(binary)
 if(tests == '1'):
 	tool1 = env.Program(target = 'viewmodel', source = ['viewmodel.cpp', 'texts.cpp', 'parser.cpp', datadirsobj, filehelper_obj, widget_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
 	tool2 = env.Program(target = 'modelmeasure', source = Split('modelmeasure.cpp') + datadirsobj + filehelper_obj + threads_obj + osspecificsrc_obj, LIBS = alllibs)
+	tool4 = env.Program(target = 'atitest', source = ['2dtest.cpp', 'texts.cpp', 'parser.cpp',datadirsobj, filehelper_obj, widget_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
 
 	env.Default(tool1)
 	env.Default(tool2)
+	env.Default(tool4)
 
 	test1 = env.Program('oceantest', ['oceantest.cpp'], LIBS = alllibs)
 	test2 = env.Program('bsplinetest', ['bspline_test.cpp'])
