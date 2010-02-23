@@ -56,7 +56,7 @@ using std::vector;
 int mymain(list<string>& args)
 {
 	int res_x, res_y;
-	font* font_arial = 0;
+//	font* font_arial = 0;
 
 	res_x = 640;
 	res_y = res_x*3/4;
@@ -107,12 +107,14 @@ int mymain(list<string>& args)
 	glEnable(GL_LIGHTING);
 	glEnable(GL_NORMALIZE);
 
-	font_arial = new font(get_font_dir() + "font_arial");
-	sys().draw_console_with(font_arial, 0);
+
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	image *test = new image(get_image_dir() + "sv_r2c2_red_pos8.jpg");
 
 	{
 		sys().prepare_2d_drawing();
-
+		test->draw( 0, 0 );
 		primitives::quad( vector2f( 20, 20 ), vector2f( 40, 40 ), colorf( 1, 0, 0 ) ).render();
 		primitives::quad( vector2f( 40, 20 ), vector2f( 60, 40 ), colorf( 0, 1, 0 ) ).render();
 		primitives::quad( vector2f( 60, 20 ), vector2f( 80, 40 ), colorf( 0, 0, 1 ) ).render();
@@ -124,7 +126,7 @@ int mymain(list<string>& args)
 		SDL_Delay( 5000 );
 	}
 
-	delete font_arial;
+	delete test;
 
 	system::destroy_instance();
 
