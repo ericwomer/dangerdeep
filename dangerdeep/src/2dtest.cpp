@@ -110,11 +110,19 @@ int mymain(list<string>& args)
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	image *test = new image(get_image_dir() + "sv_r2c2_red_pos8.jpg");
+	sdl_image test_img( get_image_dir() + "sv_r2c2_red_pos8.jpg" );
+	colorf col(1,1,1,1);
+	texture *test_texture = new texture( test_img, 0, 0, test_img->w, test_img->h, texture::NEAREST, texture::CLAMP );
+	texture *test_texture2 = new texture( test_img, 0, 0, test_img->w, test_img->h, texture::LINEAR, texture::CLAMP );
+	texture *test_texture3 = new texture( test_img, 0, 0, test_img->w, test_img->h, texture::NEAREST_MIPMAP_NEAREST, texture::CLAMP );
 
 	{
 		sys().prepare_2d_drawing();
-		test->draw( 0, 0 );
+
+		test_texture->draw( 0, 0, col );
+		test_texture2->draw( 200, 200, col );
+		test_texture3->draw( 0, 200, col );
+
 		primitives::quad( vector2f( 20, 20 ), vector2f( 40, 40 ), colorf( 1, 0, 0 ) ).render();
 		primitives::quad( vector2f( 40, 20 ), vector2f( 60, 40 ), colorf( 0, 1, 0 ) ).render();
 		primitives::quad( vector2f( 60, 20 ), vector2f( 80, 40 ), colorf( 0, 0, 1 ) ).render();
@@ -126,7 +134,7 @@ int mymain(list<string>& args)
 		SDL_Delay( 5000 );
 	}
 
-	delete test;
+	delete test_texture;
 
 	system::destroy_instance();
 
