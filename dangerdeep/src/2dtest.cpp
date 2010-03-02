@@ -52,6 +52,58 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using std::vector;
 
+const char* glenum2str( int fmt )
+{
+	switch( fmt )
+	{
+		case GL_ALPHA: return "GL_ALPHA:";
+		case GL_ALPHA4: return "GL_ALPHA4:";
+		case GL_ALPHA8: return "GL_ALPHA8:";
+		case GL_ALPHA12: return "GL_ALPHA12:";
+		case GL_ALPHA16: return "GL_ALPHA16:";
+		case GL_LUMINANCE: return "GL_LUMINANCE:";
+		case GL_LUMINANCE4: return "GL_LUMINANCE4:";
+		case GL_LUMINANCE8: return "GL_LUMINANCE8:";
+		case GL_LUMINANCE12: return "GL_LUMINANCE12:";
+		case GL_LUMINANCE16: return "GL_LUMINANCE16:";
+		case GL_LUMINANCE_ALPHA: return "GL_LUMINANCE_ALPHA:";
+		case GL_LUMINANCE4_ALPHA4: return "GL_LUMINANCE4_ALPHA4:";
+		case GL_LUMINANCE6_ALPHA2: return "GL_LUMINANCE6_ALPHA2:";
+		case GL_LUMINANCE8_ALPHA8: return "GL_LUMINANCE8_ALPHA8:";
+		case GL_LUMINANCE12_ALPHA4: return "GL_LUMINANCE12_ALPHA4:";
+		case GL_LUMINANCE12_ALPHA12: return "GL_LUMINANCE12_ALPHA12:";
+		case GL_LUMINANCE16_ALPHA16: return "GL_LUMINANCE16_ALPHA16:";
+		case GL_INTENSITY: return "GL_INTENSITY:";
+		case GL_INTENSITY4: return "GL_INTENSITY4:";
+		case GL_INTENSITY8: return "GL_INTENSITY8:";
+		case GL_INTENSITY12: return "GL_INTENSITY12:";
+		case GL_INTENSITY16: return "GL_INTENSITY16:";
+		case GL_R3_G3_B2: return "GL_R3_G3_B2:";
+		case GL_RGB: return "GL_RGB:";
+		case GL_RGB4: return "GL_RGB4:";
+		case GL_RGB5: return "GL_RGB5:";
+		case GL_RGB8: return "GL_RGB8:";
+		case GL_RGB10: return "GL_RGB10:";
+		case GL_RGB12: return "GL_RGB12:";
+		case GL_RGB16: return "GL_RGB16:";
+		case GL_RGBA: return "GL_RGBA:";
+		case GL_RGBA2: return "GL_RGBA2:";
+		case GL_RGBA4: return "GL_RGBA4:";
+		case GL_RGB5_A1: return "GL_RGB5_A1:";
+		case GL_RGBA8: return "GL_RGBA8:";
+		case GL_RGB10_A2: return "GL_RGB10_A2:";
+		case GL_RGBA12: return "GL_RGBA12:";
+		case GL_RGBA16: return "GL_RGBA16:";
+		case GL_COMPRESSED_ALPHA_ARB: return "GL_COMPRESSED_ALPHA_ARB:";
+		case GL_COMPRESSED_LUMINANCE_ARB: return "GL_COMPRESSED_LUMINANCE_ARB:";
+		case GL_COMPRESSED_LUMINANCE_ALPHA_ARB: return "GL_COMPRESSED_LUMINANCE_ALPHA_ARB:";
+		case GL_COMPRESSED_INTENSITY_ARB: return "GL_COMPRESSED_INTENSITY_ARB:";
+		case GL_COMPRESSED_RGB_ARB: return "GL_COMPRESSED_RGB_ARB:";
+		case GL_COMPRESSED_RGBA_ARB: return "GL_COMPRESSED_RGBA_ARB:";
+
+		default: return "Unknown";
+	}
+}
 
 int mymain(list<string>& args)
 {
@@ -131,6 +183,11 @@ int mymain(list<string>& args)
 	texture *test_texture = new texture( test_img, 0, 0, test_img->w, test_img->h, texture::NEAREST, texture::CLAMP );
 	texture *test_texture2 = new texture( test_img, 0, 0, test_img->w, test_img->h, texture::LINEAR, texture::CLAMP );
 	texture *test_texture3 = new texture( test_img, 0, 0, test_img->w, test_img->h, texture::NEAREST_MIPMAP_NEAREST, texture::CLAMP );
+
+
+	log_warning("T1 FMT = " << glenum2str( test_texture->get_format()));
+	log_warning("T2 FMT = " << glenum2str( test_texture2->get_format()));
+	log_warning("T3 FMT = " << glenum2str( test_texture3->get_format()));
 
 	{
 		glFlush();
