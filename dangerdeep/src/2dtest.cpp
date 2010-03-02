@@ -145,9 +145,10 @@ int mymain(list<string>& args)
 		glTranslatef(0, res_area_2d_h, 0);
 		glScalef(1, -1, 1);
 		glDisable(GL_DEPTH_TEST);
-		glCullFace(GL_FRONT);
+//		glCullFace(GL_FRONT);
 //		glPixelZoom(float(res_area_2d_w)/res_area_2d_w, -float(res_area_2d_h)/res_area_2d_h);	// flip images
 		glDisable(GL_LIGHTING);
+		glDisable(GL_CULL_FACE);
 
 		test_texture->draw( 0, 0, col );
 		test_texture2->draw( 200, 200, col );
@@ -164,7 +165,7 @@ int mymain(list<string>& args)
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
 		glEnable(GL_DEPTH_TEST);
-		glCullFace(GL_BACK);
+//		glCullFace(GL_BACK);
 		glEnable(GL_LIGHTING);
 
 		sys().swap_buffers();
