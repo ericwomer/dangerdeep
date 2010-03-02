@@ -55,11 +55,28 @@ using std::vector;
 
 int mymain(list<string>& args)
 {
-	int res_x, res_y;
+	int res_x, res_y, res_area_2d_w, res_area_2d_h, res_area_2d_x, res_area_2d_y;
 //	font* font_arial = 0;
 
 	res_x = 640;
 	res_y = res_x*3/4;
+
+	// compute 2d area and resolution. it must be 4:3 always.
+	if (res_x * 3 >= res_y * 4) {
+		// screen is wider than high
+		res_area_2d_w = res_y * 4 / 3;
+		res_area_2d_h = res_y;
+		res_area_2d_x = (res_x - res_area_2d_w) / 2;
+		res_area_2d_y = 0;
+	} else {
+		// screen is higher than wide
+		res_area_2d_w = res_x;
+		res_area_2d_h = res_x * 3 / 4;
+		res_area_2d_x = 0;
+		res_area_2d_y = (res_y - res_area_2d_h) / 2;
+		// maybe limit y to even lines for interlaced displays?
+		//res_area_2d_y &= ~1U;
+	}
 
 	// parse configuration
 	cfg& mycfg = cfg::instance();
@@ -104,7 +121,6 @@ int mymain(list<string>& args)
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, ldiffuse);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, lspecular);
 	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHTING);
 	glEnable(GL_NORMALIZE);
 
 
@@ -117,7 +133,21 @@ int mymain(list<string>& args)
 	texture *test_texture3 = new texture( test_img, 0, 0, test_img->w, test_img->h, texture::NEAREST_MIPMAP_NEAREST, texture::CLAMP );
 
 	{
-		sys().prepare_2d_drawing();
+		glFlush();
+		glViewport(res_area_2d_x, res_area_2d_y, res_area_2d_w, res_area_2d_h);
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		gluOrtho2D(0, res_area_2d_w, 0, res_area_2d_h);
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glTranslatef(0, res_area_2d_h, 0);
+		glScalef(1, -1, 1);
+		glDisable(GL_DEPTH_TEST);
+		glCullFace(GL_FRONT);
+		glPixelZoom(float(res_area_2d_w)/res_area_2d_w, -float(res_area_2d_h)/res_area_2d_h);	// flip images
+		glDisable(GL_LIGHTING);
 
 		test_texture->draw( 0, 0, col );
 		test_texture2->draw( 200, 200, col );
@@ -127,7 +157,15 @@ int mymain(list<string>& args)
 		primitives::quad( vector2f( 40, 20 ), vector2f( 60, 40 ), colorf( 0, 1, 0 ) ).render();
 		primitives::quad( vector2f( 60, 20 ), vector2f( 80, 40 ), colorf( 0, 0, 1 ) ).render();
 
-		sys().unprepare_2d_drawing();
+		glFlush();
+		glPixelZoom(1.0f, 1.0f);
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+		glEnable(GL_DEPTH_TEST);
+		glCullFace(GL_BACK);
+		glEnable(GL_LIGHTING);
 
 		sys().swap_buffers();
 
