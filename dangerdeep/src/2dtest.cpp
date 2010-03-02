@@ -146,7 +146,7 @@ int mymain(list<string>& args)
 		glScalef(1, -1, 1);
 		glDisable(GL_DEPTH_TEST);
 		glCullFace(GL_FRONT);
-		glPixelZoom(float(res_area_2d_w)/res_area_2d_w, -float(res_area_2d_h)/res_area_2d_h);	// flip images
+//		glPixelZoom(float(res_area_2d_w)/res_area_2d_w, -float(res_area_2d_h)/res_area_2d_h);	// flip images
 		glDisable(GL_LIGHTING);
 
 		test_texture->draw( 0, 0, col );
@@ -158,7 +158,7 @@ int mymain(list<string>& args)
 		primitives::quad( vector2f( 60, 20 ), vector2f( 80, 40 ), colorf( 0, 0, 1 ) ).render();
 
 		glFlush();
-		glPixelZoom(1.0f, 1.0f);
+//		glPixelZoom(1.0f, 1.0f);
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
