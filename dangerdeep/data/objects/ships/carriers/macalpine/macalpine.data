@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<dftd-ship>
+  <classification identifier="macalpine_mac" modelname="macalpine.ddxml" type="warship" country="GB" />
+  <shipmanual class="Empire MacAlpine MAC" displacement=" 1690 BRT" length="111m" countries="GB" weapons="1x4in, 2x40mm, 4x20mm"/>
+  <description>
+    <far lang="en">Escort carrier</far>
+    <far lang="de">Geleitschiff</far>
+    <far lang="it">Nave di scorta</far>
+    <medium lang="en">MAC ship escort carrier</medium>
+    <medium lang="de">Zerst?rer</medium>
+    <medium lang="it">Cacciatorpediniere</medium>
+    <near lang="en">HMS Empire MacAlpine MAC ship</near>
+    <near lang="de">HMS Empire MacAlpine MAC schiff</near>
+    <near lang="it">Cacciatorpediniere di classe J</near>
+  </description>
+  <motion maxspeed="12" maxrevspeed="0" acceleration="1.0" turnrate="0.85"/>
+  <tonnage value="7950" />
+  <mass value="12000000" />
+  <smoke type="0" x="0" y="6" z="12.65"/>
+  <sensors>
+    <sensor type="lookout"/>
+  </sensors>
+  <ai type="dumb"/>
+  <fuel capacity="1200" consumption_a="1" consumption_t="1"/>
+  <damageable-parts>
+    <part id="bow" strength="1.0" repairable="0" floodable="1"/>
+    <part id="storeroom1" strength="1.0" repairable="0" floodable="1"/>
+    <part id="storeroom2" strength="1.0" repairable="0" floodable="1"/>
+    <part id="boilerroom" strength="0.5" repairable="0" floodable="1"/>
+    <part id="propeller_1" strength="0.5" repairable="0" floodable="0"/>
+  </damageable-parts>
+  <gun_turrets>
+  	<turret barrels="1" shell_capacity="500" initial_velocity="716.0" max_inclination="30" max_declination="-5" time_to_man="20" time_to_unman="20" shell_damage="0" calibre="101.6" exclusion_radius_start="80" exclusion_radius_end="280"/>
+  </gun_turrets>	
+</dftd-ship>
