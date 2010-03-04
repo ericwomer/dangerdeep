@@ -175,6 +175,8 @@ int mymain(list<string>& args)
 	glEnable(GL_LIGHT0);
 	glEnable(GL_NORMALIZE);
 
+	glClearColor( 0.0, 1.0, 0.0, 1.0 );
+	glClearDepth( 1.0 );
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
@@ -184,19 +186,20 @@ int mymain(list<string>& args)
 	texture *test_texture2 = new texture( test_img, 0, 0, test_img->w, test_img->h, texture::LINEAR, texture::CLAMP );
 	texture *test_texture3 = new texture( test_img, 0, 0, test_img->w, test_img->h, texture::NEAREST_MIPMAP_NEAREST, texture::CLAMP );
 
+	log_warning("T1 FMT = " << glenum2str( test_texture->get_format()));
+	log_warning("T2 FMT = " << glenum2str( test_texture2->get_format()));
+	log_warning("T3 FMT = " << glenum2str( test_texture3->get_format()));
 
 	static const char* vs1 =
-		"varying vec4 texcoord;\n"
 		"void main(){\n"
-		"texcoord = gl_TextureMatrix[0] * gl_MultiTexCoord0;\n"
+		"gl_TexCoord[0] = gl_MultiTexCoord0;\n"
 		"gl_Position = ftransform();\n"
 		"}\n";
 
 	static const char* fs1 =
 		"uniform sampler2D tex;\n"
-		"varying vec4 texcoord;\n"
 		"void main(){\n"
-		"gl_FragColor = texture2D(tex, texcoord.st);\n"
+		"gl_FragColor = texture2D(tex, gl_TexCoord[0].st);\n"
 		"}\n";
 
 	std::string vss1(vs1);
@@ -209,9 +212,6 @@ int mymain(list<string>& args)
 	unsigned loc_tex = glsl1->get_uniform_location("tex");
 
 
-	log_warning("T1 FMT = " << glenum2str( test_texture->get_format()));
-	log_warning("T2 FMT = " << glenum2str( test_texture2->get_format()));
-	log_warning("T3 FMT = " << glenum2str( test_texture3->get_format()));
 
 	{
 		glFlush();
