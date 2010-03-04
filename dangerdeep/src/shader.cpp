@@ -71,7 +71,7 @@ void glsl_shader_setup::default_init()
 		"#endif\n"
 		"void main(){\n"
 		"#ifdef USE_TEX\n"
-		"texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;\n"
+		"texcoord = gl_MultiTexCoord0.xy;\n"
 		"#endif\n"
 		"#ifdef USE_COL\n"
 		"color = vcolor;\n"
@@ -79,8 +79,8 @@ void glsl_shader_setup::default_init()
 		"gl_Position = ftransform();\n"
 		"}\n";
 	static const char* fs =
-		"uniform sampler2D tex;\n"
 		"#ifdef USE_TEX\n"
+		"uniform sampler2D tex;\n"
 		"varying vec2 texcoord;\n"
 		"#endif\n"
 		"#ifdef USE_COL\n"
