@@ -192,7 +192,7 @@ int mymain(list<string>& args)
 
 	static const char* vs1 =
 		"void main(){\n"
-		"gl_TexCoord[0] = gl_MultiTexCoord0;\n"
+		"gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;\n"
 		"gl_Position = ftransform();\n"
 		"}\n";
 
