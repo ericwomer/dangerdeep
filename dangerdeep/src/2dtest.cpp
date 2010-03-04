@@ -185,6 +185,30 @@ int mymain(list<string>& args)
 	texture *test_texture3 = new texture( test_img, 0, 0, test_img->w, test_img->h, texture::NEAREST_MIPMAP_NEAREST, texture::CLAMP );
 
 
+	static const char* vs1 =
+		"varying vec4 texcoord;\n"
+		"void main(){\n"
+		"texcoord = gl_TextureMatrix[0] * gl_MultiTexCoord0;\n"
+		"gl_Position = ftransform();\n"
+		"}\n";
+
+	static const char* fs1 =
+		"uniform sampler2D tex;\n"
+		"varying vec4 texcoord;\n"
+		"void main(){\n"
+		"gl_FragColor = texture2D(tex, texcoord.st);\n"
+		"}\n";
+
+	std::string vss1(vs1);
+	std::string fss1(fs1);
+
+	glsl_shader::defines_list dl;
+	glsl_shader_setup *glsl1 = new glsl_shader_setup(vss1, fss1, dl, true);
+
+	glsl1->use();
+	unsigned loc_tex = glsl1->get_uniform_location("tex");
+
+
 	log_warning("T1 FMT = " << glenum2str( test_texture->get_format()));
 	log_warning("T2 FMT = " << glenum2str( test_texture2->get_format()));
 	log_warning("T3 FMT = " << glenum2str( test_texture3->get_format()));
@@ -202,27 +226,65 @@ int mymain(list<string>& args)
 		glTranslatef(0, res_area_2d_h, 0);
 		glScalef(1, -1, 1);
 		glDisable(GL_DEPTH_TEST);
-//		glCullFace(GL_FRONT);
-//		glPixelZoom(float(res_area_2d_w)/res_area_2d_w, -float(res_area_2d_h)/res_area_2d_h);	// flip images
+		glCullFace(GL_FRONT);
+		glPixelZoom(float(res_area_2d_w)/res_area_2d_w, -float(res_area_2d_h)/res_area_2d_h);	// flip images
 		glDisable(GL_LIGHTING);
 		glDisable(GL_CULL_FACE);
 
 		test_texture->draw( 0, 0, col );
-		test_texture2->draw( 200, 200, col );
+//		test_texture2->draw( 200, 200, col );
 		test_texture3->draw( 0, 200, col );
+//
+//
+//
+		vector3f vertices[4];
+		vector2f texcoords[4];
+
+		vertices[0].x = 300;
+		vertices[0].y = 300;
+		vertices[1].x = 493;
+		vertices[1].y = 300;
+		vertices[2].x = 493;
+		vertices[2].y = 450;
+		vertices[3].x = 300;
+		vertices[3].y = 450;
+
+		texcoords[0].x = 0;
+		texcoords[0].y = 0;
+		texcoords[1].x = 1;
+		texcoords[1].y = 0;
+		texcoords[2].x = 1;
+		texcoords[2].y = 1;
+		texcoords[3].x = 0;
+		texcoords[3].y = 1;
+
+		glVertexPointer(3, GL_FLOAT, sizeof(vector3f), &vertices[0]);
+
+
+
+
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(vector2f), &texcoords[0]);
+
+		glsl1->use();
+		glsl1->set_gl_texture(*test_texture2, loc_tex, 0);
+
+		glDrawArrays(GL_QUADS, 0, 4);
+
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 		primitives::quad( vector2f( 20, 20 ), vector2f( 40, 40 ), colorf( 1, 0, 0 ) ).render();
 		primitives::quad( vector2f( 40, 20 ), vector2f( 60, 40 ), colorf( 0, 1, 0 ) ).render();
 		primitives::quad( vector2f( 60, 20 ), vector2f( 80, 40 ), colorf( 0, 0, 1 ) ).render();
 
 		glFlush();
-//		glPixelZoom(1.0f, 1.0f);
+		glPixelZoom(1.0f, 1.0f);
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
 		glEnable(GL_DEPTH_TEST);
-//		glCullFace(GL_BACK);
+		glCullFace(GL_BACK);
 		glEnable(GL_LIGHTING);
 
 		sys().swap_buffers();
@@ -231,6 +293,7 @@ int mymain(list<string>& args)
 	}
 
 	delete test_texture;
+	delete glsl1;
 
 	system::destroy_instance();
 
