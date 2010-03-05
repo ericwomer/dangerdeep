@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dftd-ship>
-  <classification identifier="macalpine_mac" modelname="macalpine.ddxml" type="warship" country="GB" />
+  <classification identifier="macalpine" modelname="macalpine.ddxml" type="warship" country="GB" />
   <shipmanual class="Empire MacAlpine MAC" displacement=" 1690 BRT" length="111m" countries="GB" weapons="1x4in, 2x40mm, 4x20mm"/>
   <description>
     <far lang="en">Escort carrier</far>
@@ -15,7 +15,7 @@
   </description>
   <motion maxspeed="12" maxrevspeed="0" acceleration="1.0" turnrate="0.85"/>
   <tonnage value="7950" />
-  <mass value="12000000" />
+  <mass value="8000000" />
   <smoke type="0" x="0" y="6" z="12.65"/>
   <sensors>
     <sensor type="lookout"/>
