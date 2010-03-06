@@ -205,7 +205,7 @@ void geoclipmap::display(const frustum& f, const vector3& view_delta, bool is_mi
 	myshader[si]->set_gl_texture(height_gen.get_base_texture(), loc_base_texture[si], 3);
 
 	for (unsigned lvl = 0; lvl < levels.size(); ++lvl) {
-		myshader[si]->set_uniform(loc_tex_stretch_factor[si], height_gen.get_tex_stretch_factor()/pow(2,lvl));
+		myshader[si]->set_uniform(loc_tex_stretch_factor[si], height_gen.get_tex_stretch_factor()/pow(2.0,int(lvl)));
 		myshader[si]->set_gl_texture(levels[lvl]->normals_tex(), loc_texnormal[si], 0);
 		if (lvl + 1 < levels.size()) {
 			myshader[si]->set_gl_texture(levels[lvl+1]->normals_tex(), loc_texnormal_c[si], 1);

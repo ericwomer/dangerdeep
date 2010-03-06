@@ -22,7 +22,7 @@ double simplex_noise::noise(vector2 coord, unsigned ocatves, float persistence)
 {
 	double sum = 0.0, amplitude, frequency;
 	for(unsigned int i=0; i<ocatves; i++) {
-		amplitude = pow(persistence, i);
+		amplitude = pow(persistence, float(i));
 		frequency = 1<<i;
 		sum += interpolate2D(coord*frequency)*amplitude;
 	}
@@ -33,7 +33,7 @@ double simplex_noise::noise(vector3 coord, unsigned ocatves, float persistence)
 {
 	double sum = 0.0, amplitude, frequency;
 	for(unsigned int i=0; i<ocatves; i++) {
-		amplitude = pow(persistence, i);
+		amplitude = pow(persistence, float(i));
 		frequency = 1<<i;
 		sum += interpolate3D(coord*frequency)*amplitude;
 	}
@@ -44,7 +44,7 @@ double simplex_noise::noise(vector4 coord, unsigned ocatves, float persistence)
 {
 	double sum = 0.0, amplitude, frequency;
 	for(unsigned int i=0; i<ocatves; i++) {
-		amplitude = pow(persistence, i);
+		amplitude = pow(persistence, float(i));
 		frequency = 1<<i;
 		sum += interpolate4D(coord*frequency)*amplitude;
 	}
