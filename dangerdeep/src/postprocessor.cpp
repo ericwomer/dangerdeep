@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 
+#include <cstdio>
 #include "shader.h"
 #include "texture.h"
 #include "postprocessor.h"
@@ -26,6 +27,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "system.h"
 
 #include "log.h"
+
+#ifdef WIN32
+// maybe one day...
+#ifndef snprintf
+#define snprintf _snprintf
+#endif
+#endif
 
 using namespace std;
 
