@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <sstream>
 #include <set>
 #include <stdlib.h>
-#include <GL/gl.h>
+#include "../oglext/OglExt.h"
 
 #include "tests.h"
 
