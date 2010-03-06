@@ -26,11 +26,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 #include <stdexcept>
 
-// 2006-11-30 doc1972 On WIN32 we need to undef ERROR because its already defined as
-// #define ERROR 0 in wingdi.h
-#ifdef WIN32
-#undef ERROR
-#endif /* WIN32 */
 
 ///\brief Base exception class for any runtime error.
 class error : public std::runtime_error
@@ -40,7 +35,13 @@ class error : public std::runtime_error
 	static std::string str(const char* file, unsigned line);
 #define ERROR(x) error(x + error::str(__FILE__, __LINE__))
 #else
+
+#ifdef WIN32
+#undef ERROR
+#pragma warning (disable: 4005)
+#endif
 #define ERROR(x) error(x)
+
 #endif
 	error(const std::string& s) : std::runtime_error(std::string("DftD error: ") + s) {}
 };
