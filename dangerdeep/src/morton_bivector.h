@@ -30,6 +30,14 @@
 #include <algorithm>
 #include <sstream>
 
+#ifdef WIN32
+#ifndef log2
+double log2( double n ); 
+#endif
+#endif
+
+
+
 #define bivector_FOREACH(cmd) for (int z=0; z < int(data.size()); ++z) { cmd ; }
 #define bivector_FOREACH_XY(cmd) for (int y=0; y < datasize; ++y) for (int x=0; x < datasize; ++x) { cmd ; }
 #define bivector_FOREACH_XYZ(cmd) for (int y=0,z=0; y < datasize; ++y) for (int x=0; x < datasize; ++x,++z) { cmd ; }

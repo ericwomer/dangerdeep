@@ -302,7 +302,7 @@ ocean_wave_generator<T>::ocean_wave_generator(const ocean_wave_generator<T>& owg
 }
 
 template <class T>
-ocean_wave_generator<T>::~ocean_wave_generator<T>()
+ocean_wave_generator<T>::~ocean_wave_generator/*<T>*/()
 {
 	FFT_DELETE_PLAN(plan);
 	FFT_DELETE_PLAN(plan2);
