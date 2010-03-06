@@ -5,11 +5,17 @@ import subprocess
 import platform
 
 ################ base paths (needed for Win32 OS)
-sdlbase = 'D:\\sdl-devel\\SDL'
-sdlimagebase = 'D:\\sdl-devel\\SDL_image'
-sdlmixerbase = 'D:\\sdl-devel\\SDL_mixer'
-fftw3base = 'D:\\fftw3'
-glbase = 'D:\\Dev-Cpp\\include\\gl'
+sdlbase = 'Z:\\win32\\SDL-1.2.13'
+sdlimagebase = 'Z:\\win32\\SDL_image-1.2.7'
+sdlmixerbase = 'Z:\\win32\\SDL_mixer-1.2.11'
+fftw3base = 'Z:\\win32\\fftw-3.2.2.pl1-dll32'
+bzip2base = 'Z:\\win32\\bzip2-1.0.5-lib'
+
+glheader  = 'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0A\\Include\\gl'
+gllibrary = 'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0A\Lib'
+cheader   = 'C:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\include'
+clibrary  = 'C:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\lib'
+wheader   = 'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0A\\Include'
 
 mingw32root = '/usr/mingw32'
 #sdlbase = os.environ['SDL']
@@ -39,24 +45,28 @@ fftwlib = 'fftw3'
 env = Environment()
 checkconf = True
 if (env.GetOption('clean') or conf == '0'):
-	checkconf = False;
+	checkconf = False
 
 if sys.platform == 'win32':
+	checkconf = False
 	print "Compiling for Win32 Environment"
-	env = Environment(ENV = os.environ, tools = ['mingw'])
-	env.Append(CPPPATH = [sdlbase + '\\include', sdlimagebase + '\\include', sdlmixerbase + '\\include', fftw3base, glbase])
-	libpath = [sdlbase + '\\lib', sdlimagebase + '\\lib', sdlmixerbase + '\\lib', fftw3base]
+	env = Environment(ENV = os.environ)
+
+	env.Append(CPPDEFINES = ['WIN32','NOMINMAX']) # DEBUG
+	env.Append(CCFLAGS = '/EHsc' )
+
+	## /EHsc
+
+	fftwlib = 'libfftw3-3'
+	extralibs = ['bzip2']
+
+	env.Append(CPPPATH = [sdlbase + '\\include', sdlimagebase + '\\include', sdlmixerbase + '\\include', bzip2base + '\\include', fftw3base, glheader,cheader,wheader])
+	libpath = [sdlbase + '\\lib', sdlimagebase + '\\lib', sdlmixerbase + '\\lib', bzip2base + '\\lib', fftw3base, gllibrary, clibrary]
 	gllibs = ['opengl32', 'glu32']
 	sdllibs = ['SDL', 'SDL_image']
-	env.Append(CPPDEFINES = ['_REENTRANT'])
-	env.Append(CCFLAGS = '-Wall -O2') # for mingw!
-	if (usex86sse >= 1):
-		osspecificsrc += []
-		env.Append(CCFLAGS = '-msse')
-		env.Append(CPPDEFINES = ['USE_SSE'])
-		print 'Using x86 SSE/MMX optimizations with GCC intrinsics.'
 	datadir = './data'	# use slashes as separator always. C/C++ want it so.
 	build_dir = 'win32'
+
 elif sys.platform == 'darwin':
 	print "Compiling for MacOSX"
 	env = Environment(ENV = os.environ)

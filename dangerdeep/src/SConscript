@@ -104,8 +104,7 @@ tinyxmlsources = Split("""
 
 oglextsources = Split("""
 	oglext/OglExt.cpp
-	oglext/RenderingContext.cpp
-	oglext/RenderingContext.hpp""")
+	oglext/RenderingContext.cpp""")
 
 # build objects for each member of osspecificsrc
 osspecificsrc_obj = [env.Object(source = x) for x in osspecificsrc]
