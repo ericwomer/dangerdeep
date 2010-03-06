@@ -24,11 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef VECTOR4_H
 #define VECTOR4_H
 
-#ifdef WIN32
-#undef min
-#undef max
-#endif
-
 #include "vector3.h"
 
 ///\brief Template class for a mathematical vector with four coefficients.

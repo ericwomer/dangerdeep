@@ -24,11 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef VECTOR3_H
 #define VECTOR3_H
 
-#ifdef WIN32
-#undef min
-#undef max
-#endif
-
 #include "vector2.h"
 
 template <class D2> class vector4t;

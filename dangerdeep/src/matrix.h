@@ -24,11 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef MATRIX_H
 #define MATRIX_H
 
-#ifdef WIN32
-#undef min
-#undef max
-#endif
-
 #include "vector4.h"
 #include <iostream>
 
