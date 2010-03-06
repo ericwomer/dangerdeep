@@ -151,6 +151,11 @@ protected:
 	};
 
 
+#ifdef _MSC_VER
+// this is msvc specific
+#pragma pack( push, packing )
+#pragma pack( 1 )
+#endif
 	// taken from DevIL library
 	typedef struct DDSHEAD
 	{
@@ -178,7 +183,13 @@ protected:
 
 		uint32_t	ddsCaps1, ddsCaps2, ddsCaps3, ddsCaps4; // direct draw surface capabilities
 		uint32_t	TextureStage;
-	}  __attribute__ ((packed)) DDSHEAD;
+	}
+	
+#if defined( __GNUC__ )
+// tx- this is GCC specific
+	__attribute__ ((packed))
+#endif
+	DDSHEAD;
 	
 	void load_dds(const std::string& filename, dds_data& target);
 
