@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "sphere.h"
 #include "matrix4.h"
 
-#ifdef WIN32
+#if defined WIN32 && defined _MSC_VER
 // one day MS might start supporting standards
 	#include <SDL_config_win32.h>
 #else

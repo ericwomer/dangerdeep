@@ -33,16 +33,19 @@ class error : public std::runtime_error
  public:
 #if defined(DEBUG) && defined(__GNUC__)
 	static std::string str(const char* file, unsigned line);
-#define ERROR(x) error(x + error::str(__FILE__, __LINE__))
+	#define ERROR(x) error(x + error::str(__FILE__, __LINE__))
 #else
 
 #ifdef WIN32
-#undef ERROR
-#pragma warning (disable: 4005)
-#endif
+	#undef ERROR
+	#ifdef _MSC_VER
+		#pragma warning (disable: 4005)
+	#endif//_MSVC
+#endif//WIN32
+
 #define ERROR(x) error(x)
 
-#endif
+#endif//DEBUG
 	error(const std::string& s) : std::runtime_error(std::string("DftD error: ") + s) {}
 };
 
