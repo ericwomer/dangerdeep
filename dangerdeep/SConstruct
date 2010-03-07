@@ -52,7 +52,7 @@ if sys.platform == 'win32':
 	print "Compiling for Win32 Environment"
 	env = Environment(ENV = os.environ)
 
-	env.Append(CPPDEFINES = ['WIN32','NOMINMAX']) # DEBUG
+	env.Append(CPPDEFINES = ['WIN32','NOMINMAX','DEBUG']) 
 	env.Append(CCFLAGS = '/EHsc' )
 
 	## /EHsc
