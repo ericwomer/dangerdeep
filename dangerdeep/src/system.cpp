@@ -38,6 +38,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "primitives.h"
 #include "shader.h"
 #include "cfg.h"
+#include "texts.h"
 
 #include <iostream>
 #include <sstream>
@@ -76,6 +77,8 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 	int err = SDL_Init(SDL_INIT_VIDEO);
 	if (err < 0)
 		throw sdl_error("video init failed");
+
+	SDL_WM_SetCaption(texts::get(7).c_str(), NULL);
 
 	// request available SDL video modes
 	SDL_Rect** modes = SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_HWSURFACE);
