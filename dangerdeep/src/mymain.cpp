@@ -48,6 +48,9 @@ int call_mymain(list<string>& args)
 {
 	log_info("***** Log file started *****");
 	int result = 0;
+#ifdef WIN32
+	result = mymain(args);
+#else
 	try {
 		result = mymain(args);
 	}
@@ -64,6 +67,7 @@ int call_mymain(list<string>& args)
 		print_stack_trace();
 		result = -2;
 	}
+#endif
 	log::instance().write(std::cerr, log::LOG_SYSINFO);
 	std::ofstream f("log.txt");
 	log::instance().write(f, log::LOG_SYSINFO);
