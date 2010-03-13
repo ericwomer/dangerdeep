@@ -151,11 +151,6 @@ protected:
 	};
 
 
-#ifdef _MSC_VER
-// this is msvc specific
-#pragma pack( push, packing )
-#pragma pack( 1 )
-#endif
 	// taken from DevIL library
 	typedef struct DDSHEAD
 	{
