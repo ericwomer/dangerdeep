@@ -2154,7 +2154,6 @@ int mymain(list<string>& args)
 	gbd.reset();
 	music::release_instance()->destruct(); // kill thread
 	system::destroy_instance();
-	log::destroy_instance();
 
 	return 0;
 }

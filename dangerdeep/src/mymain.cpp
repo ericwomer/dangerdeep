@@ -71,6 +71,7 @@ int call_mymain(list<string>& args)
 	log::instance().write(std::cerr, log::LOG_SYSINFO);
 	std::ofstream f("log.txt");
 	log::instance().write(f, log::LOG_SYSINFO);
+	log::destroy_instance();
 	return result;
 }
 
