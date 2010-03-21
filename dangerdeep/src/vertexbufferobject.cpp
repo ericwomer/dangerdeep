@@ -103,4 +103,5 @@ void vertexbufferobject::unmap()
 	if (glUnmapBuffer(target) != GL_TRUE) {
 		log_warning("failed to unmap Vertex Buffer object, data invalid");
 	}
+	unbind();
 }
