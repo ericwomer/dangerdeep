@@ -99,7 +99,7 @@ void vertexbufferobject::unmap()
 	if (!mapped)
 		throw std::runtime_error("vertex buffer object not mapped before unmap()");
 	mapped = false;
-	bind();
+	bind();// FIXME: do we really need this?
 	if (glUnmapBuffer(target) != GL_TRUE) {
 		log_warning("failed to unmap Vertex Buffer object, data invalid");
 	}
