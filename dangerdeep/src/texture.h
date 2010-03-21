@@ -152,6 +152,9 @@ protected:
 
 
 	// taken from DevIL library
+#ifdef _MSC_VER
+__declspec( align( 1 ) )
+#endif
 	typedef struct DDSHEAD
 	{
 		int8_t	Signature[4];
@@ -179,9 +182,7 @@ protected:
 		uint32_t	ddsCaps1, ddsCaps2, ddsCaps3, ddsCaps4; // direct draw surface capabilities
 		uint32_t	TextureStage;
 	}
-	
-#if defined( __GNUC__ )
-// tx- this is GCC specific
+#ifdef __GNUC__
 	__attribute__ ((packed))
 #endif
 	DDSHEAD;
