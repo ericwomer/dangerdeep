@@ -2121,6 +2121,10 @@ int mymain(list<string>& args)
 				w.add_child(new widget_text(20, 20, 0, 0, warnings));
 			}
 #endif // WIN32
+
+			// display version #
+			w.add_child(new widget_text( 3, 768-23, 0, 0, get_program_version()));
+
 			widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(104));
 			wm->set_entry_spacing(8);
 			w.add_child(wm);
