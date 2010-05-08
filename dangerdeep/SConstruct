@@ -147,6 +147,12 @@ elif 0 != mingw32:
 		env.Replace(CXX = os.environ['CXX'])
 	except:
 		pass
+
+	try:
+		env.Replace(CC = os.environ['CC'])
+	except:
+		pass
+
 	try:
 		env.Replace(AR = os.environ['AR'])
 	except:
