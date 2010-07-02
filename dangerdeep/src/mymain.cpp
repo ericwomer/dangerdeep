@@ -35,6 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <exception>
 #include <iostream>
 #include <fstream>
+#include <unistd.h>
 using namespace std;
 
 #ifdef WIN32
@@ -68,8 +69,17 @@ int call_mymain(list<string>& args)
 		result = -2;
 	}
 #endif
+
+	string log_file =
+#ifdef WIN32
+	"./debug.log";
+#else
+	// fixme: use global /var/games instead
+	string(getenv("HOME"))+"/.dangerdeep/debug.log";
+#endif
 	log::instance().write(std::cerr, log::LOG_SYSINFO);
-	std::ofstream f("log.txt");
+	unlink( log_file.c_str() );
+	std::ofstream f(log_file.c_str());
 	log::instance().write(f, log::LOG_SYSINFO);
 	log::destroy_instance();
 	return result;
