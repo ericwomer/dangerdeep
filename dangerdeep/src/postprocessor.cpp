@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "postprocessor.h"
 #include "datadirs.h"
 #include "system.h"
-
+#include "cfg.h"
 #include "log.h"
 
 #ifdef WIN32
