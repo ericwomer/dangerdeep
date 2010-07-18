@@ -73,6 +73,12 @@ class sdl_image
 	/// transform values to plain vector
 	std::vector<uint8_t> get_plain_data(unsigned& w, unsigned& h, unsigned& byte_per_pixel);
 
+	/// get width of image
+	unsigned get_width() const { return img->w; }
+
+	/// get height of image
+	unsigned get_height() const { return img->h; }
+
  protected:
 	SDL_Surface* img;
 
