@@ -10,7 +10,6 @@ dftdsources = Split("""subsim.cpp
 	airplane.cpp
 	bitstream.cpp
 	bzip.cpp
-	cfg.cpp
 	coastmap.cpp
 	convoy.cpp
 	countrycodes.cpp
@@ -25,7 +24,6 @@ dftdsources = Split("""subsim.cpp
 	gun_shell.cpp
 	height_generator_map.cpp
 	highscorelist.cpp
-	keys.cpp
 	logbook.cpp
 	logbook_display.cpp
 	map_display.cpp

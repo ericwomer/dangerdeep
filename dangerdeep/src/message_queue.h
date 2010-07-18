@@ -72,7 +72,7 @@ class message_queue
 	message_queue& operator= (const message_queue& );
 
  protected:
-	std::list<message*> myqueue;
+	std::list<message*> myqueue;//fixme use ptrlist
 	mutex mymutex;
 	condvar emptycondvar;
 	condvar ackcondvar;

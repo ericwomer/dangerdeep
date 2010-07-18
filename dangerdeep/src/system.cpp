@@ -37,7 +37,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "log.h"
 #include "primitives.h"
 #include "shader.h"
-#include "cfg.h"
+#include "cfg.h"	//fixme: should be independent of game cfg, remove cfg+key from dftdmedia library
 #include "texts.h"
 
 #include <iostream>
