@@ -1225,7 +1225,7 @@ void menu_select_language()
 
 void apply_mode(widget_list* wlg)
 {
-	int width, height; 
+	unsigned width, height; 
     
 	string wks = wlg->get_selected_entry();  
   
@@ -1236,8 +1236,8 @@ void apply_mode(widget_list* wlg)
 	// is broken, user is not forced to same mode again on restart
 	try {
 		sys().set_video_mode(width, height, sys().is_fullscreen_mode());
-		cfg::instance().set("screen_res_y",height);
-		cfg::instance().set("screen_res_x",width);
+		cfg::instance().set("screen_res_y",int(height));
+		cfg::instance().set("screen_res_x",int(width));
 	}
 	catch (exception& e) {
 		log_warning("Video mode setup failed: " << e.what());
@@ -1944,7 +1944,7 @@ int mymain(list<string>& args)
 	// fixme: also allow 1280x1024, set up gl viewport for 4:3 display
 	// with black borders at top/bottom (height 2*32pixels)
 	// weather conditions and earth curvature allow 30km sight at maximum.
-	system::create_instance(new class system(1.0, 30000.0+500.0, res_x, res_y, fullscreen));
+	system::create_instance(new class system(1.0, 30000.0+500.0, res_x, res_y, texts::get(7).c_str(), fullscreen));
 	sys().set_screenshot_directory(savegamedirectory);
 	sys().set_res_2d(1024, 768);
 	sys().set_max_fps(maxfps);

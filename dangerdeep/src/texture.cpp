@@ -944,6 +944,46 @@ void texture::sub_image(int xoff, int yoff, unsigned w, unsigned h,
 
 
 
+void texture::sub_image(const sdl_image& sdlimage, int xoff, int yoff, unsigned w, unsigned h)
+{
+	SDL_Surface* teximage = sdlimage.get_SDL_Surface();
+	
+	SDL_LockSurface(teximage);
+
+	const SDL_PixelFormat& fmt = *(teximage->format);
+	unsigned bpp = fmt.BytesPerPixel;
+
+	vector<Uint8> data;
+	if (fmt.palette != 0) {
+		// no color tables, fixme
+		return;
+	}
+	bool usealpha = fmt.Amask != 0;
+	if (usealpha) {
+		format = GL_RGBA;
+		bpp = 4;
+	} else {
+		format = GL_RGB;
+		bpp = 3;
+	}
+	data.resize(w*h*bpp);
+	unsigned char* ptr = &data[0];
+	unsigned char* offset = ((unsigned char*)(teximage->pixels)) + yoff*teximage->pitch + xoff*bpp;
+	for (unsigned y = 0; y < h; y++) {
+		// old code, that assumes bytes come in R,G,B order:
+		memcpy(ptr, offset, w*bpp);
+		offset += teximage->pitch;
+		ptr += w*bpp;
+	}
+	SDL_UnlockSurface(teximage);
+
+	glBindTexture(GL_TEXTURE_2D, opengl_name);
+	glTexSubImage2D(GL_TEXTURE_2D, 0 /* mipmap level */,
+			xoff, yoff, w, h, format, GL_UNSIGNED_BYTE, &data[0]);
+}
+
+
+
 unsigned texture::get_bpp() const
 {
 	switch (format) {

@@ -244,6 +244,9 @@ public:
 	void sub_image(int xoff, int yoff, unsigned w, unsigned h,
 		       const std::vector<Uint8>& pixels, int format);
 
+	/// change sub-area of texture from memory values (use openGL constants for format,etc.
+	void sub_image(const sdl_image& sdlimage, int xoff, int yoff, unsigned w, unsigned h);
+
 	int get_format() const { return format; }
 	unsigned get_bpp() const;
 	unsigned get_opengl_name() const { return opengl_name; }

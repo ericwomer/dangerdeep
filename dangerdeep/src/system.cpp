@@ -38,7 +38,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "primitives.h"
 #include "shader.h"
 #include "cfg.h"	//fixme: should be independent of game cfg, remove cfg+key from dftdmedia library
-#include "texts.h"
 
 #include <iostream>
 #include <sstream>
@@ -68,7 +67,7 @@ bad_typeid
 
 */
 
-system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bool fullscreen) :
+system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, const char* caption, bool fullscreen) :
 	res_x(res_x_), res_y(res_y_), nearz(nearz_), farz(farz_), is_fullscreen(fullscreen),
 	show_console(false), console_font(0), console_background(0),
 	draw_2d(false), time_passed_while_sleeping(0), sleep_time(0),
@@ -78,12 +77,22 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 	if (err < 0)
 		throw sdl_error("video init failed");
 
-	SDL_WM_SetCaption(texts::get(7).c_str(), NULL);
+	if (caption) {
+		SDL_WM_SetCaption(caption, NULL);
+	}
 
 	// request available SDL video modes
 	SDL_Rect** modes = SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_HWSURFACE);
 	for (unsigned i = 0; modes[i]; ++i) {
 		available_resolutions.push_back(vector2i(modes[i]->w, modes[i]->h));
+	}
+
+	try {
+		set_video_mode(res_x, res_y, is_fullscreen);
+	}
+	catch (...) {
+		SDL_Quit();
+		throw;
 	}
 
 	// compute 2d area and resolution. it must be 4:3 always.
@@ -104,14 +113,6 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, bo
 	}
 	res_x_2d = res_area_2d_w;
 	res_y_2d = res_area_2d_h;
-
-	try {
-		set_video_mode(res_x, res_y, is_fullscreen);
-	}
-	catch (...) {
-		SDL_Quit();
-		throw;
-	}
 
 	SDL_EventState(SDL_VIDEORESIZE, SDL_IGNORE);//fixme
 	SDL_EventState(SDL_SYSWMEVENT, SDL_IGNORE);//fixme
@@ -270,20 +271,31 @@ system::~system()
 
 
 
-void system::set_video_mode(unsigned res_x_, unsigned res_y_, bool fullscreen)
+void system::set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen)
 {
 	// only limit possible mode when using fullscreen.
 	// windows can have any sizes.
 	if (fullscreen) {
 		bool ok = false;
+		unsigned max_mode_x = 0, max_mode_y = 0;
 		for (list<vector2i>::const_iterator it = available_resolutions.begin(); it != available_resolutions.end(); ++it) {
 			if (*it == vector2i(res_x_, res_y_)) {
 				ok = true;
 				break;
 			}
+			if (it->x >= int(max_mode_x)) {
+				max_mode_x = it->x;
+				if (it->y >= int(max_mode_y)) {
+					max_mode_y = it->y;
+				}
+			}
 		}
-		if (!ok)
+		if (res_x_ == 0 || res_y_ == 0) {
+			res_x_ = max_mode_x;
+			res_y_ = max_mode_y;
+		} else if (!ok) {
 			throw invalid_argument("invalid resolution requested!");
+		}
 	}
 	const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
 	if (!videoInfo)
