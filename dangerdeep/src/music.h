@@ -67,7 +67,7 @@ class music : public singleton<class music>, public thread
 	};
 
 	/// create music handler
-	music(bool use_music = true);
+	music(unsigned sample_rate = 44100, bool use_music = true);
 
 	/// destroy music handler
 	~music();
@@ -101,6 +101,9 @@ class music : public singleton<class music>, public thread
 	/// resume music play
 	///@returns true if command was successful
 	bool resume();
+
+	/// set music position
+	bool set_music_position(float pos);
 
 	/// switch playback to track
 	///@param nr - number of track in playlist
@@ -147,6 +150,7 @@ class music : public singleton<class music>, public thread
 
  protected:
 	const unsigned nr_reserved_channels;
+	const unsigned sample_rate;
 	unsigned current_track;
 	int usersel_next_track;
 	unsigned usersel_fadein;
@@ -179,6 +183,7 @@ class music : public singleton<class music>, public thread
 	void exec_stop(unsigned fadeout);
 	void exec_pause();
 	void exec_resume();
+	void exec_set_music_position(float pos);
 	void exec_play_track(unsigned nr, unsigned fadeouttime, unsigned fadeintime);
 	void exec_track_finished();
 	void exec_get_playlist(std::vector<std::string>& playlist);
@@ -238,6 +243,15 @@ class music : public singleton<class music>, public thread
 		void eval() const { my_music.exec_resume(); }
 	 public:
 		command_resume(music& my_music_) : my_music(my_music_) {}
+	};
+
+	class command_set_music_position : public message
+	{
+		music& my_music;
+		float pos;
+		void eval() const { my_music.exec_set_music_position(pos); }
+	 public:
+		command_set_music_position(music& my_music_, float pos_) : my_music(my_music_), pos(pos_) {}
 	};
 
 	class command_play_track : public message

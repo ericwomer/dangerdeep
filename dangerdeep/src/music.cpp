@@ -42,9 +42,10 @@ bool music::use_music = true;
 
 
 
-music::music(bool useit)
+music::music(unsigned sample_rate_, bool useit)
 	: thread("music___"),
 	  nr_reserved_channels(1),
+	  sample_rate(sample_rate_),
 	  current_track(0),
 	  usersel_next_track(-1),
 	  usersel_fadein(0),
@@ -122,7 +123,7 @@ void music::init()
 		return;
 	}
 
-	int audio_rate = 44100; // 22050;
+	int audio_rate = int(sample_rate);
 	Uint16 audio_format = AUDIO_S16SYS;
 	int audio_channels = 2;
 	int audio_buffers = 4096;
@@ -143,6 +144,7 @@ void music::init()
 	if (Mix_ReserveChannels(nr_reserved_channels) < int(nr_reserved_channels))
 		throw error("could not reserve enough channels");
 
+#if 0
 	// load sfx files
 	// fixme: later implement a cache!
 	try {
@@ -188,6 +190,7 @@ void music::init()
 		destructor();
 		throw;
 	}
+#endif
 }
 
 
@@ -268,6 +271,12 @@ bool music::resume()
 }
 
 
+bool music::set_music_position(float pos)
+{
+	return command_queue.send(std::auto_ptr<message>(new command_set_music_position(*this, pos)));
+}
+
+
 bool music::play_track(unsigned nr, unsigned fadeouttime, unsigned fadeintime)
 {
 	return command_queue.send(std::auto_ptr<message>(new command_play_track(*this, nr, fadeouttime, fadeintime)));
@@ -325,7 +334,7 @@ bool music::pause_sfx(bool on)
 void music::exec_append_track(const std::string& filename)
 {
 	if (!use_music) throw std::invalid_argument("no music support");
-	Mix_Music *tmp = Mix_LoadMUS((get_sound_dir() + filename).c_str());
+	Mix_Music *tmp = Mix_LoadMUS((/*get_sound_dir() +*/ filename).c_str());
 	if (!tmp) {
 		throw file_read_error(filename);
 	}
@@ -386,6 +395,16 @@ void music::exec_resume()
 {
 	if (!use_music) throw std::invalid_argument("no music support");
 	Mix_ResumeMusic();
+}
+
+
+
+void music::exec_set_music_position(float pos)
+{
+	Mix_RewindMusic();
+	if (Mix_SetMusicPosition(pos) == -1) {
+		throw std::runtime_error("music set position failed");
+	}
 }
 
 

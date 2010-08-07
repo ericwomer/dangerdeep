@@ -270,6 +270,8 @@ public:
 	void draw_rot(int x, int y, double angle, int tx, int ty, const colorf& col = colorf(1,1,1,1)) const;
 	// repeat texture in tiles in the given screen rectangle
 	void draw_tiles(int x, int y, int w, int h, const colorf& col = colorf(1,1,1,1)) const;
+	// repeat texture in tiles in the given screen rectangle, rotated
+	void draw_tiles_rot(int x, int y, int w, int h, double angle, const colorf& col = colorf(1,1,1,1)) const;
 	// draw a sub image given by the tx,ty,tw,th values to a screen rectangle x,y,w,h
 	void draw_subimage(int x, int y, int w, int h, unsigned tx, unsigned ty,
 		unsigned tw, unsigned th, const colorf& col = colorf(1,1,1,1)) const;

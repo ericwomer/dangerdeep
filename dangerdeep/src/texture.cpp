@@ -1065,6 +1065,15 @@ void texture::draw_tiles(int x, int y, int w, int h, const colorf& col) const
 				  vector2f(0,0),vector2f(tilesx,tilesy), col).render();
 }
 
+void texture::draw_tiles_rot(int x, int y, int w, int h, double angle, const colorf& col) const
+{
+	glPushMatrix();
+	glTranslatef(x, y, 0);
+	glRotatef(angle, 0, 0, 1);
+	draw_tiles(-w, -h, 2*w, 2*h, col);
+	glPopMatrix();
+}
+
 void texture::draw_subimage(int x, int y, int w, int h, unsigned tx, unsigned ty,
 			    unsigned tw, unsigned th, const colorf& col) const
 {

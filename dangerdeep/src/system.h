@@ -90,6 +90,14 @@ public:
 	// takes effect only after next prepare_2d_drawing()
 	void set_res_2d(unsigned x, unsigned y) { res_x_2d = x; res_y_2d = y; }
 
+	// set area for 2d drawing
+	void set_res_area_2d(unsigned x, unsigned y, unsigned w, unsigned h) {
+		res_area_2d_x = x;
+		res_area_2d_y = y;
+		res_area_2d_w = w;
+		res_area_2d_h = h;
+	}
+
 	// set maximum fps rate (0 for unlimited)
 	void set_max_fps(unsigned fps) { maxfps = fps; }
 
