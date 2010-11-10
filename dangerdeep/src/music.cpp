@@ -42,7 +42,7 @@ bool music::use_music = true;
 
 
 
-music::music(unsigned sample_rate_, bool useit)
+music::music(bool useit, unsigned sample_rate_)
 	: thread("music___"),
 	  nr_reserved_channels(1),
 	  sample_rate(sample_rate_),
@@ -127,6 +127,8 @@ void music::init()
 	Uint16 audio_format = AUDIO_S16SYS;
 	int audio_channels = 2;
 	int audio_buffers = 4096;
+
+	log_info("Audio initialize " << audio_channels << " chnls " << audio_rate << "hz" );
 
 	if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers) != 0) {
 		log_warning("Unable to initialize audio: " << Mix_GetError());
@@ -334,8 +336,11 @@ bool music::pause_sfx(bool on)
 void music::exec_append_track(const std::string& filename)
 {
 	if (!use_music) throw std::invalid_argument("no music support");
-	Mix_Music *tmp = Mix_LoadMUS((/*get_sound_dir() +*/ filename).c_str());
-	if (!tmp) {
+
+	Mix_Music *tmp = Mix_LoadMUS(( get_sound_dir() +  filename).c_str());
+
+	if (0 == tmp) {
+		log_warning("Failed to load track: " << filename);
 		throw file_read_error(filename);
 	}
 	playlist.push_back(filename);

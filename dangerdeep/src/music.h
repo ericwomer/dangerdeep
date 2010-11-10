@@ -67,7 +67,7 @@ class music : public singleton<class music>, public thread
 	};
 
 	/// create music handler
-	music(unsigned sample_rate = 44100, bool use_music = true);
+	music(bool use_music = true, unsigned sample_rate = 44100);
 
 	/// destroy music handler
 	~music();
