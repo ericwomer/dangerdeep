@@ -65,7 +65,7 @@ struct log_msg
 		default:
 			oss << "\033[0m";
 		}
-		oss << "[" << log::instance().get_thread_name() << "] <" << std::dec << time << "> " << msg << "\033[0m";
+		oss << "[" << log::instance().get_thread_name( tid ) << "] <" << std::dec << time << "> " << msg << "\033[0m";
 		return oss.str();
 	}
 
@@ -88,7 +88,7 @@ struct log_msg
 		default:
 			oss << "$c0c0c0";
 		}
-		oss << "[" << log::instance().get_thread_name() << "] <" << std::dec << time << "> " << msg;
+		oss << "[" << log::instance().get_thread_name( tid ) << "] <" << std::dec << time << "> " << msg;
 		return oss.str();
 	}
 };
@@ -164,12 +164,19 @@ void log::end_thread()
 {
 	log_sysinfo("---------- > END < THREAD ----------");
 	mutex_locker ml(mylogint->mtx);
-	mylogint->threadnames.erase(SDL_ThreadID());
+/* Do not remove entry so it can be written to log file after the thread has 
+ * died (and message is still in buffer). It should never get very big... */
+//	mylogint->threadnames.erase(SDL_ThreadID());
 }
 
 const char* log::get_thread_name() const
 {
-	std::map<Uint32, const char * >::const_iterator it = mylogint->threadnames.find(SDL_ThreadID());
+	return get_thread_name( SDL_ThreadID() );
+}
+
+const char* log::get_thread_name( unsigned tid ) const
+{
+	std::map<Uint32, const char * >::const_iterator it = mylogint->threadnames.find(tid);
 	if (it == mylogint->threadnames.end())
 		throw std::runtime_error("no thread name registered for thread! BUG!");
 	return it->second;
