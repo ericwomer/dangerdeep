@@ -441,7 +441,8 @@ int mymain(list<string>& args)
     // with black borders at top/bottom (height 2*32pixels)
     res_y = res_x * 3 / 4;
     // weather conditions and earth curvature allow 30km sight at maximum.
-    system::create_instance(new class system(1.0, 30000.0 + 500.0, res_x, res_y, fullscreen));
+    system::parameters params(1.0, 30000.0 + 500.0, res_x, res_y, fullscreen);
+    system::create_instance(new class system(params));
     sys().set_res_2d(1024, 768);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();

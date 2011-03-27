@@ -37,7 +37,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "log.h"
 #include "primitives.h"
 #include "shader.h"
-#include "cfg.h"	//fixme: should be independent of game cfg, remove cfg+key from dftdmedia library
 
 #include <iostream>
 #include <sstream>
@@ -67,18 +66,61 @@ bad_typeid
 
 */
 
-system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, const char* caption, bool fullscreen) :
-	res_x(res_x_), res_y(res_y_), nearz(nearz_), farz(farz_), is_fullscreen(fullscreen),
-	show_console(false), console_font(0), console_background(0),
-	draw_2d(false), time_passed_while_sleeping(0), sleep_time(0),
-	is_sleeping(false), maxfps(0), last_swap_time(0), screenshot_nr(0)
+system::parameters::parameters() :
+	near_z(1.0),
+	far_z(1000.0),
+	resolution_x(1024),
+	resolution_y(768),
+	fullscreen(true),
+	use_multisampling(false),
+	hint_multisampling(0),
+	multisample_level(0),
+	hint_fog(0),
+	hint_mipmap(0),
+	hint_texture_compression(0),
+	vertical_sync(true)
+{
+}
+	
+
+
+system::parameters::parameters(double near_z_, double far_z_, unsigned res_x, unsigned res_y, bool fullscreen_) :
+	near_z(near_z_),
+	far_z(far_z_),
+	resolution_x(res_x),
+	resolution_y(res_y),
+	fullscreen(fullscreen_),
+	use_multisampling(false),
+	hint_multisampling(0),
+	multisample_level(0),
+	hint_fog(0),
+	hint_mipmap(0),
+	hint_texture_compression(0),
+	vertical_sync(true)
+{
+}
+
+
+
+system::system(const parameters& params_) :
+	params(params_),
+	show_console(false),
+	console_font(0),
+	console_background(0),
+	draw_2d(false),
+	time_passed_while_sleeping(0),
+	sleep_time(0),
+	is_sleeping(false),
+	maxfps(0),
+	last_swap_time(0),
+	screenshot_nr(0)
 {
 	int err = SDL_Init(SDL_INIT_VIDEO);
 	if (err < 0)
 		throw sdl_error("video init failed");
 
-	if (caption) {
-		SDL_WM_SetCaption(caption, NULL);
+	if (params.window_caption.length() > 0) {
+		SDL_WM_SetCaption(params.window_caption.c_str(), NULL);
 	}
 
 	// request available SDL video modes
@@ -88,7 +130,7 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, co
 	}
 
 	try {
-		set_video_mode(res_x, res_y, is_fullscreen);
+		set_video_mode(params.resolution_x, params.resolution_y, params.fullscreen);
 	}
 	catch (...) {
 		SDL_Quit();
@@ -96,18 +138,18 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, co
 	}
 
 	// compute 2d area and resolution. it must be 4:3 always.
-	if (res_x * 3 >= res_y * 4) {
+	if (params.resolution_x * 3 >= params.resolution_y * 4) {
 		// screen is wider than high
-		res_area_2d_w = res_y * 4 / 3;
-		res_area_2d_h = res_y;
-		res_area_2d_x = (res_x - res_area_2d_w) / 2;
+		res_area_2d_w = params.resolution_y * 4 / 3;
+		res_area_2d_h = params.resolution_y;
+		res_area_2d_x = (params.resolution_x - res_area_2d_w) / 2;
 		res_area_2d_y = 0;
 	} else {
 		// screen is higher than wide
-		res_area_2d_w = res_x;
-		res_area_2d_h = res_x * 3 / 4;
+		res_area_2d_w = params.resolution_x;
+		res_area_2d_h = params.resolution_x * 3 / 4;
 		res_area_2d_x = 0;
-		res_area_2d_y = (res_y - res_area_2d_h) / 2;
+		res_area_2d_y = (params.resolution_y - res_area_2d_h) / 2;
 		// maybe limit y to even lines for interlaced displays?
 		//res_area_2d_y &= ~1U;
 	}
@@ -120,29 +162,6 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, co
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);//fixme
 	SDL_ShowCursor(SDL_ENABLE);//fixme
 	SDL_EnableUNICODE(1);
-
-	// OpenGL Init.
-	glClearColor (32/255.0, 64/255.0, 192/255.0, 1.0);
-	glClearDepth(1.0);
-	glDepthFunc(GL_LEQUAL);
-	glShadeModel(GL_SMOOTH);
-	glDisable(GL_LIGHTING); // we use shaders for everything
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_NORMALIZE);
-	glEnable(GL_TEXTURE_2D);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_COLOR_MATERIAL);
-	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE); // should be obsolete
-	// set up some things for drawing pixels
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glReadBuffer(GL_BACK);
-	glDrawBuffer(GL_BACK);
-	
-	// Screen resize
-	screen_resize(res_x, res_y, nearz, farz);
 
 	// check for some OpenGL Extensions
 	const char* vendorc = (const char*)glGetString(GL_VENDOR);
@@ -194,74 +213,20 @@ system::system(double nearz_, double farz_, unsigned res_x_, unsigned res_y_, co
 	if (!glsl_supported) {
 		throw std::runtime_error("GLSL shaders are not supported!");
 	}
-	if (vendor.find("NVIDIA") != std::string::npos)
+	if (vendor.find("NVIDIA") != std::string::npos) {
 		// we have an Nvidia card (most probably)
 		glsl_shader::is_nvidia_card = true;
-
-	// enable texturing on all units
-	for (unsigned i = 0; i < unsigned(nrtexunits); ++i) {
-		glActiveTexture(GL_TEXTURE0 + i);
-		glEnable(GL_TEXTURE_2D);
 	}
-	
-	if (cfg::instance().getb("use_multisampling")) {
-		glEnable(GL_MULTISAMPLE);
-		switch(cfg::instance().geti("hint_multisampling")) {
-			case 1: 
-				glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
-			break;
-			case 2:
-				glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_FASTEST);
-			break;
-			default:
-				glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_DONT_CARE);
-			break;
-		}
-	}
-	switch (cfg::instance().geti("hint_fog")) {
-		case 1: 
-			glHint(GL_FOG_HINT, GL_NICEST);
-		break;
-		case 2:
-			glHint(GL_FOG_HINT, GL_FASTEST);
-		break;
-		default:
-			glHint(GL_FOG_HINT, GL_DONT_CARE);
-		break;
-	}
-	switch (cfg::instance().geti("hint_mipmap")) {
-		case 1: 
-			glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
-		break;
-		case 2:
-			glHint(GL_GENERATE_MIPMAP_HINT, GL_FASTEST);
-		break;
-		default:
-			glHint(GL_GENERATE_MIPMAP_HINT, GL_DONT_CARE);
-		break;
-	}
-	switch (cfg::instance().geti("hint_texture_compression")) {
-		case 1: 
-			glHint(GL_TEXTURE_COMPRESSION_HINT, GL_NICEST);
-		break;
-		case 2:
-			glHint(GL_TEXTURE_COMPRESSION_HINT, GL_FASTEST);
-		break;
-		default:
-			glHint(GL_TEXTURE_COMPRESSION_HINT, GL_DONT_CARE);
-		break;
-	}
-	// since we use vertex arrays for every primitive, we can enable it
-	// here and leave it enabled forever
-	glEnableClientState(GL_VERTEX_ARRAY);
-
-	glsl_shader_setup::default_init();
 }
+
+
 
 system::system()
 {
 	throw std::runtime_error("default constructor of system class forbidden!");
 }
+
+
 
 system::~system()
 {
@@ -314,40 +279,116 @@ void system::set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen)
 	 *	throw sdl_error("setting accelerated visual failed");
 	 */
 	
-	if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, cfg::instance().getb("use_multisampling")) < 0)
+	if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, params.use_multisampling) < 0)
 		throw sdl_error("setting multisampling failed");
-	if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, cfg::instance().geti("multisampling_level")) < 0)
+	if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, params.multisample_level) < 0)
 		throw sdl_error("setting multisamplelevel failed");
 	
 	// enable VSync, but doesn't work on Linux/Nvidia/SDL 1.2.11 (?!)
 	// works with Linux/Nvidia/SDL 1.2.12
-	if (SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, cfg::instance().getb("vsync")) < 0)
+	if (SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, params.vertical_sync) < 0)
   	throw sdl_error("setting VSync failed");
 	int bpp = videoInfo->vfmt->BitsPerPixel;
 	
 	SDL_Surface* screen = SDL_SetVideoMode(res_x_, res_y_, bpp, videoFlags);
 	if (!screen)
 		throw sdl_error("Video mode set failed");
-	res_x = res_x_;
-	res_y = res_y_;
-	is_fullscreen = fullscreen;
-	screen_resize(res_x, res_y, nearz, farz);
-}
+	params.resolution_x = res_x_;
+	params.resolution_y = res_y_;
+	params.fullscreen = fullscreen;
 
-
-
-void system::screen_resize(unsigned w, unsigned h, double nearz, double farz)
-{
-	glViewport(0, 0, w, h);
+	// OpenGL Init.
+	glClearColor (32/255.0, 64/255.0, 192/255.0, 1.0);
+	glClearDepth(1.0);
+	glDepthFunc(GL_LEQUAL);
+	glShadeModel(GL_SMOOTH);
+	glDisable(GL_LIGHTING); // we use shaders for everything
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_NORMALIZE);
+	glEnable(GL_TEXTURE_2D);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE); // should be obsolete
+	// set up some things for drawing pixels
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glReadBuffer(GL_BACK);
+	glDrawBuffer(GL_BACK);
+	
+	// screen resize
+	glViewport(0, 0, params.resolution_x, params.resolution_y);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gl_perspective_fovx (90.0, (GLdouble)w/(GLdouble)h, nearz, farz);
+	gl_perspective_fovx (90.0, (GLdouble)params.resolution_x/(GLdouble)params.resolution_y, params.near_z, params.far_z);
 	float m[16];
 	glGetFloatv(GL_PROJECTION_MATRIX, m);
-	xscal_2d = 2*nearz/m[0];
-	yscal_2d = 2*nearz/m[5];
+	xscal_2d = 2*params.near_z/m[0];
+	yscal_2d = 2*params.near_z/m[5];
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+
+	// enable texturing on all units
+	GLint nrtexunits = 0;
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &nrtexunits);
+	for (unsigned i = 0; i < unsigned(nrtexunits); ++i) {
+		glActiveTexture(GL_TEXTURE0 + i);
+		glEnable(GL_TEXTURE_2D);
+	}
+	
+	if (params.use_multisampling) {
+		glEnable(GL_MULTISAMPLE);
+		switch(params.hint_multisampling) {
+			case 1: 
+				glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+			break;
+			case 2:
+				glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_FASTEST);
+			break;
+			default:
+				glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_DONT_CARE);
+			break;
+		}
+	}
+	switch (params.hint_fog) {
+		case 1: 
+			glHint(GL_FOG_HINT, GL_NICEST);
+		break;
+		case 2:
+			glHint(GL_FOG_HINT, GL_FASTEST);
+		break;
+		default:
+			glHint(GL_FOG_HINT, GL_DONT_CARE);
+		break;
+	}
+	switch (params.hint_mipmap) {
+		case 1: 
+			glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
+		break;
+		case 2:
+			glHint(GL_GENERATE_MIPMAP_HINT, GL_FASTEST);
+		break;
+		default:
+			glHint(GL_GENERATE_MIPMAP_HINT, GL_DONT_CARE);
+		break;
+	}
+	switch (params.hint_texture_compression) {
+		case 1: 
+			glHint(GL_TEXTURE_COMPRESSION_HINT, GL_NICEST);
+		break;
+		case 2:
+			glHint(GL_TEXTURE_COMPRESSION_HINT, GL_FASTEST);
+		break;
+		default:
+			glHint(GL_TEXTURE_COMPRESSION_HINT, GL_DONT_CARE);
+		break;
+	}
+	// since we use vertex arrays for every primitive, we can enable it
+	// here and leave it enabled forever
+	glEnableClientState(GL_VERTEX_ARRAY);
+
+	glsl_shader_setup::default_init();
 }
 
 
@@ -371,7 +412,7 @@ void system::draw_console()
 	}
 	
 	unsigned fh = console_font->get_height();
-	unsigned lines = res_y/(2*fh)-2;
+	unsigned lines = params.resolution_y/(2*fh)-2;
 	console_font->print(fh, fh, log::instance().get_last_n_lines(lines));
 	unprepare_2d_drawing();
 }
@@ -418,6 +459,8 @@ void system::prepare_2d_drawing()
 	glPixelZoom(float(res_area_2d_w)/res_x_2d, -float(res_area_2d_h)/res_y_2d);	// flip images
 }
 
+
+
 void system::unprepare_2d_drawing()
 {
 	if (!draw_2d) throw runtime_error("2d drawing already turned off");
@@ -432,10 +475,14 @@ void system::unprepare_2d_drawing()
 	draw_2d = false;
 }
 
+
+
 unsigned long system::millisec()
 {
 	return SDL_GetTicks() - time_passed_while_sleeping;
 }
+
+
 
 void system::swap_buffers()
 {
@@ -455,6 +502,8 @@ void system::swap_buffers()
 		}
 	}
 }
+
+
 
 //intermediate solution: just return list AND handle events, the app client can choose then
 //what he wants (if he handles events by himself, he have to flush the key queue each frame)
@@ -544,6 +593,8 @@ list<SDL_Event> system::poll_event_queue()
 	return events;
 }
 
+
+
 void system::screenshot(const std::string& filename)
 {
 	Uint32 rmask, gmask, bmask;
@@ -556,18 +607,18 @@ void system::screenshot(const std::string& filename)
 	gmask = 0x0000ff00;
 	bmask = 0x00ff0000;
 #endif
-	vector<Uint8> pic(res_x*res_y*3);
-	glReadPixels(0, 0, res_x, res_y, GL_RGB, GL_UNSIGNED_BYTE, &pic[0]);
+	vector<Uint8> pic(params.resolution_x*params.resolution_y*3);
+	glReadPixels(0, 0, params.resolution_x, params.resolution_y, GL_RGB, GL_UNSIGNED_BYTE, &pic[0]);
 	// flip image vertically
-	vector<Uint8> flip(res_x*3);
-	for (unsigned y = 0; y < res_y/2; ++y) {
-		unsigned y2 = res_y-y-1;
-		memcpy(&flip[0], &pic[res_x*3*y], res_x*3);
-		memcpy(&pic[res_x*3*y], &pic[res_x*3*y2], res_x*3);
-		memcpy(&pic[res_x*3*y2], &flip[0], res_x*3);
+	vector<Uint8> flip(params.resolution_x*3);
+	for (unsigned y = 0; y < params.resolution_y/2; ++y) {
+		unsigned y2 = params.resolution_y-y-1;
+		memcpy(&flip[0], &pic[params.resolution_x*3*y], params.resolution_x*3);
+		memcpy(&pic[params.resolution_x*3*y], &pic[params.resolution_x*3*y2], params.resolution_x*3);
+		memcpy(&pic[params.resolution_x*3*y2], &flip[0], params.resolution_x*3);
 	}
-	SDL_Surface* tmp = SDL_CreateRGBSurfaceFrom(&pic[0], res_x, res_y,
-		24, res_x*3, rmask, gmask, bmask, 0);
+	SDL_Surface* tmp = SDL_CreateRGBSurfaceFrom(&pic[0], params.resolution_x, params.resolution_y,
+		24, params.resolution_x*3, rmask, gmask, bmask, 0);
 	std::string fn;
 	if (filename.empty()) {
 		ostringstream os;
@@ -581,6 +632,8 @@ void system::screenshot(const std::string& filename)
 	log_info("screenshot taken as " << fn);
 }
 
+
+
 void system::gl_perspective_fovx(double fovx, double aspect, double znear, double zfar)
 {
 	double tanfovx2 = tan(M_PI*fovx/360.0);
@@ -589,6 +642,8 @@ void system::gl_perspective_fovx(double fovx, double aspect, double znear, doubl
 	double t = znear * tanfovy2;
 	glFrustum(-r, r, -t, t, znear, zfar);
 }
+
+
 
 bool system::extension_supported(const string& s) const
 {

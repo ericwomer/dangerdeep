@@ -40,6 +40,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <SDL.h>
 #include "mymain.cpp"
 #include "primitives.h"
+#include "cfg.h"
 
 using namespace std;
 
@@ -291,7 +292,8 @@ int mymain(list<string>& args)
 	mycfg.register_option("cpucores", 1);
 	mycfg.register_option("terrain_texture_resolution", 0.1f);
 
-	system::create_instance(new class system(1.0, 1000.0, res_x, res_y, fullscreen));
+	system::parameters params(1.0, 1000.0, res_x, res_y, fullscreen);
+	system::create_instance(new class system(params));
 	sys().set_res_2d(1024, 768);
 
 	// prepare output data file

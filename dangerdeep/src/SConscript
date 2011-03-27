@@ -10,6 +10,8 @@ dftdsources = Split("""subsim.cpp
 	airplane.cpp
 	bitstream.cpp
 	bzip.cpp
+	caustics.cpp
+	cfg.cpp
 	coastmap.cpp
 	convoy.cpp
 	countrycodes.cpp
@@ -17,6 +19,7 @@ dftdsources = Split("""subsim.cpp
 	date.cpp
 	daysky.cpp
 	depth_charge.cpp
+	dftdtester/tests.cpp
 	event.cpp
 	freeview_display.cpp
 	game.cpp
@@ -24,10 +27,12 @@ dftdsources = Split("""subsim.cpp
 	gun_shell.cpp
 	height_generator_map.cpp
 	highscorelist.cpp
+	keys.cpp
 	logbook.cpp
 	logbook_display.cpp
 	map_display.cpp
 	message_queue.cpp
+	moon.cpp
 	music.cpp
 	parser.cpp
 	particle.cpp
@@ -35,25 +40,23 @@ dftdsources = Split("""subsim.cpp
 	sensors.cpp
 	ship.cpp
 	ships_sunk_display.cpp
-	sky.cpp
-	moon.cpp
 	simplex_noise.cpp
-	stars.cpp
+	sky.cpp
 	sonar.cpp
 	sonar_operator.cpp
-	submarine.cpp
-	submarine_interface.cpp
+	stars.cpp
 	sub_bg_display.cpp
 	sub_bridge_display.cpp
 	sub_captainscabin_display.cpp
 	sub_control_popup.cpp
-	sub_ecard_popup.cpp
 	sub_damage_display.cpp
+	sub_ecard_popup.cpp
 	sub_gauges_display.cpp
 	sub_ghg_display.cpp
 	sub_kdb_display.cpp
 	sub_periscope_display.cpp
 	sub_recogmanual_display.cpp
+	sub_recogmanual_popup.cpp
 	sub_soldbuch_display.cpp
 	sub_tdc_display.cpp
 	sub_tdc_popup.cpp
@@ -61,6 +64,8 @@ dftdsources = Split("""subsim.cpp
 	sub_torpsetup_display.cpp
 	sub_uzo_display.cpp
 	sub_valves_display.cpp
+	submarine.cpp
+	submarine_interface.cpp
 	tdc.cpp
 	texts.cpp
 	tone_reproductor.cpp
@@ -68,28 +73,23 @@ dftdsources = Split("""subsim.cpp
 	torpedo_camera_display.cpp
 	triangulate.cpp
 	user_interface.cpp
-	caustics.cpp
 	water.cpp
-	water_splash.cpp
-	dftdtester/tests.cpp
-	sub_recogmanual_popup.cpp""")
+	water_splash.cpp""")
 
 dftdmediasources = Split("""
 	bv_tree.cpp
-	cfg.cpp
 	error.cpp
-	framebufferobject.cpp
 	font.cpp
 	fpsmeasure.cpp
+	framebufferobject.cpp
 	geoclipmap.cpp
 	image.cpp
-	keys.cpp
 	make_mesh.cpp
 	model.cpp
 	perlinnoise.cpp
+	postprocessor.cpp
 	primitives.cpp
 	shader.cpp
-	postprocessor.cpp
 	system.cpp
 	texture.cpp
 	vertexbufferobject.cpp
@@ -134,9 +134,9 @@ env.StaticLibrary(target = 'tinyxml', source = tinyxmlsources)
 env.Default(binary)
 
 if(tests == '1'):
-	tool1 = env.Program(target = 'viewmodel', source = ['viewmodel.cpp', 'texts.cpp', 'parser.cpp', datadirsobj, filehelper_obj, widget_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
-	tool2 = env.Program(target = 'modelmeasure', source = Split('modelmeasure.cpp') + datadirsobj + filehelper_obj + threads_obj + osspecificsrc_obj, LIBS = alllibs)
-	tool4 = env.Program(target = 'atitest', source = ['2dtest.cpp', 'texts.cpp', 'parser.cpp',datadirsobj, filehelper_obj, widget_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
+	tool1 = env.Program(target = 'viewmodel', source = ['viewmodel.cpp', 'texts.cpp', 'parser.cpp','cfg.cpp','keys.cpp'] + datadirsobj + filehelper_obj + widget_obj + osspecificsrc_obj + threads_obj, LIBS = alllibs)
+	tool2 = env.Program(target = 'modelmeasure', source = ['modelmeasure.cpp','cfg.cpp','keys.cpp'] + datadirsobj + filehelper_obj + threads_obj + osspecificsrc_obj, LIBS = alllibs)
+	tool4 = env.Program(target = 'atitest', source = ['2dtest.cpp', 'texts.cpp', 'parser.cpp','cfg.cpp','keys.cpp',datadirsobj, filehelper_obj, widget_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
 
 	env.Default(tool1)
 	env.Default(tool2)
@@ -149,27 +149,27 @@ if(tests == '1'):
 	env.Default(test2)
 	env.Default(test3)
 
-	portal = env.Program('portal', ['portal.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
+	portal = env.Program('portal', ['portal.cpp','cfg.cpp','keys.cpp'] + datadirsobj + filehelper_obj + frustum_obj + osspecificsrc_obj + threads_obj, LIBS = alllibs)
 	env.Default(portal)
 
-	treegentest = env.Program('treegentest', ['treegentest.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
+	treegentest = env.Program('treegentest', ['treegentest.cpp','cfg.cpp','keys.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs)
 	env.Default(treegentest)
 
-	geoclipmaptest = env.Program('geoclipmaptest', ['geoclipmaptest.cpp', 'height_generator_map.cpp', 'bitstream.cpp', 'bzip.cpp', 'simplex_noise.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj, globaldataobj], LIBS = alllibs)
+	geoclipmaptest = env.Program('geoclipmaptest', ['geoclipmaptest.cpp', 'height_generator_map.cpp', 'bitstream.cpp', 'bzip.cpp', 'simplex_noise.cpp','cfg.cpp','keys.cpp', datadirsobj, filehelper_obj, frustum_obj, osspecificsrc_obj, threads_obj, globaldataobj], LIBS = alllibs)
 	env.Default(geoclipmaptest)
 
-	triintersecttest = env.Program(target = 'triintersecttest', source = ['triintersecttest.cpp', osspecificsrc_obj, threads_obj], LIBS = alllibs)
+	triintersecttest = env.Program(target = 'triintersecttest', source = ['triintersecttest.cpp','cfg.cpp','keys.cpp', osspecificsrc_obj, threads_obj], LIBS = alllibs)
 	env.Default(triintersecttest)
 
-	bvtreeintersecttest = env.Program(target = 'bvtreeintersecttest', source = ['bvtreeintersecttest.cpp', osspecificsrc_obj, threads_obj, datadirsobj, filehelper_obj], LIBS = alllibs)
+	bvtreeintersecttest = env.Program(target = 'bvtreeintersecttest', source = ['bvtreeintersecttest.cpp','cfg.cpp','keys.cpp', osspecificsrc_obj, threads_obj, datadirsobj, filehelper_obj], LIBS = alllibs)
 	env.Default(bvtreeintersecttest)
 
 	if ffmpeg_available:
 		env.Append(CPPPATH = '/usr/include/ffmpeg')
-		videoplaytest = env.Program('videoplaytest', ['videoplaytest.cpp', datadirsobj, filehelper_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs + ['avcodec', 'avformat'])
+		videoplaytest = env.Program('videoplaytest', ['videoplaytest.cpp','cfg.cpp','keys.cpp', datadirsobj, filehelper_obj, osspecificsrc_obj, threads_obj], LIBS = alllibs + ['avcodec', 'avformat'])
 		env.Default(videoplaytest)
 
-	map_precompute = env.Program('map_precompute', ['tools/map_precompute.cpp', 'bitstream.cpp', 'bzip.cpp', threads_obj, datadirsobj, filehelper_obj], LIBS = alllibs)
+	map_precompute = env.Program('map_precompute', ['tools/map_precompute.cpp', 'bitstream.cpp', 'bzip.cpp','cfg.cpp','keys.cpp', threads_obj, datadirsobj, filehelper_obj], LIBS = alllibs)
 	env.Default(map_precompute)
 
 

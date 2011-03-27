@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 
 #include "system.h"
+#include "cfg.h"
 #include "vector3.h"
 #include "datadirs.h"
 #include "font.h"
@@ -160,7 +161,8 @@ int mymain(list<string>& args)
 	mycfg.register_option("cpucores", 1);
 	mycfg.register_option("terrain_texture_resolution", 0.1f);
 
-	system::create_instance(new class system(1.0, 1000.0, res_x, res_y, false));
+	system::parameters params(1.0, 1000.0, res_x, res_y, false);
+	system::create_instance(new class system(params));
 	sys().set_res_2d(640, 480);
 	sys().set_max_fps(25);
 	

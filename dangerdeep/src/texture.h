@@ -112,6 +112,11 @@ public:
 		NR_OF_CLAMPING_MODES
 	};
 
+	// configuration
+	static bool use_compressed_textures;
+	static bool use_anisotropic_filtering;
+	static float anisotropic_level;
+
 private:
 	texture& operator=(const texture& other);
 	texture(const texture& other);

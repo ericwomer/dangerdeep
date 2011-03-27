@@ -36,7 +36,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texture.h"
 #include "primitives.h"
 #include "log.h"
-#include "cfg.h"	//fixme: should be independent of game cfg, remove cfg+key from dftdmedia library
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -53,6 +52,9 @@ unsigned texture::mem_freed = 0;
 #endif
 
 int texture::size_non_power_2 = -1;
+bool texture::use_compressed_textures = false;
+bool texture::use_anisotropic_filtering = false;
+float texture::anisotropic_level = 0.0f;
 
 bool texture::size_non_power_two()
 {
@@ -447,7 +449,7 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		vector<Uint8> nmpix = make_normals(data, gl_width, gl_height, detailh);
 		int internalformat = format;
 
-		if(cfg::instance().getb("use_compressed_textures"))
+		if(use_compressed_textures)
 			format = GL_COMPRESSED_LUMINANCE_ARB;
 		
 		glTexImage2D(GL_TEXTURE_2D, 0, internalformat, gl_width, gl_height, 0, format, GL_UNSIGNED_BYTE, &nmpix[0]);
@@ -488,7 +490,7 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 				vector<Uint8> nmpix = make_normals(*gdat, w, h, detailh);
 				int internalformat = GL_RGB;
 					 
-				if(cfg::instance().getb("use_compressed_textures"))
+				if(use_compressed_textures)
 					internalformat = GL_COMPRESSED_RGB_ARB;
 
 				glTexImage2D(GL_TEXTURE_2D, level, internalformat, w, h, 0, GL_RGB,
@@ -515,7 +517,7 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 		// make gl texture
 		int internalformat = format;
 
-		if(cfg::instance().getb("use_compressed_textures")) {
+		if(use_compressed_textures) {
 			switch (format) {
 				case GL_RGB:
 					internalformat = GL_COMPRESSED_RGB_ARB;
@@ -567,8 +569,8 @@ void texture::init(const vector<Uint8>& data, bool makenormalmap, float detailh)
 	glTexParameteri(dimension, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
 	
 	//enable anisotropic filtering if choosen
-	if(cfg::instance().getb("use_ani_filtering"))
-		glTexParameterf(dimension, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
+	if(use_anisotropic_filtering)
+		glTexParameterf(dimension, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropic_level);
 }
 
 #define MAKEFOURCC(ch0, ch1, ch2, ch3) ((int32_t)(int8_t)(ch0) | ((int32_t)(int8_t)(ch1) << 8) | ((int32_t)(int8_t)(ch2) << 16) | ((int32_t)(int8_t)(ch3) << 24 ))
@@ -834,11 +836,11 @@ texture::texture(unsigned w, unsigned h, int format_,
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
 	
 	//enable anisotropic filtering if choosen
-	if(cfg::instance().getb("use_ani_filtering"))
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
+	if(use_anisotropic_filtering)
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropic_level);
 
 	int internalformat = format;
-	if(cfg::instance().getb("use_compressed_textures") && !force_no_compression ) {
+	if(use_compressed_textures && !force_no_compression ) {
 		log_debug("Using compression, force =  " << force_no_compression );
 		switch (format) {
 			case GL_RGB:
@@ -895,8 +897,8 @@ texture::texture(const std::string& filename, bool dummy, mapping_mode mapping_,
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clampmodes[clamping]);
 	
 	//enable anisotropic filtering if choosen
-	if(cfg::instance().getb("use_ani_filtering"))
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
+	if(use_anisotropic_filtering)
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropic_level);
 
 	int m_size, m_offset = 0, m_width = width, m_height = height;
 
@@ -1135,7 +1137,7 @@ texture3d::texture3d(const std::vector<Uint8>& pixels, unsigned w, unsigned h, u
 
 	// make gl texture
 	int internalformat = format;
-	if(cfg::instance().getb("use_compressed_textures")) {
+	if(use_compressed_textures) {
 		switch (format) {
 			case GL_RGB:
 				internalformat = GL_COMPRESSED_RGB_ARB;
@@ -1179,8 +1181,8 @@ texture3d::texture3d(const std::vector<Uint8>& pixels, unsigned w, unsigned h, u
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, clampmodes[clamping]);
 	
 	//enable anisotropic filtering if choosen
-	if(cfg::instance().getb("use_ani_filtering"))
-		glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
+	if(use_anisotropic_filtering)
+		glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropic_level);
 	glBindTexture(GL_TEXTURE_3D, 0);
 }
 
@@ -1222,8 +1224,8 @@ texture3d::texture3d(unsigned w, unsigned h, unsigned d,
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, clampmodes[clamping]);
 	
 	//enable anisotropic filtering if choosen
-	if(cfg::instance().getb("use_ani_filtering"))
-		glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, cfg::instance().getf("anisotropic_level"));
+	if(use_anisotropic_filtering)
+		glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropic_level);
 	
 	glTexImage3D(GL_TEXTURE_3D, 0, format, w, h, d, 0, GL_RGB,
 		     GL_UNSIGNED_BYTE, (void*)0);

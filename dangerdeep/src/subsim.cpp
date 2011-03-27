@@ -1944,7 +1944,24 @@ int mymain(list<string>& args)
 	// fixme: also allow 1280x1024, set up gl viewport for 4:3 display
 	// with black borders at top/bottom (height 2*32pixels)
 	// weather conditions and earth curvature allow 30km sight at maximum.
-	system::create_instance(new class system(1.0, 30000.0+500.0, res_x, res_y, texts::get(7).c_str(), fullscreen));
+	system::parameters params;
+	params.near_z = 1.0;
+	params.far_z = 30000.0+500.0;
+	params.resolution_x = res_x;
+	params.resolution_y = res_y;
+	params.window_caption = texts::get(7);
+	params.fullscreen = fullscreen;
+	params.use_multisampling = mycfg.getb("use_multisampling");
+	params.hint_multisampling = mycfg.geti("hint_multisampling");
+	params.multisample_level = mycfg.geti("multisampling_level");
+	params.hint_fog = mycfg.geti("hint_fog");
+	params.hint_mipmap = mycfg.geti("hint_mipmap");
+	params.hint_texture_compression = mycfg.geti("hint_texture_compression");
+	params.vertical_sync = mycfg.getb("vsync");
+	texture::use_compressed_textures = mycfg.getb("use_compressed_textures");
+	texture::use_anisotropic_filtering = mycfg.getb("use_ani_filtering");
+	texture::anisotropic_level = mycfg.getf("anisotropic_level");
+	system::create_instance(new class system(params));
 	sys().set_screenshot_directory(savegamedirectory);
 	sys().set_res_2d(1024, 768);
 	sys().set_max_fps(maxfps);

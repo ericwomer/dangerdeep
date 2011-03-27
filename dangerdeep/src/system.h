@@ -48,6 +48,27 @@ class system : public singleton<class system>
 {
 	friend class singleton<system>;
 public:
+	/// parameter structure for class system
+	struct parameters
+	{
+		double near_z;
+		double far_z;
+		unsigned resolution_x;
+		unsigned resolution_y;
+		std::string window_caption;
+		bool fullscreen;
+		bool use_multisampling;
+		int hint_multisampling;
+		int multisample_level;
+		int hint_fog;
+		int hint_mipmap;
+		int hint_texture_compression;
+		bool vertical_sync;
+		
+		parameters();
+		parameters(double near_z_, double far_z_, unsigned res_x, unsigned res_y, bool fullscreen_);
+	};
+
 	/// used to handle out-of-order quit events, do NOT heir from std::exception!
 	class quit_exception
 	{
@@ -57,7 +78,7 @@ public:
 	};
 
 	enum button_type { left_button=0x1, right_button=0x2, middle_button=0x4, wheel_up=0x8, wheel_down=0x10 };
-	system(double nearz_, double farz_, unsigned res_x=1024, unsigned res_y=768, const char* caption = NULL, bool fullscreen=true);
+	system(const parameters& params);
 	~system();
 	void set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen);
 	void swap_buffers();
@@ -74,8 +95,6 @@ public:
 	// We have to translate the events and handle screen res, mouse pos/movement
 	//must be correct also for subpixel cases! big fixme!
 
-	void screen_resize(unsigned w, unsigned h, double nearz, double farz);
-	
 	void draw_console_with(const font* fnt, const texture* background = 0);
 	void prepare_2d_drawing();	// must be called as pair!
 	void unprepare_2d_drawing();
@@ -104,11 +123,11 @@ public:
 	// give FOV X in degrees, aspect (w/h), znear and zfar.	
 	void gl_perspective_fovx(double fovx, double aspect, double znear, double zfar);
 
-	unsigned get_res_x() const { return res_x; }
-	unsigned get_res_y() const { return res_y; }
+	unsigned get_res_x() const { return params.resolution_x; }
+	unsigned get_res_y() const { return params.resolution_y; }
 	unsigned get_res_x_2d() const { return res_x_2d; }
 	unsigned get_res_y_2d() const { return res_y_2d; }
-	vector2i get_res() const { return vector2i(res_x, res_y); }
+	vector2i get_res() const { return vector2i(params.resolution_x, params.resolution_y); }
 	vector2i get_res_2d() const { return vector2i(res_x_2d, res_y_2d); }
 	unsigned get_res_area_2d_x() const { return res_area_2d_x; }
 	unsigned get_res_area_2d_y() const { return res_area_2d_y; }
@@ -119,16 +138,17 @@ public:
 	bool extension_supported(const std::string& s) const;
 
 	const std::list<vector2i>& get_available_resolutions() const { return available_resolutions; }
-	bool is_fullscreen_mode() const { return is_fullscreen; }
+	bool is_fullscreen_mode() const { return params.fullscreen; }
 	
 private:
 	system();
 	system(const system& );
 	system& operator= (const system& );
 
-	unsigned res_x, res_y;		// virtual resolution (fixed for project)
-	double nearz, farz;
-	bool is_fullscreen;
+	void screen_resize(unsigned w, unsigned h, double nearz, double farz);
+
+	parameters params;
+
 	bool show_console;
 	const font* console_font;
 	const texture* console_background;	

@@ -71,7 +71,8 @@ int mymain(list<string>& args)
 	mycfg.register_option("cpucores", 1);
 	mycfg.register_option("terrain_texture_resolution", 0.1f);
 
-	system::create_instance(new class system(1.0, 1000.0, 1024, 768, false));
+	system::parameters params(1.0, 1000.0, 1024, 768, false);
+	system::create_instance(new class system(params));
 	sys().set_res_2d(1024, 768);
 	sys().set_max_fps(60);
 	
