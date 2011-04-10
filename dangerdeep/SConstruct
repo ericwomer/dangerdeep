@@ -345,9 +345,9 @@ f.close()
 
 Export('env', 'gfxlibs', 'alllibs', 'installbindir', 'datadir', 'version', 'osspecificsrc', 'ffmpeg_available', 'tests')
 
-SConscript(source_base_dir + os.sep + 'SConscript', build_dir = target_dir, duplicate = 0)
+SConscript(source_base_dir + os.sep + 'SConscript', variant_dir = target_dir, duplicate = 0)
 
-BuildDir(target_dir, source_base_dir, duplicate=0)
+VariantDir(target_dir, source_base_dir, duplicate=0)
 
 ############### Helper functions
 def findSVN(basedir):
