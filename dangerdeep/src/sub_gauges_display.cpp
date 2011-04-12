@@ -110,8 +110,8 @@ void sub_gauges_display::process_input(class game& gm, const SDL_Event& event)
 	int mx, my;
 	switch (event.type) {
 	case SDL_MOUSEBUTTONDOWN:
-		mx = event.button.x;
-		my = event.button.y;
+		mx = sys().translate_position_x(event);
+		my = sys().translate_position_y(event);
 		//if mouse is over control c, compute angle a, set matching command, fixme
 		if (indicator_compass->is_over(mx, my)) {
 			sub->head_to_course(indicator_compass->get_angle(mx, my));

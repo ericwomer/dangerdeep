@@ -166,22 +166,23 @@ int mymain(list<string>& args)
 				default: break;
 				}
 			} else if (event.type == SDL_MOUSEMOTION) {
+				vector2 motion = sys().translate_motion(event);
 				if (event.motion.state & SDL_BUTTON_RMASK) {
 					matrix4f transf;
 					if (move_not_rotate) {
 						vector3f t;
-						(&t.x)[axis] = event.motion.xrel * 0.1f;
+						(&t.x)[axis] = motion.x * 0.1f;
 						transf = matrix4f::trans(t);
 					} else {
 						switch (axis) {
 						case 0:
-							transf = matrix4f::rot_x(event.motion.xrel * 0.1f);
+							transf = matrix4f::rot_x(motion.x * 0.1f);
 							break;
 						case 1:
-							transf = matrix4f::rot_y(event.motion.xrel * 0.1f);
+							transf = matrix4f::rot_y(motion.x * 0.1f);
 							break;
 						case 2:
-							transf = matrix4f::rot_z(event.motion.xrel * 0.1f);
+							transf = matrix4f::rot_z(motion.x * 0.1f);
 							break;
 						}
 					}
@@ -200,11 +201,11 @@ int mymain(list<string>& args)
 						intersects_tri = mA.intersects(mB, transformAtoB);
 					}
 				} else if (event.motion.state & SDL_BUTTON_LMASK) {
-					viewangles.x += event.motion.xrel;
-					viewangles.y += event.motion.yrel;
+					viewangles.x += motion.x;
+					viewangles.y += motion.y;
 				} else if (event.motion.state & SDL_BUTTON_MMASK) {
-					viewangles.y += event.motion.xrel;
-					viewangles.z += event.motion.yrel;
+					viewangles.y += motion.x;
+					viewangles.z += motion.y;
 				}
 			} else if (event.type == SDL_MOUSEBUTTONDOWN) {
 				if (event.button.button == SDL_BUTTON_WHEELUP) {

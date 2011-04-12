@@ -440,15 +440,17 @@ void user_interface::process_input(const SDL_Event& event)
 				vector2i p = screen_selector->get_pos();
 				vector2i s = screen_selector->get_size();
 				// drag menu with left mouse button when on title or right mouse button else
+				vector2i position = sys().translate_position(event);
+				vector2 motion = sys().translate_motion(event);
 				if (event.motion.state & SDL_BUTTON_MMASK
 				    || (event.motion.state & SDL_BUTTON_LMASK
-					&& event.motion.x >= p.x
-					&& event.motion.y >= p.y
-					&& event.motion.x < p.x + s.x
-					&& event.motion.y < p.y + 32)) {
+					&& position.x >= p.x
+					&& position.y >= p.y
+					&& position.x < p.x + s.x
+					&& position.y < p.y + 32)) {
 
-					p.x += event.motion.xrel;
-					p.y += event.motion.yrel;
+					p.x += int(ceil(motion.x));
+					p.y += int(ceil(motion.y));
 					p = p.max(vector2i(0, 0));
 					p = p.min(sys().get_res_2d() - s);
 					screen_selector->set_pos(p);
@@ -465,16 +467,17 @@ void user_interface::process_input(const SDL_Event& event)
 			if (event.type == SDL_MOUSEMOTION) {
 				vector2i p = music_playlist->get_pos();
 				vector2i s = music_playlist->get_size();
+				vector2i pos = sys().translate_position(event);
 				// drag menu with left mouse button when on title or right mouse button else
 				if (event.motion.state & SDL_BUTTON_MMASK
 				    || (event.motion.state & SDL_BUTTON_LMASK
-					&& event.motion.x >= p.x
-					&& event.motion.y >= p.y
-					&& event.motion.x < p.x + s.x
-					&& event.motion.y < p.y + 32 + 8)) {
+					&& pos.x >= p.x
+					&& pos.y >= p.y
+					&& pos.x < p.x + s.x
+					&& pos.y < p.y + 32 + 8)) {
 
-					p.x += event.motion.xrel;
-					p.y += event.motion.yrel;
+					p.x += int(ceil(sys().translate_motion_x(event)));
+					p.y += int(ceil(sys().translate_motion_y(event)));
 					if (p.x < 0) p.x = 0;
 					if (p.y < 0) p.y = 0;
 					// 2006-11-30 doc1972 negative pos and size of a playlist makes no sence, so we cast

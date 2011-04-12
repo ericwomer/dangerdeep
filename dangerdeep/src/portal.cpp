@@ -614,14 +614,15 @@ void run()
 				default: break;
 				}
 			} else if (event.type == SDL_MOUSEMOTION) {
+				vector2 motion = sys().translate_motion(event) * 0.5;
 				if (event.motion.state & SDL_BUTTON_LMASK) {
-					viewangles.z -= event.motion.xrel * 0.5;
-					viewangles.x -= event.motion.yrel * 0.5;
+					viewangles.z -= motion.x;
+					viewangles.x -= motion.y;
 				} else if (event.motion.state & SDL_BUTTON_RMASK) {
-					viewangles.y += event.motion.xrel * 0.5;
+					viewangles.y += motion.x;
 // 				} else if (event.motion.state & SDL_BUTTON_MMASK) {
-// 					pos.x += event.motion.xrel * 0.05;
-// 					pos.y += event.motion.yrel * 0.05;
+// 					pos.x += motion.x;
+// 					pos.y += motion.y;
 				}
 			} else if (event.type == SDL_MOUSEBUTTONDOWN) {
 // 				if (event.button.button == SDL_BUTTON_WHEELUP) {

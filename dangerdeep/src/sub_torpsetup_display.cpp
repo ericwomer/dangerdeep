@@ -107,8 +107,8 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 	int mx, my, mb;
 	switch (event.type) {
 	case SDL_MOUSEBUTTONDOWN:
-		mx = event.button.x;
-		my = event.button.y;
+		mx = sys().translate_position_x(event);
+		my = sys().translate_position_y(event);
 		// check if mouse is over turn knobs
 		turnknobdrag = TK_NONE;
 		if (s.primaryrangeknob[0].is_mouse_over(mx, my)) {
@@ -133,8 +133,8 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 		}
 		break;
 	case SDL_MOUSEMOTION:
-		mx = event.motion.xrel;
-		my = event.motion.yrel;
+		mx = sys().translate_motion_x(event);
+		my = sys().translate_motion_y(event);
 		mb = event.motion.state;
 		if (event.motion.state & SDL_BUTTON_LMASK) {
 			if (turnknobdrag != TK_NONE) {
@@ -167,8 +167,8 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 		}
 		break;
 	case SDL_MOUSEBUTTONUP:
-		mx = event.button.x;
-		my = event.button.y;
+		mx = sys().translate_position_x(event);
+		my = sys().translate_position_y(event);
 		turnknobdrag = TK_NONE;
 	}
 
@@ -181,13 +181,13 @@ void sub_torpsetup_display::process_input(class game& gm, const SDL_Event& event
 	switch (event.type) {
 
 	case SDL_MOUSEMOTION:
-		mx = event.motion.x;
-		my = event.motion.y;
+		mx = sys().translate_position_x(event);
+		my = sys().translate_position_y(event);
 		mb = event.motion.state;
 
 	case SDL_MOUSEBUTTONDOWN:
-		mx = event.button.x;
-		my = event.button.y;
+		mx = sys().translate_position_x(event);
+		my = sys().translate_position_y(event);
 		// check if mouse is over tube indicators
 		for (unsigned i = 0; i < 6; ++i) {
 			if (mx >= tubelightx[i] && my >= tubelighty[i] &&

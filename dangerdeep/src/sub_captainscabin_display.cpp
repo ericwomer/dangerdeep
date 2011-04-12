@@ -114,8 +114,8 @@ void sub_captainscabin_display::process_input(class game& gm, const SDL_Event& e
 	switch (event.type) {
 	case SDL_MOUSEBUTTONDOWN:
 		// check if there is a clickable area below the mouse and take some action
-		mx = event.button.x;
-		my = event.button.y;
+		mx = sys().translate_position_x(event);
+		my = sys().translate_position_y(event);
 		if (event.button.button == SDL_BUTTON_LEFT) {
 			// fixme:
 		} else if (event.button.button == SDL_BUTTON_WHEELUP) {
@@ -124,8 +124,8 @@ void sub_captainscabin_display::process_input(class game& gm, const SDL_Event& e
 		break;
 	case SDL_MOUSEBUTTONUP:
 		// check if there is a clickable area below the mouse and take some action
-		mx = event.button.x;
-		my = event.button.y;
+		mx = sys().translate_position_x(event);
+		my = sys().translate_position_y(event);
 		if (event.button.button == SDL_BUTTON_LEFT) {
 			for (vector<clickable_area>::iterator it = clickable_areas.begin();
 			     it != clickable_areas.end(); ++it) {
@@ -137,8 +137,8 @@ void sub_captainscabin_display::process_input(class game& gm, const SDL_Event& e
 		}
 		break;
 	case SDL_MOUSEMOTION:
-		mx = event.motion.x;
-		my = event.motion.y;
+		mx = sys().translate_position_x(event);
+		my = sys().translate_position_y(event);
 		break;
 	default:
 		break;

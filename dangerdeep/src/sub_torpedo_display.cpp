@@ -328,8 +328,8 @@ void sub_torpedo_display::process_input(class game& gm, const SDL_Event& event)
 		}
 		break;
 	case SDL_MOUSEMOTION:
-		mx = event.motion.x;
-		my = event.motion.y;
+		mx = sys().translate_position_x(event);
+		my = sys().translate_position_y(event);
 		mb = event.motion.state;
 
 		break;

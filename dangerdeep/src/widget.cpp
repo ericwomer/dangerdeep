@@ -612,6 +612,7 @@ void widget::draw_frame(int x, int y, int w, int h, bool out)
 
 void widget::process_input(const SDL_Event& event)
 {
+	vector2i pos;
 	switch (event.type) {
 	case SDL_KEYDOWN:
 		if (focussed && focussed->is_enabled())
@@ -622,15 +623,16 @@ void widget::process_input(const SDL_Event& event)
 		break;
 
 	case SDL_MOUSEBUTTONDOWN:
+		pos = sys().translate_position(event);
 		if (event.button.button == SDL_BUTTON_LEFT) {
-			compute_focus(event.button.x, event.button.y);
-			if (focussed) focussed->on_click(event.button.x, event.button.y, SDL_BUTTON_LMASK);
+			compute_focus(pos);
+			if (focussed) focussed->on_click(pos, SDL_BUTTON_LMASK);
 		} else if (event.button.button == SDL_BUTTON_RIGHT) {
-			compute_focus(event.button.x, event.button.y);
-			if (focussed) focussed->on_click(event.button.x, event.button.y, SDL_BUTTON_RMASK);
+			compute_focus(pos);
+			if (focussed) focussed->on_click(pos, SDL_BUTTON_RMASK);
 		} else if (event.button.button == SDL_BUTTON_MIDDLE) {
-			compute_focus(event.button.x, event.button.y);
-			if (focussed) focussed->on_click(event.button.x, event.button.y, SDL_BUTTON_MMASK);
+			compute_focus(pos);
+			if (focussed) focussed->on_click(pos, SDL_BUTTON_MMASK);
 		} else if (event.button.button == SDL_BUTTON_WHEELUP) {
 			if (focussed) focussed->on_wheel(1);
 		} else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
@@ -645,9 +647,11 @@ void widget::process_input(const SDL_Event& event)
 		break;
 
 	case SDL_MOUSEMOTION:
-		compute_mouseover(event.motion.x, event.motion.y);
-		if (focussed) focussed->on_drag(event.motion.x, event.motion.y,
-						event.motion.xrel, event.motion.yrel,
+		compute_mouseover(sys().translate_position(event));
+		if (focussed) focussed->on_drag(sys().translate_position_x(event),
+						sys().translate_position_y(event),
+						int(ceil(sys().translate_motion_x(event))),
+						int(ceil(sys().translate_motion_y(event))),
 						event.motion.state);
 		break;
 	}
@@ -662,15 +666,16 @@ void widget::process_input(const list<SDL_Event>& events)
 
 bool widget::check_for_mouse_event(const SDL_Event& event)
 {
-	if (event.type == SDL_MOUSEMOTION && is_mouse_over(event.motion.x, event.motion.y)) {
+	vector2i pos = sys().translate_position(event);
+	if (event.type == SDL_MOUSEMOTION && is_mouse_over(pos)) {
 		process_input(event);
 		return true;
 	}
-	if (event.type == SDL_MOUSEBUTTONDOWN && is_mouse_over(event.button.x, event.button.y)) {
+	if (event.type == SDL_MOUSEBUTTONDOWN && is_mouse_over(pos)) {
 		process_input(event);
 		return true;
 	}
-	if (event.type == SDL_MOUSEBUTTONUP && is_mouse_over(event.button.x, event.button.y)) {
+	if (event.type == SDL_MOUSEBUTTONUP && is_mouse_over(pos)) {
 		process_input(event);
 		return true;
 	}

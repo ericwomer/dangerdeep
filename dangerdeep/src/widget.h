@@ -187,9 +187,12 @@ public:
 	virtual void remove_child(widget* w);
 	virtual void remove_children();
 	virtual bool is_mouse_over(int mx, int my) const;
+	virtual bool is_mouse_over(const vector2i& m) const { return is_mouse_over(m.x, m.y); }
 	virtual void draw() const;
 	virtual bool compute_focus(int mx, int my);
+	virtual bool compute_focus(const vector2i& m) { return compute_focus(m.x, m.y); }
 	virtual bool compute_mouseover(int mx, int my);
+	virtual bool compute_mouseover(const vector2i& m) { return compute_mouseover(m.x, m.y); }
 	virtual vector2i get_pos() const { return pos; }
 	virtual void set_pos(const vector2i& p) { move_pos(p - pos); }
 	virtual void move_pos(const vector2i& p);
@@ -217,6 +220,7 @@ public:
 	virtual void on_char(const SDL_keysym& ks);
 	// called on mouse button down (mb is one of SDL_BUTTON_LMASK, ...RMASK, ...MMASK)
 	virtual void on_click(int mx, int my, int mb) {}
+	virtual void on_click(const vector2i& m, int mb) { return on_click(m.x, m.y, mb); }
 	// called on mouse wheel action, mb is 1 for up, 2 for down
 	virtual void on_wheel(int wd);
 	// called on mouse button up

@@ -83,17 +83,20 @@ public:
 	void set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen);
 	void swap_buffers();
 
-	// must be called once per frame (or the OS will think your app is dead)
-	// the events are also bypassed to the application.
-	// if you want to interpret the events yourself, just call flush_key_queue()
-	// after poll_event_queue to avoid filling the queue.
+	/** must be called once per frame (or the OS will think your app is dead)
+	    the events are also bypassed to the application.
+	    if you want to interpret the events yourself, just call flush_key_queue()
+	    after poll_event_queue to avoid filling the queue.
+	    Be careful! mouse button / move events need to be handled with
+	    translate_motion() / translate_position()
+	*/
 	std::list<SDL_Event> poll_event_queue();
-	//fixme: mouse position translation is now missing!!!!
-	//but if the position is translated here, e.g. from high to a low resolution
-	//many small movements may get mapped to < 1.0 movements, they are zero ->
-	//mouse movement is NEVER noticed.
-	// We have to translate the events and handle screen res, mouse pos/movement
-	//must be correct also for subpixel cases! big fixme!
+	double translate_motion_x(const SDL_Event& event);
+	double translate_motion_y(const SDL_Event& event);
+	vector2 translate_motion(const SDL_Event& event);
+	int translate_position_x(const SDL_Event& event);
+	int translate_position_y(const SDL_Event& event);
+	vector2i translate_position(const SDL_Event& event);
 
 	void draw_console_with(const font* fnt, const texture* background = 0);
 	void prepare_2d_drawing();	// must be called as pair!

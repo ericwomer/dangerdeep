@@ -512,7 +512,6 @@ list<SDL_Event> system::poll_event_queue()
 	list<SDL_Event> events;
 
 	SDL_Event event;
-	SDL_keysym keysym;
 	do {
 		unsigned nr_of_events = 0;
 		while (SDL_PollEvent(&event)) {
@@ -546,38 +545,10 @@ list<SDL_Event> system::poll_event_queue()
 					break;
 				
 				case SDL_KEYDOWN:		// Keyboard event - key down
-					keysym = event.key.keysym;
-					if (keysym.unicode == '^')
+					if (event.key.keysym.unicode == '^')
 						show_console = !show_console;
 					break;
 				
-				case SDL_KEYUP:			// Keyboard event - key up
-					keysym = event.key.keysym;
-					// nothing to do.
-					break;
-		
-				case SDL_MOUSEMOTION:		// Mouse motion event
-					// translate coordinates!
-					events.back().motion.x = transform_2d_x(events.back().motion.x);
-					events.back().motion.y = transform_2d_y(events.back().motion.y);
-					// be careful: small motions at larger screens
-					// could get lost! fixme
-					events.back().motion.xrel = events.back().motion.xrel *
-						int(res_x_2d) / int(res_area_2d_w);
-					events.back().motion.yrel = events.back().motion.yrel *
-						int(res_y_2d) / int(res_area_2d_h);
-					break;
-				
-				case SDL_MOUSEBUTTONDOWN:	// Mouse button event - button down
-					events.back().motion.x = transform_2d_x(events.back().button.x);
-					events.back().motion.y = transform_2d_y(events.back().button.y);
-					break;
-				
-				case SDL_MOUSEBUTTONUP:		// Mouse button event - button up
-					events.back().motion.x = transform_2d_x(events.back().button.x);
-					events.back().motion.y = transform_2d_y(events.back().button.y);
-					break;
-					
 				default:			// Should NEVER happen !
 					log_info("unknown event caught");
 					break; // quick hack
@@ -591,6 +562,60 @@ list<SDL_Event> system::poll_event_queue()
 	} while (is_sleeping);
 
 	return events;
+}
+
+
+
+double system::translate_motion_x(const SDL_Event& event)
+{
+	if (event.type == SDL_MOUSEMOTION)
+		return event.motion.xrel * double(res_x_2d) / res_area_2d_w;
+	else
+		return 0.0;
+}
+
+
+
+double system::translate_motion_y(const SDL_Event& event)
+{
+	if (event.type == SDL_MOUSEMOTION)
+		return event.motion.yrel * double(res_y_2d) / res_area_2d_h;
+	else
+		return 0.0;
+}
+
+
+
+vector2 system::translate_motion(const SDL_Event& event)
+{
+	return vector2(translate_motion_x(event), translate_motion_y(event));
+}
+
+
+
+int system::translate_position_x(const SDL_Event& event)
+{
+	if (event.type == SDL_MOUSEMOTION)
+		return transform_2d_x(event.motion.x);
+	else
+		return transform_2d_x(event.button.x);
+}
+
+
+
+int system::translate_position_y(const SDL_Event& event)
+{
+	if (event.type == SDL_MOUSEMOTION)
+		return transform_2d_y(event.motion.y);
+	else
+		return transform_2d_y(event.button.y);
+}
+
+
+
+vector2i system::translate_position(const SDL_Event& event)
+{
+	return vector2i(translate_position_x(event), translate_position_y(event));
 }
 
 

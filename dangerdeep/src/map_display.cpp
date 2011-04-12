@@ -921,14 +921,14 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 			}
 		} else if (event.type == SDL_MOUSEBUTTONDOWN) {
 			if (event.button.button == SDL_BUTTON_LEFT) {
-				mx_down = event.button.x;
-				my_down = event.button.y;
+				mx_down = sys().translate_position_x(event);
+				my_down = sys().translate_position_y(event);
 				return;
 			}
 		} else if (event.type == SDL_MOUSEBUTTONUP) {
 			if (event.button.button == SDL_BUTTON_LEFT) {
-				mx_curr = event.button.x;
-				my_curr = event.button.y;
+				mx_curr = sys().translate_position_x(event);
+				my_curr = sys().translate_position_y(event);
 				// check for shift / ctrl
 				unsigned mode = 0;	// replace selection
 				if (shift_key_pressed) mode = 1; // subtract
@@ -958,7 +958,7 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 					check_edit_sel();
 				} else {
 					// select nearest
-					vector2 mapclick(event.button.x, event.button.y);
+					vector2 mapclick(mx_curr, my_curr);
 					// fixme: later all objects!
 					vector<sea_object*> objs = gm.visible_surface_objects(player);
 					double mapclickdist = 1e30;
@@ -986,12 +986,11 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 				return;
 			}
 		} else if (event.type == SDL_MOUSEMOTION) {
-			mx_curr = event.motion.x;
-			my_curr = event.motion.y;
+			mx_curr = sys().translate_position_x(event);
+			my_curr = sys().translate_position_y(event);
 			if ((event.motion.state & SDL_BUTTON_MMASK) && (ctrl_key_pressed != 0)) {
 				// move selected objects!
-				vector2 drag(event.motion.xrel / mapzoom,
-					     -event.motion.yrel / mapzoom);
+				vector2 drag = sys().translate_motion(event) * (1.0 / mapzoom);
 				for (std::set<sea_object*>::const_iterator it = selection.begin();
 				     it != selection.end(); ++it) {
 					vector3 p = (*it)->get_pos();
@@ -1011,7 +1010,7 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 #ifndef CVEDIT
 			// set target. get visible objects and determine which is nearest to
 			// mouse position. set target for player object
-			vector2 mapclick(event.button.x, event.button.y);
+			vector2 mapclick(sys().translate_position_x(event), sys().translate_position_y(event));
 			vector<sea_object*> objs = gm.visible_surface_objects(player);
 			double mapclickdist = 1e30;
 			sea_object* target = 0;
@@ -1032,7 +1031,7 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 #else
 			// move nearest cv point
 			if (cvroute.size() > 0) {
-				vector2 mapclick(event.button.x - 512, 384 - event.button.y);
+				vector2 mapclick(sys().translate_position_x(event) - 512, 384 - sys().translate_position_y(event));
 				vector2 real = mapclick * (1.0/mapzoom) + mapoffset + player->get_pos().xy();
 				double dist = cvroute.front().distance(real);
 				cvridx = 0;
@@ -1048,7 +1047,7 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
 		}
 #ifdef CVEDIT
 		if (event.button.button == SDL_BUTTON_RIGHT) {
-			vector2 mapclick(event.button.x - 512, 384 - event.button.y);
+			vector2 mapclick(sys().translate_position_x(event) - 512, 384 - sys().translate_position_y(event));
 			vector2 real = mapclick * (1.0/mapzoom) + mapoffset + player->get_pos().xy();
 			cvroute.push_back(real);
 		}
@@ -1061,16 +1060,18 @@ void map_display::process_input(class game& gm, const SDL_Event& event)
                 }
 	        break;
 	case SDL_MOUSEMOTION:
-		mx = event.motion.x;
-		my = event.motion.y;
+		mx = sys().translate_position_x(event);
+		my = sys().translate_position_y(event);
 		if ((event.motion.state & SDL_BUTTON_MMASK) && (ctrl_key_pressed == 0)) {
-			mapoffset.x += event.motion.xrel / mapzoom;
-			mapoffset.y += -event.motion.yrel / mapzoom;
+			vector2 motion = sys().translate_motion(event);
+			motion.y = -motion.y;
+			mapoffset += motion * (1.0 / mapzoom);
 		}
 #ifdef CVEDIT
 		if (event.motion.state & SDL_BUTTON_LMASK && cvridx >= 0) {
-			cvroute[cvridx].x += event.motion.xrel / mapzoom;
-			cvroute[cvridx].y += -event.motion.yrel / mapzoom;
+			vector2 motion = sys().translate_motion(event);
+			motion.y = -motion.y;
+			cvroute[cvridx] += motion * (1.0 / mapzoom);
 		}
 #endif
 	case SDL_KEYDOWN:

@@ -192,7 +192,7 @@ void logbook_display::process_input(class game& gm, const SDL_Event& event)
 		}
 		break;
 	case SDL_MOUSEBUTTONDOWN:
-		if (event.button.x < 530)
+		if (sys().translate_position_x(event) < 530)
 			previous_page();
 		else
 			next_page();

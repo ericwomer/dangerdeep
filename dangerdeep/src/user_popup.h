@@ -54,10 +54,10 @@ public:
 	{
 		std::list<SDL_Event>::iterator it = events.begin();
 		while (it != events.end()) {
-			std::list<SDL_Event>::iterator it2 = it;
-			++it;
-			bool used = process_input(gm, *it2);
-			if (used) events.erase(it2);
+			if (process_input(gm, *it))
+				it = events.erase(it);
+			else
+				++it;
 		}
 	}
 };

@@ -132,19 +132,20 @@ int mymain(list<string>& args)
 				default: break;
 				}
 			} else if (event.type == SDL_MOUSEMOTION) {
+				vector2 motion = sys().translate_motion(event);
 				if (event.motion.state & SDL_BUTTON_RMASK) {
 					vector3f& v = triab[tria_or_b + vn];
 					float& f0 = (&v.x)[moveaxis];
 					float& f1 = (&v.x)[(moveaxis+1)%3];
-					f0 += event.motion.xrel * 0.01f;
-					f1 += event.motion.yrel * 0.01f;
+					f0 += motion.x * 0.01f;
+					f1 += motion.y * 0.01f;
 					intersects = triangle_intersection_t<float>::compute(triab[0], triab[1], triab[2], triab[3], triab[4], triab[5]);
 				} else if (event.motion.state & SDL_BUTTON_LMASK) {
-					viewangles.x += event.motion.xrel;
-					viewangles.y += event.motion.yrel;
+					viewangles.x += motion.x;
+					viewangles.y += motion.y;
 				} else if (event.motion.state & SDL_BUTTON_MMASK) {
-					viewangles.y += event.motion.xrel;
-					viewangles.z += event.motion.yrel;
+					viewangles.y += motion.x;
+					viewangles.z += motion.y;
 				}
 			}
 		}

@@ -542,15 +542,16 @@ void view_model(const string& modelfilename, const string& datafilename)
 				default: break;
 				}
 			} else if (event.type == SDL_MOUSEMOTION) {
+				vector2 motion = sys().translate_motion(event) * 0.5;
 				if (event.motion.state & SDL_BUTTON_LMASK) {
-					viewangles.y += event.motion.xrel * 0.5;
-					viewangles.x += event.motion.yrel * 0.5;
+					viewangles.y += motion.x;
+					viewangles.x += motion.y;
 				} else if (event.motion.state & SDL_BUTTON_RMASK) {
-					viewangles.z += event.motion.xrel * 0.5;
-					viewangles.x += event.motion.yrel * 0.5;
+					viewangles.z += motion.x;
+					viewangles.x += motion.y;
 				} else if (event.motion.state & SDL_BUTTON_MMASK) {
-					pos.x += event.motion.xrel * 0.5;
-					pos.y += event.motion.yrel * 0.5;
+					pos.x += motion.x;
+					pos.y += motion.y;
 				}
 			} else if (event.type == SDL_MOUSEBUTTONDOWN) {
                                 // Check if x,,y,z are pressed and if so mouse wheel moves smoke position by delta.

@@ -111,8 +111,8 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 		switch (event.type) {
 		case SDL_MOUSEBUTTONDOWN:
 			{
-				mx = event.button.x;
-				my = event.button.y;
+				mx = sys().translate_position_x(event);
+				my = sys().translate_position_y(event);
 				// check if mouse is over parallax display
 				int parasz = s.parallax_ptr.centery - s.parallax_ptr.top + 20;
 				if (mx >= s.parallax_ptr.centerx - parasz
@@ -130,8 +130,8 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 			break;
 		case SDL_MOUSEMOTION:
 			if (event.motion.state & SDL_BUTTON_LMASK) {
-				mx = event.motion.x;
-				my = event.motion.y;
+				mx = sys().translate_position_x(event);
+				my = sys().translate_position_y(event);
 				// check if mouse is over parallax display, fixme: same code as above, group it!
 				int parasz = s.parallax_ptr.centery - s.parallax_ptr.top + 20;
 				if (mx >= s.parallax_ptr.centerx - parasz
@@ -157,8 +157,8 @@ void sub_tdc_display::process_input(class game& gm, const SDL_Event& event)
 		switch (event.type) {
 		case SDL_MOUSEBUTTONDOWN:
 			{
-				mx = event.button.x;
-				my = event.button.y;
+				mx = sys().translate_position_x(event);
+				my = sys().translate_position_y(event);
 				// check if mouse is over tube indicators
 				unsigned nrtubes = sub->get_nr_of_bow_tubes() + sub->get_nr_of_stern_tubes();
 				for (unsigned i = 0; i < nrtubes; ++i) {

@@ -198,8 +198,8 @@ void freeview_display::process_input(class game& gm, const SDL_Event& event)
 		break;
 	case SDL_MOUSEMOTION:
 		if (event.motion.state & SDL_BUTTON_LMASK) {
-			ui.add_bearing(event.motion.xrel*0.5);
-			ui.add_elevation(-event.motion.yrel*0.5);
+			ui.add_bearing(sys().translate_motion_x(event)*0.5);
+			ui.add_elevation(-sys().translate_motion_y(event)*0.5);
 			//fixme handle clamping of elevation at +-90deg
 		}
 		break;
