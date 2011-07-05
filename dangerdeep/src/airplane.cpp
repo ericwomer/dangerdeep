@@ -60,7 +60,7 @@ void airplane::simulate(double delta_time)
 	quaternion invrot = orientation.conj();
 	vector3 localvelocity = invrot.rotate(velocity);
 		
-	vector3 locx = orientation.rotate(1, 0, 0);
+	//vector3 locx = orientation.rotate(1, 0, 0);
 	vector3 locy = orientation.rotate(0, 1, 0);
 	vector3 locz = orientation.rotate(0, 0, 1);
 

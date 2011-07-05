@@ -891,7 +891,7 @@ void coastmap::process_segment(int sx, int sy)
 			cs.segcls.swap(segcls_new);
 		}
 
-		vector2 segoff = vector2(sx * segw_real + realoffset.x, sy * segw_real + realoffset.y);
+		//vector2 segoff = vector2(sx * segw_real + realoffset.x, sy * segw_real + realoffset.y);
 
 		// compute cl.next info
 		for (unsigned i = 0; i < cs.segcls.size(); ++i) {
