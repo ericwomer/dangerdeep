@@ -1965,11 +1965,12 @@ int mymain(list<string>& args)
 	sys().set_screenshot_directory(savegamedirectory);
 	sys().set_res_2d(1024, 768);
 	sys().set_max_fps(maxfps);
-
+	font_arial = &sys().register_font(get_font_dir(), "font_arial");
 	reset_loading_screen();
-	// init the global_data object before calling init_global_data
-	auto_ptr<global_data> gbd(new global_data());
-	init_global_data();
+	font_jphsl = &sys().register_font(get_font_dir(), "font_jphsl");
+	font_vtremington10 = &sys().register_font(get_font_dir(), "font_vtremington10");
+	font_vtremington12 = &sys().register_font(get_font_dir(), "font_vtremington12");
+	font_typenr16 = &sys().register_font(get_font_dir(), "font_typenr16");
 	widget::set_image_cache(&(imagecache()));
 
 	// --------------------------------------------------------------------------------
@@ -2171,9 +2172,8 @@ int mymain(list<string>& args)
 	data_file_handler::destroy_instance();
 	cfg::destroy_instance();
 	widget::set_theme(auto_ptr<widget::theme>(0));	// clear allocated theme
-	deinit_global_data();
-	gbd.reset();
 	music::release_instance()->destruct(); // kill thread
+	global_data::destroy_instance();
 	system::destroy_instance();
 
 	return 0;

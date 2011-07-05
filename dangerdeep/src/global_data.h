@@ -77,7 +77,6 @@ class global_data : public singleton<class global_data>
 	objcachet<class image> imagecache;
 	objcachet<class texture> texturecache;
 	//objcachet<class sound> soundcache;
-	objcachet<class font> fontcache;
 
 	global_data();
 	~global_data();
@@ -87,16 +86,12 @@ inline objcachet<class model>& modelcache() { return global_data::instance().mod
 inline objcachet<class image>& imagecache() { return global_data::instance().imagecache; }
 inline objcachet<class texture>& texturecache() { return global_data::instance().texturecache; }
 //inline objcachet<class sound>& soundcache() { return global_data::instance().soundcache; }
-inline objcachet<class font>& fontcache() { return global_data::instance().fontcache; }
 
 
 
-// only used as shortcut, fonts are managed by fontcache.
+// only used as shortcut, fonts are managed by class system
 extern class font *font_arial, *font_jphsl, *font_vtremington10, 
        *font_vtremington12, *font_typenr16;
-
-void init_global_data();
-void deinit_global_data();
 
 // display loading progress
 void reset_loading_screen();

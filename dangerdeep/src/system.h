@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <SDL.h>
 #include <list>
 #include <set>
+#include <map>
 #include <string>
 #include "vector2.h"
 #include "singleton.h"
@@ -142,7 +143,11 @@ public:
 
 	const std::list<vector2i>& get_available_resolutions() const { return available_resolutions; }
 	bool is_fullscreen_mode() const { return params.fullscreen; }
-	
+
+	font& register_font(const std::string& basedir, const std::string& basefilename, unsigned char_spacing = 1);
+	font& get_font(const std::string& basefilename) const;
+	bool unregister_font(const std::string& basefilename);
+
 private:
 	system();
 	system(const system& );
@@ -183,6 +188,9 @@ private:
 
 	// list of available resolutions
 	std::list<vector2i> available_resolutions;
+
+	// fonts
+	std::map<std::string, font*> fonts;
 };
 
 // to make user's code even shorter

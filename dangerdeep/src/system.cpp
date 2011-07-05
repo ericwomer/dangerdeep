@@ -675,3 +675,36 @@ bool system::extension_supported(const string& s) const
 	set<string>::const_iterator it = supported_extensions.find(s);
 	return (it != supported_extensions.end());
 }
+
+
+
+font& system::register_font(const std::string& basedir, const std::string& basefilename, unsigned char_spacing)
+{
+	std::pair<std::map<std::string, font*>::iterator, bool> ir = fonts.insert(std::make_pair(basefilename, (font*)0));
+	if (!ir.second)
+		throw std::runtime_error("tried to register font twice!");
+	ir.first->second = new font(basedir + basefilename, char_spacing);
+	return *(ir.first->second);
+}
+
+
+
+font& system::get_font(const std::string& basefilename) const
+{
+	std::map<std::string, font*>::const_iterator it = fonts.find(basefilename);
+	if (it == fonts.end())
+		throw std::runtime_error("font unknown");
+	return *it->second;
+}
+
+
+
+bool system::unregister_font(const std::string& basefilename)
+{
+	std::map<std::string, font*>::iterator it = fonts.find(basefilename);
+	if (it == fonts.end())
+		return false;
+	delete it->second;
+	fonts.erase(it);
+	return true;
+}

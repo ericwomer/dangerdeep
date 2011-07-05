@@ -51,9 +51,8 @@ string get_program_version()
 global_data::global_data()
 	: modelcache(get_data_dir()),
 	  imagecache(get_image_dir()),
-	  texturecache(get_texture_dir()),
-	  //soundcache(get_sound_dir()),
-	  fontcache(get_font_dir())
+	  texturecache(get_texture_dir())
+	  //soundcache(get_sound_dir())
 {
 }
 
@@ -64,33 +63,14 @@ global_data::~global_data()
 }
 
 
-font *font_arial, *font_jphsl, *font_vtremington10, *font_vtremington12, 
-     *font_typenr16;
-
-bool loading_screen_usable = false;
-
-void init_global_data()
-{
-	font_arial = fontcache().ref("font_arial");
-	loading_screen_usable = true;
-	font_jphsl = fontcache().ref("font_jphsl");
-	font_vtremington10 = fontcache().ref("font_vtremington10");
-	font_vtremington12 = fontcache().ref("font_vtremington12");
-	font_typenr16 = fontcache().ref("font_typenr16");
-	add_loading_screen("fonts loaded");
-}
-
-void deinit_global_data()
-{
-}
+font *font_arial = 0, *font_jphsl = 0, *font_vtremington10 = 0, *font_vtremington12 = 0, 
+     *font_typenr16 = 0;
 
 // display loading progress
 list<string> loading_screen_messages;
 unsigned starttime;
 void display_loading_screen()
 {
-	if (!loading_screen_usable) return;
-
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	sys().prepare_2d_drawing();
