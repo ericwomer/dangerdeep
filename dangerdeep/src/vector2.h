@@ -65,6 +65,7 @@ class vector2t
 	vector3t<D> xyz(const D& z) const { return vector3t<D>(x, y, z); }
 	template<class D2> friend std::ostream& operator<< ( std::ostream& os, const vector2t<D2>& v );
 	template<class E> void assign(const vector2t<E>& other) { x = D(other.x); y = D(other.y); }
+	bool operator< (const vector2t<D>& other) const { return x < other.x ? true : (x == other.x ? y < other.y : false); }
 };
 
 template <class D>
