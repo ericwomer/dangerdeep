@@ -77,7 +77,7 @@ class thread
 	bool abort_requested() const { return thread_abort_request; }
  public:
 	/// create a thread
-	thread(const char* name /* = "fixme"*/);
+	thread(const char* name);
 
 	/// abort thread (do not force, just request)
 	virtual void request_abort();
