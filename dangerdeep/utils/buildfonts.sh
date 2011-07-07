@@ -1,7 +1,7 @@
 #!/bin/bash
 ./makefont ../arial.ttf 16 ../data/fonts/font_arial
 ./makefont ../myoldrem.ttf 21 ../data/fonts/font_typenr16
-./makefont ../myoldrem.ttf 21 ../data/fonts/font_jphsl # fixme
+./makefont ../jphsl.ttf 24 ../data/fonts/font_jphsl
 ./makefont ../vtRemingtonPortable.ttf 10 ../data/fonts/font_vtremington8
 ./makefont ../vtRemingtonPortable.ttf 13 ../data/fonts/font_vtremington10
 ./makefont ../vtRemingtonPortable.ttf 16 ../data/fonts/font_vtremington12

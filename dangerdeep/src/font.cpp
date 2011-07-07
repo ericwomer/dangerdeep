@@ -21,10 +21,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
 #include "font.h"
-#include "texture.h"
 #include "system.h"
 #include "oglext/OglExt.h"
-#include "primitives.h"
+#include "shader.h"
 #include <SDL.h>
 #include <SDL_image.h>
 #include <sstream>
@@ -33,20 +32,63 @@ using std::vector;
 using std::string;
 using std::ifstream;
 
-/* fixme: loading all fonts eats 1.3mb of video ram.
-   We are using the ram very wastefully, one texture per character.
-   This is bad.
-   Better unite many characters to a 256x256 texture and use this.
-   We may need several textures for one character set, which makes
-   things more complicated.
-   However we have to store one empty one row and line between each character
-   in that texmap, to avoid artifacts showing up when characters are scaled.
-*/
 
 
-void font::print_text(int x, int y, const string& text, const color& col_, bool ignore_colors) const
+std::auto_ptr<glsl_shader_setup> font::shader;
+unsigned font::init_count = 0;
+unsigned font::loc_color = 0;
+unsigned font::loc_tex = 0;
+unsigned font::cache_size = 0;
+std::vector<float> font::cache;
+
+
+void font::add_to_cache(int x, int y, unsigned t) const
 {
-	color col = col_;
+	// 4 * 3 floats for coordinates
+	// 4 * 2 floats for texture coordinates
+	// thus 20 floats each
+	unsigned index = cache_size * 20;
+	cache.resize(index + 20);
+	float* p = &cache[index];
+	int w = int(characters[t].width);
+	int h = int(characters[t].height);
+	*p++ = float(x);		// x
+	*p++ = float(y);		// y
+	*p++ = 0.f;			// z
+	*p++ = characters[t].u0;	// u
+	*p++ = characters[t].v0;	// v
+	*p++ = float(x+w);		// x
+	*p++ = float(y);		// y
+	*p++ = 0.f;			// z
+	*p++ = characters[t].u1;	// u
+	*p++ = characters[t].v0;	// v
+	*p++ = float(x+w);		// x
+	*p++ = float(y+h);		// y
+	*p++ = 0.f;			// z
+	*p++ = characters[t].u1;	// u
+	*p++ = characters[t].v1;	// v
+	*p++ = float(x);		// x
+	*p++ = float(y+h);		// y
+	*p++ = 0.f;			// z
+	*p++ = characters[t].u0;	// u
+	*p++ = characters[t].v1;	// v
+	++cache_size;
+}
+
+void font::print_cache() const
+{
+	if (cache_size > 0) {
+		glVertexPointer(3, GL_FLOAT, sizeof(float)*5, &cache[0]);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(float)*5, &cache[3]);
+		glDrawArrays(GL_QUADS, 0, cache_size * 4);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		cache_size = 0;
+	}
+}
+
+void font::print_text(int x, int y, const string& text, bool ignore_colors) const
+{
 	int xs = x;
 	for (unsigned ti = 0; ti < text.length(); ti = character_right(text, ti)) {
 		// read next unicode character
@@ -77,18 +119,18 @@ void font::print_text(int x, int y, const string& text, const color& col_, bool 
 					nr[i] = 0;
 			}
 			--ti;	// compensate for(...++ti)
-			if (!ignore_colors)
-				col = color(nr[0]*16+nr[1], nr[2]*16+nr[3], nr[4]*16+nr[5]);
+			if (!ignore_colors) {
+				print_cache();
+				shader->set_uniform(loc_color, color(nr[0]*16+nr[1], nr[2]*16+nr[3], nr[4]*16+nr[5]));
+			}
 		} else if (unsigned(c) >= first_char && unsigned(c) <= last_char) {
 			unsigned t = unsigned(c) - first_char;
-			// fixme: we could use display lists here
-			float u1 = float(characters[t].width)/character_textures[t]->get_width();
-			float v1 = float(characters[t].height)/character_textures[t]->get_height();
-			//fixme: width in text is width+left, so advance x by that value
-			//and draw at x+left. must be changed everywhere
+			//note: real width in contiguous text is width+left, so advance x by that value
+			//and draw at x+left. must be changed everywhere where we are handling
+			//text widths. maybe it is ok as it is now.
 			//int x2 = x + characters[t].left;
 			int y2 = y + base_height - characters[t].top;
-			primitives::textured_quad(vector2f(x,y2), vector2f(x+int(characters[t].width),y2+int(characters[t].height)), *character_textures[t], vector2f(0,0), vector2f(u1,v1), col).render();
+			add_to_cache(x, y2, t);
 			x += characters[t].width + spacing;
 		} // else: just skip (unknown) character
 	}
@@ -96,19 +138,54 @@ void font::print_text(int x, int y, const string& text, const color& col_, bool 
 
 font::font(const string& basefilename, unsigned char_spacing)
 {
+	if (init_count == 0 && shader.get() == 0) {
+		static const char* vs =
+			"varying vec2 texcoord;\n"
+			"void main(){\n"
+			"texcoord = gl_MultiTexCoord0.xy;\n"
+			"gl_Position = ftransform();\n"
+			"}\n";
+		static const char* fs =
+			"uniform sampler2D tex;\n"
+			"varying vec2 texcoord;\n"
+			"uniform vec4 color;\n"
+			"void main(){\n"
+			"vec4 c = color;\n"
+			"c.a *= texture2D(tex, texcoord.xy).x;\n"
+			"gl_FragColor = c;\n"
+			"}\n";
+		std::string vss(vs);
+		std::string fss(fs);
+		glsl_shader::defines_list dl;
+		shader.reset(new glsl_shader_setup(vss, fss, dl, true));
+		shader->use();
+		loc_color = shader->get_uniform_location("color");
+		loc_tex = shader->get_uniform_location("tex");
+	}
+	++init_count;
+
+	character_texture.reset(new texture(basefilename + ".png", texture::LINEAR, texture::CLAMP));
+
 	ifstream metricfile((basefilename + ".metric").c_str());
 	metricfile >> base_height;
 	metricfile >> first_char;
 	metricfile >> last_char;
 	characters.resize(last_char-first_char+1);
-	character_textures.resize(last_char-first_char+1);
 	for (unsigned i = first_char; i <= last_char; ++i) {
 		if (!metricfile.good())
 			throw error(string("error reading font metricfile for ")+basefilename);
-		metricfile >> characters[i-first_char].width;
-		metricfile >> characters[i-first_char].height;
-		metricfile >> characters[i-first_char].left;
-		metricfile >> characters[i-first_char].top;
+		character& c = characters[i - first_char];
+		unsigned x, y;
+		metricfile >> x;
+		metricfile >> y;
+		metricfile >> c.width;
+		metricfile >> c.height;
+		metricfile >> c.left;
+		metricfile >> c.top;
+		c.u0 = float(x)/character_texture->get_gl_width();
+		c.v0 = float(y)/character_texture->get_gl_height();
+		c.u1 = float(x + c.width)/character_texture->get_gl_width();
+		c.v1 = float(y + c.height)/character_texture->get_gl_height();
 	}
 	
 	spacing = char_spacing;
@@ -116,59 +193,35 @@ font::font(const string& basefilename, unsigned char_spacing)
 	blank_width = (codex >= first_char && codex <= last_char) ? characters[codex-first_char].width : 8;
 	height = base_height*3/2;
 	base_height = base_height*7/6;	// tiny trick to use the space a bit better.
-	
-	// calculate offsets
-	vector<unsigned> offsets(characters.size());
-	for (unsigned i = 0, curoffset = 0; i < characters.size(); ++i) {
-		offsets[i] = curoffset;
-		curoffset += characters[i].width;
-	}
-
-	// load image
-	sdl_image fontimage(basefilename + ".png");
-
-	// process image data, create textures
-	fontimage.lock();
-	if (fontimage->format->BytesPerPixel != 1) {
-		fontimage.unlock();
-		throw error(string("font: only grayscale images are supported! font ")+basefilename);
-	}
-
-//	measure waste of video ram. 2006/12/02, ca. 660kb wasted, 1.3mb totally used. so 50% loss.
-//	unsigned waste = 0;
-	for (unsigned i = 0; i < characters.size(); i++) {
-		character& c = characters[i];
-		unsigned w = next_p2(c.width);
-		unsigned h = next_p2(c.height);
-		vector<Uint8> tmpimage(w * h * 2);
-//		waste += (w*h-(c.width+1)*(c.height+1))*2;
-		
-		unsigned char* ptr = ((unsigned char*)(fontimage->pixels)) + offsets[i];
-	
-		for (unsigned y = 0; y < c.height; y++) {
-			for (unsigned x = 0; x < c.width; ++x) {
-				tmpimage[2*(y*w+x)] = 255;
-				tmpimage[2*(y*w+x)+1] = *(ptr+x);
-			}
-			ptr += fontimage->pitch;
-		}
-		
-		character_textures.reset(i, new texture(tmpimage, w, h, GL_LUMINANCE_ALPHA,
-							texture::LINEAR, texture::CLAMP));
-	}
-//	printf("wasted ca. %u bytes of video ram for font %s\n", waste, basefilename.c_str());
-	
-	fontimage.unlock();
 }
 
+font::~font()
+{
+	--init_count;
+	if (init_count == 0) {
+		shader.reset();
+	}
+}
 
 
 void font::print(int x, int y, const string& text, color col, bool with_shadow) const
 {
+	shader->use();
+	shader->set_gl_texture(*character_texture, loc_tex, 0);
+	print_plain(x, y, text, col, with_shadow);
+	print_cache();
+}
+
+void font::print_plain(int x, int y, const string& text, color col, bool with_shadow) const
+{
 	if (with_shadow) {
-		print_text(x+2, y+2, text, color(0,0,0,col.a), true);
+		print_cache();
+		shader->set_uniform(loc_color, color(0,0,0,col.a));
+		print_text(x+2, y+2, text, true);
 	}
-	print_text(x, y, text, col);
+	print_cache();
+	shader->set_uniform(loc_color, col);
+	print_text(x, y, text);
 }
 
 void font::print_hc(int x, int y, const string& text, color col, bool with_shadow) const
@@ -190,6 +243,8 @@ void font::print_c(int x, int y, const string& text, color col, bool with_shadow
 unsigned font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, const string& text,
 			     color col, bool with_shadow, unsigned maxheight) const
 {
+	shader->use();
+	shader->set_gl_texture(*character_texture, loc_tex, 0);
 	// loop over spaces
 	unsigned currwidth = 0;
 	unsigned textptr = 0, oldtextptr = 0;
@@ -203,8 +258,10 @@ unsigned font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, cons
 				y += (lineheight == 0) ? get_height() : lineheight;
 				currwidth = 0;
 				++textptr;
-				if (y >= ymax)
+				if (y >= ymax) {
+					print_cache();
 					return textptr;
+				}
 			} else if (c == ' ') {
 				++textptr;
 			} else if (c == '\t') {
@@ -232,24 +289,29 @@ unsigned font::print_wrapped(int x, int y, unsigned w, unsigned lineheight, cons
 			continue;
 		}
 		if (breaktext) {
-			print(x, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
+			print_plain(x, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
 			y += (lineheight == 0) ? get_height() : lineheight;
-			if (y >= ymax)
+			if (y >= ymax) {
+				print_cache();
 				return textptr;
+			}
 		} else {
 			unsigned tw = get_size(text.substr(oldtextptr, textptr - oldtextptr)).x;
 			if (currwidth + tw > w) {
 				y += (lineheight == 0) ? get_height() : lineheight;
 				currwidth = 0;
-				if (y >= ymax)
+				if (y >= ymax) {
+					print_cache();
 					return oldtextptr;
+				}
 			}
-			print(x+currwidth, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
+			print_plain(x+currwidth, y, text.substr(oldtextptr, textptr - oldtextptr), col, with_shadow);
 			currwidth += tw + blank_width;
 		}
 		if (textptr == textlen)
 			break;
 	}
+	print_cache();
 	return textlen;
 }
 

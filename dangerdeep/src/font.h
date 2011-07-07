@@ -27,10 +27,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 #include "vector2.h"
 #include "color.h"
-#include "ptrvector.h"
-
-
-class texture;
+#include "texture.h"
+class glsl_shader_setup;
 
 ///\brief Represents a character font set for OpenGL rendering.
 class font
@@ -38,6 +36,7 @@ class font
 private:
 	struct character {
 		unsigned width, height;	// real width/height
+		float u0, v0, u1, v1;	// texture coordinates
 		int left;	// offset
 		int top;	// offset
 		character() : width(0), height(0), left(0), top(0) {}
@@ -46,7 +45,7 @@ private:
 	font& operator=(const font& other);
 	font(const font& other);
 	std::vector<character> characters;
-	ptrvector<texture> character_textures;
+	std::auto_ptr<texture> character_texture;
 
 	unsigned first_char, last_char;	// codes
 	unsigned base_height, height;	// base height and real height
@@ -55,10 +54,22 @@ private:
 
 	static unsigned next_p2(unsigned i) { unsigned p = 1; while (p < i) p <<= 1; return p; }
 	
-	void print_text(int x, int y, const std::string& text, const color& col_, bool ignore_colors = false) const;
+	void print_text(int x, int y, const std::string& text, bool ignore_colors = false) const;
+	void print_plain(int x, int y, const std::string& text, color col, bool with_shadow) const;
+
+	static std::auto_ptr<glsl_shader_setup> shader;
+	static unsigned init_count;
+	static unsigned loc_color;
+	static unsigned loc_tex;
+	static std::vector<float> cache;
+	static unsigned cache_size;
+
+	void add_to_cache(int x, int y, unsigned t) const;
+	void print_cache() const;
 
 public:
 	font(const std::string& basefilename, unsigned char_spacing = 1);
+	~font();
 	void print(int x, int y, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
 	void print_hc(int x, int y, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
 	void print_vc(int x, int y, const std::string& text, color col = color(255,255,255), bool with_shadow = false) const;
