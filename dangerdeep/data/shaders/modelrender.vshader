@@ -26,7 +26,7 @@ const vec4 plane_t = vec4(0.0, 0.05, 0.03, 0.0);
 
 float calculate_caustic_coords(vec3 pos, vec4 plane)
 {
-	return pos.x*plane.x + pos.y*plane.y + pos.z*plane.z + plane.w;
+	return dot(pos, plane.xyz) + plane.w;
 }
 #endif
 
