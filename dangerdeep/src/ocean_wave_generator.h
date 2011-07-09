@@ -67,7 +67,7 @@ class ocean_wave_generator
 	T v;		// wind speed m/s
 	T a;		// wave height scalar
 	T Lm;		// tile size in m
-	T w0;		// cycle time
+	T w0;		// cycle time, 0.0 if no cycling needed
 	std::vector<std::complex<T> > h0tilde;
 	std::vector<std::complex<T> > htilde;	// holds values for one fix time.
 	
@@ -207,7 +207,7 @@ std::complex<T> ocean_wave_generator<T>::h_tilde(const vector2t<T>& K, int kx, i
 	std::complex<T> h0_tildemKconj = conj(h0tilde[(N-ky)*(N+1)+(N-kx)]);
 	// all frequencies should be multiples of one base frequency (see paper).
 	T wK = sqrt(GRAVITY * K.length());
-	T wK2 = floor(wK/w0)*w0;
+	T wK2 = (w0 == T(0.0)) ? wK : T(floor(wK/w0)*w0);
 	T xp = wK2 * time;
 	T cxp = cos(xp);
 	T sxp = sin(xp);
@@ -235,7 +235,7 @@ ocean_wave_generator<T>::ocean_wave_generator(
 		T tilesize,
 		T cycletime )
 	: N(int(gridsize)), W(winddir.normal()), v(windspeed), a(waveheight), Lm(tilesize),
-	w0(T(2.0*M_PI)/cycletime)
+	w0(cycletime < T(0.0) ? T(0.0) : T(2.0*M_PI)/cycletime)
 {
 	h0tilde.resize((N+1)*(N+1));
 	compute_h0tilde();
