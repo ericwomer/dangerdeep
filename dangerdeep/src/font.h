@@ -52,8 +52,6 @@ private:
 	unsigned spacing;		// additional character spacing
 	unsigned blank_width;		// width of blank character
 
-	static unsigned next_p2(unsigned i) { unsigned p = 1; while (p < i) p <<= 1; return p; }
-	
 	void print_text(int x, int y, const std::string& text, bool ignore_colors = false) const;
 	void print_plain(int x, int y, const std::string& text, color col, bool with_shadow) const;
 
