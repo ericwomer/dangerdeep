@@ -52,6 +52,8 @@ int res_x, res_y;
 
 void run();
 
+// 2011/07/09: rendering shows a bug: some cells are culled and not rendered although they can be seen
+
 font* font_arial;
 
 texture* metalbackgr;
