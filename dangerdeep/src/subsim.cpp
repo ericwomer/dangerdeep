@@ -1238,6 +1238,7 @@ void apply_mode(widget_list* wlg)
 		sys().set_video_mode(width, height, sys().is_fullscreen_mode());
 		cfg::instance().set("screen_res_y",int(height));
 		cfg::instance().set("screen_res_x",int(width));
+		glClearColor(0, 0, 0, 0);
 	}
 	catch (exception& e) {
 		log_warning("Video mode setup failed: " << e.what());

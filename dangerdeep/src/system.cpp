@@ -137,25 +137,6 @@ system::system(const parameters& params_) :
 		throw;
 	}
 
-	// compute 2d area and resolution. it must be 4:3 always.
-	if (params.resolution_x * 3 >= params.resolution_y * 4) {
-		// screen is wider than high
-		res_area_2d_w = params.resolution_y * 4 / 3;
-		res_area_2d_h = params.resolution_y;
-		res_area_2d_x = (params.resolution_x - res_area_2d_w) / 2;
-		res_area_2d_y = 0;
-	} else {
-		// screen is higher than wide
-		res_area_2d_w = params.resolution_x;
-		res_area_2d_h = params.resolution_x * 3 / 4;
-		res_area_2d_x = 0;
-		res_area_2d_y = (params.resolution_y - res_area_2d_h) / 2;
-		// maybe limit y to even lines for interlaced displays?
-		//res_area_2d_y &= ~1U;
-	}
-	res_x_2d = res_area_2d_w;
-	res_y_2d = res_area_2d_h;
-
 	SDL_EventState(SDL_VIDEORESIZE, SDL_IGNORE);//fixme
 	SDL_EventState(SDL_SYSWMEVENT, SDL_IGNORE);//fixme
 	SDL_JoystickEventState(SDL_IGNORE);
@@ -287,7 +268,7 @@ void system::set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen)
 	// enable VSync, but doesn't work on Linux/Nvidia/SDL 1.2.11 (?!)
 	// works with Linux/Nvidia/SDL 1.2.12
 	if (SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, params.vertical_sync) < 0)
-  	throw sdl_error("setting VSync failed");
+		throw sdl_error("setting VSync failed");
 	int bpp = videoInfo->vfmt->BitsPerPixel;
 	
 	SDL_Surface* screen = SDL_SetVideoMode(res_x_, res_y_, bpp, videoFlags);
@@ -389,6 +370,23 @@ void system::set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen)
 	glEnableClientState(GL_VERTEX_ARRAY);
 
 	glsl_shader_setup::default_init();
+
+	// compute 2d area and resolution. it must be 4:3 always.
+	if (params.resolution_x * 3 >= params.resolution_y * 4) {
+		// screen is wider than high
+		res_area_2d_w = params.resolution_y * 4 / 3;
+		res_area_2d_h = params.resolution_y;
+		res_area_2d_x = (params.resolution_x - res_area_2d_w) / 2;
+		res_area_2d_y = 0;
+	} else {
+		// screen is higher than wide
+		res_area_2d_w = params.resolution_x;
+		res_area_2d_h = params.resolution_x * 3 / 4;
+		res_area_2d_x = 0;
+		res_area_2d_y = (params.resolution_y - res_area_2d_h) / 2;
+		// maybe limit y to even lines for interlaced displays?
+		//res_area_2d_y &= ~1U;
+	}
 }
 
 
@@ -550,7 +548,7 @@ list<SDL_Event> system::poll_event_queue()
 					break;
 				
 				default:			// Should NEVER happen !
-					log_info("unknown event caught");
+					log_info("unknown event caught; "<<(unsigned)event.type);
 					break; // quick hack
 					//throw runtime_error("Unknown Event !");
 					//break;
