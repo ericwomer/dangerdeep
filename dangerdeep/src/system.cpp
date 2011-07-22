@@ -410,7 +410,7 @@ void system::draw_console()
 	}
 	
 	unsigned fh = console_font->get_height();
-	unsigned lines = params.resolution_y/(2*fh)-2;
+	unsigned lines = res_y_2d/(2*fh)-2;
 	console_font->print(fh, fh, log::instance().get_last_n_lines(lines));
 	unprepare_2d_drawing();
 }
@@ -547,11 +547,15 @@ list<SDL_Event> system::poll_event_queue()
 						show_console = !show_console;
 					break;
 				
+				case SDL_KEYUP: // pass known events through
+				case SDL_MOUSEMOTION:
+				case SDL_MOUSEBUTTONDOWN:
+				case SDL_MOUSEBUTTONUP:
+					break;
+				
 				default:			// Should NEVER happen !
 					log_info("unknown event caught; "<<(unsigned)event.type);
-					break; // quick hack
-					//throw runtime_error("Unknown Event !");
-					//break;
+					throw runtime_error("Unknown Event !");
 			}
 		}
 		// do not waste CPU time when sleeping
