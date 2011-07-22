@@ -2297,7 +2297,8 @@ void model::read_off_file(const string& fn)
 	if (!f) return;
 	unsigned i;
 	unsigned nr_vertices, nr_faces;
-	fscanf(f, "OFF\n%u %u %u\n", &nr_vertices, &nr_faces, &i);
+	if ( 3 != fscanf(f, "OFF\n%u %u %u\n", &nr_vertices, &nr_faces, &i) )
+		throw error("Failed to read OFF header");
 	mesh* m = new mesh("offread");
 	m->name = basename;
 	m->vertices.resize(nr_vertices);
@@ -2305,14 +2306,16 @@ void model::read_off_file(const string& fn)
 	
 	for (i = 0; i < nr_vertices; i++) {
 		float a, b, c;
-		fscanf(f, "%f %f %f\n", &a, &b, &c);
+		if (3 != fscanf(f, "%f %f %f\n", &a, &b, &c))
+			throw error("Short read on OFF vertices");
 		m->vertices[i].x = a;
 		m->vertices[i].y = b;
 		m->vertices[i].z = c;
 	}
 	for (i = 0; i < nr_faces; i++) {
 		unsigned j, v0, v1, v2;
-		fscanf(f, "%u %u %u %u\n", &j, &v0, &v1, &v2);
+		if (4 != fscanf(f, "%u %u %u %u\n", &j, &v0, &v1, &v2))
+			throw error("Short read on OFF faces");
 		if (j != 3) return;
 		m->indices[i*3] = v0;
 		m->indices[i*3+1] = v1;
