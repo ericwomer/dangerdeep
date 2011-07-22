@@ -513,8 +513,6 @@ list<SDL_Event> system::poll_event_queue()
 	do {
 		unsigned nr_of_events = 0;
 		while (SDL_PollEvent(&event)) {
-			++nr_of_events;
-			events.push_back(event);
 			switch (event.type) {
 				case SDL_QUIT:			// Quit event
 					log_info("---------- immediate exit ----------");
@@ -553,10 +551,12 @@ list<SDL_Event> system::poll_event_queue()
 				case SDL_MOUSEBUTTONUP:
 					break;
 				
-				default:			// Should NEVER happen !
-					log_info("unknown event caught; "<<(unsigned)event.type);
-					throw runtime_error("Unknown Event !");
+				default: // by default don't pass though unknown events
+					continue;
 			}
+
+			++nr_of_events;
+			events.push_back(event);
 		}
 		// do not waste CPU time when sleeping
 		if (nr_of_events == 0 && is_sleeping)
