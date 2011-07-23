@@ -166,9 +166,11 @@ inline void tile_cache<T>::erase_expired()
 {
 	if (configuration.expire>0) {
 		long time = sys().millisec();
-		for (tile_list_iterator it = tile_list.begin(); it != tile_list.end(); it++)
+		for (tile_list_iterator it = tile_list.begin(); it != tile_list.end();)
 			if (time-it->second.get_last_access() >= configuration.expire) {
-				tile_list.erase(it);
+				tile_list.erase(it++);
+			} else {
+				++it;
 			}
 	}
 }
