@@ -1129,7 +1129,7 @@ void menu_single_mission()
 	widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
 	widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(21));
 	w.add_child(wm);
-	wm->add_entry(texts::get(8), new widget_func_button<void (*)()>(&menu_notimplemented, 0, 0, 0, 0));
+//	wm->add_entry(texts::get(8), new widget_func_button<void (*)()>(&menu_notimplemented, 0, 0, 0, 0));
 	wm->add_entry(texts::get(9), new widget_func_button<void (*)()>(&create_convoy_mission, 0, 0, 0, 0));
 	wm->add_entry(texts::get(10), new widget_func_button<void (*)()>(&choose_historical_mission, 0, 0, 0, 0));
 	wm->add_entry(texts::get(118), new widget_func_button<void (*)()>(&choose_saved_game, 0, 0, 0, 0));
