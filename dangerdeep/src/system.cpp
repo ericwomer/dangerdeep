@@ -537,8 +537,7 @@ list<SDL_Event> system::poll_event_queue()
 							}
 						}
 					}
-					events.pop_back();	// filter these events.
-					break;
+					continue; // filter these events
 				
 				case SDL_KEYDOWN:		// Keyboard event - key down
 					if (event.key.keysym.unicode == '^')
