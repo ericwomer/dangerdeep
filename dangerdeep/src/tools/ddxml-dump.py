@@ -11,13 +11,26 @@ from operator import attrgetter
 from xml.dom.minidom import getDOMImplementation
 from xml.dom import Node
 
+# Usage:
+# Use The following MEL script, save to the shelf or something:
+
+# loadPlugin "ddxml-dump.py";
+# dumpDDXML();
+# unloadPlugin "ddxml-dump.py";
+
+# Put the file 'ddxml-dump.py' (this file) into $MAYA_HOME/plug-ins
+# Select the object to export 
+# Run the MEL script
+# Pray.
+
+
 # Assumptions:
 #
 # * All transformation objects will have a mesh
 # * From the root object down, each node will only have one mesh
 
 ddxml_vendor = "Danger from the Deep Project"
-ddxml_version = "0"
+ddxml_version = "3"
 ddxml_command = "dumpDDXML"
 
 # command object
@@ -27,6 +40,10 @@ class dumpDDXML(OpenMayaMPx.MPxCommand):
 		pass
 	
 	def doIt(self,argList):
+		self.filename=None
+		self.filenamePrompt()
+		if None==self.filename:
+			return
 		self.output = ddxmlWriter()
 		self.output.createDefaultMaterial()
 		try:
@@ -36,7 +53,7 @@ class dumpDDXML(OpenMayaMPx.MPxCommand):
 			cmds.headsUpMessage("ERROR: "+str(e.message))
 			raise
 
-		f=open("/tmp/test.xml",'w')
+		f=open(self.filename,'w')
 		self.output.dump(f)
 		f.close()
 	
@@ -48,6 +65,11 @@ class dumpDDXML(OpenMayaMPx.MPxCommand):
 			isNone=False
 
 		return isNone
+
+	def filenamePrompt(self):
+		res=cmds.promptDialog(title='Exported filename',message='Filename:',text="/tmp/dftd-rocks.xml",button=['OK', 'Cancel'],defaultButton='OK',cancelButton='Cancel',dismissString='Cancel')
+		if 'OK'==res:
+			self.filename = cmds.promptDialog(query=True, text=True)
 
 	def walk(self,dag=None,parent=None):
 		if self.dagIsNone(dag):
@@ -126,7 +148,7 @@ class dumpDDXML(OpenMayaMPx.MPxCommand):
 		uvSet=rmesh.currentUVSetName()
 
 		# one vertex may have more than one normal and more than one UV
-		# Maya can do this because it has indpended indix lists for vertices, normals and UVs
+		# Maya can do this because it has independent index lists for vertices, normals and UVs
 		# We only have one so we must unify/merge into one
 		unite=[]
 		for poly in WrapIt(OpenMaya.MItMeshPolygon(dag)):
@@ -175,7 +197,7 @@ class dumpDDXML(OpenMayaMPx.MPxCommand):
 			vertexData.append(np.z)
 
 		# Outputs
-		mesh.v=[]	# 1 vertice as a string "%f %f %f"
+		mesh.v=[]	# 1 vertex as a string "%f %f %f"
 		mesh.n=[]	# 1 normal as a string "%f %f %f"
 		mesh.i=[]	# indexes "%i"
 		mesh.uv=[]	# uv pairs "%f %f"
