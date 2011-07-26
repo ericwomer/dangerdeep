@@ -33,7 +33,7 @@ class dumpDDXML(OpenMayaMPx.MPxCommand):
 			self.walk()
 		except Exception, e:
 			log( e.message )
-			cmds.headsUpMessage("ERROR: "+e.message)
+			cmds.headsUpMessage("ERROR: "+str(e.message))
 			raise
 
 		f=open("/tmp/test.xml",'w')
@@ -116,42 +116,101 @@ class dumpDDXML(OpenMayaMPx.MPxCommand):
 		return (minVal,maxVal)
 
 	def readMesh(self,mesh,dag,parent):
+		# Mesh obj
 		rmesh=OpenMaya.MFnMesh(dag)
-
+		# parent transform
 		xform=OpenMaya.MFnTransform(parent)
+		# get the pivot point so we can fix the vertice offset
 		op=xform.rotatePivot(OpenMaya.MSpace.kObject)
+		# get current UV set name
+		uvSet=rmesh.currentUVSetName()
 
-		indexes=[]
+		# one vertex may have more than one normal and more than one UV
+		# Maya can do this because it has indpended indix lists for vertices, normals and UVs
+		# We only have one so we must unify/merge into one
+		unite=[]
 		for poly in WrapIt(OpenMaya.MItMeshPolygon(dag)):
 			if not poly.hasUVs():
-				log("WARNING: Poly with no UVs, not exporting; poly="+str(poly.index()))
-				continue
+				log("WARNING: Poly with no UVs, exporting junk; poly="+str(poly.index()))
 
-			points=OpenMaya.MPointArray()
-			idxs=OpenMaya.MIntArray()
+			verts=OpenMaya.MIntArray()
+			poly.getVertices(verts)
 
-			poly.getTriangles(points,idxs)
+			for i in range(0,verts.length()):
+				if not poly.hasUVs():
+					unite.append(Indexes(verts[i],poly.normalIndex(i),0,len(unite)))
+				else:
+					uv=intp()
+					poly.getUVIndex(i,uv[0],uvSet)
+					unite.append(Indexes(verts[i],poly.normalIndex(i),intp(uv),len(unite)))
 
-			for i in range(0,idxs.length()):
-				indexes.append(str(idxs[i]))
+		unite=sorted(unite, key=attrgetter('vid','nid','tid')) 
 
-		points=OpenMaya.MPointArray()
-		rmesh.getPoints(points)
-		f=[]
-		for i in range(0,points.length()):
-			p = points[i] - op
-			f.append("%f %f %f"%(p.x,p.y,p.z))
+		# Create a list of new vertices to use
+		k=0
+		newverts=1
+		rptab={}
+		rptab[unite[0].i]=0
+		start_new_vertex={}
+		start_new_vertex[0]=1
+		normals=OpenMaya.MFloatVectorArray()
+		rmesh.getNormals(normals)
 
-		mesh.i=indexes
-		mesh.v=f
+		for i in range(1,len(unite)):
+			if not unite[k]==unite[i]:
+				if unite[i].nearlyEq(unite[k],normals):
+					unite[i].nid=unite[k].nid
+				else:
+					newverts+=1
+					k=i
+					start_new_vertex[i]=1
+			rptab[unite[i].i] = newverts - 1
 
+		vertexData=[]
+		for vertex in WrapIt(OpenMaya.MItMeshVertex(dag)):
+			point=vertex.position(OpenMaya.MSpace.kObject)
+			np = point-op
+			vertexData.append(np.x)
+			vertexData.append(np.y)
+			vertexData.append(np.z)
+
+		# Outputs
+		mesh.v=[]	# 1 vertice as a string "%f %f %f"
+		mesh.n=[]	# 1 normal as a string "%f %f %f"
+		mesh.i=[]	# indexes "%i"
+		mesh.uv=[]	# uv pairs "%f %f"
+
+		# original UV arrays
 		u=OpenMaya.MFloatArray()
 		v=OpenMaya.MFloatArray()
 		rmesh.getUVs(u,v)
-		mesh.uv=[]
-		for i in range(0,u.length()):
-			mesh.uv.append("%f %f" %(u[i],v[i]))
 
+		for i in range(0,len(unite)):
+			if i in start_new_vertex:
+				iObj=unite[i]
+				mesh.v.append("%f %f %f"%(vertexData[(3*iObj.vid)+0],vertexData[(3*iObj.vid)+1],vertexData[(3*iObj.vid)+2]))
+				mesh.n.append("%f %f %f"%(normals[iObj.nid].x,normals[iObj.nid].y,normals[iObj.nid].z))
+				mesh.uv.append("%f %f"%(u[iObj.tid],1.0-v[iObj.tid]))
+
+		facevertoff=0
+		for poly in WrapIt(OpenMaya.MItMeshPolygon(dag)):
+			verts=OpenMaya.MIntArray()
+			poly.getVertices(verts)
+			numTri=intp()
+			poly.numTriangles(numTri[0])
+			for j in range(0,intp(numTri)):
+				triPoints=OpenMaya.MPointArray()
+				vtx_list=OpenMaya.MIntArray()
+				poly.getTriangle(j,triPoints,vtx_list,OpenMaya.MSpace.kObject)
+				for k in range(0,vtx_list.length()):
+					global_vidx=vtx_list[k]
+					local_vidx=0
+					for m in range(0,verts.length()):
+						if verts[m]==global_vidx:
+							local_vidx=m
+					mesh.i.append(str(rptab[facevertoff+local_vidx]))
+
+			facevertoff+=verts.length()
 
 	def getMesh(self,m_dag):
 		log("Extacting mesh object from; "+m_dag.partialPathName())
@@ -320,7 +379,9 @@ class ddxmlWriter:
 		indices.setAttributeNode(nr)
 		indices.appendChild(data)
 
-		# FIXME normals
+		normals=self.root.createElement("normals")
+		data=self.root.createTextNode(" ".join(mesh.n))
+		normals.appendChild(data)
 
 		texcoords=self.root.createElement("texcoords")
 		data=self.root.createTextNode(" ".join(mesh.uv))
@@ -328,6 +389,7 @@ class ddxmlWriter:
 
 		emesh.appendChild(vertices)
 		emesh.appendChild(indices)
+		emesh.appendChild(normals)
 		emesh.appendChild(texcoords)
 
 		self.root.documentElement.appendChild(emesh)
@@ -379,19 +441,42 @@ class ddxmlWriter:
 	def dump(self,writer=sys.stdout):
 		self.root.writexml(writer,addindent="\t",newl="\n")
 
+class Indexes:
+	def __init__(self,vid,nid,tid,i):
+		self.vid=vid
+		self.nid=nid
+		self.tid=tid
+		self.i=i
+	
+	def __eq__(self,other):
+		return (self.vid==other.vid and self.nid==other.nid and self.tid==other.tid)
+
+	def nearlyEq(self,other,normals):
+		if not self.vid==other.vid or not self.tid==other.tid:
+			return False
+		nSelf=normals[self.nid]
+		nOther=normals[other.nid]
+
+		if math.fabs(nOther.x-nSelf.x) < normalDelta and math.fabs(nOther.y-nSelf.y) < normalDelta and math.fabs(nOther.z-nSelf.z) < normalDelta:
+			return True
+		return False
 
 #util
 def log(msg):
-	OpenMayaMPx.MPxCommand.displayInfo("===># "+msg)
+	OpenMayaMPx.MPxCommand.displayInfo("===># "+str(msg))
 
-def intp():
-	util=OpenMaya.MScriptUtil()
-	util.createFromInt(0)
-	return util.asIntPtr()
+def intp(read=None):
+	if None != read:
+		return OpenMaya.MScriptUtil(read[0]).asInt()
+	else:
+		util=OpenMaya.MScriptUtil()
+		util.createFromInt(0)
+		return [util.asIntPtr(),util]
 
 class WrapIt:
 	def __init__(self,obj):
 		self.obj=obj
+		self.first=True
 
 	def __iter__(self):
 		return self
@@ -399,9 +484,15 @@ class WrapIt:
 	def next(self):
 		if self.obj.isDone():
 			raise StopIteration
+
+		if self.first:
+			self.first=False
+			return self.obj
 		self.obj.next()
 		return self.obj
+
 RtD=180.0/math.pi
+normalDelta=0.0001
 
 # maya glue
 def dumpDDXMLFactory():
