@@ -68,14 +68,14 @@ ship_probability escortships[] = {
 
 
 ship_probability civilships[] = {
-	{ 0.1, "troopship_medium" },
-	{ 0.1, "tanker_small" },
+//	{ 0.1, "troopship_medium" },
+//	{ 0.1, "tanker_small" },
 	{ 0.1, "tanker_kennebak" },
 	{ 0.1, "northsands_camship" },
-	{ 0.1, "merchant_large" },
-	{ 0.1, "merchant_medium" },
-	{ 0.1, "merchant_small" },
-	{ 0.1, "freighter_large" },
+//	{ 0.1, "merchant_large" },
+//	{ 0.1, "merchant_medium" },
+//	{ 0.1, "merchant_small" },
+//	{ 0.1, "freighter_large" },
 	{ 0.1, "libertyship1941" },
 	{ 0.1, "libertyship1942" },
 	{ 0.1, "libertyship1943" },

@@ -921,8 +921,8 @@ void create_convoy_mission()
 	widget_list* wtimeperiod = new widget_list(40, 340, 640, 200);
 	w.add_child(wtimeperiod);
 	wsubtype->append_entry(texts::get(17));
-	wsubtype->append_entry(texts::get(174));
-	wsubtype->append_entry(texts::get(18));
+//	wsubtype->append_entry(texts::get(174));
+//	wsubtype->append_entry(texts::get(18));
 	wsubtype->append_entry(texts::get(800));
 	wsubtype->append_entry(texts::get(801));
 	wsubtype->append_entry(texts::get(802));
@@ -958,12 +958,12 @@ void create_convoy_mission()
 			string st;
 			switch (wsubtype->get_selected()) {
 			case 0: st = "submarine_VIIc"; break;
-			case 1: st = "submarine_IXc40"; break;
-			case 2: st = "submarine_XXI"; break;
-			case 3: st = "submarine_IIa"; break;
-			case 4: st = "submarine_IIb"; break;
-			case 5: st = "submarine_IIc"; break;
-			case 6: st = "submarine_IId"; break;
+//			case 1: st = "submarine_IXc40"; break;
+//			case 2: st = "submarine_XXI"; break;
+			case 1: st = "submarine_IIa"; break;
+			case 2: st = "submarine_IIb"; break;
+			case 3: st = "submarine_IIc"; break;
+			case 4: st = "submarine_IId"; break;
 			}
 
 			// compute mission time (date)
