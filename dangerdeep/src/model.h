@@ -492,6 +492,8 @@ public:
 	// find object with certain name, -1 if not found
 	int get_object_id_by_name(const std::string& name) const;
 
+	bool object_exists(unsigned objid) const;
+
 	void register_layout(const std::string& name = default_layout);
 	void unregister_layout(const std::string& name = default_layout);
 

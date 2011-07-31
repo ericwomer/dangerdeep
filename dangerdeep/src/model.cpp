@@ -1444,6 +1444,13 @@ int model::get_object_id_by_name(const std::string& name) const
 }
 
 
+bool model::object_exists(unsigned objid) const
+{
+	const object* obj = scene.find(objid);
+	return 0 != obj;
+}
+
+
 
 void model::material::map::get_all_layout_names(std::set<std::string>& result) const
 {

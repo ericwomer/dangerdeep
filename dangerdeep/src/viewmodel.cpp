@@ -352,21 +352,27 @@ void view_model(const string& modelfilename, const string& datafilename)
 	double totaltime = sys().millisec() / 1000.0;
 	double measuretime = 5;	// seconds
 
+	unsigned max_objects=0;
+	while(mdl->object_exists(max_objects))
+		++max_objects;
+
+	log_info("Found " << (max_objects-1) << " objects");
+
 	while (true) {
 		// rotate light
 		unsigned time2 = sys().millisec();
 		if (lightmove && time2 > time1) {
 			ang += LIGHT_ANG_PER_SEC*(time2-time1)/1000.0;
-			if (ang > 360) ang -= 360;
+			if (ang > 180) ang -= 360;
 			time1 = time2;
 			lposition.x = 1.4*sc*cos(3.14159*ang/180);
 			lposition.z = 1.4*sc*sin(3.14159*ang/180);
 		}
 
-		// test: rotate object 1+2
-		mdl->set_object_angle(1, ang);
-		mdl->set_object_angle(2, ang);
-		mdl->set_object_translation(4, ang*50/360);
+		// test: rotate objects
+		for(unsigned ix=0;ix<max_objects;++ix)
+			mdl->set_object_angle(ix, ang);
+//		mdl->set_object_translation(4, ang*50/360);
 	
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		glColor3f(1, 1, 1);
