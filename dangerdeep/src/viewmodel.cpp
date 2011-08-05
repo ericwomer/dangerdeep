@@ -75,6 +75,14 @@ void view_model(const string& modelfilename, const string& datafilename);
 
 string model_layout;
 
+struct constraint {
+	unsigned obj;
+	float min;
+	float max;
+	bool increasing;
+	float current;
+};
+
 class model_load_dialog
 {
 public:
@@ -358,20 +366,43 @@ void view_model(const string& modelfilename, const string& datafilename)
 
 	log_info("Found " << (max_objects-1) << " objects");
 
+	vector<constraint> constraints;
+
+	for(unsigned ix=0;ix<max_objects;++ix) {
+		vector2f mm=mdl->get_object_angle_constraints(ix);
+		// get_object_translation_constraints
+		constraint c = {ix,mm.x,mm.y,true,0};
+		constraints.push_back(c);
+	}
+
+	float ang_delta = 0.0f;
+
 	while (true) {
 		// rotate light
 		unsigned time2 = sys().millisec();
 		if (lightmove && time2 > time1) {
-			ang += LIGHT_ANG_PER_SEC*(time2-time1)/1000.0;
-			if (ang > 180) ang -= 360;
+			ang_delta = LIGHT_ANG_PER_SEC*(time2-time1)/1000.0;
+			ang += ang_delta;
+			if (ang > 360) ang -= 360;
 			time1 = time2;
 			lposition.x = 1.4*sc*cos(3.14159*ang/180);
 			lposition.z = 1.4*sc*sin(3.14159*ang/180);
+		} else {
+			ang_delta = 0.0f;
 		}
 
 		// test: rotate objects
-		for(unsigned ix=0;ix<max_objects;++ix)
-			mdl->set_object_angle(ix, ang);
+		for( vector<constraint>::iterator it=constraints.begin(); it!=constraints.end(); ++it){
+			constraint& c=*it;
+			if(c.max<c.current || c.min>c.current) 
+				c.increasing=!c.increasing;
+			if(c.increasing) {
+				c.current+=ang_delta;
+			} else {
+				c.current-=ang_delta;
+			}
+			mdl->set_object_angle(c.obj,c.current);
+		}
 //		mdl->set_object_translation(4, ang*50/360);
 	
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
