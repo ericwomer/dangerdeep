@@ -778,8 +778,12 @@ void game::simulate(double delta_t)
 		// this could be done in jobs, fixme
 		if (!player->is_alive()) {
 			log_info("player killed!");//testing fixme
+#ifdef COD_MODE
+			player->reanimate();
+#else
 			my_run_state = player_killed;
 			return;
+#endif//COD_MODE
 		}
 	
 		if (/* submarines.size() == 0 && */ ships.size() == 0 && torpedoes.size() == 0 && depth_charges.size() == 0 &&

@@ -319,6 +319,9 @@ public:
 	/// switch object state from alive or inactive to dead.
 	///@note switchting do defunct state is forbidden! do not implement such a function!
 	virtual void kill();
+#ifdef COD_MODE
+	virtual void reanimate();
+#endif//CODE_MODE
 
 	virtual bool is_defunct() const { return alive_stat == defunct; }
 	virtual bool is_dead() const { return alive_stat == dead || alive_stat == dead2; }

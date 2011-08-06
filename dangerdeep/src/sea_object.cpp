@@ -735,6 +735,13 @@ void sea_object::set_inactive()
 }
 
 
+#ifdef COD_MODE/* heehee */ 
+void sea_object::reanimate()
+{
+	log_info("Cheater!");
+	alive_stat = alive;
+}
+#endif//COD_MODE
 
 void sea_object::kill()
 {

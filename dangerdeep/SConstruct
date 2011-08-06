@@ -36,6 +36,7 @@ archflag = ARGUMENTS.get('arch', '')
 mingw32 = ARGUMENTS.get('mingw32', 0)
 conf = ARGUMENTS.get('conf', 1)
 tests = ARGUMENTS.get('tests', 1)
+hacking = ARGUMENTS.get('hacking', 0)
 
 ################ set environment
 osspecificsrc = []
@@ -274,6 +275,10 @@ else:
 			# I'm not sure which option will hopefully fix the problem... so i use both...
 			env.Append(LINKFLAGS = '--unresolved-symbols=ignore-all')
 			env.Append(LINKFLAGS = '-Xlinker --unresolved-symbols -Xlinker ignore-all')
+
+if hacking:
+	env.Append(CPPDEFINES = ['COD_MODE'])
+	
 
 ###### optionally change install and data dirs
 if ARGUMENTS.get('datadir', 0):
