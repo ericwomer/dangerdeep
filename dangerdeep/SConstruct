@@ -278,7 +278,9 @@ else:
 
 if hacking:
 	env.Append(CPPDEFINES = ['COD_MODE'])
-	
+
+# force tinyxml to use the STL
+env.Append(CPPDEFINES = ['TIXML_USE_STL'])
 
 ###### optionally change install and data dirs
 if ARGUMENTS.get('datadir', 0):
