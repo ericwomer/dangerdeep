@@ -2031,7 +2031,7 @@ int mymain(list<string>& args)
 	// --------------------------------------------------------------------------------
 
 	log_info("Danger from the Deep");
-	log_info("Copyright (C) 2003-2007  Thorsten Jordan, Luis Barrancos and others.");
+	log_info("Copyright (C) 2003-2011  Thorsten Jordan, Luis Barrancos and others.");
 	log_info("Version " << get_program_version());
 
 	GLfloat lambient[4] = {0.1,0.1,0.1,1};
@@ -2142,7 +2142,7 @@ int mymain(list<string>& args)
 #endif // WIN32
 
 			// display version #
-			w.add_child(new widget_text( 3, 768-23, 0, 0, get_program_version()));
+			w.add_child(new widget_text( 5, 768-30, 0, 0, get_program_version()));
 
 			widget_menu* wm = new widget_menu(0, 0, 400, 40, texts::get(104));
 			wm->set_entry_spacing(8);
