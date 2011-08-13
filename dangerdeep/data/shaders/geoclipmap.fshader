@@ -159,7 +159,17 @@ k = brdf.b;
 	vec3 final_color = vec3(terrain_color * cospsi );
 #endif
 
-	gl_FragColor = vec4(final_color,1.0);
+//	gl_FragColor = vec4(final_color,1.0);
+
+	// fog
+	float fog_factor = exp2(-gl_Fog.density * gl_FogFragCoord * 1.442695); // exponential fog
+	
+	vec3 fog_color = mix(vec3(0.0,0.0,0.0),vec3(gl_Fog.color), clamp(150.0/gl_FogFragCoord,0.0,1.0));
+	// output color is a mix between fog and final color
+	gl_FragColor = vec4(mix(fog_color, final_color, fog_factor), 1.0);
+
+
+
 	/*
 	// add linear fog
 	float fog_factor = exp2(-gl_Fog.density * gl_FogFragCoord * 1.4426940);

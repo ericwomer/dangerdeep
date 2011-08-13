@@ -380,9 +380,12 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 
 	// **************** prepare drawing ***************************************************
 
-	GLfloat horizon_color[4];
+	GLfloat horizon_color[4] = {0.050980392156862744f,0.054901960784313725f,0.27450980392156865f,0.0f/*this is bad*/};
 	ui.get_sky().rebuild_colors(gm.compute_sun_pos(viewpos), gm.compute_moon_pos(viewpos), viewpos);
-	ui.get_sky().get_horizon_color(gm, viewpos).store_rgba(horizon_color);
+	if (1==above_water){
+		ui.get_sky().get_horizon_color(gm, viewpos).store_rgba(horizon_color);
+	}
+
 
 	// compute light source position and brightness (must be set AFTER modelview matrix)
 	vector3 sundir = gm.compute_sun_pos(viewpos).normal();
@@ -510,11 +513,16 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	glFogfv(GL_FOG_COLOR, horizon_color);
 	// values for fog density:
 	// 0.0005 - 0.002 good weather, higher numbers give more haze
-	glFogf(GL_FOG_DENSITY, 0.0005);	// not used in linear mode
-	glHint(GL_FOG_HINT, GL_NICEST /*GL_FASTEST*/ /*GL_DONT_CARE*/);
-	glFogf(GL_FOG_START, max_view_dist*0.75);	// ships disappear earlier :-(
-	glFogf(GL_FOG_END, max_view_dist);
-
+	if (1==above_water){
+		glFogf(GL_FOG_DENSITY, 0.0005);	// not used in linear mode
+		glFogf(GL_FOG_START, max_view_dist*0.75);	// ships disappear earlier :-(
+		glFogf(GL_FOG_END, max_view_dist);
+	} else {
+		float underwater_fog=100.0f;// FIXME
+		glFogf(GL_FOG_DENSITY, 0.005);	// not used in linear mode
+		glFogf(GL_FOG_START, underwater_fog*0.75);	// ships disappear earlier :-(
+		glFogf(GL_FOG_END, underwater_fog);
+	}
 
 	glEnable(GL_FOG);
 
@@ -591,13 +599,15 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	// Note! glClear() deletes whole buffer, not only viewport.
 	// use glScissor with glClear here or clear with own command.
 	if (pd.fullscreen) {
-		glClearColor(0.015, 0.01, 0.055, 0);
+//		glClearColor(0.015, 0.01, 0.055, 0);
+		glClearColor(0.0, 0.0, 0.0, 0);
 		// this color clear eats ~ 2 frames (52 to 50 on a gf4mx), but is needed for star sky drawing
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	} else {
 		glScissor(pd.x, pd.y, pd.w, pd.h);
 		glEnable(GL_SCISSOR_TEST);
-		glClearColor(0.015, 0.01, 0.055, 0);
+//		glClearColor(0.015, 0.01, 0.055, 0);
+		glClearColor(0.0, 0.0, 0.0, 0);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		glDisable(GL_SCISSOR_TEST);
 	}
@@ -648,26 +658,22 @@ void freeview_display::draw_view(game& gm, const vector3& viewpos) const
 	if (above_water <= 0) {
 		// render water background plane
 		// clip far plane frustum polygon with z=0 plane (water surface)
-		polygon uwp = viewwindow_far.clip(plane(vector3(0, 0, -1), 0));
+//		polygon uwp = viewwindow_far.clip(plane(vector3(0, 0, -1), 0));
 		// render polygon with tri-fan
-		const double underwater_bg_maxz = -40;
-		/*
-		primitives::cylinder_z(200.0, 200.0, 0.0, -1000.0, 1.0, *underwater_background,
-				       1.0, 64).render();
-		*/
-		glDisable(GL_DEPTH_TEST);
-		primitives trifan(GL_TRIANGLE_FAN, uwp.points.size(), *underwater_background);
-		for (unsigned i = 0; i < uwp.points.size(); ++i) {
+//		const double underwater_bg_maxz = -40;
+
+//		glDisable(GL_DEPTH_TEST);
+//		primitives trifan(GL_TRIANGLE_FAN, uwp.points.size(), /**underwater_background*/ colorf(0.0f,0.0f,0.0f));
+/*		for (unsigned i = 0; i < uwp.points.size(); ++i) {
 			trifan.vertices[i].assign(uwp.points[i]);
 			trifan.texcoords[i].x = uwp.points[i].z/underwater_bg_maxz;
-		}
-		trifan.render();
-		glEnable(GL_DEPTH_TEST);
+		}*/
+//		trifan.render();
+//		glEnable(GL_DEPTH_TEST);
 		glCullFace(GL_FRONT);
 		ui.get_water().display(viewpos, max_view_dist, true /* under water*/);
 		glCullFace(GL_BACK);
-	}
-	if (true /* fixme*/ /*above_water >= 0*/) {
+	} else {
 		ui.get_water().display(viewpos, max_view_dist);
 	}
 

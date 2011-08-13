@@ -52,8 +52,11 @@ void main()
 		+ (specular_color * max(doten, 0.2));
 
 	// fog
-	float fog_factor = exp2(-gl_Fog.density * 100.0 * gl_FogFragCoord * 1.442695); // exponential fog
-
+	float fog_factor = exp2(-gl_Fog.density * gl_FogFragCoord * 1.442695); // exponential fog
+	
+	vec3 fog_color = mix(vec3(0.0,0.0,0.0),vec3(gl_Fog.color), clamp(150.0/gl_FogFragCoord,0.0,1.0));
 	// output color is a mix between fog and final color
-	gl_FragColor = vec4(mix(refractioncol, water_color, fog_factor), 1.0);
+	gl_FragColor = vec4(mix(fog_color, water_color, fog_factor), 1.0);
+
+
 }

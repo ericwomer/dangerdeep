@@ -28,6 +28,8 @@ uniform sampler2D tex_caustic; // (if existent) caustic map, LUMINANCE
 
 void main()
 {
+	bool underwater = gl_Fog.color[3]==0.0f;// FIXME ugly
+
 	// get and normalize vector to light source
 	vec3 L = normalize(lightdir);
 
@@ -66,8 +68,8 @@ void main()
 	final_color *= max(texture2D(tex_caustic, caustic_texcoord.xy).x *2.0, 0.5);
 #endif
 
-	// add linear fog
-//	float fog_factor = clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0);
+	// add fog
+	float fog_factor = exp2(-gl_Fog.density * gl_FogFragCoord * 1.4426940);
 
 	// output color is a mix between fog and final color
 #ifdef USE_COLORMAP
@@ -75,21 +77,11 @@ void main()
 #else
 	float alpha = color.a;
 #endif
-//	gl_FragColor = vec4(mix(vec3(gl_Fog.color), final_color, fog_factor), alpha);
-	gl_FragColor = vec4( vec3(final_color), alpha);
 
-/* fog:
-	// maybe the vertex shader needs to do this: no, it doesn't. It works without that command.
-	gl_FogFragCoord = gl_FogCoord;
-
-	// fragment shader:
-	fog = (gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale; // linear
-
-	fog = exp2(-gl_Fog.density * gl_FogFragCoord * 1.442695); // exponential
-
-	fog = exp2(-gl_Fog.density * gl_FogDensity
-           * gl_FogFragCoord * gl_FogFragCoord * 1.442695); // more exponential
-
-	   // after that: clamp and mix.
-*/
+	if (underwater){
+		vec3 fog_color = mix(vec3(0.0,0.0,0.0),vec3(gl_Fog.color), clamp(150.0/gl_FogFragCoord,0.0,1.0));
+		gl_FragColor = vec4(mix(fog_color, final_color, fog_factor), alpha);
+	}else{
+		gl_FragColor = vec4(mix(vec3(gl_Fog.color), final_color, fog_factor), alpha);
+	}
 }
