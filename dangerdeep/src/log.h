@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "singleton.h"
 
 #ifdef DEBUG
-#define log_template(x, y) do { std::ostringstream oss; oss << x; log::instance().append(log::y, oss.str()); } while(0)
+#define log_template(x, y) do { std::ostringstream oss; oss << __FILE__ << ":" << __LINE__ << " " << x; log::instance().append(log::y, oss.str()); } while(0)
 #define log_debug(x) log_template(x, LOG_DEBUG)
 #define log_info(x) log_template(x, LOG_INFO)
 // use this only internally for special events
