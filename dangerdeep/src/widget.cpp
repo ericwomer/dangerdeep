@@ -1617,6 +1617,10 @@ void widget_3dview::draw() const
 	GLfloat ambcolor[4] = { 0.1f, 0.1f, 0.1f, 1 };
 	glLightfv(GL_LIGHT0, GL_AMBIENT, ambcolor);
 
+	glFogf(GL_FOG_DENSITY, 0.0005);
+	glFogf(GL_FOG_START, 10000*0.75);
+	glFogf(GL_FOG_END, 10000); 
+
 	glTranslatef(-translation.x, -translation.y, -translation.z);
 	glRotatef(-80, 1, 0, 0);
 	glRotatef(z_angle, 0, 0, 1);
