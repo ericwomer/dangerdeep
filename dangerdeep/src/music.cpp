@@ -340,7 +340,7 @@ void music::exec_append_track(const std::string& filename)
 	Mix_Music *tmp = Mix_LoadMUS(( get_sound_dir() +  filename).c_str());
 
 	if (0 == tmp) {
-		log_warning("Failed to load track: " << filename);
+		log_warning("Failed to load track: " << filename << ", " << Mix_GetError() );
 		throw file_read_error(filename);
 	}
 	playlist.push_back(filename);
