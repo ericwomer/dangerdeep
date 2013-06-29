@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define MATRIX3_H
 
 #include "matrix.h"
+#include <string.h>
 
 /// a 3x3 matrix, reimplemented for 3x3 case for speed issues
 template<class D>

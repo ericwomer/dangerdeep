@@ -119,6 +119,7 @@ void install_segfault_handler()
 #include <signal.h>
 #include <string>
 #include <sstream>
+#include <unistd.h>
 
 // Note: use --export-dynamic as linker option or you won't get function names here.
 

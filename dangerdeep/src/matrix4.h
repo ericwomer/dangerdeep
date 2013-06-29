@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "matrix3.h"
 #include "oglext/OglExt.h"
+#include <string.h>
 
 /// a 4x4 matrix, reimplemented for 4x4 case for speed issues
 template<class D>
