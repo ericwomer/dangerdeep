@@ -141,22 +141,25 @@ public:
 	void load(game& gm_, const xml_elem& parent);
 	void save(game& gm, xml_elem& parent) const;
 
+private:
 	void clear_waypoints() { waypoints.clear(); };
 	void add_waypoint(const vector2& wp) { waypoints.push_back(wp); };
 	void set_convoy(class convoy* cv) { myconvoy = cv; }
 
-	virtual void relax(class game& gm);	// follow path/object, remove contact info
+public:
 	virtual void attack_contact(const vector3& c);
-	virtual void follow(sea_object* t = 0);	// follows path if t is 0
-	void cycle_waypoints(bool cycle = true) { cyclewaypoints = cycle; };
 	virtual void act(class game& gm, double delta_time);
 
+private:
 	// various ai's and helper functions, fixme replace with subclasses
 	virtual void set_zigzag(bool stat = true);
 	virtual void act_escort(class game& g, double delta_time);
 	virtual void act_dumb(class game& g, double delta_time);
 	virtual void act_convoy(class game& g, double delta_time);
 	virtual bool set_course_to_pos(class game& gm, const vector2& pos);	// steer parent to pos, returns true if direct turn is possible
+	virtual void relax(class game& gm);	// follow path/object, remove contact info
+	virtual void follow(sea_object* t = 0);	// follows path if t is 0
+	void cycle_waypoints(bool cycle = true) { cyclewaypoints = cycle; };
 };
 
 #endif
