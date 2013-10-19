@@ -512,7 +512,7 @@ void submarine_interface::process_input(const SDL_Event& event)
 			case SDLK_ESCAPE:
 				request_abort();
 				break;
-/*			case SDLK_PRINT:
+/*			case SDLK_PRINTSCREEN:
 				sys().screenshot();
 				log_info("screenshot taken.");
 				break;*/

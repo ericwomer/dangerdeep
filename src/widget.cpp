@@ -239,7 +239,7 @@ void widget::fire_mouse_click_event(int mx, int my, int mb) {
 	}
 }
 
-void widget::fire_key_event(const SDL_keysym& ks) {
+void widget::fire_key_event(const SDL_Keysym& ks) {
 	key_event event(this, ks);
 	for(std::list<const action_listener*>::const_iterator it=action_listeners.begin(); it!=action_listeners.end(); it++) {
 		(*it)->key_pressed(event);
@@ -580,7 +580,7 @@ void widget::redraw()
 	if (parent) parent->redraw();
 }
 
-void widget::on_char(const SDL_keysym& ks)
+void widget::on_char(const SDL_Keysym& ks)
 {
 	// we can't handle it, so pass it to the parent
 	if (parent) parent->on_char(ks);
@@ -1422,7 +1422,7 @@ unsigned widget_edit::cursor_right() const
 
 
 
-void widget_edit::on_char(const SDL_keysym& ks)
+void widget_edit::on_char(const SDL_Keysym& ks)
 {
 	int c = ks.sym;
 	unsigned l = text.length();
@@ -1695,7 +1695,7 @@ void widget_slider::draw() const
 
 
 
-void widget_slider::on_char(const SDL_keysym& ks)
+void widget_slider::on_char(const SDL_Keysym& ks)
 {
 	// move with cursor
 	int c = ks.sym;

@@ -1286,7 +1286,7 @@ void configure_key(widget_list* wkeys)
 	struct confkey_widget : public widget {
 		widget_text* keyname;
 		unsigned keynr;
-		void on_char(const SDL_keysym& ks) {
+		void on_char(const SDL_Keysym& ks) {
 			if (ks.sym == SDLK_ESCAPE) {
 				close(0);
 				return;
@@ -1905,7 +1905,7 @@ int mymain(list<string>& args)
 	mycfg.register_key(key_names[KEY_TOGGLE_POPUP].name, SDLK_TAB, 0, 0, 0);
 	mycfg.register_key(key_names[KEY_SHOW_TORPSETUP_SCREEN].name, SDLK_F12, 0, 0, 0);
 	mycfg.register_key(key_names[KEY_SHOW_TORPEDO_CAMERA].name, SDLK_k, 0, 0, 0);
-	mycfg.register_key(key_names[KEY_TAKE_SCREENSHOT].name,  SDLK_PRINT, 0, 0, 0);
+	mycfg.register_key(key_names[KEY_TAKE_SCREENSHOT].name,  SDLK_PRINTSCREEN, 0, 0, 0);
 
 	//mycfg.register_option("invert_mouse", false);
 	//mycfg.register_option("ocean_res_x", 128);

@@ -111,8 +111,8 @@ public:
 	
 	struct key_event {
 		const widget* source;
-		const SDL_keysym ks;
-		key_event(const widget* _source, const SDL_keysym& _ks) 
+		const SDL_Keysym ks;
+		key_event(const widget* _source, const SDL_Keysym& _ks) 
 			: source(_source), ks(_ks) {}
 	};
 	struct mouse_click_event {
@@ -156,7 +156,7 @@ protected:
 	
 	std::list<const action_listener*> action_listeners;
 	
-	void fire_key_event(const SDL_keysym& ks);
+	void fire_key_event(const SDL_Keysym& ks);
 	void fire_mouse_click_event(int mx, int my, int mb);
 	void fire_mouse_release_event();
 	void fire_mouse_drag_event(int mx, int my, int rx, int ry, int mb);
@@ -217,7 +217,7 @@ public:
 	virtual void redraw();
 
 	// called for every key in queue
-	virtual void on_char(const SDL_keysym& ks);
+	virtual void on_char(const SDL_Keysym& ks);
 	// called on mouse button down (mb is one of SDL_BUTTON_LMASK, ...RMASK, ...MMASK)
 	virtual void on_click(int mx, int my, int mb) {}
 	virtual void on_click(const vector2i& m, int mb) { return on_click(m.x, m.y, mb); }
@@ -491,7 +491,7 @@ public:
 	widget_edit(xml_elem& elem, widget* _parent = 0);
 	void set_text(const std::string& s) { widget::set_text(s); cursorpos = s.length(); }
 	void draw() const;
-	void on_char(const SDL_keysym& ks);
+	void on_char(const SDL_Keysym& ks);
 	virtual void on_enter() {}	// run on pressed ENTER-key
 	virtual void on_change() {}
 };
@@ -573,7 +573,7 @@ public:
 		      widget* parent_ = 0);
 	widget_slider(xml_elem& elem, widget* _parent = 0);
 	void draw() const;
-	void on_char(const SDL_keysym& ks);
+	void on_char(const SDL_Keysym& ks);
 	void on_click(int mx, int my, int mb);
 	void on_drag(int mx, int my, int rx, int ry, int mb);
 	virtual void set_values(int minv, int maxv, int currv, int descrstep);

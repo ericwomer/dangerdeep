@@ -35,7 +35,7 @@ cfg* cfg::myinst = 0;
 
 string cfg::key::get_name() const
 {
-	string result = SDL_GetKeyName(SDLKey(keysym));
+	string result = SDL_GetKeyName(SDL_Keycode(keysym));
 	if (shift) result = string("Shift + ") + result;
 	if (alt) result = string("Alt + ") + result;
 	if (ctrl) result = string("Ctrl + ") + result;
@@ -44,7 +44,7 @@ string cfg::key::get_name() const
 
 
 
-bool cfg::key::equal(const SDL_keysym& ks) const
+bool cfg::key::equal(const SDL_Keysym& ks) const
 {
 	return (ks.sym == keysym
 		&& ctrl == ((ks.mod & (KMOD_LCTRL | KMOD_RCTRL)) != 0)
@@ -116,7 +116,7 @@ void cfg::load(const string& filename)
 					log_warning("found key with invalid name " << keyname << " in config file");
 					continue;
 				}
-				SDLKey keysym = SDLKey(it2.elem().attri("keysym"));
+				SDL_Keycode keysym = SDL_Keycode(it2.elem().attri("keysym"));
 				bool ctrl = it2.elem().attrb("ctrl");
 				bool alt = it2.elem().attrb("alt");
 				bool shift = it2.elem().attrb("shift");
@@ -190,7 +190,7 @@ void cfg::register_option(const string& name, const string& value)
 
 
 
-void cfg::register_key(const string& name, SDLKey keysym, bool ctrl, bool alt, bool shift)
+void cfg::register_key(const string& name, SDL_Keycode keysym, bool ctrl, bool alt, bool shift)
 {
 	unsigned nr = NR_OF_KEY_IDS;
 	for (unsigned i = 0; i < NR_OF_KEY_IDS; ++i) {
@@ -249,7 +249,7 @@ void cfg::set(const string& name, const string& value)
 
 
 	
-void cfg::set_key(unsigned nr, SDLKey keysym, bool ctrl, bool alt, bool shift)
+void cfg::set_key(unsigned nr, SDL_Keycode keysym, bool ctrl, bool alt, bool shift)
 {
 	map<unsigned, key>::iterator it = valk.find(nr);
 	if (it != valk.end())

@@ -103,7 +103,7 @@ bool airplane_interface::keyboard_common(int keycode, class game& gm)
 			case SDLK_ESCAPE:
 				gm.stop();
 				break;
-			case SDLK_PRINT: sys().screenshot(); sys().add_console("screenshot taken."); break;
+			case SDLK_PRINTSCREEN: sys().screenshot(); sys().add_console("screenshot taken."); break;
 			case SDLK_PAUSE: pause = !pause;
 				if (pause) add_message(texts::get(52));
 				else add_message(texts::get(53));

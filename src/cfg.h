@@ -38,17 +38,17 @@ public:
 	struct key
 	{
 		std::string action;
-		SDLKey keysym;
+		SDL_Keycode keysym;
 		bool ctrl, alt, shift;
 		key() : keysym(SDLK_UNKNOWN), ctrl(false), alt(false), shift(false) {}
 		~key() {}
-		key(const std::string& ac, SDLKey ks, bool c, bool a, bool s) :
+		key(const std::string& ac, SDL_Keycode ks, bool c, bool a, bool s) :
 			action(ac), keysym(ks), ctrl(c), alt(a), shift(s) {}
 		key(const key& k) : action(k.action), keysym(k.keysym), ctrl(k.ctrl), alt(k.alt), shift(k.shift) {}
 		key& operator= (const key& k) { action = k.action; keysym = k.keysym; ctrl = k.ctrl; alt = k.alt;
 			shift = k.shift; return *this; }
 		std::string get_name() const; // uses SDLK_GetKeyName
-		bool equal(const SDL_keysym& ks) const;
+		bool equal(const SDL_Keysym& ks) const;
 	};
 private:
 	cfg(const cfg& );
@@ -80,13 +80,13 @@ public:
 	void register_option(const std::string& name, int value);
 	void register_option(const std::string& name, float value);
 	void register_option(const std::string& name, const std::string& value);
-	void register_key(const std::string& name, SDLKey keysym, bool ctrl, bool alt, bool shift);
+	void register_key(const std::string& name, SDL_Keycode keysym, bool ctrl, bool alt, bool shift);
 
 	void set(const std::string& name, bool value);
 	void set(const std::string& name, int value);
 	void set(const std::string& name, float value);
 	void set(const std::string& name, const std::string& value);
-	void set_key(unsigned nr, SDLKey keysym, bool ctrl, bool alt, bool shift);
+	void set_key(unsigned nr, SDL_Keycode keysym, bool ctrl, bool alt, bool shift);
 	
 	bool getb(const std::string& name) const;
 	int geti(const std::string& name) const;
