@@ -87,16 +87,16 @@ void sub_bridge_display::process_input(class game& gm, const SDL_Event& event)
 		} else {
 			switch(event.key.keysym.sym) {
 				// filter away keys NP_1...NP_9 to avoid moving viewer like in freeview mode
-			case SDLK_KP8: return;
-			case SDLK_KP2: return;
-			case SDLK_KP4: return;
-			case SDLK_KP6: return;
-			case SDLK_KP1: return;
-			case SDLK_KP3: return;
+			case SDLK_KP_8: return;
+			case SDLK_KP_2: return;
+			case SDLK_KP_4: return;
+			case SDLK_KP_6: return;
+			case SDLK_KP_1: return;
+			case SDLK_KP_3: return;
 			default: break;
 			}
 		}
-        case SDL_MOUSEBUTTONDOWN:
+		case SDL_MOUSEBUTTONDOWN:
                 if (event.button.button == SDL_BUTTON_WHEELUP) {
 			return;
                 } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
