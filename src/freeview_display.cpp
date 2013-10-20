@@ -204,9 +204,9 @@ void freeview_display::process_input(class game& gm, const SDL_Event& event)
 		}
 		break;
 		case SDL_MOUSEWHEEL:
-                if (event.button.button == SDL_BUTTON_WHEELUP) {
+				if (event.wheel.y > 0) {
 			add_pos += forward * 15;
-                } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
+				} else if (event.wheel.y < 0) {
 			add_pos -= forward * 15;
                 }
                 break;
