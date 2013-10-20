@@ -119,7 +119,7 @@ system::system(const parameters& params_) :
 	if (err < 0)
 		throw sdl_error("video init failed");
 
-	if (params.window_caption.length() > 0) {
+	if (params.window_caption.length() > 0) { // Why lenght() > 0 ?
 		SDL_WM_SetCaption(params.window_caption.c_str(), NULL);
 	}
 
