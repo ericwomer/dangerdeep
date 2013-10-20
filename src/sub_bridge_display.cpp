@@ -96,10 +96,10 @@ void sub_bridge_display::process_input(class game& gm, const SDL_Event& event)
 			default: break;
 			}
 		}
-		case SDL_MOUSEBUTTONDOWN:
-                if (event.button.button == SDL_BUTTON_WHEELUP) {
+		case SDL_MOUSEWHEEL:
+				if (event.wheel.y > 0) {
 			return;
-                } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
+				} else if (event.wheel.y < 0) {
 			return;
                 }
                 break;
