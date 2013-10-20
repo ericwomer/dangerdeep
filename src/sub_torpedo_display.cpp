@@ -307,9 +307,9 @@ void sub_torpedo_display::process_input(class game& gm, const SDL_Event& event)
 				}
 			}
 			mb |= SDL_BUTTON_LMASK;
-		} else if (event.button.button == SDL_BUTTON_WHEELUP) {
+		} else if (event.wheel.y > 0) {
 			if (torp_desc_line > 0) --torp_desc_line;
-		} else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
+		} else if (event.wheel.y < 0) {
 			++torp_desc_line;
 		}
 		break;

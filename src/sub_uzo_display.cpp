@@ -152,9 +152,9 @@ void sub_uzo_display::process_input(class game& gm, const SDL_Event& event)
 		}
                 break;
         case SDL_MOUSEBUTTONDOWN:
-                if (event.button.button == SDL_BUTTON_WHEELUP) {
+				if (event.wheel.y > 0) {
                         zoomed = true;
-                } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
+				} else if (event.wheel.y < 0) {
                         zoomed = false;
                 }
                 break;
