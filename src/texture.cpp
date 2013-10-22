@@ -133,7 +133,7 @@ sdl_image::sdl_image(const std::string& filename)
 		if (teximagea->format->BytesPerPixel != 1
 		    || teximagea->format->palette == 0
 		    || teximagea->format->palette->ncolors != 256
-		    || ((teximagea->flags & SDL_SRCCOLORKEY) != 0))
+				|| ((teximagea->flags & SDL_GetColorKey(img,SDL_COLORKEY) != 0)) // hopefully SDL_GetColorKey will work...
 			throw texture::texerror(fna, ".png: no 8bit greyscale non-alpha-channel image!");
 
 		Uint32 rmask, gmask, bmask, amask;

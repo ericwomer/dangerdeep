@@ -120,6 +120,7 @@ void install_segfault_handler()
 #include <string>
 #include <sstream>
 #include <unistd.h>
+#include <list>
 
 // Note: use --export-dynamic as linker option or you won't get function names here.
 

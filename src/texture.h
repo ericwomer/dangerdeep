@@ -48,6 +48,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "color.h"
 
 /// wrapper for SDL_Surface/SDL_images to make memory management automatic
+/// !Rake: What have you done?
 class sdl_image
 {
  public:

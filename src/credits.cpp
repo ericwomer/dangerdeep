@@ -925,7 +925,7 @@ void show_credits()
 			lastframes = frames;
 		}
 
-		sys().swap_buffers();
+		sys().swap_buffers(sys().get_sdl_window());
 	}
 	
 	glClearColor(0, 0, 1, 0);

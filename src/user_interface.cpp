@@ -744,9 +744,9 @@ void user_interface::set_current_display(unsigned curdis)
 	// clear both screen buffers
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	sys().swap_buffers();
+	sys().swap_buffers(sys().get_sdl_window());
 	glClear(GL_COLOR_BUFFER_BIT);
-	sys().swap_buffers();
+	sys().swap_buffers(sys().get_sdl_window());
 
 	displays[current_display]->enter(daymode);
 	if (mygame)

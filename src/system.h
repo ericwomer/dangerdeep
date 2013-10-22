@@ -82,7 +82,7 @@ public:
 	system(const parameters& params);
 	~system();
 	void set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen);
-	void swap_buffers();
+	void swap_buffers(SDL_Window *window);
 
 	/** must be called once per frame (or the OS will think your app is dead)
 	    the events are also bypassed to the application.
@@ -148,6 +148,8 @@ public:
 	font& get_font(const std::string& basefilename) const;
 	bool unregister_font(const std::string& basefilename);
 
+	SDL_Window* get_sdl_window(void) { return screen; }
+
 private:
 	system();
 	system(const system& );
@@ -156,6 +158,8 @@ private:
 	void screen_resize(unsigned w, unsigned h, double nearz, double farz);
 
 	parameters params;
+	SDL_Window* screen; // !Rake: needed for some gl functions to work.
+	SDL_GLContext glcontext; // !Rake: in case its needed.
 
 	bool show_console;
 	const font* console_font;

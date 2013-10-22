@@ -435,7 +435,7 @@ game::run_state game__exec(game& gm, user_interface& ui)
 			lastframes = frames;
 		}
 		
-		sys().swap_buffers();
+		sys().swap_buffers(sys().get_sdl_window());
 	}
 	
 	ui.pause_all_sound();
@@ -2012,7 +2012,7 @@ int mymain(list<string>& args)
 				sys().prepare_2d_drawing();
 				font_arial->print(0, 0, str_problems.str());
 				sys().unprepare_2d_drawing();
-				sys().swap_buffers();
+				sys().swap_buffers(sys().get_sdl_window());
 				bool quit = false;
 				while (!quit) {
 					list<SDL_Event> events = sys().poll_event_queue();

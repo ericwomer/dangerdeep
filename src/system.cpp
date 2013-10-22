@@ -113,19 +113,32 @@ system::system(const parameters& params_) :
 	is_sleeping(false),
 	maxfps(0),
 	last_swap_time(0),
-	screenshot_nr(0)
+	screenshot_nr(0),
+	screen(nullptr)
 {
 	int err = SDL_Init(SDL_INIT_VIDEO);
 	if (err < 0)
 		throw sdl_error("video init failed");
 
-	if (params.window_caption.length() > 0) { // Why lenght() > 0 ?
-		SDL_WM_SetCaption(params.window_caption.c_str(), NULL);
-	}
+//	if (params.window_caption.length() > 0) { // Quesiont earlyer was answered.
+//		SDL_WM_SetCaption(params.window_caption.c_str(), NULL);
+//	}
 
 	// request available SDL video modes
-	SDL_Rect** modes = SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_HWSURFACE);
-	for (unsigned i = 0; modes[i]; ++i) {
+	// !Rake: Not necessary in SDL2 for
+	// initial runnint since we use
+	// SDL_FULLSCREEN_DESKTOP when
+	// creating the window
+	// ...hopefully.
+
+	SDL_DisplayMode** modes;
+	int numdisplays = 0, displayindex = 0; // displayindex can always be 0 here since its only for testing on one monitor/display
+
+	numdisplays = SDL_GetNumVideoDisplays();
+
+	for (int i = 0; i <= SDL_GetNumDisplayModes(displayindex); ++i) {
+		if(!SDL_GetDisplayMode(displayindex,i,modes[i]))
+			throw sdl_error("Failed to get display mode."); // !Rake: for lack of a better error message.
 		available_resolutions.push_back(vector2i(modes[i]->w, modes[i]->h));
 	}
 
@@ -137,12 +150,12 @@ system::system(const parameters& params_) :
 		throw;
 	}
 
-	SDL_EventState(SDL_VIDEORESIZE, SDL_IGNORE);//fixme
+	SDL_EventState(SDL_WINDOWEVENT_SIZE_CHANGED, SDL_IGNORE);//fixme
 	SDL_EventState(SDL_SYSWMEVENT, SDL_IGNORE);//fixme
 	SDL_JoystickEventState(SDL_IGNORE);
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);//fixme
+	// SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);//fixme !Rake: Fixed?
 	SDL_ShowCursor(SDL_ENABLE);//fixme
-	SDL_EnableUNICODE(1);
+	// SDL_EnableUNICODE(1); // !Rake: removed in SDL2
 
 	// check for some OpenGL Extensions
 	const char* vendorc = (const char*)glGetString(GL_VENDOR);
@@ -219,8 +232,11 @@ system::~system()
 
 void system::set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen)
 {
+
 	// only limit possible mode when using fullscreen.
 	// windows can have any sizes.
+	// !Rake: Add switch/case for fullscreen fullscreen_desktop and window
+
 	if (fullscreen) {
 		bool ok = false;
 		unsigned max_mode_x = 0, max_mode_y = 0;
@@ -236,6 +252,7 @@ void system::set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen)
 				}
 			}
 		}
+
 		if (res_x_ == 0 || res_y_ == 0) {
 			res_x_ = max_mode_x;
 			res_y_ = max_mode_y;
@@ -243,15 +260,19 @@ void system::set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen)
 			throw invalid_argument("invalid resolution requested!");
 		}
 	}
-	const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
-	if (!videoInfo)
-		throw sdl_error("Video info query failed");
+
+//	!Rake SDL_VideoInfo was removed from SDL2
+//	const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
+//	if (!videoInfo)
+//		throw sdl_error("Video info query failed");
+
 	// Note: the SDL_GL_DOUBLEBUFFER flag is ignored with OpenGL modes.
 	// the flags SDL_HWPALETTE, SDL_HWSURFACE and SDL_HWACCEL
 	// are not needed for OpenGL mode.
-	int videoFlags  = SDL_OPENGL;
+	int videoFlags  = SDL_WINDOW_OPENGL;
 	if (fullscreen)
-		videoFlags |= SDL_FULLSCREEN;
+		videoFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP; // !Rake: Its a nice safety mesure to use SDL_WINDOW_FULLSCREEN_DESKTOP
+													 // and let the players change it later.
 	if (SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1) < 0)
 		throw sdl_error("setting double buffer mode failed");
 
@@ -267,13 +288,25 @@ void system::set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen)
 	
 	// enable VSync, but doesn't work on Linux/Nvidia/SDL 1.2.11 (?!)
 	// works with Linux/Nvidia/SDL 1.2.12
-	if (SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, params.vertical_sync) < 0)
+	if (SDL_GL_SetSwapInterval( params.vertical_sync) < 0)
 		throw sdl_error("setting VSync failed");
-	int bpp = videoInfo->vfmt->BitsPerPixel;
+
 	
-	SDL_Surface* screen = SDL_SetVideoMode(res_x_, res_y_, bpp, videoFlags);
+	// SDL_Surface* screen = SDL_SetVideoMode(res_x_, res_y_, bpp, videoFlags);
+	screen = SDL_CreateWindow(params.window_caption.c_str(),
+										  SDL_WINDOWPOS_UNDEFINED,
+										  SDL_WINDOWPOS_UNDEFINED,
+										  0,0,
+										  SDL_WINDOW_FULLSCREEN_DESKTOP|SDL_WINDOW_OPENGL);
 	if (!screen)
 		throw sdl_error("Video mode set failed");
+
+	glcontext = SDL_GL_CreateContext(screen);
+	if (!glcontext) {
+		std::string error = "Couldn't create context: ";
+		error += SDL_GetError();
+		throw sdl_error(error.c_str());
+	}
 	params.resolution_x = res_x_;
 	params.resolution_y = res_y_;
 	params.fullscreen = fullscreen;
@@ -482,12 +515,12 @@ unsigned long system::millisec()
 
 
 
-void system::swap_buffers()
+void system::swap_buffers(SDL_Window *window)
 {
 	if (show_console) {
 		draw_console();
 	}
-	SDL_GL_SwapBuffers();
+	SDL_GL_SwapWindow(window);
 	if (maxfps > 0) {
 		unsigned tm = millisec();
 		unsigned d = tm - last_swap_time;
@@ -509,6 +542,8 @@ list<SDL_Event> system::poll_event_queue()
 {
 	list<SDL_Event> events;
 
+	Uint32 window_id = SDL_GetWindowID(sys().get_sdl_window()); // !Rake: Should only need to call this once
+
 	SDL_Event event;
 	do {
 		unsigned nr_of_events = 0;
@@ -522,7 +557,23 @@ list<SDL_Event> system::poll_event_queue()
  						log::instance().write(f, log::LOG_SYSINFO);
 					}
 					throw quit_exception(0);
-				
+				// !Rake: an attemp to rewrite the window focus event
+				case SDL_WINDOWEVENT:
+				if(event.window.windowID == window_id) {
+					if(event.window.event == SDL_WINDOWEVENT_FOCUS_LOST){
+							if(!is_sleeping) {
+								is_sleeping = true;
+								sleep_time = SDL_GetTicks();
+							}
+					}else if(event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+						if(is_sleeping) {
+								is_sleeping = false;
+								time_passed_while_sleeping += SDL_GetTicks() - sleep_time;
+							}
+					}
+				}
+				continue; // filter these events
+				/* !Rake: replaced with above ^
 				case SDL_ACTIVEEVENT:		// Application activation or focus event
 					if (event.active.state & SDL_APPMOUSEFOCUS) {
 						if (event.active.gain == 0) {
@@ -538,9 +589,10 @@ list<SDL_Event> system::poll_event_queue()
 						}
 					}
 					continue; // filter these events
-				
+				*/ // !Rake:
+
 				case SDL_KEYDOWN:		// Keyboard event - key down
-					if (event.key.keysym.unicode == '^')
+					if (event.key.keysym.scancode == SDL_SCANCODE_KP_POWER)
 						show_console = !show_console;
 					break;
 				

@@ -71,7 +71,8 @@ set(DFTDSOURCES
 	triangulate.cpp
 	user_interface.cpp
 	water.cpp
-	water_splash.cpp)
+	water_splash.cpp
+	mymain.cpp)
 
 set(DFTDMEDIASOURCES
 	bv_tree.cpp
@@ -112,6 +113,16 @@ set(THREADS_OBJ
 	mutex.cpp
 	condvar.cpp
 	log.cpp)
+
+set(OGLEXT_SRC
+	oglext/OglExt.cpp
+	oglext/RenderingContext.cpp)
+
+set(OGLEXT_INC
+	oglext/OglExt.h
+	oglext/Macros.h
+	oglext/RCHashArray.hpp
+	oglext/RenderingContext.hpp)
 
 
 set(INC
@@ -251,6 +262,6 @@ set(INC
 	xml.h
 	)
 
-add_executable(dangerdeep ${DFTDSOURCES} ${DFTDMEDIASOURCES} ${FILEHELPER_OBJ} ${WIDGET_OBJ} ${FRUSTUM_OBJ} ${DATADIRSOBJ} ${GLOBALDATAOBJ} ${THREADS_OBJ} ${INC} )
+add_executable(dangerdeep ${DFTDSOURCES} ${DFTDMEDIASOURCES} ${FILEHELPER_OBJ} ${WIDGET_OBJ} ${FRUSTUM_OBJ} ${DATADIRSOBJ} ${GLOBALDATAOBJ} ${THREADS_OBJ} ${OGLEXT_SRC} ${OGLEXT_INC} ${INC} )
 
 target_link_libraries(dangerdeep ${LIBS})
