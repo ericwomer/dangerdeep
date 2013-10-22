@@ -633,11 +633,21 @@ void widget::process_input(const SDL_Event& event)
 		} else if (event.button.button == SDL_BUTTON_MIDDLE) {
 			compute_focus(pos);
 			if (focussed) focussed->on_click(pos, SDL_BUTTON_MMASK);
-		} else if (event.button.button == SDL_BUTTON_WHEELUP) {
-			if (focussed) focussed->on_wheel(1);
-		} else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
-			if (focussed) focussed->on_wheel(2);
 		}
+		// !Rake: Rewrite see case SDL_MOUSEWHEEL:
+		// } else if (event.button.button == SDL_BUTTON_WHEELUP) {
+		//	if (focussed) focussed->on_wheel(1);
+		// } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
+		//	if (focussed) focussed->on_wheel(2);
+		//}
+		break;
+	case SDL_MOUSEWHEEL:
+		if (event.wheel.y > 0)
+			if(focussed)
+				focussed->on_wheel(1);
+		if (event.wheel.y < 0)
+			if(focussed)
+				focussed->on_wheel(2);
 		break;
 
 	case SDL_MOUSEBUTTONUP:
@@ -803,7 +813,7 @@ int widget::run(unsigned timeout, bool do_stacking, widget* focussed_at_begin)
 		}
 		sys().unprepare_2d_drawing();
 		process_input(events);
-		sys().swap_buffers();
+		sys().swap_buffers(sys().get_sdl_window());
 	}
 	widgets.pop_back();
 	if (!do_stacking)
@@ -1442,8 +1452,8 @@ void widget_edit::on_char(const SDL_Keysym& ks)
 		cursorpos = l;
 	} else if (c == SDLK_RETURN) {
 		on_enter();
-	} else if (c >= 32 && c <= 255 && c != 127) {
-		string stx = font::to_utf8(ks.unicode);
+	} else if (c >= 32 && c <= 255 && c != 127) { // !Rake: Pending complete rewrite
+		string stx = font::to_utf8(ks.scancode); // !Rake: changed from font::to_utf8(ks.unicode);
 		unsigned stxw = globaltheme->myfont->get_size(stx).x;
 		if (int(textw + stxw + 8) < size.x) {
 			if (cursorpos < l) {

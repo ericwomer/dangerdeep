@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "xml.h"
-#include "tinyxml/tinyxml.h"
+#include <tinyxml.h> // !Rake: moved from custom tinyxml to system tinyxml
 #include <stdio.h>
 
 #ifdef WIN32

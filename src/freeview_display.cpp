@@ -203,14 +203,15 @@ void freeview_display::process_input(class game& gm, const SDL_Event& event)
 			//fixme handle clamping of elevation at +-90deg
 		}
 		break;
-		case SDL_MOUSEWHEEL: // Come up with a better scheme later on if this on does
-							 // pan out.
-				if (event.wheel.y > 0) {
-			add_pos += forward * 15;
-				} else if (event.wheel.y < 0) {
-			add_pos -= forward * 15;
-                }
-                break;
+	case SDL_MOUSEWHEEL: // Come up with a better scheme later on if this one does
+						 // not pan out.
+			if (event.wheel.y > 0) {
+		add_pos += forward * 15;
+			} else if (event.wheel.y < 0) {
+		add_pos -= forward * 15;
+			   }
+		break;
+
 	default:
 		break;
 	}
