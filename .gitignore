@@ -4,3 +4,7 @@ build
 *.bak
 *.user
 *.autosave
+
+# Generic files that do not 
+# need to be in git
+*.log
