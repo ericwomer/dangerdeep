@@ -1,0 +1,3 @@
+
+#define DATADIR "@datadir@"
+#define VERSION "@version@"

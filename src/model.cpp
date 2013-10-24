@@ -50,6 +50,8 @@ texture::mapping_mode model::mapping = texture::LINEAR_MIPMAP_LINEAR;//texture::
 
 unsigned model::init_count = 0;
 
+const unsigned model::mesh::no_adjacency;
+
 /*
 fixme: possible cleanup/simplification of rendering EVERYWHERE:
 0) maybe introduce a camera class that generates projection and camera modelview matrices.

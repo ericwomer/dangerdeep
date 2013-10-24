@@ -35,6 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "global_constants.h"
 #include <SDL_image.h>
 #include <stdexcept>
+#include "system_defines.h"
 
 using namespace std;
 
@@ -88,7 +89,7 @@ void display_loading_screen()
 		y += fh;
 	}
 	sys().unprepare_2d_drawing();
-	sys().swap_buffers();
+	sys().swap_buffers(sys().get_sdl_window());
 }
 
 void reset_loading_screen()

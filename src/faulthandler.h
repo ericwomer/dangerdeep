@@ -27,9 +27,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Win32 and MacOsX do not suppport backtracking
 */
 
+
+
+
 #if (defined (__APPLE__) && defined (__MACH__)) || defined MINGW32
 
 #include <stdio.h>
+
+__attribute__((always_inline))
 
 inline void print_stack_trace()
 {
@@ -126,6 +131,7 @@ void install_segfault_handler()
 
 inline void print_stack_trace()
 {
+
 	void *array[16];
 	int size = backtrace(array, 16);
 	if (size < 0) {
@@ -197,8 +203,9 @@ inline void print_stack_trace()
 	}
 }
 
-void sigsegv_handler(int )
+inline void sigsegv_handler(int )
 {
+
 	fprintf(stderr, "SIGSEGV caught!\n");
 	print_stack_trace();
 	fprintf(stderr, "Aborting program.\n");
@@ -207,8 +214,9 @@ void sigsegv_handler(int )
 
 
 
-void install_segfault_handler()
+inline void install_segfault_handler()
 {
+
 	signal(SIGSEGV, sigsegv_handler);
 }
 

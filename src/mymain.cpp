@@ -47,11 +47,13 @@ int mymain(list<string>& args);
 
 int call_mymain(list<string>& args)
 {
+
 	log_info("***** Log file started *****");
 	int result = 0;
 #ifdef WIN32
 	result = mymain(args);
 #else
+
 	try {
 		result = mymain(args);
 	}
@@ -68,6 +70,7 @@ int call_mymain(list<string>& args)
 		print_stack_trace();
 		result = -2;
 	}
+
 #endif
 
 	string log_file =
@@ -87,6 +90,8 @@ int call_mymain(list<string>& args)
 
 #ifdef WIN32
 
+std::cout << "Should not be here!" << std::endl;
+
 int WinMain(HINSTANCE, HINSTANCE, LPSTR cmdline, int)
 {
 	string mycmdline(cmdline);
@@ -103,14 +108,17 @@ int WinMain(HINSTANCE, HINSTANCE, LPSTR cmdline, int)
 
 #else	// UNIX
 
-int main(int argc, char** argv)
+int main(int argc, char* argv[])
 {
+
 	list<string> args;
 	//parse argc, argv, do not store program name
 	while (argc > 1) {
+		// std::cout << "args: " << string(argv[argc]) << std::endl;
 		args.push_front(string(argv[--argc]));
 	}
 	return call_mymain(args);
 }
 
 #endif
+

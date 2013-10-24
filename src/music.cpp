@@ -62,8 +62,6 @@ music::~music()
 {
 }
 
-
-
 void music::destructor()
 {
 	map<string, vector<Mix_Chunk*> >::iterator it;
@@ -82,8 +80,6 @@ void music::destructor()
 	}
 	sfx_machines.clear();
 }
-
-
 
 void music::start_play_track(unsigned nr, unsigned fadeintime)
 {

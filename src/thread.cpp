@@ -56,14 +56,19 @@ thread::thread(const char* name)
 	  thread_state(THRSTAT_NONE),
 	  myname(name)
 {
+	if(name == nullptr) {
+		std::cout << "Error name is uninitialized!" << std::endl;
+	} else {
+		std::cout << "name = " << name << std::endl;
+	}
 }
-
-
 
 void thread::run()
 {
+
+	// 'this' pointer is null
 	try {
-		log::instance().new_thread(myname);
+		log::instance().new_thread(myname); // !!Rake!!: Causing last fail bug
 		init();
 	}
 	catch (std::exception& e) {
@@ -115,41 +120,49 @@ void thread::run()
 }
 
 
-
 thread::~thread()
 {
 }
-
-
 
 void thread::request_abort()
 {
 	thread_abort_request = true;
 }
 
-
-
 void thread::start()
 {
+
+	if(this == nullptr){
+		std::cout << "Error this is null" << std::endl;
+	} else {
+		std::cout << "this->myname = " << this->myname << std::endl;
+	}
+
+
+	std::cout << "this->myname " << this->myname << std::endl;
 	if (thread_abort_request)
 		throw error("thread abort requested, but start() called");
 	mutex_locker ml(thread_state_mutex);
+
 	if (thread_state != THRSTAT_NONE)
 		throw error("thread already started, but start() called again");
-	thread_id = SDL_CreateThread(thread_entry, this);
-	if (!thread_id)
+
+	thread_id = SDL_CreateThread(thread_entry, this->myname,this);
+	if (&thread_id == NULL){
 		throw sdl_error("thread start failed");
+	}
 	// we could wait with timeout, but how long? init could take any time...
+
 	thread_start_cond.wait(thread_state_mutex);
+
 	// now check if thread has started
 	if (thread_state == THRSTAT_INIT_FAILED)
 		throw std::runtime_error(("thread start failed: ") + thread_error_message);
 	// very rare, but possible
 	else if (thread_state == THRSTAT_ABORTED)
 		throw std::runtime_error(("thread run failed: ") + thread_error_message);
+
 }
-
-
 
 void thread::join()
 {
@@ -158,10 +171,7 @@ void thread::join()
 	delete this;
 	if (result < 0)
 		throw error(std::string("thread aborted with error: ") + thread_error_message);
-
 }
-
-
 
 void thread::destruct()
 {
@@ -180,28 +190,20 @@ void thread::destruct()
 		delete this;
 }
 
-
-
 void thread::sleep(unsigned ms)
 {
 	SDL_Delay(ms);
 }
-
-
 
 thread::id thread::get_my_id()
 {
 	return SDL_ThreadID();
 }
 
-
-
 thread::id thread::get_id() const
 {
 	return SDL_GetThreadID(thread_id);
 }
-
-
 
 bool thread::is_running()
 {

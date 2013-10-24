@@ -72,7 +72,7 @@ set(DFTDSOURCES
 	user_interface.cpp
 	water.cpp
 	water_splash.cpp
-	mymain.cpp)
+	)
 
 set(DFTDMEDIASOURCES
 	bv_tree.cpp
@@ -260,6 +260,7 @@ set(INC
 	water_splash.h
 	widget.h
 	xml.h
+	${SYS_INC}
 	)
 
 add_executable(dangerdeep ${DFTDSOURCES} ${DFTDMEDIASOURCES} ${FILEHELPER_OBJ} ${WIDGET_OBJ} ${FRUSTUM_OBJ} ${DATADIRSOBJ} ${GLOBALDATAOBJ} ${THREADS_OBJ} ${OGLEXT_SRC} ${OGLEXT_INC} ${INC} )

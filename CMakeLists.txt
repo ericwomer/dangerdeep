@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 project(dangerdeep)
-
+set(CMAKE_BUILD_TYPE "Debug")
 if (CMAKE_BUILD_TYPE STREQUAL "")
   # CMake defaults to leaving CMAKE_BUILD_TYPE empty. This screws up
   # differentiation between debug and release builds.
@@ -11,11 +11,13 @@ endif ()
 
 set(CMAKE_CXX_FLAGS_RELEASE "-Wall -std=c++11 -march=native -O3")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Wall -std=c++11 -march=native -g -O2")
-set(CMAKE_CXX_FLAGS_DEBUG "-Wall -std=c++11 -g -Og")
+set(CMAKE_CXX_FLAGS_DEBUG "-Wall -std=c++11 -g -Og -DDEBUG")
+
+set(CMAKE_LINKER_FLAGS "--export-dynamic")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
-################
+#------------------------------------
 
 find_package(SDL2 REQUIRED)
 if(SDL2_FOUND)
@@ -27,7 +29,7 @@ elseif(NOT_SDL2_FOUND)
     message(FATAL_ERROR "Could not find SDL2")
 endif(SDL2_FOUND)
 
-################
+#------------------------------------
 
 find_package(SDL2_mixer)
 if(SDL2_MIXER_FOUND)
@@ -39,7 +41,7 @@ elseif(NOT_SDL2_MIXER_FOUND)
     message(FATAL_ERROR "Could not find SDL2_mixer")
 endif(SDL2_MIXER_FOUND)
 
-################
+#------------------------------------
 
 find_package(SDL2_image)
 if(SDL2_IMAGE_FOUND)
@@ -51,7 +53,7 @@ elseif(NOT_SDL2_IMAGE_FOUND)
     message(FATAL_ERROR "Could not find SDL2_image")
 endif(SDL2_IMAGE_FOUND)
 
-################
+#------------------------------------
 
 find_package(OpenGL REQUIRED)
 if(OPENGL_FOUND)
@@ -63,7 +65,7 @@ elseif(NOT_OPENGL_FOUND)
     message(FATAL_ERROR "Could not find OpenGL")
 endif(OPENGL_FOUND)
 
-###############
+#------------------------------------
 
 find_package(BZip2)
 if(BZIP2_FOUND)
@@ -75,7 +77,7 @@ elseif(NOT_BZIP2_FOUND)
     message(FATAL_ERROR "Could not find BZip2")
 endif(BZIP2_FOUND)
 
-###############
+#------------------------------------
 
 find_package(X11)
 if(X11_FOUND)
@@ -87,7 +89,7 @@ elseif(NOT_X11_FOUND)
     message(FATAL_ERROR "Could not find X11")
 endif(X11_FOUND)
 
-###############
+#------------------------------------
 
 find_package(FFTW)
 if(FFTW_FOUND)
@@ -99,7 +101,7 @@ elseif(NOT_FFTW_FOUND)
     message(FATAL_ERROR "Could not find FFTW")
 endif(FFTW_FOUND)
 
-###############
+#------------------------------------
 
 find_package(TinyXML)
 if(TINYXML_FOUND)
@@ -111,7 +113,21 @@ elseif(NOT_TINYXML_FOUND)
     message(FATAL_ERROR "Could not find TinyXML")
 endif(TINYXML_FOUND)
 
-###############
+#------------------------------------
+
+#------------------------------------
+# !Rake: Do platform check to see where datadir needs
+# to point to then set DATADIR to datadir (overly complicated)
+set(datadir "/usr/local/share/dangerdeep") # default to linux for now
+set(version 0.3.900)
+configure_file(
+	"${CMAKE_CURRENT_SOURCE_DIR}/system_defines.h.in"
+	"${CMAKE_CURRENT_BINARY_DIR}/system_defines.h"
+)
+
+set(SYS_INC "${CMAKE_CURRENT_BINARY_DIR}/system_defines.h")
+## end system_defines.h
+#------------------------------------
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
@@ -126,6 +142,7 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist/bin)
 # Needed since everyone codes #include <someglheader.h> instead of
 # #include <GL/someglheader.h>
 include_directories("/usr/include/GL")
+include_directories("${CMAKE_BINARY_DIR}")
 
 set(LIBS
 	${OPENGL_LIBRARY}

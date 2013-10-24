@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "error.h"
 #include "filehelper.h"
 #include "log.h"
+#include "system_defines.h"
 
 // Note! this is a global variable and is inited before main,
 // any data depening on that variable, like objcache, textures etc. etc.

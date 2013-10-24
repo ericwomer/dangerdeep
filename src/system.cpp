@@ -44,6 +44,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <cstdarg>
 #include <stdexcept>
 #include <fstream>
+#include <vector>
 using namespace std;
 
 /*
@@ -104,6 +105,7 @@ system::parameters::parameters(double near_z_, double far_z_, unsigned res_x, un
 
 system::system(const parameters& params_) :
 	params(params_),
+	screen(0),
 	show_console(false),
 	console_font(0),
 	console_background(0),
@@ -113,9 +115,9 @@ system::system(const parameters& params_) :
 	is_sleeping(false),
 	maxfps(0),
 	last_swap_time(0),
-	screenshot_nr(0),
-	screen(nullptr)
+	screenshot_nr(0)
 {
+
 	int err = SDL_Init(SDL_INIT_VIDEO);
 	if (err < 0)
 		throw sdl_error("video init failed");
@@ -131,19 +133,36 @@ system::system(const parameters& params_) :
 	// creating the window
 	// ...hopefully.
 
-	SDL_DisplayMode** modes;
+	// SDL_DisplayMode* modes = new(SDL_DisplayMode);
 	int numdisplays = 0, displayindex = 0; // displayindex can always be 0 here since its only for testing on one monitor/display
 
 	numdisplays = SDL_GetNumVideoDisplays();
 
-	for (int i = 0; i <= SDL_GetNumDisplayModes(displayindex); ++i) {
-		if(!SDL_GetDisplayMode(displayindex,i,modes[i]))
+	int numdisplaymode = SDL_GetNumDisplayModes(displayindex);
+	if (numdisplaymode == 0)
+		throw sdl_error("Failed to query number of display modes");
+
+	std::vector<SDL_DisplayMode> modes; //
+	SDL_DisplayMode* dummy = new SDL_DisplayMode;
+
+
+	for (int i = 0; i < SDL_GetNumDisplayModes(0); ++i) {
+		if(SDL_GetDisplayMode(displayindex,i,dummy) != 0) {
 			throw sdl_error("Failed to get display mode."); // !Rake: for lack of a better error message.
-		available_resolutions.push_back(vector2i(modes[i]->w, modes[i]->h));
+		}
+
+#if DEBUG // !Rake: some debug cruft for your pleasure
+		cout << "Available Display Modes: " << dummy->w << "x" << dummy->h << " @ " << dummy->refresh_rate << std::endl;
+#endif // DEBUG
+		modes.push_back(*dummy);
+		available_resolutions.push_back(vector2i(dummy->w, dummy->h));
 	}
+	delete dummy;
 
 	try {
+
 		set_video_mode(params.resolution_x, params.resolution_y, params.fullscreen);
+
 	}
 	catch (...) {
 		SDL_Quit();
@@ -162,6 +181,7 @@ system::system(const parameters& params_) :
 	const char* rendererc = (const char*)glGetString(GL_RENDERER);
 	const char* versionc = (const char*)glGetString(GL_VERSION);
 	const char* extensionsc = (const char*)glGetString(GL_EXTENSIONS);
+
 	string vendor = vendorc ? vendorc : "???";
 	string renderer = rendererc ? rendererc : "???";
 	string version = versionc ? versionc : "???";
@@ -180,6 +200,7 @@ system::system(const parameters& params_) :
 			}
 		}
 	}
+
 	GLint nrtexunits = 0, nrlights = 0, nrclipplanes = 0, depthbits = 0;
 	GLint maxviewportdims[2] = { 0, 0 };
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &nrtexunits);
@@ -211,6 +232,7 @@ system::system(const parameters& params_) :
 		// we have an Nvidia card (most probably)
 		glsl_shader::is_nvidia_card = true;
 	}
+
 }
 
 
@@ -280,18 +302,14 @@ void system::set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen)
 	 * if (SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 0) < 0)
 	 *	throw sdl_error("setting accelerated visual failed");
 	 */
-	
+
 	if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, params.use_multisampling) < 0)
 		throw sdl_error("setting multisampling failed");
 	if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, params.multisample_level) < 0)
 		throw sdl_error("setting multisamplelevel failed");
-	
-	// enable VSync, but doesn't work on Linux/Nvidia/SDL 1.2.11 (?!)
-	// works with Linux/Nvidia/SDL 1.2.12
-	if (SDL_GL_SetSwapInterval( params.vertical_sync) < 0)
-		throw sdl_error("setting VSync failed");
 
-	
+
+
 	// SDL_Surface* screen = SDL_SetVideoMode(res_x_, res_y_, bpp, videoFlags);
 	screen = SDL_CreateWindow(params.window_caption.c_str(),
 										  SDL_WINDOWPOS_UNDEFINED,
@@ -301,12 +319,21 @@ void system::set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen)
 	if (!screen)
 		throw sdl_error("Video mode set failed");
 
+	std::cout << "SDL_GetWindowDisplayIndex: " << SDL_GetWindowDisplayIndex(screen) << endl;
 	glcontext = SDL_GL_CreateContext(screen);
 	if (!glcontext) {
 		std::string error = "Couldn't create context: ";
 		error += SDL_GetError();
 		throw sdl_error(error.c_str());
 	}
+
+	// enable VSync, but doesn't work on Linux/Nvidia/SDL 1.2.11 (?!)
+	// works with Linux/Nvidia/SDL 1.2.12
+	if (SDL_GL_SetSwapInterval( params.vertical_sync) < 0){
+		std::cout << "SDL_GL_SetSwapInterval: " << SDL_GetError() << std::endl;
+		throw sdl_error("setting VSync failed");
+	}
+
 	params.resolution_x = res_x_;
 	params.resolution_y = res_y_;
 	params.fullscreen = fullscreen;

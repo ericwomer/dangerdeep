@@ -1632,7 +1632,6 @@ int mymain(list<string>& args)
 {
 	// report critical errors (on Unix/Posix systems)
 	install_segfault_handler();
-
 	string highscoredirectory =
 #ifdef WIN32
 	"./highscores/";
@@ -1647,7 +1646,6 @@ int mymain(list<string>& args)
 #else
 	string(getenv("HOME"))+"/.dangerdeep/";
 #endif
-
 	// command line argument parsing
 	unsigned res_x = 0, res_y = 0;
 	bool fullscreen = true;
@@ -1657,7 +1655,6 @@ int mymain(list<string>& args)
 	bool override_lang = false;
 	bool use_sound = true;
 	date editor_start_date(1939, 9, 1);
-
 	// parse commandline
 	for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
 		if (*it == "--help") {
@@ -1907,6 +1904,8 @@ int mymain(list<string>& args)
 	mycfg.register_key(key_names[KEY_SHOW_TORPEDO_CAMERA].name, SDLK_k, 0, 0, 0);
 	mycfg.register_key(key_names[KEY_TAKE_SCREENSHOT].name,  SDLK_PRINTSCREEN, 0, 0, 0);
 
+
+
 	//mycfg.register_option("invert_mouse", false);
 	//mycfg.register_option("ocean_res_x", 128);
 	//mycfg.register_option("ocean_res_y", 128);
@@ -1934,14 +1933,17 @@ int mymain(list<string>& args)
 
 	glsl_shader::enable_hqsfx = cfg::instance().getb("use_hqsfx");
 
+
 	// read screen resolution from config file if no override has been set by command line parameters
 	if (res_x == 0) {
 		res_x = cfg::instance().geti("screen_res_x");
 		res_y = cfg::instance().geti("screen_res_y");
 	}
+
 	// Read language from options-file
 	if (!override_lang)
 		texts::set_language(cfg::instance().geti("language"));
+
 	// fixme: also allow 1280x1024, set up gl viewport for 4:3 display
 	// with black borders at top/bottom (height 2*32pixels)
 	// weather conditions and earth curvature allow 30km sight at maximum.
@@ -1959,6 +1961,7 @@ int mymain(list<string>& args)
 	params.hint_mipmap = mycfg.geti("hint_mipmap");
 	params.hint_texture_compression = mycfg.geti("hint_texture_compression");
 	params.vertical_sync = mycfg.getb("vsync");
+
 	texture::use_compressed_textures = mycfg.getb("use_compressed_textures");
 	texture::use_anisotropic_filtering = mycfg.getb("use_ani_filtering");
 	texture::anisotropic_level = mycfg.getf("anisotropic_level");
@@ -1978,6 +1981,7 @@ int mymain(list<string>& args)
 	// check for shader/glsl support
 
 #ifndef WIN32
+
 		tests gltest = tests();
 		int problems = gltest.do_gl_tests();
 		std::string warnings;
@@ -2027,6 +2031,7 @@ int mymain(list<string>& args)
 				throw system::quit_exception(-1);
 			}
 		}
+
 #endif // WIN32
 	// --------------------------------------------------------------------------------
 
@@ -2044,8 +2049,8 @@ int mymain(list<string>& args)
 
 	// create and start thread for music handling.
 	music::create_instance(new music(use_sound));
-	music::instance().start();
 
+	music::instance().start();
 	music::instance().append_track("ImInTheMood.ogg");
 	music::instance().append_track("Betty_Roche-Trouble_Trouble.ogg");
 	music::instance().append_track("theme.ogg");
@@ -2058,7 +2063,7 @@ int mymain(list<string>& args)
 	add_loading_screen("Music list loaded");
 	//music::instance().set_playback_mode(music::PBM_SHUFFLE_TRACK);
 	music::instance().play();
-	
+
 	widget::set_theme(auto_ptr<widget::theme>(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
 								    font_typenr16,
 								    color(182, 146, 137),
