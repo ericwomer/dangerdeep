@@ -70,9 +70,9 @@ bad_typeid
 system::parameters::parameters() :
 	near_z(1.0),
 	far_z(1000.0),
-	resolution_x(1024),
-	resolution_y(768),
-	fullscreen(true),
+	resolution_x(1680),
+	resolution_y(1050),
+	fullscreen(false),
 	use_multisampling(false),
 	hint_multisampling(0),
 	multisample_level(0),
@@ -292,7 +292,7 @@ void system::set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen)
 	// the flags SDL_HWPALETTE, SDL_HWSURFACE and SDL_HWACCEL
 	// are not needed for OpenGL mode.
 	int videoFlags  = SDL_WINDOW_OPENGL;
-	if (fullscreen)
+	 if (fullscreen)
 		videoFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP; // !Rake: Its a nice safety mesure to use SDL_WINDOW_FULLSCREEN_DESKTOP
 													 // and let the players change it later.
 	if (SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1) < 0)
