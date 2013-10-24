@@ -1235,7 +1235,7 @@ void apply_mode(widget_list* wlg)
 	// try to set video mode BEFORE writing to config file, so that if video mode
 	// is broken, user is not forced to same mode again on restart
 	try {
-		sys().set_video_mode(width, height, sys().is_fullscreen_mode());
+		sys().set_video_mode(width, height, sys().is_fullscreen_mode(),true);
 		cfg::instance().set("screen_res_y",int(height));
 		cfg::instance().set("screen_res_x",int(width));
 		glClearColor(0, 0, 0, 0);

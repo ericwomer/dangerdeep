@@ -81,7 +81,7 @@ public:
 	enum button_type { left_button=0x1, right_button=0x2, middle_button=0x4, wheel_up=0x8, wheel_down=0x10 };
 	system(const parameters& params);
 	~system();
-	void set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen);
+	void set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen, bool resize);
 	void swap_buffers(SDL_Window *window);
 
 	/** must be called once per frame (or the OS will think your app is dead)

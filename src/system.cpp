@@ -151,7 +151,7 @@ system::system(const parameters& params_) :
 			throw sdl_error("Failed to get display mode."); // !Rake: for lack of a better error message.
 		}
 
-#if DEBUG // !Rake: some debug cruft for your pleasure
+#ifdef DEBUG // !Rake: some debug cruft for your pleasure
 		cout << "Available Display Modes: " << dummy->w << "x" << dummy->h << " @ " << dummy->refresh_rate << std::endl;
 #endif // DEBUG
 		modes.push_back(*dummy);
@@ -160,9 +160,7 @@ system::system(const parameters& params_) :
 	delete dummy;
 
 	try {
-
-		set_video_mode(params.resolution_x, params.resolution_y, params.fullscreen);
-
+		set_video_mode(params.resolution_x, params.resolution_y, params.fullscreen,false);
 	}
 	catch (...) {
 		SDL_Quit();
@@ -252,7 +250,7 @@ system::~system()
 
 
 
-void system::set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen)
+void system::set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen, bool resize)
 {
 
 	// only limit possible mode when using fullscreen.
@@ -291,7 +289,7 @@ void system::set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen)
 	// Note: the SDL_GL_DOUBLEBUFFER flag is ignored with OpenGL modes.
 	// the flags SDL_HWPALETTE, SDL_HWSURFACE and SDL_HWACCEL
 	// are not needed for OpenGL mode.
-	int videoFlags  = SDL_WINDOW_OPENGL;
+	Uint32 videoFlags  = SDL_WINDOW_OPENGL;
 	 if (fullscreen)
 		videoFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP; // !Rake: Its a nice safety mesure to use SDL_WINDOW_FULLSCREEN_DESKTOP
 													 // and let the players change it later.
@@ -309,24 +307,26 @@ void system::set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen)
 		throw sdl_error("setting multisamplelevel failed");
 
 
-
-	// SDL_Surface* screen = SDL_SetVideoMode(res_x_, res_y_, bpp, videoFlags);
-	screen = SDL_CreateWindow(params.window_caption.c_str(),
+	if(!resize) {
+		// SDL_Surface* screen = SDL_SetVideoMode(res_x_, res_y_, bpp, videoFlags);
+		screen = SDL_CreateWindow(params.window_caption.c_str(),
 										  SDL_WINDOWPOS_UNDEFINED,
 										  SDL_WINDOWPOS_UNDEFINED,
-										  0,0,
-										  SDL_WINDOW_FULLSCREEN_DESKTOP|SDL_WINDOW_OPENGL);
-	if (!screen)
-		throw sdl_error("Video mode set failed");
+										  res_x_,res_y_,
+										  videoFlags);
+		if (!screen)
+			throw sdl_error("Video mode set failed");
 
-	std::cout << "SDL_GetWindowDisplayIndex: " << SDL_GetWindowDisplayIndex(screen) << endl;
-	glcontext = SDL_GL_CreateContext(screen);
-	if (!glcontext) {
-		std::string error = "Couldn't create context: ";
-		error += SDL_GetError();
-		throw sdl_error(error.c_str());
+		glcontext = SDL_GL_CreateContext(screen);
+		if (!glcontext) {
+			std::string error = "Couldn't create context: ";
+			error += SDL_GetError();
+			throw sdl_error(error.c_str());
+		}
+
+	} else { // must be window resize
+		SDL_SetWindowSize(screen,res_x_,res_y_);
 	}
-
 	// enable VSync, but doesn't work on Linux/Nvidia/SDL 1.2.11 (?!)
 	// works with Linux/Nvidia/SDL 1.2.12
 	if (SDL_GL_SetSwapInterval( params.vertical_sync) < 0){
