@@ -260,7 +260,7 @@ else:
 
 	# check for broken libGL, ignore undefined symbols then
 	if (checkconf == True and os.system('grep glBindProgram /usr/include/GL/gl*.h > /dev/null') == 0):
-		gllibdirs = ['/usr/X11R6/lib/', '/usr/lib/', '/usr/lib64/', '/usr/local/lib/', '/usr/local/lib64/']
+		gllibdirs = ['/usr/X11R6/lib/', '/usr/lib/', '/usr/lib64/', '/usr/local/lib/', '/usr/local/lib64/', '/usr/lib/x86_64-linux-gnu/']
 		gllibdir = ''
 		for i in gllibdirs:
 			if (os.system('test -f '+i+'libGL.so') == 0):
