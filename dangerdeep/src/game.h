@@ -212,7 +212,7 @@ protected:
 
 	class simulate_worker : public thread
 	{
-		mutex mtx;
+		::mutex mtx;
 		condvar cond;
 		condvar condfini;
 		game& gm;

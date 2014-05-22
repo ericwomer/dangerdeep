@@ -20,6 +20,8 @@
 // multithreading primitives: thread
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
+#include <string>
+
 #include "thread.h"
 #include "error.h"
 #include "system.h"

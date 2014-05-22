@@ -53,7 +53,7 @@ class thread
 	struct SDL_Thread* thread_id;
 	bool thread_abort_request;
 	thread_state_t thread_state;
-	mutex thread_state_mutex;
+	::mutex thread_state_mutex;
 	condvar thread_start_cond;
 	std::string thread_error_message; // to pass exception texts via thread boundaries
 	const char* myname;

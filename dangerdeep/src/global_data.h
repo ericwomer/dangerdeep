@@ -118,8 +118,18 @@ inline unsigned rnd(unsigned b) { return unsigned(b*rnd()); }
 inline Sint32 clamp_zero(Sint32 x) { return x & ~(x >> 31); }
 inline Sint32 clamp_value(Sint32 x, Sint32 val) { return val - clamp_zero(val - x); }
 
-inline unsigned ulog2(unsigned x) { unsigned i = 0; for ( ; x > 0; ++i, x >>= 1); return i - 1; }
-inline unsigned nextgteqpow2(unsigned x) { unsigned i = 1; for ( ; i < x && i != 0; i <<= 1); return i; }
+inline unsigned ulog2(unsigned x) {
+    unsigned i = 0;
+    for ( ; x > 0; ++i, x >>= 1) {}
+    return i - 1;
+}
+
+inline unsigned nextgteqpow2(unsigned x) {
+    unsigned i = 1;
+    for ( ; i < x && i != 0; i <<= 1) {}
+    return i;
+}
+
 inline bool ispow2(unsigned x) { return (x & (x-1)) == 0; }
 
 // give degrees,minutes like this 123/45x with x = N,W,E,S 
