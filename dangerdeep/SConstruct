@@ -358,7 +358,10 @@ VariantDir(target_dir, source_base_dir, duplicate=0)
 
 ############### Helper functions
 def findSVN(basedir):
-	f = open(basedir + os.sep + '.svn' + os.sep + 'entries')
+        try:
+	        f = open(basedir + os.sep + '.svn' + os.sep + 'entries')
+        except:
+                return []
 	lines = f.readlines()
 	mydirs = []
 	myfiles = []
