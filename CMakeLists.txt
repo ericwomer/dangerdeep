@@ -108,7 +108,7 @@ if(TINYXML_FOUND)
     include_directories(${TINYXML_INCLUDE_DIR})
     # set(LIBS ${LIBS} ${GLU_LIBRARY})
     message(STATUS "TINYXML_INCLUDE_DIR:        ${TINYXML_INCLUDE_DIR}")
-    message(STATUS "TINYXML_LIBRARY:            ${TINYXML_LIBRARIES}")
+	message(STATUS "TINYXML_LIBRAIES:            ${TINYXML_LIBRARY}")
 elseif(NOT_TINYXML_FOUND)
     message(FATAL_ERROR "Could not find TinyXML")
 endif(TINYXML_FOUND)
@@ -118,7 +118,7 @@ endif(TINYXML_FOUND)
 #------------------------------------
 # !Rake: Do platform check to see where datadir needs
 # to point to then set DATADIR to datadir (overly complicated)
-set(datadir "/usr/local/share/dangerdeep") # default to linux for now
+set(datadir "/usr/local/share/dangerdeep/") # default to linux for now
 set(version 0.3.900)
 configure_file(
 	"${CMAKE_CURRENT_SOURCE_DIR}/system_defines.h.in"

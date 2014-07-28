@@ -1,6 +1,4 @@
 
-
-
 set(DFTDSOURCES
 	subsim.cpp
 	ai.cpp
@@ -124,6 +122,8 @@ set(OGLEXT_INC
 	oglext/RCHashArray.hpp
 	oglext/RenderingContext.hpp)
 
+set(FAULT_HDLR_SRC
+	faulthandler.cpp)
 
 set(INC
 	ai.h
@@ -263,6 +263,6 @@ set(INC
 	${SYS_INC}
 	)
 
-add_executable(dangerdeep ${DFTDSOURCES} ${DFTDMEDIASOURCES} ${FILEHELPER_OBJ} ${WIDGET_OBJ} ${FRUSTUM_OBJ} ${DATADIRSOBJ} ${GLOBALDATAOBJ} ${THREADS_OBJ} ${OGLEXT_SRC} ${OGLEXT_INC} ${INC} )
+add_executable(dangerdeep ${DFTDSOURCES} ${DFTDMEDIASOURCES} ${FILEHELPER_OBJ} ${WIDGET_OBJ} ${FRUSTUM_OBJ} ${DATADIRSOBJ} ${GLOBALDATAOBJ} ${THREADS_OBJ} ${FAULT_HDLR_SRC} ${OGLEXT_SRC} ${OGLEXT_INC} ${INC} )
 
 target_link_libraries(dangerdeep ${LIBS})

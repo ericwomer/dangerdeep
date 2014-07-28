@@ -53,7 +53,7 @@ int call_mymain(list<string>& args)
 #ifdef WIN32
 	result = mymain(args);
 #else
-
+/*
 	try {
 		result = mymain(args);
 	}
@@ -70,6 +70,8 @@ int call_mymain(list<string>& args)
 		print_stack_trace();
 		result = -2;
 	}
+*/
+	result = mymain(args);
 
 #endif
 

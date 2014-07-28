@@ -256,6 +256,8 @@ void system::set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen,
 	// only limit possible mode when using fullscreen.
 	// windows can have any sizes.
 	// !Rake: Add switch/case for fullscreen fullscreen_desktop and window
+	// !Rake: This will get a rewrite completely to utilize SDL_WINDOW_FULLSCREEN_DESKTOP only since
+	// SDL_WINDOW_FULLSCREEN causes so many issues.
 
 	if (fullscreen) {
 		bool ok = false;
