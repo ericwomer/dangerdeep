@@ -3,6 +3,7 @@ build
 *.swp
 *.bak
 *.user
+*.user.*
 *.autosave
 
 # Generic files that do not 
