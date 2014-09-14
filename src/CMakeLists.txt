@@ -1,3 +1,4 @@
+include(${CMAKE_SOURCE_DIR}/cmake/modules/unity.cmake)
 
 set(DFTDSOURCES
 	subsim.cpp
@@ -263,6 +264,11 @@ set(INC
 	${SYS_INC}
 	)
 
-add_executable(dangerdeep ${DFTDSOURCES} ${DFTDMEDIASOURCES} ${FILEHELPER_OBJ} ${WIDGET_OBJ} ${FRUSTUM_OBJ} ${DATADIRSOBJ} ${GLOBALDATAOBJ} ${THREADS_OBJ} ${FAULT_HDLR_SRC} ${OGLEXT_SRC} ${OGLEXT_INC} ${INC} )
+set(MAIN_SRC ${DFTDSOURCES} ${DFTDMEDIASOURCES} ${FILEHELPER_OBJ} ${WIDGET_OBJ} ${FRUSTUM_OBJ} ${DATADIRSOBJ} ${GLOBALDATAOBJ} ${THREADS_OBJ} ${FAULT_HDLR_SRC} ${OGLEXT_SRC} ${OGLEXT_INC})
 
+if(USE_UNITY STREQUAL "ON")
+		enable_unity_build(dangerdeep MAIN_SRC )
+endif(USE_UNITY STREQUAL "ON")
+
+add_executable(dangerdeep ${MAIN_SRC} ${INC})
 target_link_libraries(dangerdeep ${LIBS})

@@ -8,6 +8,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "")
   set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build, options are: None (CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif ()
 
+option(USE_UNITY "Enable unity builds ON|OFF(default)" OFF) # OFF is the default until I fix the scope issues with vars.
 option(USE_CLANG "Build Dangerdeep with clang ON|OFF(default) " OFF) # OFF is the default
 
 if(${USE_CLANG} STREQUAL "OFF")
