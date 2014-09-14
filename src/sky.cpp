@@ -349,12 +349,12 @@ void sky::display(const colorf& lightcolor, const vector3& viewpos, double max_v
 	// set gl light position.
 	if (sundir.z > 0.0) {
 		vector3 sunpos = sundir * max_view_dist;
-		GLfloat lightpos[4] = { sunpos.x, sunpos.y, sunpos.z, 0.0f };
+		GLfloat lightpos[4] = { static_cast<float>(sunpos.x), static_cast<float>(sunpos.y), static_cast<float>(sunpos.z), 0.0f };
 		glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
 	} else {
 		// fixme: what is when moon is also below horizon?!
 		vector3 moonpos = moondir * max_view_dist;
-		GLfloat lightpos[4] = { moonpos.x, moonpos.y, moonpos.z, 0.0f };
+		GLfloat lightpos[4] = { static_cast<float>(moonpos.x), static_cast<float>(moonpos.y), static_cast<float>(moonpos.z), 0.0f };
 		glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
 	}
 
