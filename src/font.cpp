@@ -167,14 +167,20 @@ font::font(const string& basefilename, unsigned char_spacing)
 	character_texture.reset(new texture(basefilename + ".png", texture::LINEAR, texture::CLAMP));
 
 	ifstream metricfile((basefilename + ".metric").c_str());
+    if(!metricfile)
+    {
+        throw error(string("error loading file for ")+basefilename);
+    }
 	metricfile >> base_height;
 	metricfile >> first_char;
 	metricfile >> last_char;
 	characters.resize(last_char-first_char+1);
 	for (unsigned i = first_char; i <= last_char; ++i) {
 		if (!metricfile.good())
-			throw error(string("error reading font metricfile for ")+basefilename);
-		character& c = characters[i - first_char];
+        {
+			throw error(string("error reading font metricfile for ")+basefilename+string(" value: ")+std::to_string(i)+string(" state: ")+std::print_state(metricfile));
+		}
+        character& c = characters[i - first_char];
 		unsigned x, y;
 		metricfile >> x;
 		metricfile >> y;
