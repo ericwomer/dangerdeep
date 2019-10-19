@@ -176,6 +176,7 @@ elif 0 != mingw32:
 	datadir = './data'	# use slashes as separator always. C/C++ want it so.
 	build_dir = 'mingw32'
 else:
+
 	SConsignFile()
 	print "Compiling for GNU/Linux Environment (" + sys.platform + ")"
 	env = Environment(ENV = os.environ)
@@ -212,23 +213,25 @@ else:
 
 	env.Append(LINKFLAGS = '`pkg-config --libs-only-L x11`')
 	if (debug >= 4):
-		ccflags += ' -g -pg -O3' # profiling
+		ccflags += ' -std=c++03 -g -pg -O3' # profiling
 	elif (debug == 3):
-		ccflags += ' -g -O0'
+		ccflags += ' -std=c++03 -g3 -ggdb3 -O0'
 		env.Append(CPPDEFINES = ['DEBUG'])
 	elif (debug == 2):
-		ccflags += ' -g -O1'
+		ccflags += ' -std=c++03 -g -O1'
 		env.Append(CPPDEFINES = ['DEBUG'])
 	elif (debug == 1):
 		# same as debug==0 but with DEBUG defined to make logging work (and probably other stuff)
-		ccflags += ' -g -O2'
+		ccflags += ' -std=c++03 -g -O2'
 		env.Append(CPPDEFINES = ['DEBUG'])
 	elif (debug == -1):
-		ccflags += ' -g -O3 -mfpmath=sse -mmmx -msse -m3dnow'
+		ccflags += ' -std=c++03 -g -O3 -mfpmath=sse -mmmx -msse -m3dnow'
 	elif (debug == -2):	# special g++4.0+ auto vectorization
-		ccflags += ' -g -O3 -mfpmath=sse -mmmx -msse -m3dnow -ftree-vectorize'
+		ccflags += ' -std=c++03 -g -O3 -mfpmath=sse -mmmx -msse -m3dnow -ftree-vectorize'
 	elif (debug == -3):	# special g++4.0+ auto vectorization
-		ccflags += ' -g -O3 -mfpmath=sse -mmmx -msse -msse2 -m3dnow -ftree-vectorize'
+		ccflags += ' -std=c++03 -g -O3 -mfpmath=sse -mmmx -msse -msse2 -m3dnow -ftree-vectorize'
+	elif (debug == -4):
+		ccflags += ' -std=c++03 -g -Ofast -march=native -msse -msse2 -mavx -mavx2 -mbmi -mbmi2 -ftree-vectorize'
 	else:
 		if (useicc >= 1):
 			env.Replace(CC = "icc")

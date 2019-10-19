@@ -5,7 +5,8 @@ import sys
 Import('env', 'gfxlibs', 'alllibs', 'installbindir', 'datadir', 'version', 'osspecificsrc', 'ffmpeg_available', 'tests')
 
 ################## define sources #######################
-dftdsources = Split("""subsim.cpp
+dftdsources = Split("""
+	subsim.cpp
 	ai.cpp
 	airplane.cpp
 	bitstream.cpp
