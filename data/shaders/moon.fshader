@@ -1,17 +1,3 @@
-// -*- mode: C; -*-
-
-uniform sampler2D tex_diff;
-uniform sampler2D tex_nrml;
-uniform vec3 light_dir;
-
-varying vec2 texcoord;
-
-void main()
-{
-	vec4 c = texture2D(tex_diff, texcoord.xy);
-	vec3 n = texture2D(tex_nrml, texcoord.xy).xyz;
-	float br = dot(normalize(n), light_dir);
-	//br = 0.5 + br * 0.5;
-	br *= 2.0;
-	gl_FragColor = c * br;
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:dae9f3f0dda5e96fc1a8a7ef829d1ac5d2b0de4ea88b86d7312de63218a8febf
+size 336

@@ -1,28 +1,3 @@
-// -*- mode: C; -*-
-
-uniform sampler2D tex_color;	// diffuse color map (RGB)
-
-varying vec2 texcoord;
-varying float world_z;
-
-void main()
-{
-#ifdef HQSFX
-	if (world_z < 0.0)
-		discard;
-	float alpha = 1.0;
-#else
-	float alpha = world_z <= 0.0 ? 0.0 : 1.0; // does this work without if? fixme check asm output
-#endif
-
-	// compute diffuse color
-	vec3 diffuse_color = vec3(texture2D(tex_color, texcoord.xy));
-
-	// add linear fog
-	float fog_factor = clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0);
-
-	vec3 final_color = diffuse_color * vec3(gl_Color);
-
-	// output color is a mix between fog and final color
-	gl_FragColor = vec4(mix(vec3(gl_Fog.color), final_color, fog_factor), alpha);
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:95bedfb9e77b15d18ff5fd56a08b61d81fcab52dbb806c5c1373d220c1404571
+size 695

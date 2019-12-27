@@ -1,5 +1,3 @@
-void main(void)
-{
-    gl_TexCoord[0] = gl_MultiTexCoord0;
-    gl_Position    = ftransform();
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:c1e711829cab764faf69d200d30181befa140f13914e8ef173641d66382f0a4e
+size 95

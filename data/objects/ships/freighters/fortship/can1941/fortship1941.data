@@ -1,30 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<dftd-ship>
-  <classification identifier="fortship1941" modelname="fortship1941.ddxml" type="merchant" country="GB" >
-    <skin name="us_early" regions="NA,WA,NW,UC" countries="US" from="1941/1/1" until="1941/12/31" />
-    <skin name="battered" regions="NA,WA,NW,CE,UC" countries="CD,GB" from="1942/1/1" until="1945/12/31" />
-    <skin name="northern" regions="NA,WA,NW,NS,BA,CA,BS,CE" countries="CD,GB" from="1942/1/1" until="1945/12/31" />
-    <skin name="indic" regions="CA,SA,CS,IO,GM,ES,SC,MS" countries="GB" from="1942/1/1" until="1945/12/31" />
-  </classification>
-  <shipmanual class="North Sands class freighter (Forts)" displacement=" 7133 BRT" length="133m" countries="GB CA" weapons="none"/>
-  <description>
-    <far lang="en">Steam ship</far>
-    <far lang="de">Dampfer</far>
-    <far lang="it">Nave a vapore</far>
-    <medium lang="en">Merchant ship</medium>
-    <medium lang="de">Handelsschiff</medium>
-    <medium lang="it">Mercantile</medium>
-    <near lang="en">Fort ship (North Sands class merchant)</near>
-    <near lang="de">Fort Handelsschiff (North-Sands-Klasse)</near>
-    <near lang="it">Mercantile Fort (Mercantile di classe North sands)</near>
-  </description>
-  <motion maxspeed="1" maxrevspeed="0" acceleration="0.1" turnrate="0.1"/>
-  <tonnage value="7132" />
-  <mass value="8000000" />
-  <smoke type="1" x="0" y="1.75" z="17.4"/>
-  <sensors>
-    <sensor type="lookout"/>
-  </sensors>
-  <ai type="dumb"/>
-  <fuel capacity="1200" consumption_a="1" consumption_t="1"/>
-</dftd-ship>
+version https://git-lfs.github.com/spec/v1
+oid sha256:50cbc1a401d2197b80eb6a162140d3d20bbd207ac81ff916a0ab168687ccddc0
+size 1566

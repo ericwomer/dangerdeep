@@ -1,14 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<dftd-torpedo-fuses>
-  <Pi1 type="impact" failure_probability="0.3"/>
-  <Pi2 type="impact" failure_probability="0.2"/>
-  <Pi3 type="impact" failure_probability="0.1"/>
-  <Pi4a type="impact" failure_probability="0.1"/>
-  <Pi4b type="impact" failure_probability="0.1"/>
-  <Pi4c type="inertial" failure_probability="0.1"/>
-  <Pi6 type="inertial" failure_probability="0.02"/>
-  <TZ3 type="influence" failure_probability="0.5"/>
-  <TZ5 type="influence" failure_probability="0.2"/>
-  <TZ6 type="influence" failure_probability="0.1"/> <!-- active influence -->
-  <Fido type="impact" failure_probability="0.1"/> <!-- US device -->
-</dftd-torpedo-fuses>
+version https://git-lfs.github.com/spec/v1
+oid sha256:8697292a33ee522f5db6e594893dfec9a50083eb952315841b004c2288068a73
+size 699

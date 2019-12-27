@@ -1,6 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<widget name="keysmenu" type="default" pos_x="0" pos_y="0" width="1024" height="768" bg_image="titlebackgr.jpg" text="214">
-	<widget name="list_keys" type="list" pos_x="40" pos_y="50" width="944" height="640" column_width="700" />
-	<widget name="btn_menu_keys_change" type="button" text="215" pos_x="532" pos_y="708" width="452" height="40" />
-	<widget name="btn_menu_keys_close" type="button" text="20" pos_x="40" pos_y="708" width="452" height="40" />
-</widget>
+version https://git-lfs.github.com/spec/v1
+oid sha256:f1feea25061edf6843b680896cca977961e14ba5cbc369a31bf81f9219a0a6df
+size 519

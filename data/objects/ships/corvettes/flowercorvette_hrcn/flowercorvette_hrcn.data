@@ -1,34 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<dftd-ship>
-  <classification identifier="flowercorvette_hrcn" modelname="flowercorvette_hrcn.ddxml" type="escort" country="GB,CD" >
-    <skin name="mediterranean_royalnavy" regions="MS,ES" countries="GB" from="1939/1/1" until="1945/12/31" />
-    <skin name="canada_eastcoast_hmcs" regions="CE,NA" countries="CD" from="1939/1/1" until="1945/12/31" />
-  </classification>
-  <shipmanual class="Gladiolus (Flower, rev.) class corvette" displacement=" 980 BRT" length="62.48m" countries="GB CN AU" weapons="1x4'', 2x 40mm, 6x20mm."/>
-  <description>
-    <far lang="en">Convoy escort</far>
-    <far lang="de">Geleitschiff</far>
-    <far lang="it">Nave di scorta</far>
-    <medium lang="en">Corvette</medium>
-    <medium lang="de">Korvette</medium>
-    <medium lang="it">Corvette</medium>
-    <near lang="en">Flower class corvette</near>
-    <near lang="de">Korvette Flower-Klasse</near>
-    <near lang="it">Corvette di classe Flower</near>
-  </description>
-  <motion maxspeed="16" maxrevspeed="0" acceleration="1.0" turnrate="0.2"/>
-  <tonnage min="736" />
-  <mass value="1180000" />
-  <smoke type="2" x="0" y="1.8" z="10.8"/>
-  <sensors>
-    <sensor type="lookout"/>
-    <sensor type="passivesonar"/>
-    <sensor type="activesonar"/>
-    <sensor type="radar" model="British Type 271"/>
-  </sensors>
-  <ai type="escort"/>
-  <fuel capacity="1200" consumption_a="1" consumption_t="1"/>
-  <gun_turrets>
-    <turret barrels="1" shell_capacity="500" initial_velocity="275.0" max_inclination="40" max_declination="0" time_to_man="20" time_to_unman="20" shell_damage="5" calibre="100.00" exclusion_radius_start="135" exclusion_radius_end="225"/>
-    </gun_turrets>
-</dftd-ship>
+version https://git-lfs.github.com/spec/v1
+oid sha256:5c0a98305a1d348180066b6db6ee42295df16a2406f47bf73cf9470e461d26d6
+size 1722

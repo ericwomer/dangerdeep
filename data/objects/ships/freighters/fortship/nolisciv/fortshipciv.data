@@ -1,28 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<dftd-ship>
-  <classification identifier="fortshipciv" modelname="fortshipciv.ddxml" type="merchant" country="US" >
-    <skin name="americanexport" regions="WA,NA,CA,SA,CS,NP,CP,SP,GM,BB,UC,SC,CE,NW" from="1939/1/1" until="1945/12/31" />
-	<skin name="caribbean" regions="CS,CP,GM,UC,SC,SA,CA" from="1939/1/1" until="1944/12/31" />
-  </classification>
-  <shipmanual class="North Sands class freighter (Forts)" displacement=" 7108 BRT" length="131m" countries="GB CA" weapons="none"/>
-  <description>
-    <far lang="en">Steam ship</far>
-    <far lang="de">Dampfer</far>
-    <far lang="it">Nave a vapore</far>
-    <medium lang="en">Merchant ship</medium>
-    <medium lang="de">Handelsschiff</medium>
-    <medium lang="it">Mercantile</medium>
-    <near lang="en">Fort ship (North Sands class merchant)</near>
-    <near lang="de">Fort Handelsschiff (North-Sands-Klasse)</near>
-    <near lang="it">Mercantile Fort (Mercantile di classe North sands)</near>
-  </description>
-  <motion maxspeed="1" maxrevspeed="0" acceleration="0.1" turnrate="0.1"/>
-  <tonnage value="7132" />
-  <mass value="8000000" />
-  <smoke type="1" x="0" y="1.75" z="17.4"/>
-  <sensors>
-    <sensor type="lookout"/>
-  </sensors>
-  <ai type="dumb"/>
-  <fuel capacity="1200" consumption_a="1" consumption_t="1"/>
-</dftd-ship>
+version https://git-lfs.github.com/spec/v1
+oid sha256:bb8a70533bce5e9da37e645124778dd332f5e100fac0f37b422063ff16963094
+size 1345

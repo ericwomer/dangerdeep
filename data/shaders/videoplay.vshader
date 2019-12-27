@@ -1,16 +1,3 @@
-// -*- mode: C; -*-
-
-/* input:
-   gl_Vertex
-   gl_Texcoord0
-*/
-
-varying vec2 texcoord0;
-
-void main()
-{
-	// fetch texcoord directly
-	texcoord0 = gl_MultiTexCoord0.xy;
-
-	gl_Position = ftransform();
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:76b0f19f296edeb8ab0ef1c03768a5719a5308f8072403554286acc7bca3faa5
+size 198

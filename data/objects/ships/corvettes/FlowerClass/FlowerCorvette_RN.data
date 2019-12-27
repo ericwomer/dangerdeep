@@ -1,36 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<dftd-ship>
-  <classification identifier="FlowerCorvette_RN" modelname="FlowerCorvette_RN.ddxml" type="escort" country="GB" >
-    <skin name="north_atlantic_royal_navy" regions="NA" countries="GB" from="1939/1/1" until="1945/12/31" />
-    <skin name="mediteranean_sea_all_navies" regions="MS" countries="GB" from="1939/1/1" until="1945/12/31" />
-    <skin name="canadian_northatlantic" regions="CE,NA" countries="CD" from="1942/1/1" until="1945/12/31" />
-    <skin name="canadian_coast_na" regions="CE,NA" countries="CD" from="1943/1/1" until="1945/12/31" />
-  </classification>
-  <shipmanual class="Gladiolus (Flower) class corvette" displacement=" 925 BRT" length="62.48m" countries="GB CA DE" weapons="1x4'', 2x 12.7mm, 2x7.92mm."/>
-  <description>
-    <far lang="en">Convoy escort</far>
-    <far lang="de">Geleitschiff</far>
-    <far lang="it">Nave di scorta</far>
-    <medium lang="en">Corvette</medium>
-    <medium lang="de">Korvette</medium>
-    <medium lang="it">Corvette</medium>
-    <near lang="en">Flower class corvette</near>
-    <near lang="de">Korvette Flower-Klasse</near>
-    <near lang="it">Corvette di classe Flower</near>
-  </description>
-  <motion maxspeed="16" maxrevspeed="0" acceleration="1.0" turnrate="0.2"/>
-  <tonnage value="736" />
-  <mass value="1201240" />
-  <smoke type="2" x="0" y="1.8" z="10.8"/>
-  <sensors>
-    <sensor type="lookout"/>
-    <sensor type="passivesonar"/>
-    <sensor type="activesonar"/>
-    <sensor type="radar" model="British Type 271"/>
-  </sensors>
-  <ai type="escort"/>
-  <fuel capacity="1200" consumption_a="1" consumption_t="1"/>
-  <gun_turrets>
-    <turret barrels="1" shell_capacity="500" initial_velocity="275.0" max_inclination="40" max_declination="0" time_to_man="20" time_to_unman="20" shell_damage="5" calibre="100.00" exclusion_radius_start="135" exclusion_radius_end="225"/>
-    </gun_turrets>
-</dftd-ship>
+version https://git-lfs.github.com/spec/v1
+oid sha256:5f7d5f8052e3c4efc6203e6ac203167b5bdfb85eb09297d6903791a1f7880992
+size 1930

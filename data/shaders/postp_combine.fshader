@@ -1,15 +1,3 @@
-uniform sampler2D Pass0;
-uniform sampler2D Pass1;
-uniform sampler2D Pass2;
-uniform sampler2D Pass3;
-uniform vec4 bkgd;
-
-void main(void)
-{
-    vec4 t0 = texture2D(Pass0, gl_TexCoord[0].st) * 0.75;
-    vec4 t1 = texture2D(Pass1, gl_TexCoord[0].st) * 0.5;
-    vec4 t2 = texture2D(Pass2, gl_TexCoord[0].st) * 0.5;
-    vec4 t3 = texture2D(Pass3, gl_TexCoord[0].st) * 0.25;
-
-    gl_FragColor = t0 + t1 + t2 + t3 + bkgd;
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:22e380b9a3d0f958cb3aa5a9b87be97efafea1515c1daaec885a18177988a1f7
+size 416

@@ -1,21 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<dftd-airplane>
-  <classification identifier="heinkel115b1" modelname="heinkel115b1.ddxml" country="DE"/>
-  <description>
-    <far lang="en">Airplane</far>
-    <far lang="de">Flugzeug</far>
-    <far lang="it">Aeroplano</far>
-    <medium lang="en">Seaplane</medium>
-    <medium lang="de">Seeflugzeug</medium>
-    <medium lang="it">Aeroplano imbarcato</medium>
-    <near lang="en">Heinkel He115B-1</near>
-    <near lang="de">Heinkel He115B-1</near>
-    <near lang="it">Heinkel He115B-1</near>
-  </description>
-  <motion maxspeed="365" maxrevspeed="0" acceleration="1.0" turnrate="1.0"/>
-  <sensors>
-    <sensor type="lookout"/>
-  </sensors>
-  <ai type="dumb"/>
-  <fuel capacity="1200" consumption_a="1" consumption_t="1"/>
-</dftd-airplane>
+version https://git-lfs.github.com/spec/v1
+oid sha256:43c3d9a381c723b99f4087a5dfae88977566a2c248c19be18075e4dcef261b63
+size 794

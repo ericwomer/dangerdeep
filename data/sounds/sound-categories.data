@@ -1,29 +1,3 @@
-<?xml version="1.0" encoding="ISO_8859-1" standalone="yes"?>
-<sound-files>
-  <machines>
-    <sub-diesel levels="4">
-      <throttle level="1" file="screws_slow.ogg" />
-      <throttle level="2" file="screws_normal.ogg" />
-      <throttle level="3" file="screws_fast.ogg" />
-      <throttle level="4" file="screws_veryfast.ogg" />
-    </sub-diesel>
-    <escort levels="1">
-      <throttle level="1" file="machine1.ogg" />
-    </escort>
-  </machines>
-  <effects>
-    <big-gun-fire file="big_gun_firing.ogg" />
-    <big-gun-fire file="boom5.ogg" />
-    <medium-gun-fire file="medium_gun_firing.ogg" />
-    <deck-gun-fire file="deck_gun_firing.ogg" />
-    <depth-charge-launch file="depth_charge_launching.ogg" />
-    <depth-charge-explode file="depth_charge_exploding.ogg" />
-    <tube-launch file="liquidblast.ogg" />
-    <tube-launch file="torp.ogg" />
-    <ping file="ping.ogg" />
-    <ping file="sonarping_mono_id1.ogg" />
-    <ship-bell file="nshipbell.ogg" />
-    <shell-explode file="shell_explosion.ogg" />
-    <shell-splash file="shell_splash.ogg" />
-  </effects>
-</sound-files>
+version https://git-lfs.github.com/spec/v1
+oid sha256:c0ea63e3fdf2737859fc49aa595216ee516fc049a941346c8daa700d878d9c52
+size 1085

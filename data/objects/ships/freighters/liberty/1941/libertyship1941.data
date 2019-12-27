@@ -1,28 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<dftd-ship>
-  <classification identifier="libertyship1941" modelname="libertyship1941.ddxml" type="merchant" country="US" >
-    <skin name="earlywar1" regions="WA,NA,CA,NS,BS,UC,NW" countries="US" from="1941/1/1" until="1941/12/31" />
-    <skin name="earlywar2" regions="WA,NA,CA" countries="US" from="1941/1/1" until="1942/12/31" />
-  </classification>
-  <shipmanual class="Liberty Ship EC2-S-C1" displacement=" 10865 BRT" length="135m" countries="US GB" weapons="none"/>
-  <description>
-    <far lang="en">Steam ship</far>
-    <far lang="de">Dampfer</far>
-    <far lang="it">Nave a vapore</far>
-    <medium lang="en">Merchant ship</medium>
-    <medium lang="de">Handelsschiff</medium>
-    <medium lang="it">Mercantile</medium>
-    <near lang="en">Liberty ship</near>
-    <near lang="de">Handelsschiff Liberty-Klasse</near>
-    <near lang="it">Nave di classe Liberty</near>
-  </description>
-  <motion maxspeed="1" maxrevspeed="0" acceleration="0.1" turnrate="0.1"/>
-  <tonnage value="7177" />
-  <mass value="14000000" />
-  <smoke type="1" x="0" y="-2.2" z="18.7"/>
-  <sensors>
-    <sensor type="lookout"/>
-  </sensors>
-  <ai type="dumb"/>
-  <fuel capacity="1200" consumption_a="1" consumption_t="1"/>
-</dftd-ship>
+version https://git-lfs.github.com/spec/v1
+oid sha256:dfbe549734dd437c00f02e3bdb7506b85ec016ae3e8b7447732a1712dcc2d71c
+size 1271

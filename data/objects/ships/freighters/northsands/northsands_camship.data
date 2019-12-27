@@ -1,25 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<dftd-ship>
-  <classification identifier="northsands_camship" modelname="northsands_camship.ddxml" type="merchant" country="GB"/>
-  <shipmanual class="Fort ship Catapult Armed Merchantman" displacement=" 7098 BRT" length="132m" countries="GB CA" weapons="Hawker Sea Hurricane Mk.IIB"/>
-  <description>
-    <far lang="en">Steam ship</far>
-    <far lang="de">Dampfer</far>
-    <far lang="it">Nave a vapore</far>
-    <medium lang="en">Merchant ship</medium>
-    <medium lang="de">Handelsschiff</medium>
-    <medium lang="it">Mercantile</medium>
-    <near lang="en">North Sands class CAM ship</near>
-    <near lang="de">CAM-Schiff (North-Sands-Klasse)</near>
-    <near lang="it">Mercantile di classe North Sands CAM</near>
-  </description>
-  <motion maxspeed="1" maxrevspeed="0" acceleration="0.1" turnrate="0.1"/>
-  <tonnage value="7128" />
-  <mass value="7500000" />
-  <smoke type="1" x="0" y="1.75" z="17.4"/>
-  <sensors>
-    <sensor type="lookout"/>
-  </sensors>
-  <ai type="dumb"/>
-  <fuel capacity="1200" consumption_a="1" consumption_t="1"/>
-</dftd-ship>
+version https://git-lfs.github.com/spec/v1
+oid sha256:7a1f5422766eea8596cb01dc1e05af37b6c1d2e609ae909a9899965347e6e07f
+size 1114

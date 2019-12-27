@@ -1,22 +1,3 @@
-// -*- mode: C; -*-
-
-uniform sampler2D tex_y;
-uniform sampler2D tex_uv;
-
-varying vec2 texcoord0;
-
-void main()
-{
-	vec3 YUV;
-	YUV.x = texture2D(tex_y, texcoord0).x;
-	YUV.yz = texture2D(tex_uv, texcoord0).ra;
-	YUV -= vec3(1.0/16.0, 0.5, 0.5);
-	YUV.x = clamp(YUV.x, 0.0, 1.0);
-	const vec3 m0 = vec3(1.164,  0.0, 1.596);
-	const vec3 m1 = vec3(1.164, -0.391, -0.813);
-	const vec3 m2 = vec3(1.164,  2.018, 0.0);
-	vec3 RGB = vec3(dot(m0, YUV), dot(m1, YUV), dot(m2, YUV));
-	RGB = clamp(RGB, 0.0, 1.0);
-
-	gl_FragColor = vec4(RGB, 1.0);
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:c447151b30cfb46b57f9672c6f4d4aedc517492808a3003070e656b0b3851365
+size 529

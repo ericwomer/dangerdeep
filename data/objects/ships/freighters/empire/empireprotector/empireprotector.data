@@ -1,28 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<dftd-ship>
-  <classification identifier="empireprotector" modelname="empireprotector.ddxml" type="merchant" country="GB" >
-    <skin name="empirebruce" regions="CA,SA,CS,IO,GM,ES,SC,MS" countries="CD,GB" from="1939/1/1" until="1945/12/31" />
-	<skin name="empirelancer" regions="NA,WA,NW,NS,BA,CA,BS,CE" countries="CD,GB" from="1940/1/1" until="1945/12/31"/>
-  </classification>
-  <shipmanual class="Empire Protector, Lancer, freighter" displacement=" 6181 BRT" length="105m" countries="GB CA" weapons="none"/>
-  <description>
-    <far lang="en">Steam ship</far>
-    <far lang="de">Dampfer</far>
-    <far lang="it">Nave a vapore</far>
-    <medium lang="en">Merchant ship</medium>
-    <medium lang="de">Handelsschiff</medium>
-    <medium lang="it">Mercantile</medium>
-    <near lang="en">Empire Protector, Empire ship</near>
-    <near lang="de">Handelsschiff (Empire Protector, Empire Klasse)</near>
-    <near lang="it">Empire Protector (Mercantile di classe Empire)</near>
-  </description>
-  <motion maxspeed="1" maxrevspeed="0" acceleration="0.1" turnrate="0.1"/>
-  <tonnage value="6061" />
-  <mass value="7500000" />
-  <smoke type="1" x="0" y="-4" z="18"/>
-  <sensors>
-    <sensor type="lookout"/>
-  </sensors>
-  <ai type="dumb"/>
-  <fuel capacity="1200" consumption_a="1" consumption_t="1"/>
-</dftd-ship>
+version https://git-lfs.github.com/spec/v1
+oid sha256:afa2cce5997ce8278d723283980b09f486ced8ed6c179a6e38f3a8de9b342199
+size 1364
