@@ -1,0 +1,96 @@
+1.2.2 - 01/10/2006
+==================
+ - Recompiled with Visual Studio .NET 2005.
+
+
+1.2.1 - 12/22/2005
+==================
+ - Bugfix: Parsing of pointers (as return types) was incorrect.
+
+
+1.2.0 - 08/24/2005
+==================
+ - New: Added full support for OpenGL 2.0
+ - New: Added support for 'GL_ARB_color_buffer_float'
+ - New: Added support for 'GL_ARB_draw_buffers'
+ - New: Added support for 'GL_ARB_fragment_program_shadow'
+ - New: Added support for 'GL_ARB_fragment_shader'
+ - New: Added support for 'GL_ARB_half_float_pixel'
+ - New: Added support for 'GL_ARB_imaging'
+ - New: Added support for 'GL_ARB_pixel_buffer_object'
+ - New: Added support for 'GL_ARB_texture_float'
+ - New: Added support for 'GL_ARB_texture_mirrored_repeat'
+ - New: Added support for 'GL_ARB_texture_rectangle'
+ - New: Added support for 'GL_ARB_vertex_shader'
+ - New: Added support for 'GL_ATI_pixel_format_float'
+ - New: Added support for 'GL_ATI_text_fragment_shader'
+ - New: Added support for 'GL_EXT_blend_equation_separate'
+ - New: Added support for 'GL_EXT_Cg_shader'
+ - New: Added support for 'GL_EXT_framebuffer_object'
+ - New: Added support for 'GL_EXT_pixel_buffer_object'
+ - New: Added support for 'GL_EXT_texture_cube_map'
+ - New: Added support for 'GL_EXT_texture_edge_clamp'
+ - New: Added support for 'GL_EXT_texture_rectangle'
+ - New: Added support for 'GL_FfdMaskSGIX'
+ - New: Added support for 'GL_GREMEDY_string_marker'
+ - New: Added support for 'GL_INGR_palette_buffer'
+ - New: Added support for 'GL_INTEL_texture_scissor'
+ - New: Added support for 'GL_MESA_pack_invert'
+ - New: Added support for 'GL_MESA_ycbcr_texture'
+ - New: Added support for 'GL_NV_element_array'
+ - New: Added support for 'GL_NV_fragment_program2'
+ - New: Added support for 'GL_NV_fragment_program_option'
+ - New: Added support for 'GL_NV_pixel_buffer_object'
+ - New: Added support for 'GL_NV_stencil_two_side'
+ - New: Added support for 'GL_NV_vertex_program2_option'
+ - New: Added support for 'GL_NV_vertex_program3'
+ - New: Added support for 'GL_NVX_conditional_render'
+ - New: Added support for 'GL_OES_read_format'
+ - New: Added support for 'GL_SGIS_texture_select'
+ - New: Added support for 'GL_SGIX_impact_pixel_texture'
+ - New: Added support for 'GL_SGI_depth_pass_instrument'
+ - New: Added support for 'GL_WIN_phong_shading'
+ - New: Added support for 'GL_WIN_specular_fog'
+ - Change: Rewritten the whole extraction system (now XML based)
+
+
+1.1.0 - 07/06/2004
+==================
+ - New: Added full support for OpenGL 1.5
+ - New: Added support for Mac OS X
+ - Change: Use macros for gl-names (avoids symbol name conflicts)
+ - Change: Better debug output
+ - Change: No makefiles anymore. qmake pro files are distributed.
+ - Bugfix: Better handling for OpenGL version above 1.1
+
+
+1.0.2 - 11/14/2003
+==================
+ - New: Added support for 'GL_SGIS_multitexture'
+ - New: Added support for 'GL_EXT_multitexture'
+ - Bugfix: Header file was missing in archive
+
+
+1.0.1 - 11/07/2003
+==================
+ - New: Added support for 'GL_ARB_occlusion_query'
+ - New: Added support for 'GL_ARB_point_sprite'
+ - New: Added support for 'GL_ARB_shader_objects'
+ - New: Added support for 'GL_ARB_shading_language_100'
+ - New: Added support for 'GL_ARB_texture_non_power_of_two'
+ - New: Added support for 'GL_EXT_depth_bounds_test'
+ - New: Added support for 'GL_EXT_fragment_lighting'
+ - New: Added support for 'GL_EXT_texture_compression_s3tc'
+ - New: Added support for 'GL_EXT_texture_mirror_clamp'
+ - New: Added support for 'GL_IBM_static_data'
+ - New: Added support for 'GL_IBM_texture_mirrored_repeat'
+ - New: Added support for 'GL_SGI_color_matrix'
+ - New: Added specification links to the database
+ - Change: Debug messages changed (when calling unsupported functions)
+ - Change: License changed to GNU Lesser General Public License
+ - Bugfix: Crashed in debug mode when calling unsupported functions
+
+
+1.0.0 - 10/20/2003
+==================
+ - Initial release.
