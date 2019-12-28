@@ -178,7 +178,7 @@ font::font(const string& basefilename, unsigned char_spacing)
 	for (unsigned i = first_char; i <= last_char; ++i) {
 		if (!metricfile.good())
         {
-			throw error(string("error reading font metricfile for ")+basefilename+string(" value: ")+std::to_string(i)+string(" state: ")+std::print_state(metricfile));
+			throw error(string("error reading font metricfile for ")+basefilename+string(" value: ")+std::to_string(i)+string(" state: "));
 		}
         character& c = characters[i - first_char];
 		unsigned x, y;
