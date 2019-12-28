@@ -1,0 +1,256 @@
+
+
+
+set(DFTDSOURCES
+	subsim.cpp
+	ai.cpp
+	airplane.cpp
+	bitstream.cpp
+	bzip.cpp
+	caustics.cpp
+	cfg.cpp
+	coastmap.cpp
+	convoy.cpp
+	countrycodes.cpp
+	credits.cpp
+	date.cpp
+	daysky.cpp
+	depth_charge.cpp
+	dftdtester/tests.cpp
+	event.cpp
+	freeview_display.cpp
+	game.cpp
+	game_editor.cpp
+	gun_shell.cpp
+	height_generator_map.cpp
+	highscorelist.cpp
+	keys.cpp
+	logbook.cpp
+	logbook_display.cpp
+	map_display.cpp
+	message_queue.cpp
+	moon.cpp
+	music.cpp
+	parser.cpp
+	particle.cpp
+	sea_object.cpp
+	sensors.cpp
+	ship.cpp
+	ships_sunk_display.cpp
+	simplex_noise.cpp
+	sky.cpp
+	sonar.cpp
+	sonar_operator.cpp
+	stars.cpp
+	sub_bg_display.cpp
+	sub_bridge_display.cpp
+	sub_captainscabin_display.cpp
+	sub_control_popup.cpp
+	sub_damage_display.cpp
+	sub_ecard_popup.cpp
+	sub_gauges_display.cpp
+	sub_ghg_display.cpp
+	sub_kdb_display.cpp
+	sub_periscope_display.cpp
+	sub_recogmanual_display.cpp
+	sub_recogmanual_popup.cpp
+	sub_soldbuch_display.cpp
+	sub_tdc_display.cpp
+	sub_tdc_popup.cpp
+	sub_torpedo_display.cpp
+	sub_torpsetup_display.cpp
+	sub_uzo_display.cpp
+	sub_valves_display.cpp
+	submarine.cpp
+	submarine_interface.cpp
+	tdc.cpp
+	texts.cpp
+	tone_reproductor.cpp
+	torpedo.cpp
+	torpedo_camera_display.cpp
+	triangulate.cpp
+	user_interface.cpp
+	water.cpp
+	water_splash.cpp)
+
+set(DFTDMEDIASOURCES
+	bv_tree.cpp
+	error.cpp
+	font.cpp
+	fpsmeasure.cpp
+	framebufferobject.cpp
+	geoclipmap.cpp
+	image.cpp
+	make_mesh.cpp
+	model.cpp
+	perlinnoise.cpp
+	postprocessor.cpp
+	primitives.cpp
+	shader.cpp
+	system.cpp
+	texture.cpp
+	vertexbufferobject.cpp
+	xml.cpp)
+
+set(FILEHELPER_OBJ
+	filehelper.cpp)
+
+set(WIDGET_OBJ
+	widget.cpp)
+
+set(GLOBALDATAOBJ
+	global_data.cpp)
+
+set(DATADIRSOBJ
+	datadirs.cpp)
+
+set(FRUSTUM_OBJ
+	frustum.cpp)
+
+set(THREADS_OBJ
+	thread.cpp
+	mutex.cpp
+	condvar.cpp
+	log.cpp)
+
+
+set(INC
+	ai.h
+	airplane.h
+	airplane_interface.h
+	align16_allocator.h
+	angle.h
+	binstream.h
+	bitstream.h
+	bivector.h
+	bspline.h
+	bv_tree.h
+	bzip.h
+	caustics.h
+	cfg.h
+	coastmap.h
+	color.h
+	condvar.h
+	convoy.h
+	countrycodes.h
+	credits.h
+	datadirs.h
+	date.h
+	daysky.h
+	depth_charge.h
+	dmath.h
+	error.h
+	event.h
+	faulthandler.h
+	filehelper.h
+	fixed.h
+	font.h
+	fpsmeasure.h
+	fractal.h
+	framebufferobject.h
+	freeview_display.h
+	frustum.h
+	game.h
+	game_editor.h
+	geoclipmap.h
+	gldebug.h
+	global_constants.h
+	global_data.h
+	gun_shell.h
+	height_generator.h
+	height_generator_map.h
+	highscorelist.h
+	image.h
+	keys.h
+	log.h
+	logbook.h
+	logbook_display.h
+	make_mesh.h
+	map_display.h
+	matrix.h
+	matrix3.h
+	matrix4.h
+	message_queue.h
+	model.h
+	moon.h
+	morton_bivector.h
+	music.h
+	mutex.h
+	network.h
+	objcache.h
+	ocean_wave_generator.h
+	parser.h
+	particle.h
+	perlinnoise.h
+	plane.h
+	polygon.h
+	postprocessor.h
+	primitives.h
+	ptrlist.h
+	ptrvector.h
+	quaternion.h
+	random_generator.h
+	sea_object.h
+	sensors.h
+	shader.h
+	ship.h
+	ship_interface.h
+	ships_sunk_display.h
+	simplex_noise.h
+	singleton.h
+	sky.h
+	sonar.h
+	sonar_operator.h
+	sphere.h
+	stars.h
+	sub_bg_display.h
+	sub_bridge_display.h
+	sub_captainscabin_display.h
+	sub_control_popup.h
+	sub_damage_display.h
+	sub_ecard_popup.h
+	sub_gauges_display.h
+	sub_ghg_display.h
+	sub_kdb_display.h
+	sub_periscope_display.h
+	sub_recogmanual_display.h
+	sub_recogmanual_popup.h
+	sub_soldbuch_display.h
+	sub_tdc_display.h
+	sub_tdc_popup.h
+	sub_torpedo_display.h
+	sub_torpsetup_display.h
+	sub_uzo_display.h
+	sub_valves_display.h
+	submarine.h
+	submarine_interface.h
+	system.h
+	tdc.h
+	terrain.h
+	texts.h
+	texture.h
+	thread.h
+	tile.h
+	tile_cache.h
+	tone_reproductor.h
+	torpedo.h
+	torpedo_camera_display.h
+	tree_generator.h
+	triangle_intersection.h
+	triangulate.h
+	user_display.h
+	user_interface.h
+	user_popup.h
+	vector2.h
+	vector3.h
+	vector4.h
+	vertexbufferobject.h
+	water.h
+	water_splash.h
+	widget.h
+	xml.h
+	)
+
+add_executable(dangerdeep ${DFTDSOURCES} ${DFTDMEDIASOURCES} ${FILEHELPER_OBJ} ${WIDGET_OBJ} ${FRUSTUM_OBJ} ${DATADIRSOBJ} ${GLOBALDATAOBJ} ${THREADS_OBJ} ${INC} )
+
+target_link_libraries(dangerdeep ${LIBS})
