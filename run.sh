@@ -3,7 +3,7 @@
 dftd="./build/src/dangerdeep"
 datadir="--datadir data"
 options="--debug" # --maxfps 0"
-sound="--nosound"
+sound=""
 
 echo "Running [$dftd $options $datadir $sound]..."
 $dftd $options $datadir $sound

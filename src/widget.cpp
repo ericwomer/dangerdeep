@@ -278,13 +278,13 @@ void widget::add_action_listener(const action_listener* listener, bool recursive
 
 widget* widget::get_child(const std::string& child, bool recursive)
 {
-	widget* retval = 0;
+	widget* retval = nullptr;
 	
 	for(std::list<widget*>::iterator it = children.begin(); it != children.end(); it++) {
 		if((*it)->name == child) return *it;
 		else if(recursive) {
 			retval = (*it)->get_child(child);
-			if(retval>0) return retval;
+			if(retval != nullptr) return retval;
 		}
 	}
 	
