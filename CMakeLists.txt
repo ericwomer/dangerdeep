@@ -13,8 +13,8 @@ include(${CMAKE_SOURCE_DIR}/cmake/modules/PrecompiledHeaders.cmake)
 option(USE_UNITY "Enable unity builds" OFF)
 option(USE_CLANG "Build with Clang instead of GCC" OFF)
 
-# Silenciar deprecación de std::auto_ptr y hidden virtual (sobrecargas en derivadas)
-set(DEPRECATION_FLAG "-Wno-deprecated-declarations -Wno-overloaded-virtual")
+# Silenciar deprecación de std::auto_ptr (migración a unique_ptr pendiente)
+set(DEPRECATION_FLAG "-Wno-deprecated-declarations")
 
 if(NOT USE_CLANG)
 	message(STATUS "CMAKE_CXX_COMPILER: ${CMAKE_CXX_COMPILER}")

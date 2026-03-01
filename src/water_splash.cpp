@@ -85,7 +85,8 @@ void water_splash::simulate(double delta_time) {
         kill();
 }
 
-void water_splash::display() const {
+void water_splash::display(const texture *caustic_map) const {
+    (void)caustic_map;
     const texture &tex = *texturecache().find("splashring.png");
 
     if (lifetime - resttime > 0.5) {

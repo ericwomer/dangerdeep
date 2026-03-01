@@ -44,6 +44,8 @@ class gun_shell : public sea_object {
     void check_collision_voxel(ship &s, const vector3f &oldrelpos, const vector3f &newrelpos);
 
   public:
+    using sea_object::damage;
+
     gun_shell(game &gm_); // for loading
     gun_shell(game &gm_, const vector3 &pos, angle direction, angle elevation,
               double initial_velocity, double damage); // for creation
@@ -52,7 +54,7 @@ class gun_shell : public sea_object {
     virtual void save(xml_elem &parent) const;
 
     virtual void simulate(double delta_time);
-    virtual void display() const;
+    virtual void display(const texture *caustic_map = NULL) const;
     virtual float surface_visibility(const vector2 &watcher) const;
     // acceleration is only gravity and already handled by sea_object
     virtual double damage() const { return damage_amount; }

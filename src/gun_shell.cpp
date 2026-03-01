@@ -258,7 +258,8 @@ void gun_shell::simulate(double delta_time) {
     sea_object::simulate(delta_time);
 }
 
-void gun_shell::display() const {
+void gun_shell::display(const texture *caustic_map) const {
+    (void)caustic_map;
     // direction of shell is equal to normalized velocity vector.
     // so compute a rotation matrix from velocity and multiply it
     // onto the current modelview matrix.
