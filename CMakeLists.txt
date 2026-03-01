@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.10)
 
+# ccache (opcional): acelera recompilaciones reutilizando objetos ya compilados
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+	set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE STRING "C compiler launcher")
+	set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE STRING "C++ compiler launcher")
+	message(STATUS "ccache: activado (${CCACHE_PROGRAM})")
+else()
+	message(STATUS "ccache: no encontrado (instala ccache para recompilaciones más rápidas)")
+endif()
+
 project(dangerdeep LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)

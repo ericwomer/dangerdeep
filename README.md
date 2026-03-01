@@ -77,6 +77,12 @@ Opcionales para formato, lint, tests y cobertura:
 sudo apt install clang-format cppcheck valgrind lcov
 ```
 
+Opcional para **acelerar recompilaciones** (CMake lo usa automáticamente si está instalado):
+
+```bash
+sudo apt install ccache
+```
+
 ---
 
 ## Compilación
@@ -86,6 +92,8 @@ mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
 make -j$(nproc)
 ```
+
+Si tienes **ccache** instalado, CMake lo usará como launcher del compilador; las recompilaciones serán mucho más rápidas al reutilizar objetos ya compilados (en la salida de `cmake` verás "ccache: activado").
 
 El ejecutable se genera en `build/src/dangerdeep` (en algunas configuraciones puede estar en `build/dangerdeep`).
 
