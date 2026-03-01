@@ -20,5 +20,5 @@ int main(int, char **) {
         }
     }
     printf("ok\n");
-    return -1;
+    return 0;
 }

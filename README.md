@@ -69,10 +69,10 @@ sudo apt-get install -y \
   libx11-dev
 ```
 
-Opcionales para formato, lint y análisis de memoria:
+Opcionales para formato, lint, tests y cobertura:
 
 ```bash
-sudo apt install clang-format cppcheck valgrind
+sudo apt install clang-format cppcheck valgrind lcov
 ```
 
 ---
@@ -95,6 +95,8 @@ El ejecutable se genera en `build/src/dangerdeep` (en algunas configuraciones pu
 | `USE_UNITY`                | `ON`/`OFF` | Activar unity builds                              |
 | `BUILD_ASAN`               | `ON`/`OFF` | AddressSanitizer + LeakSanitizer (detección fugas) |
 | `BUILD_VALGRIND_FRIENDLY`  | `ON`/`OFF` | Binario compatible con Valgrind (sin `-march=native`) |
+| `BUILD_UNIT_TESTS`         | `ON`/`OFF` | Compilar tests unitarios (ptrlist_test, mutex_test, parser_test) |
+| `BUILD_COVERAGE`           | `ON`/`OFF` | Cobertura de código (gcov; para reporte usar `./run_tests.sh --coverage`) |
 
 ---
 
@@ -128,8 +130,13 @@ El script `run_tests.sh` aplica por defecto **formato** (clang-format) y **lint*
 | `./run_tests.sh --asan -b` | Compilar con AddressSanitizer/LeakSanitizer |
 | `./run_tests.sh --valgrind -b` | Compilar compatible con Valgrind y ejecutar bajo Valgrind |
 | `./run_tests.sh --valgrind` | Ejecutar bajo Valgrind (compilar antes con `--valgrind -b` si aparece «Instrucción ilegal») |
+| `./run_tests.sh --unit` | Compilar y ejecutar **tests unitarios** (ptrlist_test, mutex_test, parser_test) |
+| `./run_tests.sh --coverage` | Compilar con cobertura, ejecutar tests y generar **reporte de cobertura** (líneas + branches) en `build/coverage/html/` |
 | `./run_tests.sh --opengl` | Test de capacidades OpenGL (dftdtester) |
 | `./run_tests.sh --help` | Ver todas las opciones |
+
+Los tests unitarios usan **CTest**; `parser_test` necesita el directorio `data/` (variable de entorno `DFTD_DATA` o argumento con la ruta a `data`).  
+Para el reporte de cobertura se usa **lcov** con *branch coverage*; instalación: `sudo apt install lcov`.
 
 > Con **Valgrind**, el juego se lanza con `--datadir` apuntando a `data/`. Si los assets son punteros Git LFS, el script avisa y sugiere `git lfs pull`.  
 > El script usa `valgrind-suppressions.supp` para ignorar fugas conocidas de librerías del sistema (NVIDIA, X11, SDL2, PulseAudio, D-Bus); el test solo falla si hay fugas en código del proyecto.

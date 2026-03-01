@@ -1,7 +1,15 @@
 #include "parser.h"
 #include <iostream>
-int main() {
-    parser p("/home/tj/subsim/dangerdeep/data/texts/common.csv");
+#include <cstdlib>
+#include <string>
+int main(int argc, char** argv) {
+    const char* data_env = std::getenv("DFTD_DATA");
+    std::string csv_path = (argc >= 2) ? argv[1] : (data_env ? std::string(data_env) + "/texts/common.csv" : "");
+    if (csv_path.empty()) {
+        std::cerr << "Uso: parser_test <ruta_a_data> o DFTD_DATA=<dir_data>\n";
+        return 1;
+    }
+    parser p(csv_path);
     unsigned l = 0;
     do {
         unsigned o = 0;
@@ -14,4 +22,5 @@ int main() {
         } while (p.next_column());
         ++l;
     } while (p.next_line());
+    return 0;
 }

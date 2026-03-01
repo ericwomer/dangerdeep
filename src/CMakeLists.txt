@@ -272,3 +272,7 @@ endif(USE_UNITY STREQUAL "ON")
 
 add_executable(dangerdeep ${MAIN_SRC} ${INC})
 target_link_libraries(dangerdeep ${LIBS})
+
+if(BUILD_UNIT_TESTS)
+	add_subdirectory(test)
+endif()

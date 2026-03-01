@@ -160,6 +160,73 @@ run_opengl_test() {
 	fi
 }
 
+run_unit_tests() {
+	log_info "Tests unitarios (ctest)..."
+	if ! command -v ctest &>/dev/null; then
+		log_skip "ctest no encontrado (viene con CMake)"
+		return 0
+	fi
+	if [[ ! -f "${BUILD_DIR}/CTestTestfile.cmake" ]]; then
+		log_fail "No hay tests registrados. Compilá con: $0 --unit -b"
+		return 1
+	fi
+	export DFTD_DATA="${SCRIPT_DIR}/data"
+	[[ -d "$DFTD_DATA" ]] || DFTD_DATA="${SCRIPT_DIR}"
+	if ( cd "$BUILD_DIR" && ctest --output-on-failure ); then
+		log_ok "Todos los tests unitarios pasaron."
+		return 0
+	else
+		log_fail "Algunos tests unitarios fallaron."
+		return 1
+	fi
+}
+
+run_coverage() {
+	log_info "Generando reporte de cobertura (líneas y branches)..."
+	if ! command -v lcov &>/dev/null || ! command -v genhtml &>/dev/null; then
+		log_skip "lcov/genhtml no instalados. Instalación: sudo apt install lcov"
+		return 0
+	fi
+	local cov_dir="${BUILD_DIR}/coverage"
+	local info_file="${cov_dir}/coverage.info"
+	mkdir -p "$cov_dir"
+	# Borrar .gcda viejos para evitar "mismatch" / "inconsistent" con .gcno actual
+	find "$BUILD_DIR" -name "*.gcda" -delete 2>/dev/null || true
+	# Ejecutar tests para generar .gcda
+	export DFTD_DATA="${SCRIPT_DIR}/data"
+	[[ -d "$DFTD_DATA" ]] || DFTD_DATA="${SCRIPT_DIR}"
+	if [[ -f "${BUILD_DIR}/CTestTestfile.cmake" ]]; then
+		log_info "Ejecutando tests para generar datos de cobertura..."
+		( cd "$BUILD_DIR" && ctest --output-on-failure -Q ) || true
+	fi
+	# Capturar contadores (sin --no-external para no excluir src/ al correr desde build/)
+	local raw_info="${cov_dir}/coverage_raw.info"
+	# mismatch/inconsistent pueden aparecer con GCC 14+; ignorarlos para obtener reporte
+	if ! ( cd "$BUILD_DIR" && lcov --capture --directory . --output-file "$raw_info" \
+		--rc branch_coverage=1 --ignore-errors source,gcov,mismatch,inconsistent --keep-going 2>/dev/null ); then
+		[[ -s "$raw_info" ]] || { log_fail "Falló lcov capture. Probá: rm -rf build && $0 --coverage -b"; return 1; }
+	fi
+	# Quedarnos solo con fuentes del proyecto (evitar headers del sistema)
+	local pattern="*dangerdeep*"
+	if ! lcov --extract "$raw_info" "$pattern" --output-file "$info_file" --rc branch_coverage=1 2>/dev/null; then
+		cp "$raw_info" "$info_file"
+	fi
+	rm -f "$raw_info"
+	if [[ ! -s "$info_file" ]]; then
+		log_fail "No quedaron datos de cobertura del proyecto (patrón $pattern). Revisá rutas en $raw_info."
+		return 1
+	fi
+	# Generar HTML con branch coverage (ruta base para que genhtml encuentre los fuentes)
+	if ! genhtml "$info_file" --output-directory "${cov_dir}/html" --branch-coverage \
+		--title "Danger from the Deep" --legend \
+		--ignore-errors inconsistent,corrupt 2>&1; then
+		log_fail "Falló genhtml (revisá el mensaje arriba)"
+		return 1
+	fi
+	log_ok "Cobertura generada en ${cov_dir}/html/index.html"
+	return 0
+}
+
 run_valgrind() {
 	log_info "Ejecutando con Valgrind (detección de fugas de memoria)..."
 	if ! command -v valgrind &>/dev/null; then
@@ -207,6 +274,8 @@ DO_LINT=1
 DO_LINT_FULL=0
 DO_GL=0
 DO_VALGRIND=0
+DO_UNIT_TESTS=0
+DO_COVERAGE=0
 EXTRA_CMAKE_ARGS=""
 
 for arg in "$@"; do
@@ -214,6 +283,8 @@ for arg in "$@"; do
 		--build|-b)        DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
 		--asan)            EXTRA_CMAKE_ARGS="-DBUILD_ASAN=ON"; DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
 		--valgrind)        DO_VALGRIND=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0; EXTRA_CMAKE_ARGS="-DBUILD_VALGRIND_FRIENDLY=ON" ;;
+		--unit|--tests)    DO_UNIT_TESTS=1; EXTRA_CMAKE_ARGS="${EXTRA_CMAKE_ARGS} -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
+		--coverage)        DO_COVERAGE=1; EXTRA_CMAKE_ARGS="${EXTRA_CMAKE_ARGS} -DBUILD_COVERAGE=ON -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
 		--format|-f)      DO_FORMAT_CHECK=1; DO_FORMAT_APPLY=0 ;;
 		--format-apply)   DO_FORMAT_APPLY=1 ;;
 		--no-format)      DO_FORMAT_APPLY=0 ;;
@@ -234,12 +305,16 @@ for arg in "$@"; do
 			echo "  --lint-full    Lint completo: warning+style+performance, todo el código"
 			echo "  --no-lint     No ejecutar lint"
 			echo "  --gl, --opengl Test OpenGL (dftdtester)"
+			echo "  --unit, --tests Compilar y ejecutar tests unitarios (ptrlist, mutex, parser)"
+			echo "  --coverage     Compilar con cobertura, ejecutar tests y generar reporte (líneas + branches)"
 			exit 0
 			;;
 	esac
 done
 
 [[ $DO_BUILD -eq 1 ]] && { run_build_test || FAIL=1; } || true
+[[ $DO_UNIT_TESTS -eq 1 ]] && { run_unit_tests || FAIL=1; } || true
+[[ $DO_COVERAGE -eq 1 ]] && { run_coverage || FAIL=1; } || true
 [[ $DO_FORMAT_APPLY -eq 1 ]] && run_format_apply || true
 [[ $DO_FORMAT_CHECK -eq 1 ]] && { run_format_check || FAIL=1; } || true
 if [[ $DO_LINT_FULL -eq 1 ]]; then

@@ -14,6 +14,8 @@ option(USE_UNITY "Enable unity builds" OFF)
 option(USE_CLANG "Build with Clang instead of GCC" OFF)
 option(BUILD_ASAN "Build with AddressSanitizer + LeakSanitizer (detección fugas/errores memoria)" OFF)
 option(BUILD_VALGRIND_FRIENDLY "Build sin -march=native (compatible con Valgrind, evita 'Instrucción ilegal')" OFF)
+option(BUILD_UNIT_TESTS "Build tests unitarios (ptrlist_test, mutex_test, parser_test)" OFF)
+option(BUILD_COVERAGE "Build con cobertura de código (gcov/lcov, requiere Debug)" OFF)
 
 # Silenciar deprecación de std::auto_ptr (migración a unique_ptr pendiente)
 set(DEPRECATION_FLAG "-Wno-deprecated-declarations")
@@ -47,6 +49,13 @@ if(BUILD_ASAN)
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address,undefined -fno-omit-frame-pointer")
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address,undefined")
 	message(STATUS "Build con AddressSanitizer + LeakSanitizer (detección fugas de memoria)")
+endif()
+
+if(BUILD_COVERAGE)
+	set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Coverage requiere Debug" FORCE)
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} --coverage -fprofile-arcs -ftest-coverage")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+	message(STATUS "Build con cobertura de código (gcov, branch coverage)")
 endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
@@ -148,4 +157,7 @@ set(LIBS
 
 # message("LIBS:  ${LIBS}")
 
+if(BUILD_UNIT_TESTS)
+	enable_testing()
+endif()
 add_subdirectory(src)
