@@ -172,3 +172,110 @@ add_test(NAME matrix_test COMMAND matrix_test WORKING_DIRECTORY ${CMAKE_CURRENT_
 add_executable(global_constants_test ${TEST_DIR}/global_constants_test.cpp)
 target_link_libraries(global_constants_test ${LIBS})
 add_test(NAME global_constants_test COMMAND global_constants_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# === 50 tests adicionales ===
+add_executable(triangulate_test ${TEST_DIR}/triangulate_test.cpp ${SRC_PARENT}/triangulate.cpp)
+target_link_libraries(triangulate_test ${LIBS})
+add_test(NAME triangulate_test COMMAND triangulate_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(morton_bivector_test ${TEST_DIR}/morton_bivector_test.cpp)
+target_link_libraries(morton_bivector_test ${LIBS})
+add_test(NAME morton_bivector_test COMMAND morton_bivector_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(bzip_test ${TEST_DIR}/bzip_test.cpp)
+target_link_libraries(bzip_test ${LIBS})
+add_test(NAME bzip_test COMMAND bzip_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(xml_exception_test ${TEST_DIR}/xml_exception_test.cpp)
+target_link_libraries(xml_exception_test ${LIBS})
+add_test(NAME xml_exception_test COMMAND xml_exception_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(cfg_key_test ${TEST_DIR}/cfg_key_test.cpp)
+target_link_libraries(cfg_key_test ${LIBS})
+add_test(NAME cfg_key_test COMMAND cfg_key_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(bv_tree_leaf_test ${TEST_DIR}/bv_tree_leaf_test.cpp)
+target_link_libraries(bv_tree_leaf_test ${LIBS})
+add_test(NAME bv_tree_leaf_test COMMAND bv_tree_leaf_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(datadirs_test ${TEST_DIR}/datadirs_test.cpp ${SRC_PARENT}/datadirs.cpp ${SRC_PARENT}/filehelper.cpp ${SRC_PARENT}/log.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp)
+target_link_libraries(datadirs_test ${LIBS})
+add_test(NAME datadirs_test COMMAND datadirs_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(filehelper_test ${TEST_DIR}/filehelper_test.cpp ${SRC_PARENT}/filehelper.cpp ${SRC_PARENT}/error.cpp)
+target_link_libraries(filehelper_test ${LIBS})
+add_test(NAME filehelper_test COMMAND filehelper_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(log_test ${TEST_DIR}/log_test.cpp ${SRC_PARENT}/log.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp)
+target_link_libraries(log_test ${LIBS})
+add_test(NAME log_test COMMAND log_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(faulthandler_test ${TEST_DIR}/faulthandler_test.cpp ${SRC_PARENT}/faulthandler.cpp)
+target_link_libraries(faulthandler_test ${LIBS})
+add_test(NAME faulthandler_test COMMAND faulthandler_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(perlinnoise_test ${TEST_DIR}/perlinnoise_test.cpp ${SRC_PARENT}/perlinnoise.cpp)
+target_link_libraries(perlinnoise_test ${LIBS})
+add_test(NAME perlinnoise_test COMMAND perlinnoise_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(simplex_noise_test ${TEST_DIR}/simplex_noise_test.cpp ${SRC_PARENT}/simplex_noise.cpp)
+target_link_libraries(simplex_noise_test ${LIBS})
+add_test(NAME simplex_noise_test COMMAND simplex_noise_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(frustum_test ${TEST_DIR}/frustum_test.cpp ${SRC_PARENT}/frustum.cpp)
+target_link_libraries(frustum_test ${LIBS})
+add_test(NAME frustum_test COMMAND frustum_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(fractal_test ${TEST_DIR}/fractal_test.cpp ${SRC_PARENT}/simplex_noise.cpp)
+target_link_libraries(fractal_test ${LIBS})
+add_test(NAME fractal_test COMMAND fractal_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(thread_test ${TEST_DIR}/thread_test.cpp ${SRC_PARENT}/thread.cpp ${SRC_PARENT}/condvar.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${SRC_PARENT}/log.cpp)
+target_link_libraries(thread_test ${LIBS})
+add_test(NAME thread_test COMMAND thread_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(xml_doc_test ${TEST_DIR}/xml_doc_test.cpp)
+target_link_libraries(xml_doc_test ${LIBS})
+add_test(NAME xml_doc_test COMMAND xml_doc_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(bv_tree_test ${TEST_DIR}/bv_tree_test.cpp ${SRC_PARENT}/bv_tree.cpp)
+target_link_libraries(bv_tree_test ${LIBS})
+add_test(NAME bv_tree_test COMMAND bv_tree_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(event_test ${TEST_DIR}/event_test.cpp)
+target_link_libraries(event_test ${LIBS})
+add_test(NAME event_test COMMAND event_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(tile_test ${TEST_DIR}/tile_test.cpp)
+target_link_libraries(tile_test ${LIBS})
+add_test(NAME tile_test COMMAND tile_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(tile_cache_test ${TEST_DIR}/tile_cache_test.cpp)
+target_link_libraries(tile_cache_test ${LIBS})
+add_test(NAME tile_cache_test COMMAND tile_cache_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(terrain_test ${TEST_DIR}/terrain_test.cpp)
+target_link_libraries(terrain_test ${LIBS})
+add_test(NAME terrain_test COMMAND terrain_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(height_generator_test ${TEST_DIR}/height_generator_test.cpp)
+target_link_libraries(height_generator_test ${LIBS})
+add_test(NAME height_generator_test COMMAND height_generator_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(ocean_wave_generator_test ${TEST_DIR}/ocean_wave_generator_test.cpp)
+target_link_libraries(ocean_wave_generator_test ${LIBS})
+add_test(NAME ocean_wave_generator_test COMMAND ocean_wave_generator_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(global_data_test ${TEST_DIR}/global_data_test.cpp)
+target_link_libraries(global_data_test ${LIBS})
+add_test(NAME global_data_test COMMAND global_data_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(tone_reproductor_test ${TEST_DIR}/tone_reproductor_test.cpp ${SRC_PARENT}/tone_reproductor.cpp)
+target_link_libraries(tone_reproductor_test ${LIBS})
+add_test(NAME tone_reproductor_test COMMAND tone_reproductor_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# Tests que requieren juego/OpenGL completo: sensors, coastmap, image, model, texture,
+# font, primitives, shader, music, height_generator_map, geoclipmap, caustics, water_splash,
+# particle, stars, moon, sky, daysky, water, sonar, gun_shell, depth_charge, torpedo,
+# convoy, sea_object, ship, airplane, submarine, ai - tienen .cpp en src/test/ pero no se
+# enlazan aquí (dependencias pesadas). tree_generator, logbook, countrycodes, message_queue, cfg, idem.
