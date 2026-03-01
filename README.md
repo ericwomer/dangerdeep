@@ -27,6 +27,7 @@ sudo apt-get install -y \
   libsdl2-mixer-dev \
   libtinyxml-dev \
   libgl1-mesa-dev \
+  libglu1-mesa-dev \
   libx11-dev
 ```
 
