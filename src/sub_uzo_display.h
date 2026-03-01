@@ -25,33 +25,32 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "freeview_display.h"
 
-class sub_uzo_display : public freeview_display
-{
-	void pre_display(class game& gm) const;
-	projection_data get_projection_data(class game& gm) const;
-	void set_modelview_matrix(class game& gm, const vector3& viewpos) const;
-	void post_display(class game& gm) const;
+class sub_uzo_display : public freeview_display {
+    void pre_display(class game &gm) const;
+    projection_data get_projection_data(class game &gm) const;
+    void set_modelview_matrix(class game &gm, const vector3 &viewpos) const;
+    void post_display(class game &gm) const;
 
-	texture::ptr uzotex;
-	texture::ptr compass;
+    texture::ptr uzotex;
+    texture::ptr compass;
 
-	int comp_size;
-	int xi;
-	int yi;
-	int dx;
+    int comp_size;
+    int xi;
+    int yi;
+    int dx;
 
-	bool zoomed;	// use 1,5x (false) or 6x (true) zoom
+    bool zoomed; // use 1,5x (false) or 6x (true) zoom
 
-public:
-	sub_uzo_display(class user_interface& ui_);
+  public:
+    sub_uzo_display(class user_interface &ui_);
 
-	//overload for zoom key handling ('y')
-	virtual void process_input(class game& gm, const SDL_Event& event);
+    // overload for zoom key handling ('y')
+    virtual void process_input(class game &gm, const SDL_Event &event);
 
-	virtual unsigned get_popup_allow_mask() const;
+    virtual unsigned get_popup_allow_mask() const;
 
-	void enter(bool is_day);
-	void leave();
+    void enter(bool is_day);
+    void leave();
 };
 
 #endif

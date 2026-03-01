@@ -25,37 +25,37 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "sea_object.h"
 
-#define AIR_RESISTANCE 0.05	// factor of velocity that gets subtracted
-				// from it to slow the shell down
+#define AIR_RESISTANCE 0.05 // factor of velocity that gets subtracted
+                            // from it to slow the shell down
 
 ///\brief Represents a gun shell with simulation of it.
-class gun_shell : public sea_object
-{
- private:
-	gun_shell();
-	gun_shell& operator=(const gun_shell& other);
-	gun_shell(const gun_shell& other);
- protected:
-	vector3 oldpos;		// position at last iteration (for collision detection)
-	double damage_amount;
+class gun_shell : public sea_object {
+  private:
+    gun_shell();
+    gun_shell &operator=(const gun_shell &other);
+    gun_shell(const gun_shell &other);
 
-	void check_collision();
-	void check_collision_precise(ship& s, const vector3& oldrelpos, const vector3& newrelpos);
-	void check_collision_voxel(ship& s, const vector3f& oldrelpos, const vector3f& newrelpos);
+  protected:
+    vector3 oldpos; // position at last iteration (for collision detection)
+    double damage_amount;
 
- public:
-	gun_shell(game& gm_);	// for loading
-	gun_shell(game& gm_, const vector3& pos, angle direction, angle elevation,
-		double initial_velocity, double damage);	// for creation
+    void check_collision();
+    void check_collision_precise(ship &s, const vector3 &oldrelpos, const vector3 &newrelpos);
+    void check_collision_voxel(ship &s, const vector3f &oldrelpos, const vector3f &newrelpos);
 
-	virtual void load(const xml_elem& parent);
-	virtual void save(xml_elem& parent) const;
+  public:
+    gun_shell(game &gm_); // for loading
+    gun_shell(game &gm_, const vector3 &pos, angle direction, angle elevation,
+              double initial_velocity, double damage); // for creation
 
-	virtual void simulate(double delta_time);
-	virtual void display() const;
-	virtual float surface_visibility(const vector2& watcher) const;
-	// acceleration is only gravity and already handled by sea_object
-	virtual double damage() const { return damage_amount; }
+    virtual void load(const xml_elem &parent);
+    virtual void save(xml_elem &parent) const;
+
+    virtual void simulate(double delta_time);
+    virtual void display() const;
+    virtual float surface_visibility(const vector2 &watcher) const;
+    // acceleration is only gravity and already handled by sea_object
+    virtual double damage() const { return damage_amount; }
 };
 
 #endif

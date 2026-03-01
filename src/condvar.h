@@ -27,37 +27,38 @@
 
 /// A classical condition variable.
 ///@note Condition variables work toger with class mutex.
-class condvar
-{
- protected:
-	struct SDL_cond* cdv;
- private:
-	condvar(const condvar& );
-	condvar& operator=(const condvar& );
- public:
-	/// create condition variable
-	condvar();
+class condvar {
+  protected:
+    struct SDL_cond *cdv;
 
-	/// destroy condition variable
-	~condvar();
+  private:
+    condvar(const condvar &);
+    condvar &operator=(const condvar &);
 
-	/// wait on condition
-	///@param m - mutex to encapsulate waiting condition
-	void wait(::mutex& m);
+  public:
+    /// create condition variable
+    condvar();
 
-	/// wait on condition with timeout
-	///@param m - mutex to encapsulate waiting condition
-	///@param ms - timeout value in milliseconds
-	///@return true when woken up by signal, false on timeout
-	bool timed_wait(::mutex& m, unsigned ms);
+    /// destroy condition variable
+    ~condvar();
 
-	/// send signal to threads that are waiting on the condition.
-	///@note Note that before sending the signal you must make the condition false that would
-	///	let the other thread call the wait(), or race conditions can occour.
-	///	Code that changes the condition must be encapsulated in a mutex-lock with the SAME mutex
-	///	that is used for the wait.\n
-	///	So typically call lock(); cond = false; signal(); unlock();
-	void signal();
+    /// wait on condition
+    ///@param m - mutex to encapsulate waiting condition
+    void wait(::mutex &m);
+
+    /// wait on condition with timeout
+    ///@param m - mutex to encapsulate waiting condition
+    ///@param ms - timeout value in milliseconds
+    ///@return true when woken up by signal, false on timeout
+    bool timed_wait(::mutex &m, unsigned ms);
+
+    /// send signal to threads that are waiting on the condition.
+    ///@note Note that before sending the signal you must make the condition false that would
+    ///	let the other thread call the wait(), or race conditions can occour.
+    ///	Code that changes the condition must be encapsulated in a mutex-lock with the SAME mutex
+    ///	that is used for the wait.\n
+    ///	So typically call lock(); cond = false; signal(); unlock();
+    void signal();
 };
 
 #endif

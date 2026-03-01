@@ -24,21 +24,26 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef RANDOM_GENERATOR_H
 #define RANDOM_GENERATOR_H
 
-class random_generator
-{
- public:
-	random_generator(unsigned seed = 0) : reg(seed) {}
-	virtual ~random_generator() {}
-	virtual unsigned rnd() { chaos(); return reg; }
-	virtual float rndf() { unsigned n = rnd(); return float(double(n)/unsigned(-1)); }
-	virtual void set_seed(unsigned seed) { reg = seed; }
+class random_generator {
+  public:
+    random_generator(unsigned seed = 0) : reg(seed) {}
+    virtual ~random_generator() {}
+    virtual unsigned rnd() {
+        chaos();
+        return reg;
+    }
+    virtual float rndf() {
+        unsigned n = rnd();
+        return float(double(n) / unsigned(-1));
+    }
+    virtual void set_seed(unsigned seed) { reg = seed; }
 
- protected:
-	virtual void chaos() {
-		reg = reg * 9699691 + 223092870;
-	}
+  protected:
+    virtual void chaos() {
+        reg = reg * 9699691 + 223092870;
+    }
 
-	unsigned reg;
+    unsigned reg;
 };
 
 #endif

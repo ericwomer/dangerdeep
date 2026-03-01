@@ -23,17 +23,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
+#include "singleton.h"
+#include "vector2.h"
 #include <SDL.h>
 #include <list>
-#include <set>
 #include <map>
+#include <set>
 #include <string>
-#include "vector2.h"
-#include "singleton.h"
 
 #ifdef WIN32
 #ifndef M_PI
-#define M_PI 3.1415926535897932	// should be in math.h, but not for Windows. *sigh*
+#define M_PI 3.1415926535897932 // should be in math.h, but not for Windows. *sigh*
 #endif
 #endif
 
@@ -45,159 +45,164 @@ class font;
 class texture;
 
 ///\brief This class groups system related functions like graphic output or user input.
-class system : public singleton<class system>
-{
-	friend class singleton<system>;
-public:
-	/// parameter structure for class system
-	struct parameters
-	{
-		double near_z;
-		double far_z;
-		unsigned resolution_x;
-		unsigned resolution_y;
-		std::string window_caption;
-		bool fullscreen;
-		bool use_multisampling;
-		int hint_multisampling;
-		int multisample_level;
-		int hint_fog;
-		int hint_mipmap;
-		int hint_texture_compression;
-		bool vertical_sync;
-		
-		parameters();
-		parameters(double near_z_, double far_z_, unsigned res_x, unsigned res_y, bool fullscreen_);
-	};
+class system : public singleton<class system> {
+    friend class singleton<system>;
 
-	/// used to handle out-of-order quit events, do NOT heir from std::exception!
-	class quit_exception
-	{
-	public:
-		int retval;
-		quit_exception(int retval_ = 0) : retval(retval_) {}
-	};
+  public:
+    /// parameter structure for class system
+    struct parameters {
+        double near_z;
+        double far_z;
+        unsigned resolution_x;
+        unsigned resolution_y;
+        std::string window_caption;
+        bool fullscreen;
+        bool use_multisampling;
+        int hint_multisampling;
+        int multisample_level;
+        int hint_fog;
+        int hint_mipmap;
+        int hint_texture_compression;
+        bool vertical_sync;
 
-	enum button_type { left_button=0x1, right_button=0x2, middle_button=0x4, wheel_up=0x8, wheel_down=0x10 };
-	system(const parameters& params);
-	~system();
-	void set_video_mode(unsigned& res_x_, unsigned& res_y_, bool fullscreen, bool resize);
-	void swap_buffers(SDL_Window *window);
+        parameters();
+        parameters(double near_z_, double far_z_, unsigned res_x, unsigned res_y, bool fullscreen_);
+    };
 
-	/** must be called once per frame (or the OS will think your app is dead)
-	    the events are also bypassed to the application.
-	    if you want to interpret the events yourself, just call flush_key_queue()
-	    after poll_event_queue to avoid filling the queue.
-	    Be careful! mouse button / move events need to be handled with
-	    translate_motion() / translate_position()
-	*/
-	std::list<SDL_Event> poll_event_queue();
-	double translate_motion_x(const SDL_Event& event);
-	double translate_motion_y(const SDL_Event& event);
-	vector2 translate_motion(const SDL_Event& event);
-	int translate_position_x(const SDL_Event& event);
-	int translate_position_y(const SDL_Event& event);
-	vector2i translate_position(const SDL_Event& event);
+    /// used to handle out-of-order quit events, do NOT heir from std::exception!
+    class quit_exception {
+      public:
+        int retval;
+        quit_exception(int retval_ = 0) : retval(retval_) {}
+    };
 
-	void draw_console_with(const font* fnt, const texture* background = 0);
-	void prepare_2d_drawing();	// must be called as pair!
-	void unprepare_2d_drawing();
+    enum button_type { left_button = 0x1,
+                       right_button = 0x2,
+                       middle_button = 0x4,
+                       wheel_up = 0x8,
+                       wheel_down = 0x10 };
+    system(const parameters &params);
+    ~system();
+    void set_video_mode(unsigned &res_x_, unsigned &res_y_, bool fullscreen, bool resize);
+    void swap_buffers(SDL_Window *window);
 
-	unsigned long millisec();	// returns time in milliseconds
+    /** must be called once per frame (or the OS will think your app is dead)
+        the events are also bypassed to the application.
+        if you want to interpret the events yourself, just call flush_key_queue()
+        after poll_event_queue to avoid filling the queue.
+        Be careful! mouse button / move events need to be handled with
+        translate_motion() / translate_position()
+    */
+    std::list<SDL_Event> poll_event_queue();
+    double translate_motion_x(const SDL_Event &event);
+    double translate_motion_y(const SDL_Event &event);
+    vector2 translate_motion(const SDL_Event &event);
+    int translate_position_x(const SDL_Event &event);
+    int translate_position_y(const SDL_Event &event);
+    vector2i translate_position(const SDL_Event &event);
 
-	static inline system& sys() { return instance(); }
-	
-	void set_screenshot_directory(const std::string& s) { screenshot_dir = s; }
-	void screenshot(const std::string& filename = std::string());
+    void draw_console_with(const font *fnt, const texture *background = 0);
+    void prepare_2d_drawing(); // must be called as pair!
+    void unprepare_2d_drawing();
 
-	// takes effect only after next prepare_2d_drawing()
-	void set_res_2d(unsigned x, unsigned y) { res_x_2d = x; res_y_2d = y; }
+    unsigned long millisec(); // returns time in milliseconds
 
-	// set area for 2d drawing
-	void set_res_area_2d(unsigned x, unsigned y, unsigned w, unsigned h) {
-		res_area_2d_x = x;
-		res_area_2d_y = y;
-		res_area_2d_w = w;
-		res_area_2d_h = h;
-	}
+    static inline system &sys() { return instance(); }
 
-	// set maximum fps rate (0 for unlimited)
-	void set_max_fps(unsigned fps) { maxfps = fps; }
+    void set_screenshot_directory(const std::string &s) { screenshot_dir = s; }
+    void screenshot(const std::string &filename = std::string());
 
-	// give FOV X in degrees, aspect (w/h), znear and zfar.	
-	void gl_perspective_fovx(double fovx, double aspect, double znear, double zfar);
+    // takes effect only after next prepare_2d_drawing()
+    void set_res_2d(unsigned x, unsigned y) {
+        res_x_2d = x;
+        res_y_2d = y;
+    }
 
-	unsigned get_res_x() const { return params.resolution_x; }
-	unsigned get_res_y() const { return params.resolution_y; }
-	unsigned get_res_x_2d() const { return res_x_2d; }
-	unsigned get_res_y_2d() const { return res_y_2d; }
-	vector2i get_res() const { return vector2i(params.resolution_x, params.resolution_y); }
-	vector2i get_res_2d() const { return vector2i(res_x_2d, res_y_2d); }
-	unsigned get_res_area_2d_x() const { return res_area_2d_x; }
-	unsigned get_res_area_2d_y() const { return res_area_2d_y; }
-	unsigned get_res_area_2d_w() const { return res_area_2d_w; }
-	unsigned get_res_area_2d_h() const { return res_area_2d_h; }
-	
-	// is a given OpenGL extension supported?
-	bool extension_supported(const std::string& s) const;
+    // set area for 2d drawing
+    void set_res_area_2d(unsigned x, unsigned y, unsigned w, unsigned h) {
+        res_area_2d_x = x;
+        res_area_2d_y = y;
+        res_area_2d_w = w;
+        res_area_2d_h = h;
+    }
 
-	const std::list<vector2i>& get_available_resolutions() const { return available_resolutions; }
-	bool is_fullscreen_mode() const { return params.fullscreen; }
+    // set maximum fps rate (0 for unlimited)
+    void set_max_fps(unsigned fps) { maxfps = fps; }
 
-	font& register_font(const std::string& basedir, const std::string& basefilename, unsigned char_spacing = 1);
-	font& get_font(const std::string& basefilename) const;
-	bool unregister_font(const std::string& basefilename);
+    // give FOV X in degrees, aspect (w/h), znear and zfar.
+    void gl_perspective_fovx(double fovx, double aspect, double znear, double zfar);
 
-	SDL_Window* get_sdl_window(void) { return screen; }
+    unsigned get_res_x() const { return params.resolution_x; }
+    unsigned get_res_y() const { return params.resolution_y; }
+    unsigned get_res_x_2d() const { return res_x_2d; }
+    unsigned get_res_y_2d() const { return res_y_2d; }
+    vector2i get_res() const { return vector2i(params.resolution_x, params.resolution_y); }
+    vector2i get_res_2d() const { return vector2i(res_x_2d, res_y_2d); }
+    unsigned get_res_area_2d_x() const { return res_area_2d_x; }
+    unsigned get_res_area_2d_y() const { return res_area_2d_y; }
+    unsigned get_res_area_2d_w() const { return res_area_2d_w; }
+    unsigned get_res_area_2d_h() const { return res_area_2d_h; }
 
-private:
-	system();
-	system(const system& );
-	system& operator= (const system& );
+    // is a given OpenGL extension supported?
+    bool extension_supported(const std::string &s) const;
 
-	void screen_resize(unsigned w, unsigned h, double nearz, double farz);
+    const std::list<vector2i> &get_available_resolutions() const { return available_resolutions; }
+    bool is_fullscreen_mode() const { return params.fullscreen; }
 
-	parameters params;
-	SDL_Window* screen; // !Rake: needed for some gl functions to work.
-	SDL_GLContext glcontext; // !Rake: in case its needed.
+    font &register_font(const std::string &basedir, const std::string &basefilename, unsigned char_spacing = 1);
+    font &get_font(const std::string &basefilename) const;
+    bool unregister_font(const std::string &basefilename);
 
-	bool show_console;
-	const font* console_font;
-	const texture* console_background;	
-	
-	std::set<std::string> supported_extensions;	// memory supported OpenGL extensions
-	
-	bool draw_2d;
-	unsigned res_x_2d, res_y_2d;	// real resolution (depends on user settings)
-	unsigned res_area_2d_x;
-	unsigned res_area_2d_y;
-	unsigned res_area_2d_w;
-	unsigned res_area_2d_h;
-	
-	void draw_console();
-	int transform_2d_x(int x);
-	int transform_2d_y(int y);
+    SDL_Window *get_sdl_window(void) { return screen; }
 
-	unsigned long time_passed_while_sleeping;	// total sleep time
-	unsigned long sleep_time;	// time when system gets to sleep
-	bool is_sleeping;
-	
-	unsigned maxfps;		// limit fps, give 0 for no limit.
-	unsigned long last_swap_time;	// time of last buffer swap
-	
-	double xscal_2d, yscal_2d;	// factors needed for 2d drawing
-	
-	int screenshot_nr;
-	std::string screenshot_dir;
+  private:
+    system();
+    system(const system &);
+    system &operator=(const system &);
 
-	// list of available resolutions
-	std::list<vector2i> available_resolutions;
+    void screen_resize(unsigned w, unsigned h, double nearz, double farz);
 
-	// fonts
-	std::map<std::string, font*> fonts;
+    parameters params;
+    SDL_Window *screen;      // !Rake: needed for some gl functions to work.
+    SDL_GLContext glcontext; // !Rake: in case its needed.
+
+    bool show_console;
+    const font *console_font;
+    const texture *console_background;
+
+    std::set<std::string> supported_extensions; // memory supported OpenGL extensions
+
+    bool draw_2d;
+    unsigned res_x_2d, res_y_2d; // real resolution (depends on user settings)
+    unsigned res_area_2d_x;
+    unsigned res_area_2d_y;
+    unsigned res_area_2d_w;
+    unsigned res_area_2d_h;
+
+    void draw_console();
+    int transform_2d_x(int x);
+    int transform_2d_y(int y);
+
+    unsigned long time_passed_while_sleeping; // total sleep time
+    unsigned long sleep_time;                 // time when system gets to sleep
+    bool is_sleeping;
+
+    unsigned maxfps;              // limit fps, give 0 for no limit.
+    unsigned long last_swap_time; // time of last buffer swap
+
+    double xscal_2d, yscal_2d; // factors needed for 2d drawing
+
+    int screenshot_nr;
+    std::string screenshot_dir;
+
+    // list of available resolutions
+    std::list<vector2i> available_resolutions;
+
+    // fonts
+    std::map<std::string, font *> fonts;
 };
 
 // to make user's code even shorter
-inline class system& sys() { return system::sys(); }
+inline class system &sys() { return system::sys(); }
 
 #endif

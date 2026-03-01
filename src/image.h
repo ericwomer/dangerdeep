@@ -23,37 +23,35 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#include <vector>
+#include "ptrvector.h"
+#include "texture.h" // needed at least for correct "delete" usage in ptrvector
+#include <SDL.h>
 #include <list>
 #include <string>
-#include <SDL.h>
-#include "ptrvector.h"
-#include "texture.h"	// needed at least for correct "delete" usage in ptrvector
-
+#include <vector>
 
 ///\brief Handles an image for OpenGL based rendering.
-class image
-{
-protected:
-	std::string name;	// filename
-	unsigned width, height;
-	unsigned gltx, glty;	// no. of textures in x and y direction
-	ptrvector<texture> textures;
+class image {
+  protected:
+    std::string name; // filename
+    unsigned width, height;
+    unsigned gltx, glty; // no. of textures in x and y direction
+    ptrvector<texture> textures;
 
-private:
-	image();
-	image& operator= (const image& other);
-	image(const image& other);
+  private:
+    image();
+    image &operator=(const image &other);
+    image(const image &other);
 
-public:
-	/// create image
-	image(const std::string& s);
+  public:
+    /// create image
+    image(const std::string &s);
 
-	/// draw image at position
-	void draw(int x, int y, const colorf& col = colorf(1,1,1,1)) const;
+    /// draw image at position
+    void draw(int x, int y, const colorf &col = colorf(1, 1, 1, 1)) const;
 
-	unsigned get_width() const { return width; };
-	unsigned get_height() const { return height; };
+    unsigned get_width() const { return width; };
+    unsigned get_height() const { return height; };
 };
 
 #endif

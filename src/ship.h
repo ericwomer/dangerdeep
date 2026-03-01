@@ -23,9 +23,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef SHIP_H
 #define SHIP_H
 
-#include <map>
-#include "sea_object.h"
 #include "bv_tree.h"
+#include "sea_object.h"
+#include <map>
 
 class game;
 
@@ -33,317 +33,320 @@ class game;
 /** Handles steering and rudder simulation,
     damage control and other things.
     Ship attributes are defined via specification XML file. */
-class ship : public sea_object
-{
- private:
-	ship();
-	ship(const ship& other);
-	ship& operator= (const ship& other);
+class ship : public sea_object {
+  private:
+    ship();
+    ship(const ship &other);
+    ship &operator=(const ship &other);
 
- public:
-	// give negative values for fixed speeds, positive values for knots.
-	enum throttle_status { reversefull=-9, reversehalf=-8, reverse=-7 /* reverse slow */,
-			       aheadlisten=-6, aheadsonar=-5, aheadslow=-4,
-			       aheadhalf=-3, aheadfull=-2, aheadflank=-1, stop=0  };
+  public:
+    // give negative values for fixed speeds, positive values for knots.
+    enum throttle_status { reversefull = -9,
+                           reversehalf = -8,
+                           reverse = -7 /* reverse slow */,
+                           aheadlisten = -6,
+                           aheadsonar = -5,
+                           aheadslow = -4,
+                           aheadhalf = -3,
+                           aheadfull = -2,
+                           aheadflank = -1,
+                           stop = 0 };
 
-	enum rudder_status { rudderfullleft=-2, rudderleft=-1, ruddermidships=0, rudderright=1,
-		rudderfullright=2 };
+    enum rudder_status { rudderfullleft = -2,
+                         rudderleft = -1,
+                         ruddermidships = 0,
+                         rudderright = 1,
+                         rudderfullright = 2 };
 
-	enum gun_status {
-		TARGET_OUT_OF_RANGE = -1,	// used by deck gun
-		NO_AMMO_REMAINING = 0,	// used by deck gun
-		GUN_FIRED = 1,
-		RELOADING = 2,
-		GUN_NOT_MANNED = 3,
-		GUN_TARGET_IN_BLINDSPOT = 4,
-		NO_GUNS = 5
-	};
+    enum gun_status {
+        TARGET_OUT_OF_RANGE = -1, // used by deck gun
+        NO_AMMO_REMAINING = 0,    // used by deck gun
+        GUN_FIRED = 1,
+        RELOADING = 2,
+        GUN_NOT_MANNED = 3,
+        GUN_TARGET_IN_BLINDSPOT = 4,
+        NO_GUNS = 5
+    };
 
-	enum head_to_param {
-		HEAD_TO_UNDEFINED = 0,
-		HEAD_TO_LEFT  = 0x01,
-		HEAD_TO_RIGHT = 0x02,
-		HEAD_TO_FORCE_DIRECTION = 0x04,
-		HEAD_TO_ALLOW_HARD_RUDDER = 0x08
-	};
+    enum head_to_param {
+        HEAD_TO_UNDEFINED = 0,
+        HEAD_TO_LEFT = 0x01,
+        HEAD_TO_RIGHT = 0x02,
+        HEAD_TO_FORCE_DIRECTION = 0x04,
+        HEAD_TO_ALLOW_HARD_RUDDER = 0x08
+    };
 
-	// maximum trail record length
-	static const unsigned TRAIL_LENGTH = 60;
+    // maximum trail record length
+    static const unsigned TRAIL_LENGTH = 60;
 
-	// all data for a previous position
-	struct prev_pos {
-		vector2 pos;	// (center) pos of ship
-		vector2 dir;	// direction (heading) of ship
-		double time;	// absolute time when position was recorded
-		double speed;	// speed of ship when position was recorded
-		prev_pos(const vector2& p, const vector2& d, double t, double s)
-			: pos(p), dir(d), time(t), speed(s) {}
-		// add xml load/save functions here, fixme
-	};
+    // all data for a previous position
+    struct prev_pos {
+        vector2 pos;  // (center) pos of ship
+        vector2 dir;  // direction (heading) of ship
+        double time;  // absolute time when position was recorded
+        double speed; // speed of ship when position was recorded
+        prev_pos(const vector2 &p, const vector2 &d, double t, double s)
+            : pos(p), dir(d), time(t), speed(s) {}
+        // add xml load/save functions here, fixme
+    };
 
- protected:
-	unsigned tonnage;	// in BRT, created after values from spec file, must get stored!
+  protected:
+    unsigned tonnage; // in BRT, created after values from spec file, must get stored!
 
-	int throttle;		// if < 0: throttle_state, if > 0: knots
+    int throttle; // if < 0: throttle_state, if > 0: knots
 
-	/// rudder related stuff grouped as class
-	struct generic_rudder
-	{
-		// read from spec file, run-time constants
-		vector3 pos;	///< 3d pos of rudder
-		int axis;	///< axis (0-z, 1-x)
-		double max_angle;	///< max. angle of rudder (+-)
-		double area;	///< area of rudder in m^2
-		double max_turn_speed;	///< max turn speed in angles/sec
+    /// rudder related stuff grouped as class
+    struct generic_rudder {
+        // read from spec file, run-time constants
+        vector3 pos;           ///< 3d pos of rudder
+        int axis;              ///< axis (0-z, 1-x)
+        double max_angle;      ///< max. angle of rudder (+-)
+        double area;           ///< area of rudder in m^2
+        double max_turn_speed; ///< max turn speed in angles/sec
 
-		double angle;	///< current rudder angle in degrees, do not use class angle here, we need explicit positive and negative values.
-		double to_angle;///< angle that rudder should move to
+        double angle;    ///< current rudder angle in degrees, do not use class angle here, we need explicit positive and negative values.
+        double to_angle; ///< angle that rudder should move to
 
-		generic_rudder(const vector3& p, int a, double ma, double ar, double mts)
-			: pos(p), axis(a), max_angle(ma), area(ar), max_turn_speed(mts),
-			  angle(0), to_angle(0) {}
-		void simulate(double delta_time);
-		void load(const xml_elem& parent);
-		void save(xml_elem& parent) const;
-		void set_to(double p) { to_angle = max_angle * p; } ///< -1 ... 1
-		void midships() { to_angle = 0; }
-		double deflect_factor() const; ///< sin(angle)
-		double bypass_factor() const; ///< cos(angle)
-		/** compute force and torque generated by rudder
-		    @param F - force returned value
-		    @param T - torque returned value
-		    @param parent_local_velocity - local velocity of parent
-		    @param water_density - density of water
-		    @param flow_force - force that by-passes the rudder, is modified by angle
-		    @returns modified flow force
-		*/
-		double compute_force_and_torque(vector3& F, vector3& T,
-						const vector3& parent_local_velocity,
-						const double& water_density,
-						const double& flow_force = 0) const;
-	};
+        generic_rudder(const vector3 &p, int a, double ma, double ar, double mts)
+            : pos(p), axis(a), max_angle(ma), area(ar), max_turn_speed(mts),
+              angle(0), to_angle(0) {}
+        void simulate(double delta_time);
+        void load(const xml_elem &parent);
+        void save(xml_elem &parent) const;
+        void set_to(double p) { to_angle = max_angle * p; } ///< -1 ... 1
+        void midships() { to_angle = 0; }
+        double deflect_factor() const; ///< sin(angle)
+        double bypass_factor() const;  ///< cos(angle)
+        /** compute force and torque generated by rudder
+            @param F - force returned value
+            @param T - torque returned value
+            @param parent_local_velocity - local velocity of parent
+            @param water_density - density of water
+            @param flow_force - force that by-passes the rudder, is modified by angle
+            @returns modified flow force
+        */
+        double compute_force_and_torque(vector3 &F, vector3 &T,
+                                        const vector3 &parent_local_velocity,
+                                        const double &water_density,
+                                        const double &flow_force = 0) const;
+    };
 
-	generic_rudder rudder;
+    generic_rudder rudder;
 
-	head_to_param head_to_fixed;
-	angle head_to;
-	
-	double turn_rate;	// in angle/time (at max. speed/throttle), read from spec file
-	// fixme: value seems to be angle/meter, meaning angle change per m forward motion...
+    head_to_param head_to_fixed;
+    angle head_to;
 
-	double max_accel_forward;	// read from spec file. can get computed from engine_torque, screw diameter and ship's mass.
-	double max_speed_forward;	// read from spec file.
-	double max_speed_reverse;	// read from spec file.
+    double turn_rate; // in angle/time (at max. speed/throttle), read from spec file
+    // fixme: value seems to be angle/meter, meaning angle change per m forward motion...
 
-	// fixme: replace by finer model: -> damage editor!
-	damage_status stern_damage, midship_damage, bow_damage;
+    double max_accel_forward; // read from spec file. can get computed from engine_torque, screw diameter and ship's mass.
+    double max_speed_forward; // read from spec file.
+    double max_speed_reverse; // read from spec file.
 
-	// Fuel percentage: 0 = empty, 1 = full.
-	double fuel_level;
-	double fuel_value_a;	// read from spec file
-	double fuel_value_t;	// read from spec file
-	unsigned fuel_capacity;	// read from spec file
+    // fixme: replace by finer model: -> damage editor!
+    damage_status stern_damage, midship_damage, bow_damage;
 
-	// sonar / underwater sound specific constants, read from spec file
-	noise_signature noise_sign;
+    // Fuel percentage: 0 = empty, 1 = full.
+    double fuel_level;
+    double fuel_value_a;    // read from spec file
+    double fuel_value_t;    // read from spec file
+    unsigned fuel_capacity; // read from spec file
 
-	std::list<prev_pos> previous_positions;
+    // sonar / underwater sound specific constants, read from spec file
+    noise_signature noise_sign;
 
-	shipclass myclass;	// read from spec file, e.g. warship/merchant/escort/...
+    std::list<prev_pos> previous_positions;
 
-	//
-	// sinking simulation
-	//
-	// for each voxel the mass that has flooded into (max. mass is computed from
-	// voxel data. [SAVE]
-	std::vector<float> flooded_mass;
-	// speed by that water floods into the ship, in kg per second
-	double flooding_speed;
-	// maximum of additional mass because of flooding, computed from spec/mdl file
-	// can be volume * density of water.
-	double max_flooded_mass;
+    shipclass myclass; // read from spec file, e.g. warship/merchant/escort/...
 
-	void compute_force_and_torque(vector3& F, vector3& T) const; // drag must be already included!
+    //
+    // sinking simulation
+    //
+    // for each voxel the mass that has flooded into (max. mass is computed from
+    // voxel data. [SAVE]
+    std::vector<float> flooded_mass;
+    // speed by that water floods into the ship, in kg per second
+    double flooding_speed;
+    // maximum of additional mass because of flooding, computed from spec/mdl file
+    // can be volume * density of water.
+    double max_flooded_mass;
 
-	/// implementation of the steering logic: helmsman simulation, or simpler model for torpedoes.
-	virtual void steering_logic();
-	/// return the acceleration factor for computing torque (depends on rudder area etc.)
-	virtual double get_turn_accel_factor() const { return 20000.0; }
-	/// return drag coefficient for turn drag
-	virtual double get_turn_drag_coeff() const { return 1.0; }
-	/// return the side area for drag computation multiplied by drag coefficient.
-	virtual double get_turn_drag_area() const;
+    void compute_force_and_torque(vector3 &F, vector3 &T) const; // drag must be already included!
 
-	/**
-		This method calculates the hourly fuel consumption. An
-		exponential is used as a model basing on some fuel consumption values.
-		@return double hourly percentage fuel consumption value
-	*/
-	virtual double get_fuel_consumption_rate () const
-	{ return fuel_value_a * ( exp ( get_throttle_speed () / fuel_value_t ) - 1.0f ); }
+    /// implementation of the steering logic: helmsman simulation, or simpler model for torpedoes.
+    virtual void steering_logic();
+    /// return the acceleration factor for computing torque (depends on rudder area etc.)
+    virtual double get_turn_accel_factor() const { return 20000.0; }
+    /// return drag coefficient for turn drag
+    virtual double get_turn_drag_coeff() const { return 1.0; }
+    /// return the side area for drag computation multiplied by drag coefficient.
+    virtual double get_turn_drag_area() const;
 
-	/**
-		This method is called by the simulate method to recalculate the
-		actual fuel status.
-		@param delta_time time advance since last call
-	*/
-	virtual void calculate_fuel_factor ( double delta_time );
+    /**
+            This method calculates the hourly fuel consumption. An
+            exponential is used as a model basing on some fuel consumption values.
+            @return double hourly percentage fuel consumption value
+    */
+    virtual double get_fuel_consumption_rate() const { return fuel_value_a * (exp(get_throttle_speed() / fuel_value_t) - 1.0f); }
 
-	// smoke, list of smoke generators. Give type and relative position for each generator
-	std::list<std::pair<unsigned, vector3> > smoke;
+    /**
+            This method is called by the simulate method to recalculate the
+            actual fuel status.
+            @param delta_time time advance since last call
+    */
+    virtual void calculate_fuel_factor(double delta_time);
 
-	// pointer to fire particle (0 means ship is not burning)
-	particle* myfire;
-	
-	virtual bool causes_spray() const { return true; }
-	
-	// some experience values of the crews to fire a grenade with right angle at any
-	// target. This depends on canon type (shot speed, min/max angles etc.) so we need
-	// several ai classes later.
-	static std::map<double, std::map<double, double> > dist_angle_relation;
-	static void fill_dist_angle_relation_map(const double initial_velocity);
-	
-	// deck gun
-	struct gun_barrel
-	{
-		double load_time_remaining;
-		angle last_elevation;
-		angle last_azimuth;
-		
-		gun_barrel()
-		{
-			load_time_remaining = 0.0;
-			last_elevation = 0;
-			last_azimuth = 0;
-		}
-	};
-	
-	struct gun_turret
-	{
-		int num_shells_remaining;
-		int shell_capacity;
-		double initial_velocity;		
-		int max_declination;
-		int max_inclination;
-		double time_to_man;
-		double time_to_unman;
-		bool is_gun_manned;
-		double manning_time;
-		double shell_damage;	
-		int start_of_exclusion_radius;
-		int end_of_exclusion_radius;
-		double calibre;
-		
-		std::list<struct gun_barrel> gun_barrels;
-		
-		gun_turret()
-		{
-			num_shells_remaining = 0;
-			shell_capacity = 0;
-			initial_velocity = 0.0;			
-			max_declination = 0;
-			max_inclination = 0;
-			time_to_man = 0.0;
-			time_to_unman = 0.0;
-			is_gun_manned = false;
-			manning_time = 0.0;
-			shell_damage = 0.0;	
-			start_of_exclusion_radius = 0;
-			end_of_exclusion_radius = 0;
-			calibre = 0.0;		
-		}
-	};
-	bool gun_manning_is_changing;
-	std::list<struct gun_turret> gun_turrets;
-	typedef std::list<struct gun_turret>::iterator gun_turret_itr;
-	typedef std::list<struct gun_turret>::const_iterator const_gun_turret_itr;
-	typedef std::list<struct gun_barrel>::iterator gun_barrel_itr;
-	typedef std::list<struct gun_barrel>::const_iterator const_gun_barrel_itr;	
-	double maximum_gun_range;
-	
-	int propeller_1_id, propeller_2_id; // for display()
-	int rudder_1_id, rudder_2_id; // for display()
+    // smoke, list of smoke generators. Give type and relative position for each generator
+    std::list<std::pair<unsigned, vector3>> smoke;
 
-	bool is_target_in_blindspot(const struct gun_turret *gun, angle bearingToTarget);
-	bool calculate_gun_angle(const double distance, angle &elevation, const double initial_velocity);
-	void calc_max_gun_range(double initial_velocity);
+    // pointer to fire particle (0 means ship is not burning)
+    particle *myfire;
 
-	bool detect_other_sea_objects() const { return true; }
+    virtual bool causes_spray() const { return true; }
 
-public:
-	// create empty object from specification xml file
-	// construct a sea_object. called by heirs
-	ship(game& gm_, const xml_elem& parent);
-	
-	virtual void load(const xml_elem& parent);
-	virtual void save(xml_elem& parent) const;
+    // some experience values of the crews to fire a grenade with right angle at any
+    // target. This depends on canon type (shot speed, min/max angles etc.) so we need
+    // several ai classes later.
+    static std::map<double, std::map<double, double>> dist_angle_relation;
+    static void fill_dist_angle_relation_map(const double initial_velocity);
 
-	virtual shipclass get_class() const { return myclass; }
+    // deck gun
+    struct gun_barrel {
+        double load_time_remaining;
+        angle last_elevation;
+        angle last_azimuth;
 
-	virtual void simulate(double delta_time);
+        gun_barrel() {
+            load_time_remaining = 0.0;
+            last_elevation = 0;
+            last_azimuth = 0;
+        }
+    };
 
-	virtual void sink();
+    struct gun_turret {
+        int num_shells_remaining;
+        int shell_capacity;
+        double initial_velocity;
+        int max_declination;
+        int max_inclination;
+        double time_to_man;
+        double time_to_unman;
+        bool is_gun_manned;
+        double manning_time;
+        double shell_damage;
+        int start_of_exclusion_radius;
+        int end_of_exclusion_radius;
+        double calibre;
 
-	virtual void ignite();
-	bool is_burning() const { return myfire != 0; }
+        std::list<struct gun_barrel> gun_barrels;
 
-	// command interface
-	virtual gun_status fire_shell_at(const vector2& pos);
+        gun_turret() {
+            num_shells_remaining = 0;
+            shell_capacity = 0;
+            initial_velocity = 0.0;
+            max_declination = 0;
+            max_inclination = 0;
+            time_to_man = 0.0;
+            time_to_unman = 0.0;
+            is_gun_manned = false;
+            manning_time = 0.0;
+            shell_damage = 0.0;
+            start_of_exclusion_radius = 0;
+            end_of_exclusion_radius = 0;
+            calibre = 0.0;
+        }
+    };
+    bool gun_manning_is_changing;
+    std::list<struct gun_turret> gun_turrets;
+    typedef std::list<struct gun_turret>::iterator gun_turret_itr;
+    typedef std::list<struct gun_turret>::const_iterator const_gun_turret_itr;
+    typedef std::list<struct gun_barrel>::iterator gun_barrel_itr;
+    typedef std::list<struct gun_barrel>::const_iterator const_gun_barrel_itr;
+    double maximum_gun_range;
 
-	/** set up steering logic so object turns to new course.
-	    @param a - angle to turn to
-	    @param direction - give -1 to turn left, 1 to turn right, 0 for automatic
-	    @param hard_rudder - turn with hard rudder instead of normal rudder angle
-	*/
-	virtual void head_to_course(const angle& a, int direction = 0, bool hard_rudder = true);
+    int propeller_1_id, propeller_2_id; // for display()
+    int rudder_1_id, rudder_2_id;       // for display()
 
-	virtual void set_rudder(double to); // -2...2
-	virtual void set_throttle(int thr);
+    bool is_target_in_blindspot(const struct gun_turret *gun, angle bearingToTarget);
+    bool calculate_gun_angle(const double distance, angle &elevation, const double initial_velocity);
+    void calc_max_gun_range(double initial_velocity);
 
-	virtual void remember_position(double t);
-	virtual const std::list<prev_pos>& get_previous_positions() const { return previous_positions; }
+    bool detect_other_sea_objects() const { return true; }
 
-	virtual bool has_smoke() const { return !smoke.empty(); }
+  public:
+    // create empty object from specification xml file
+    // construct a sea_object. called by heirs
+    ship(game &gm_, const xml_elem &parent);
 
-	virtual bool damage(const vector3& fromwhere, unsigned strength);
-	virtual unsigned calc_damage() const;	// returns damage in percent (100 means dead)
-	// this depends on ship's tonnage, type, draught and depth (subs/sinking ships)
-	virtual unsigned get_tonnage() const { return tonnage; }
-	virtual double get_fuel_level () const { return fuel_level; }
-	virtual angle get_turn_rate() const { return turn_rate; };
-	virtual double get_max_speed() const { return max_speed_forward; };
-	virtual throttle_status get_throttle() { return (throttle_status)throttle; }
-	virtual double get_throttle_speed() const;
-	virtual double get_throttle_accel() const;	// returns acceleration caused by current throttle
-	virtual bool screw_cavitation() const;	// returns true if screw causes cavitation
-	virtual double get_rudder_pos() const { return rudder.angle; }
-	virtual double get_noise_factor () const;
-	virtual gun_status fire_shell_at(const sea_object& s);
+    virtual void load(const xml_elem &parent);
+    virtual void save(xml_elem &parent) const;
 
-	// needed for launching torpedoes
-	std::pair<angle, double> bearing_and_range_to(const sea_object* other) const;
-	angle estimate_angle_on_the_bow(angle target_bearing, angle target_heading) const;
-	
-	// gun
-	virtual bool has_guns() const { return !gun_turrets.empty(); }
-	virtual bool man_guns();
-	virtual bool unman_guns();
-	virtual bool is_gun_manned();
-	virtual void gun_manning_changed(bool is_gun_manned) {}
-	virtual long num_shells_remaining();
-	virtual double max_gun_range() { return maximum_gun_range; };
+    virtual shipclass get_class() const { return myclass; }
 
-	// sonar
-	virtual const noise_signature& get_noise_signature() const { return noise_sign; }
+    virtual void simulate(double delta_time);
 
-	/* NOTE! the following function(s) are only for the editor or for
-	   custom convoy generation (called from class convoy).
-	   Nobody else should manipulate objects like this.
-	*/
-	virtual void manipulate_heading(angle hdg);
+    virtual void sink();
 
-	/// compute bv_tree parameter values for collision tests
-	virtual bv_tree::param compute_bv_tree_params() const;
+    virtual void ignite();
+    bool is_burning() const { return myfire != 0; }
+
+    // command interface
+    virtual gun_status fire_shell_at(const vector2 &pos);
+
+    /** set up steering logic so object turns to new course.
+        @param a - angle to turn to
+        @param direction - give -1 to turn left, 1 to turn right, 0 for automatic
+        @param hard_rudder - turn with hard rudder instead of normal rudder angle
+    */
+    virtual void head_to_course(const angle &a, int direction = 0, bool hard_rudder = true);
+
+    virtual void set_rudder(double to); // -2...2
+    virtual void set_throttle(int thr);
+
+    virtual void remember_position(double t);
+    virtual const std::list<prev_pos> &get_previous_positions() const { return previous_positions; }
+
+    virtual bool has_smoke() const { return !smoke.empty(); }
+
+    virtual bool damage(const vector3 &fromwhere, unsigned strength);
+    virtual unsigned calc_damage() const; // returns damage in percent (100 means dead)
+    // this depends on ship's tonnage, type, draught and depth (subs/sinking ships)
+    virtual unsigned get_tonnage() const { return tonnage; }
+    virtual double get_fuel_level() const { return fuel_level; }
+    virtual angle get_turn_rate() const { return turn_rate; };
+    virtual double get_max_speed() const { return max_speed_forward; };
+    virtual throttle_status get_throttle() { return (throttle_status)throttle; }
+    virtual double get_throttle_speed() const;
+    virtual double get_throttle_accel() const; // returns acceleration caused by current throttle
+    virtual bool screw_cavitation() const;     // returns true if screw causes cavitation
+    virtual double get_rudder_pos() const { return rudder.angle; }
+    virtual double get_noise_factor() const;
+    virtual gun_status fire_shell_at(const sea_object &s);
+
+    // needed for launching torpedoes
+    std::pair<angle, double> bearing_and_range_to(const sea_object *other) const;
+    angle estimate_angle_on_the_bow(angle target_bearing, angle target_heading) const;
+
+    // gun
+    virtual bool has_guns() const { return !gun_turrets.empty(); }
+    virtual bool man_guns();
+    virtual bool unman_guns();
+    virtual bool is_gun_manned();
+    virtual void gun_manning_changed(bool is_gun_manned) {}
+    virtual long num_shells_remaining();
+    virtual double max_gun_range() { return maximum_gun_range; };
+
+    // sonar
+    virtual const noise_signature &get_noise_signature() const { return noise_sign; }
+
+    /* NOTE! the following function(s) are only for the editor or for
+       custom convoy generation (called from class convoy).
+       Nobody else should manipulate objects like this.
+    */
+    virtual void manipulate_heading(angle hdg);
+
+    /// compute bv_tree parameter values for collision tests
+    virtual bv_tree::param compute_bv_tree_params() const;
 };
 
 #endif

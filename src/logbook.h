@@ -23,23 +23,22 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef LOGBOOK_H
 #define LOGBOOK_H
 
-#include <string>
 #include <list>
+#include <string>
 
 ///\brief Simulates a log book.
-class logbook
-{
-protected:
-	std::list<std::string> entries;
+class logbook {
+  protected:
+    std::list<std::string> entries;
 
-public:
-	logbook() {}
-	virtual ~logbook () {}
-	virtual void add_entry(const std::string& entry);
-	virtual std::list<std::string>::const_iterator get_entry(unsigned i) const;
-	virtual std::list<std::string>::const_iterator begin() const { return entries.begin(); }
-	virtual std::list<std::string>::const_iterator end() const { return entries.end(); }
-	virtual unsigned size() const { return entries.size(); }
+  public:
+    logbook() {}
+    virtual ~logbook() {}
+    virtual void add_entry(const std::string &entry);
+    virtual std::list<std::string>::const_iterator get_entry(unsigned i) const;
+    virtual std::list<std::string>::const_iterator begin() const { return entries.begin(); }
+    virtual std::list<std::string>::const_iterator end() const { return entries.end(); }
+    virtual unsigned size() const { return entries.size(); }
 };
 
 #endif

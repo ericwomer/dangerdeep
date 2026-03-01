@@ -21,132 +21,118 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "sub_ghg_display.h"
-#include "system.h"
-#include "image.h"
-#include "texture.h"
-#include "game.h"
-#include "submarine_interface.h"
-#include "submarine.h"
-#include "keys.h"
 #include "cfg.h"
+#include "game.h"
 #include "global_data.h"
+#include "image.h"
+#include "keys.h"
+#include "submarine.h"
+#include "submarine_interface.h"
+#include "system.h"
+#include "texture.h"
 #include <sstream>
 using namespace std;
 
-static const double TK_ANGFAC = 360.0/512.0;
+static const double TK_ANGFAC = 360.0 / 512.0;
 
-sub_ghg_display::scheme::scheme(bool day)
-{
-	const string x = day ? "GHG_daylight" : "GHG_redlight";
-	background.reset(new image(get_image_dir() + x + "_background.jpg|png"));
-	direction_ptr.set(x + "_pointer.png", 242, 89, 376, 372);
-	direction_knob.set(x + "_knob.png", 306, 516, 373, 583);
-	volume_dial.set(x + "_volume_dial.png", 711, 470, 849, 605);
-	volume_knob.set(x + "_volumeknob.png", 783, 550);
+sub_ghg_display::scheme::scheme(bool day) {
+    const string x = day ? "GHG_daylight" : "GHG_redlight";
+    background.reset(new image(get_image_dir() + x + "_background.jpg|png"));
+    direction_ptr.set(x + "_pointer.png", 242, 89, 376, 372);
+    direction_knob.set(x + "_knob.png", 306, 516, 373, 583);
+    volume_dial.set(x + "_volume_dial.png", 711, 470, 849, 605);
+    volume_knob.set(x + "_volumeknob.png", 783, 550);
 }
 
-
-
-sub_ghg_display::sub_ghg_display(user_interface& ui_)
-	: user_display(ui_), turnknobdrag(TK_NONE), turnknobang(TK_NR)
-{
+sub_ghg_display::sub_ghg_display(user_interface &ui_)
+    : user_display(ui_), turnknobdrag(TK_NONE), turnknobang(TK_NR) {
 }
 
+void sub_ghg_display::process_input(class game &gm, const SDL_Event &event) {
+    int mx, my, mb;
 
+    // fixme: errors like this are rather bug indicators. they should throw a special
+    // exception or rather use an assert like thing etc. same for many other screens.
+    if (!myscheme.get())
+        throw error("sub_ghg_display::process_input without scheme!");
+    const scheme &s = *myscheme;
 
-void sub_ghg_display::process_input(class game& gm, const SDL_Event& event)
-{
-	int mx, my, mb;
-
-	// fixme: errors like this are rather bug indicators. they should throw a special
-	// exception or rather use an assert like thing etc. same for many other screens.
-	if (!myscheme.get()) throw error("sub_ghg_display::process_input without scheme!");
-	const scheme& s = *myscheme;
-
-	switch (event.type) {
-	case SDL_MOUSEBUTTONDOWN:
-		mx = sys().translate_position_x(event);
-		my = sys().translate_position_y(event);
-		// check if mouse is over turn knobs
-		turnknobdrag = TK_NONE;
-		if (s.direction_knob.is_mouse_over(mx, my, 64)) {
-			turnknobdrag = TK_DIRECTION;
-		} else if (s.volume_knob.is_mouse_over(mx, my)) {
-			turnknobdrag = TK_VOLUME;
-		}
-		break;
-	case SDL_MOUSEMOTION:
-		mx = sys().translate_motion_x(event);
-		my = sys().translate_motion_y(event);
-		mb = event.motion.state;
-		if (event.motion.state & SDL_BUTTON_LMASK) {
-			if (turnknobdrag != TK_NONE) {
-				float& ang = turnknobang[unsigned(turnknobdrag)];
-				ang += mx * TK_ANGFAC;
-				switch (turnknobdrag) {
-				case TK_DIRECTION:
-					// 0-360*4 degrees match to 0-360
-					ang = myclamp(ang, -320.0f, 320.0f);
-					//sub->set_ghg_direction(ang*0.5); // fixme: set angle of player
-					break;
-				case TK_VOLUME:
-					// 0-288 degrees match to 5-85 degrees angle
-					ang = myclamp(ang, 0.0f, 252.0f);
-					break;
-				default:	// can never happen
-					break;
-				}
-			}
-		}
-		break;
-	case SDL_MOUSEBUTTONUP:
-		mx = sys().translate_position_x(event);
-		my = sys().translate_position_y(event);
-		turnknobdrag = TK_NONE;
-		break;
-	default:
-		break;
-	}
+    switch (event.type) {
+    case SDL_MOUSEBUTTONDOWN:
+        mx = sys().translate_position_x(event);
+        my = sys().translate_position_y(event);
+        // check if mouse is over turn knobs
+        turnknobdrag = TK_NONE;
+        if (s.direction_knob.is_mouse_over(mx, my, 64)) {
+            turnknobdrag = TK_DIRECTION;
+        } else if (s.volume_knob.is_mouse_over(mx, my)) {
+            turnknobdrag = TK_VOLUME;
+        }
+        break;
+    case SDL_MOUSEMOTION:
+        mx = sys().translate_motion_x(event);
+        my = sys().translate_motion_y(event);
+        mb = event.motion.state;
+        if (event.motion.state & SDL_BUTTON_LMASK) {
+            if (turnknobdrag != TK_NONE) {
+                float &ang = turnknobang[unsigned(turnknobdrag)];
+                ang += mx * TK_ANGFAC;
+                switch (turnknobdrag) {
+                case TK_DIRECTION:
+                    // 0-360*4 degrees match to 0-360
+                    ang = myclamp(ang, -320.0f, 320.0f);
+                    // sub->set_ghg_direction(ang*0.5); // fixme: set angle of player
+                    break;
+                case TK_VOLUME:
+                    // 0-288 degrees match to 5-85 degrees angle
+                    ang = myclamp(ang, 0.0f, 252.0f);
+                    break;
+                default: // can never happen
+                    break;
+                }
+            }
+        }
+        break;
+    case SDL_MOUSEBUTTONUP:
+        mx = sys().translate_position_x(event);
+        my = sys().translate_position_y(event);
+        turnknobdrag = TK_NONE;
+        break;
+    default:
+        break;
+    }
 }
 
+void sub_ghg_display::display(class game &gm) const {
+    sys().prepare_2d_drawing();
 
+    // get hearing device angle from submarine, if it has one
 
-void sub_ghg_display::display(class game& gm) const
-{
-	sys().prepare_2d_drawing();
+    if (!myscheme.get())
+        throw error("sub_ghg_display::display without scheme!");
+    const scheme &s = *myscheme;
 
-	// get hearing device angle from submarine, if it has one
+    s.volume_dial.draw(-turnknobang[TK_VOLUME] - 18.0f);
+    s.background->draw(0, 0);
+    s.volume_knob.draw();
+    s.direction_ptr.draw(turnknobang[TK_DIRECTION] * 0.5 /* fixme: get angle from player*/);
+    s.direction_knob.draw(turnknobang[TK_DIRECTION]);
 
-	if (!myscheme.get()) throw error("sub_ghg_display::display without scheme!");
-	const scheme& s = *myscheme;
+    // test hack: test signal strengths
+    // 	angle sonar_ang = angle(turnknobang[TK_DIRECTION]*0.5) + player->get_heading();
+    // 	vector<double> noise_strengths = gm.sonar_listen_ships(player, sonar_ang);
+    // 	printf("noise strengths, global ang=%f, L=%f M=%f H=%f U=%f\n",
+    // 	       sonar_ang.value(), noise_strengths[0], noise_strengths[1], noise_strengths[2], noise_strengths[3]);
 
-	s.volume_dial.draw(-turnknobang[TK_VOLUME]-18.0f);
-	s.background->draw(0, 0);
-	s.volume_knob.draw();
-	s.direction_ptr.draw(turnknobang[TK_DIRECTION]*0.5 /* fixme: get angle from player*/);
-	s.direction_knob.draw(turnknobang[TK_DIRECTION]);
+    ui.draw_infopanel();
 
-	// test hack: test signal strengths
-// 	angle sonar_ang = angle(turnknobang[TK_DIRECTION]*0.5) + player->get_heading();
-// 	vector<double> noise_strengths = gm.sonar_listen_ships(player, sonar_ang);
-// 	printf("noise strengths, global ang=%f, L=%f M=%f H=%f U=%f\n",
-// 	       sonar_ang.value(), noise_strengths[0], noise_strengths[1], noise_strengths[2], noise_strengths[3]);
-
-	ui.draw_infopanel();
-
-	sys().unprepare_2d_drawing();
+    sys().unprepare_2d_drawing();
 }
 
-
-
-void sub_ghg_display::enter(bool is_day)
-{
-	myscheme.reset(new scheme(is_day));
+void sub_ghg_display::enter(bool is_day) {
+    myscheme.reset(new scheme(is_day));
 }
 
-
-
-void sub_ghg_display::leave()
-{
-	myscheme.reset();
+void sub_ghg_display::leave() {
+    myscheme.reset();
 }

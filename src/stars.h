@@ -20,34 +20,31 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef STARS_H
 #define STARS_H
 
-
 #include <vector>
 
-#include "vector3.h"
 #include "color.h"
+#include "vector3.h"
 #include "vertexbufferobject.h"
 
-
 /*
-	FIXME:
-	 Add motion and accurate position calculation.
-	 Add credit for stars catalogue (http://astronexus.com/)
-	
+        FIXME:
+         Add motion and accurate position calculation.
+         Add credit for stars catalogue (http://astronexus.com/)
+
 */
 
 ///\brief Stars rendering.
-class stars
-{
-private:
-	vertexbufferobject star_positions;
-	mutable vertexbufferobject star_colors_VBO;
-	std::vector<colorf> star_colors;
-	unsigned int star_count_static, star_count;
+class stars {
+  private:
+    vertexbufferobject star_positions;
+    mutable vertexbufferobject star_colors_VBO;
+    std::vector<colorf> star_colors;
+    unsigned int star_count_static, star_count;
 
-public:
-	stars(const float max_magnitude = 5.8f); // mag==6.0 => ~5000 stars
-	
-	void display(const float max_view_dist) const;
+  public:
+    stars(const float max_magnitude = 5.8f); // mag==6.0 => ~5000 stars
+
+    void display(const float max_view_dist) const;
 };
 
 #endif

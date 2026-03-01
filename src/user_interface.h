@@ -23,17 +23,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef USER_INTERFACE_H
 #define USER_INTERFACE_H
 
-#include <list>
-#include <vector>
-#include <map>
-#include "sea_object.h"
-#include "color.h"
-#include "coastmap.h"
 #include "caustics.h"
+#include "coastmap.h"
+#include "color.h"
 #include "geoclipmap.h"
 #include "ptrvector.h"
+#include "sea_object.h"
 #include "user_display.h"
 #include "user_popup.h"
+#include <list>
+#include <map>
+#include <vector>
 
 class game;
 class water;
@@ -41,167 +41,168 @@ class water;
 ///\defgroup interfaces In-game user interfaces
 ///\brief Base class for a user interface for playing the game.
 ///\ingroup interfaces
-class user_interface
-{
-	user_interface();
-public:
-	enum color_mode { day_color_mode, night_color_mode };
+class user_interface {
+    user_interface();
 
-protected:
-	game* mygame;	// pointer to game object that is displayed
+  public:
+    enum color_mode { day_color_mode,
+                      night_color_mode };
 
-	bool pause;
-	bool abort_request; // by user (back to game menu)
-	unsigned time_scale;
+  protected:
+    game *mygame; // pointer to game object that is displayed
 
-	// command panel, to submarine_interface!
-	// display texts above panel, fading out, no widget! fixme
-	bool panel_visible;
-	std::auto_ptr<class widget> panel;
-	class widget_text* panel_valuetexts[6];
+    bool pause;
+    bool abort_request; // by user (back to game menu)
+    unsigned time_scale;
 
-	// screen selector menu
-	std::auto_ptr<class widget> screen_selector;
-	bool screen_selector_visible;
+    // command panel, to submarine_interface!
+    // display texts above panel, fading out, no widget! fixme
+    bool panel_visible;
+    std::auto_ptr<class widget> panel;
+    class widget_text *panel_valuetexts[6];
 
-	// music playlist
-	std::auto_ptr<class widget> music_playlist;
-	bool playlist_visible;
-	class widget_checkbox* playlist_repeat_checkbox;
-	class widget_checkbox* playlist_shuffle_checkbox;
-	class widget_checkbox* playlist_mute_checkbox;
+    // screen selector menu
+    std::auto_ptr<class widget> screen_selector;
+    bool screen_selector_visible;
 
-	// main menu
-	std::auto_ptr<class widget> main_menu;
-	bool main_menu_visible;
+    // music playlist
+    std::auto_ptr<class widget> music_playlist;
+    bool playlist_visible;
+    class widget_checkbox *playlist_repeat_checkbox;
+    class widget_checkbox *playlist_shuffle_checkbox;
+    class widget_checkbox *playlist_mute_checkbox;
 
-	/// holds the last n messages. They're displayed above the panel and fading out over time.
-	std::list<std::pair<double, std::string> > messages;
+    // main menu
+    std::auto_ptr<class widget> main_menu;
+    bool main_menu_visible;
 
-	// used in various screens
-	angle bearing;
-	angle elevation;	// -90...90 deg (look down ... up)
-	bool bearing_is_relative;	// bearing means angle relative to course or absolute? (default = true)
+    /// holds the last n messages. They're displayed above the panel and fading out over time.
+    std::list<std::pair<double, std::string>> messages;
 
-	// which display is active
-	unsigned current_display;
+    // used in various screens
+    angle bearing;
+    angle elevation;          // -90...90 deg (look down ... up)
+    bool bearing_is_relative; // bearing means angle relative to course or absolute? (default = true)
 
-	// fixme replace the above with: THE ONE AND ONLY DATA UI SHOULD HAVE
-	ptrvector<user_display> displays;
+    // which display is active
+    unsigned current_display;
 
-	// which popup is shown (0 = none)
-	unsigned current_popup;
+    // fixme replace the above with: THE ONE AND ONLY DATA UI SHOULD HAVE
+    ptrvector<user_display> displays;
 
-	// possible popups
-	ptrvector<user_popup> popups;
+    // which popup is shown (0 = none)
+    unsigned current_popup;
 
-	// environmental data
-	std::auto_ptr<class sky> mysky;	// the one and only sky
-	caustics mycaustics;	//	caustic map
-	coastmap mycoastmap;	// this may get moved to game.h, yet it is used for display only, that's why it is here
-	std::auto_ptr<geoclipmap> mygeoclipmap; // terrain rendering instance
+    // possible popups
+    ptrvector<user_popup> popups;
 
-	// is display in day mode (or night/redlight mode)?
-	bool daymode;
+    // environmental data
+    std::auto_ptr<class sky> mysky;         // the one and only sky
+    caustics mycaustics;                    //	caustic map
+    coastmap mycoastmap;                    // this may get moved to game.h, yet it is used for display only, that's why it is here
+    std::auto_ptr<geoclipmap> mygeoclipmap; // terrain rendering instance
 
-	// weather graphics
-	ptrvector<class texture> raintex;	// images (animation) of rain drops
-	ptrvector<class texture> snowtex;	// images (animation) of snow flakes
+    // is display in day mode (or night/redlight mode)?
+    bool daymode;
 
-	// free view mode
-//	float freeviewsideang, freeviewupang;	// global spectators viewing angles
-//	vector3 freeviewpos;
+    // weather graphics
+    ptrvector<class texture> raintex; // images (animation) of rain drops
+    ptrvector<class texture> snowtex; // images (animation) of snow flakes
 
-	user_interface& operator= (const user_interface& other);
-	user_interface(const user_interface& other);
-	user_interface(game& gm);
+    // free view mode
+    //	float freeviewsideang, freeviewupang;	// global spectators viewing angles
+    //	vector3 freeviewpos;
 
-	// MUST be called after constructing an user_interface object (or one of its heirs).
-	// this function waits for completion of threads used to construct the ui object.
-	void finish_construction();
+    user_interface &operator=(const user_interface &other);
+    user_interface(const user_interface &other);
+    user_interface(game &gm);
 
-//	inline virtual sea_object* get_player() const { return player_object; }
+    // MUST be called after constructing an user_interface object (or one of its heirs).
+    // this function waits for completion of threads used to construct the ui object.
+    void finish_construction();
 
-//	void draw_clock(game& gm, int x, int y, unsigned wh, double t,
-//	        const string& text) const;
+    //	inline virtual sea_object* get_player() const { return player_object; }
 
-	// adjusts "current_popup" if not set to allowed popup
-	void set_allowed_popup();
+    //	void draw_clock(game& gm, int x, int y, unsigned wh, double t,
+    //	        const string& text) const;
 
-	// set "current_display" only via this function, so that checks can be performed autom.
-	void set_current_display(unsigned curdis);
+    // adjusts "current_popup" if not set to allowed popup
+    void set_allowed_popup();
 
-	virtual void playlist_mode_changed();
-	virtual void playlist_mute();
+    // set "current_display" only via this function, so that checks can be performed autom.
+    void set_current_display(unsigned curdis);
 
-	virtual void show_screen_selector();
-	virtual void toggle_popup();
-	virtual void show_playlist();
+    virtual void playlist_mode_changed();
+    virtual void playlist_mute();
 
-public:	
-	virtual ~user_interface();
+    virtual void show_screen_selector();
+    virtual void toggle_popup();
+    virtual void show_playlist();
 
-	// display (const) and input handling
-	virtual void display() const;
+  public:
+    virtual ~user_interface();
 
-	// set global time for display (needed for water/sky animation)
-	virtual void set_time(double tm);
+    // display (const) and input handling
+    virtual void display() const;
 
-	// process common events (common keys, mouse input to panel)
-	virtual void process_input(const SDL_Event& event);
-	virtual void process_input(std::list<SDL_Event>& events);
+    // set global time for display (needed for water/sky animation)
+    virtual void set_time(double tm);
 
-	// create ui matching to player type (requested from game)
-	static user_interface* create(game& gm);
+    // process common events (common keys, mouse input to panel)
+    virtual void process_input(const SDL_Event &event);
+    virtual void process_input(std::list<SDL_Event> &events);
 
-	const sky& get_sky() const { return *(mysky.get()); }
-	const caustics& get_caustics() const { return mycaustics; }
-	const water& get_water() const;
-	const coastmap& get_coastmap() const { return mycoastmap; }
+    // create ui matching to player type (requested from game)
+    static user_interface *create(game &gm);
 
-	// helper functions
+    const sky &get_sky() const { return *(mysky.get()); }
+    const caustics &get_caustics() const { return mycaustics; }
+    const water &get_water() const;
+    const coastmap &get_coastmap() const { return mycoastmap; }
 
-	virtual angle get_relative_bearing() const;
-	virtual angle get_absolute_bearing() const;
-	virtual angle get_elevation() const;
-	// add angles to change bearing/elevation
-	virtual void add_bearing(angle a);
-	virtual void add_elevation(angle a);
+    // helper functions
 
-	// 2d drawing must be on for this
-	void draw_infopanel(bool onlytexts = false) const;
+    virtual angle get_relative_bearing() const;
+    virtual angle get_absolute_bearing() const;
+    virtual angle get_elevation() const;
+    // add angles to change bearing/elevation
+    virtual void add_bearing(angle a);
+    virtual void add_elevation(angle a);
 
-	// render red triangle for target in view. give viewport coordinates.
-	virtual void show_target(double x, double y, double w, double h, const vector3& viewpos);
+    // 2d drawing must be on for this
+    void draw_infopanel(bool onlytexts = false) const;
 
-	// 3d drawing functions
-	virtual void draw_terrain(const vector3& viewpos, angle dir, double max_view_dist, bool mirrored, int above_water) const;
+    // render red triangle for target in view. give viewport coordinates.
+    virtual void show_target(double x, double y, double w, double h, const vector3 &viewpos);
 
-	virtual void draw_weather_effects() const;
+    // 3d drawing functions
+    virtual void draw_terrain(const vector3 &viewpos, angle dir, double max_view_dist, bool mirrored, int above_water) const;
 
-	virtual void toggle_pause();
-	virtual bool paused() const { return pause; }
-	virtual unsigned time_scaling() const { return time_scale; }
-	virtual void add_message(const std::string& s);
-	virtual bool time_scale_up();	// returns true on success
-	virtual bool time_scale_down();
-//	virtual void record_sunk_ship ( const class ship* so );
-	/** This method creates a message about the rudder state. */
-	virtual void play_sound_effect(const std::string &se,
-				       const vector3& noise_source /*, bool loop = false*/) const;
-	virtual void pause_all_sound() const;
-	virtual void resume_all_sound() const;
+    virtual void draw_weather_effects() const;
 
-	// get current game of user_interface
-	virtual game& get_game() { return *mygame; }
-	virtual const game& get_game() const { return *mygame; }
+    virtual void toggle_pause();
+    virtual bool paused() const { return pause; }
+    virtual unsigned time_scaling() const { return time_scale; }
+    virtual void add_message(const std::string &s);
+    virtual bool time_scale_up(); // returns true on success
+    virtual bool time_scale_down();
+    //	virtual void record_sunk_ship ( const class ship* so );
+    /** This method creates a message about the rudder state. */
+    virtual void play_sound_effect(const std::string &se,
+                                   const vector3 &noise_source /*, bool loop = false*/) const;
+    virtual void pause_all_sound() const;
+    virtual void resume_all_sound() const;
 
-	bool abort_requested() const { return abort_request; }
-	void request_abort(bool abrt = true) { abort_request = abrt; }
+    // get current game of user_interface
+    virtual game &get_game() { return *mygame; }
+    virtual const game &get_game() const { return *mygame; }
 
-	void switch_geo_wire() {
-		mygeoclipmap->wireframe = !mygeoclipmap->wireframe;
-	}
+    bool abort_requested() const { return abort_request; }
+    void request_abort(bool abrt = true) { abort_request = abrt; }
+
+    void switch_geo_wire() {
+        mygeoclipmap->wireframe = !mygeoclipmap->wireframe;
+    }
 };
 
 #endif

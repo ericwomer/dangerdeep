@@ -26,33 +26,32 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "sea_object.h"
 
 // fixme: these values depend on depth charge type.
-#define DEPTH_CHARGE_SINK_SPEED 4	// m/sec
-#define DEADLY_DC_RADIUS_SURFACE 120	// meters
+#define DEPTH_CHARGE_SINK_SPEED 4    // m/sec
+#define DEADLY_DC_RADIUS_SURFACE 120 // meters
 #define DEADLY_DC_RADIUS_200M 80
-#define DAMAGE_DC_RADIUS_SURFACE 480	// meters, fixme realistic values?
+#define DAMAGE_DC_RADIUS_SURFACE 480 // meters, fixme realistic values?
 #define DAMAGE_DC_RADIUS_200M 320
 
 ///\brief Represents a depth charge with simulation of it.
 /** At the moment there are no specialisations for various types of depth charges */
-class depth_charge : public sea_object
-{
- private:
-	depth_charge();
-	depth_charge& operator=(const depth_charge& other);
-	depth_charge(const depth_charge& other);
+class depth_charge : public sea_object {
+  private:
+    depth_charge();
+    depth_charge &operator=(const depth_charge &other);
+    depth_charge(const depth_charge &other);
 
-protected:
-	double explosion_depth;
+  protected:
+    double explosion_depth;
 
-public:
-	depth_charge(game& gm_);	// for loading
-	depth_charge(game& gm_, double expl_depth, const vector3& pos);	// for creation
+  public:
+    depth_charge(game &gm_);                                        // for loading
+    depth_charge(game &gm_, double expl_depth, const vector3 &pos); // for creation
 
-	virtual void load(const xml_elem& parent);
-	virtual void save(xml_elem& parent) const;
+    virtual void load(const xml_elem &parent);
+    virtual void save(xml_elem &parent) const;
 
-	virtual void simulate(double delta_time);
-	void compute_force_and_torque(vector3& F, vector3& T) const;
+    virtual void simulate(double delta_time);
+    void compute_force_and_torque(vector3 &F, vector3 &T) const;
 };
 
 #endif

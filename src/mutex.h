@@ -26,52 +26,53 @@
 /// A classical mutex.
 ///@note This implementation is per default recursive, so you can lock the mutex again
 ///      in the same thread where you already have locked it.
-class mutex
-{
-	friend class condvar;
- protected:
-	struct SDL_mutex* mtx;
- private:
-	mutex(const mutex& );
-	mutex& operator=(const mutex& );
- public:
-	/// create a mutex
-	mutex();
+class mutex {
+    friend class condvar;
 
-	/// destroy mutex
-	~mutex();
+  protected:
+    struct SDL_mutex *mtx;
 
-	/// lock mutex
-	void lock();
+  private:
+    mutex(const mutex &);
+    mutex &operator=(const mutex &);
 
-	/// unlock the mutex
-	void unlock();
+  public:
+    /// create a mutex
+    mutex();
+
+    /// destroy mutex
+    ~mutex();
+
+    /// lock mutex
+    void lock();
+
+    /// unlock the mutex
+    void unlock();
 };
-
-
 
 /// A handy helper class for mutexes.
 ///@note Create a local object of that class and give it a mutex. It will lock the mutex
 ///	in its constructor and automatically unlock it in the destructor.
 ///	That way the unlock() is done automagically when a throw or return is executed anywhere
 ///	inside the block or function that the object is declared in.
-class mutex_locker
-{
- protected:
-	::mutex& mymutex;
- private:
-	mutex_locker();
-	mutex_locker(const mutex_locker& );
-	mutex_locker& operator=(const mutex_locker& );
- public:
-	/// create mutex locker
-	///@param mtx - mutex to lock
-	///@note will instantly lock the mutex that was given as parameter
-	mutex_locker(::mutex& mtx) : mymutex(mtx) { mymutex.lock(); }
+class mutex_locker {
+  protected:
+    ::mutex &mymutex;
 
-	/// destroy mutex locker
-	///@note will unlock the mutex that was given to the constructor
-	~mutex_locker() { mymutex.unlock(); }
+  private:
+    mutex_locker();
+    mutex_locker(const mutex_locker &);
+    mutex_locker &operator=(const mutex_locker &);
+
+  public:
+    /// create mutex locker
+    ///@param mtx - mutex to lock
+    ///@note will instantly lock the mutex that was given as parameter
+    mutex_locker(::mutex &mtx) : mymutex(mtx) { mymutex.lock(); }
+
+    /// destroy mutex locker
+    ///@note will unlock the mutex that was given to the constructor
+    ~mutex_locker() { mymutex.unlock(); }
 };
 
 #endif

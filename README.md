@@ -71,17 +71,18 @@ O tras instalar en el prefijo por defecto (`build/dist`):
 
 ## Tests
 
-El script `run_tests.sh` compila el proyecto y verifica que el build termine correctamente:
+El script `run_tests.sh` **por defecto** aplica formato (clang-format) y ejecuta el linter (cppcheck). La compilación solo se ejecuta si se pasa el flag `--build`:
 
 ```bash
-./run_tests.sh
+./run_tests.sh              # formato + lint (por defecto)
+./run_tests.sh --build      # compilación + formato + lint
+./run_tests.sh --format     # solo verificar formato (falla si hay diferencias)
+./run_tests.sh --lint       # solo lint
+./run_tests.sh --opengl     # test OpenGL (requiere haber compilado antes)
+./run_tests.sh --help       # ver todas las opciones
 ```
 
-Si en el futuro se añade un ejecutable de test OpenGL (p. ej. `dftdtester`), podés usar:
-
-```bash
-./run_tests.sh --opengl
-```
+**Opcionales (para formato y lint):** `clang-format`, `cppcheck` — en Ubuntu: `sudo apt install clang-format cppcheck`
 
 ---
 

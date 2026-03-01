@@ -21,51 +21,40 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "sub_ecard_popup.h"
-#include "system.h"
-#include "global_data.h"
-#include "game.h"
-#include "keys.h"
 #include "cfg.h"
 #include "datadirs.h"
+#include "game.h"
+#include "global_data.h"
+#include "keys.h"
+#include "system.h"
 
-
-
-sub_ecard_popup::sub_ecard_popup(user_interface& ui_) : user_popup(ui_)
-{
-	x = 4;
-	y = 79;
-	background_daylight.reset(new image(get_image_dir() + "recognition_card_popup_daylight.jpg|png"));
-	background_nightlight.reset(new image(get_image_dir() + "recognition_card_popup_redlight.jpg|png"));
+sub_ecard_popup::sub_ecard_popup(user_interface &ui_) : user_popup(ui_) {
+    x = 4;
+    y = 79;
+    background_daylight.reset(new image(get_image_dir() + "recognition_card_popup_daylight.jpg|png"));
+    background_nightlight.reset(new image(get_image_dir() + "recognition_card_popup_redlight.jpg|png"));
 }
 
-
-
-sub_ecard_popup::~sub_ecard_popup()
-{
+sub_ecard_popup::~sub_ecard_popup() {
 }
 
-
-
-bool sub_ecard_popup::process_input(class game& gm, const SDL_Event& event)
-{
-	// nothing to do
-	switch (event.type) {
-	default: return false;
-	}
-	return false;
+bool sub_ecard_popup::process_input(class game &gm, const SDL_Event &event) {
+    // nothing to do
+    switch (event.type) {
+    default:
+        return false;
+    }
+    return false;
 }
 
+void sub_ecard_popup::display(class game &gm) const {
+    sys().prepare_2d_drawing();
 
+    bool is_day = gm.is_day_mode();
+    if (is_day)
+        background_daylight->draw(x, y);
+    else
+        background_nightlight->draw(x, y);
 
-void sub_ecard_popup::display(class game& gm) const
-{
-	sys().prepare_2d_drawing();
-
-	bool is_day = gm.is_day_mode();
-	if (is_day)
-		background_daylight->draw(x, y);
-	else
-		background_nightlight->draw(x, y);
-
-	sys().unprepare_2d_drawing();
+    sys().unprepare_2d_drawing();
 }

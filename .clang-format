@@ -1,0 +1,7 @@
+# Danger from the Deep - estilo para clang-format
+# Ver: https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 8
+UseTab: Never
+ColumnLimit: 0

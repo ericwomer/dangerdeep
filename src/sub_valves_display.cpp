@@ -19,32 +19,26 @@
 
 #include "sub_valves_display.h"
 
-	sub_valves_display::sub_valves_display(class user_interface& ui_) 
-		: user_display(ui_)
-	{
-	}
+sub_valves_display::sub_valves_display(class user_interface &ui_)
+    : user_display(ui_) {
+}
 
-	void sub_valves_display::display(class game& gm) const
-	{
+void sub_valves_display::display(class game &gm) const {
 
-		sys().prepare_2d_drawing();
-		background->draw(0, 0);
+    sys().prepare_2d_drawing();
+    background->draw(0, 0);
 
-		ui.draw_infopanel();
-		sys().unprepare_2d_drawing();
-	}
+    ui.draw_infopanel();
+    sys().unprepare_2d_drawing();
+}
 
-	void sub_valves_display::process_input(class game& gm, const SDL_Event& event) {
-	}
+void sub_valves_display::process_input(class game &gm, const SDL_Event &event) {
+}
 
-	void sub_valves_display::enter(bool is_day)
-	{
-		background.reset(new image(get_image_dir() + "valves_screen_"
-					   + (is_day ? "daylight" : "redlight") + "_t7cv1.jpg"));
-	}
+void sub_valves_display::enter(bool is_day) {
+    background.reset(new image(get_image_dir() + "valves_screen_" + (is_day ? "daylight" : "redlight") + "_t7cv1.jpg"));
+}
 
-	void sub_valves_display::leave()
-	{
-		background.reset();
-	}
-
+void sub_valves_display::leave() {
+    background.reset();
+}

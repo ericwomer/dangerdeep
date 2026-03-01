@@ -23,12 +23,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef DIRECTORIES_H
 #define DIRECTORIES_H
 
-#include <string>
-#include <map>
-#include <list>
 #include "singleton.h"
+#include <list>
+#include <map>
+#include <string>
 
-const std::string& get_data_dir();
+const std::string &get_data_dir();
 inline std::string get_texture_dir() { return get_data_dir() + "textures/"; }
 inline std::string get_font_dir() { return get_data_dir() + "fonts/"; }
 inline std::string get_model_dir() { return get_data_dir() + "models/"; }
@@ -40,38 +40,39 @@ inline std::string get_shader_dir() { return get_data_dir() + "shaders/"; }
 inline std::string get_menu_dir() { return get_data_dir() + "menus/"; }
 
 // Note! call this at most once and very early in main()!
-void set_data_dir(const std::string& datadir);
+void set_data_dir(const std::string &datadir);
 
-class data_file_handler : public singleton<class data_file_handler>
-{
-	friend class singleton<data_file_handler>;
- private:
-	data_file_handler();
-	void parse_for_data_files(std::string dir, std::list<std::string>& idlist);
+class data_file_handler : public singleton<class data_file_handler> {
+    friend class singleton<data_file_handler>;
 
-	static data_file_handler* my_instance;
-	std::map<std::string, std::string> data_files;
-	std::list<std::string> airplane_ids;
-	std::list<std::string> ship_ids;
-	std::list<std::string> submarine_ids;
-	std::list<std::string> torpedo_ids;
-	std::list<std::string> prop_ids;
- public:
-	/// returns path to specfile for id "objectid", path is relative to data_dir
-	const std::string& get_rel_path(const std::string& objectid) const;
-	/// returns path to specfile for id "objectid", path is absolute
-	std::string get_path(const std::string& objectid) const;
-	/// returns path + filename to specfile for id "objectid", path is relative to data_dir
-	std::string get_rel_filename(const std::string& objectid) const;
-	/// returns path + filename to specfile for id "objectid", path is absolute
-	std::string get_filename(const std::string& objectid) const;
-	const std::list<std::string>& get_airplane_list() const { return airplane_ids; }
-	const std::list<std::string>& get_ship_list() const { return ship_ids; }
-	const std::list<std::string>& get_submarine_list() const { return submarine_ids; }
-	const std::list<std::string>& get_torpedo_list() const { return torpedo_ids; }
-	const std::list<std::string>& get_prop_list() const { return prop_ids; }
+  private:
+    data_file_handler();
+    void parse_for_data_files(std::string dir, std::list<std::string> &idlist);
+
+    static data_file_handler *my_instance;
+    std::map<std::string, std::string> data_files;
+    std::list<std::string> airplane_ids;
+    std::list<std::string> ship_ids;
+    std::list<std::string> submarine_ids;
+    std::list<std::string> torpedo_ids;
+    std::list<std::string> prop_ids;
+
+  public:
+    /// returns path to specfile for id "objectid", path is relative to data_dir
+    const std::string &get_rel_path(const std::string &objectid) const;
+    /// returns path to specfile for id "objectid", path is absolute
+    std::string get_path(const std::string &objectid) const;
+    /// returns path + filename to specfile for id "objectid", path is relative to data_dir
+    std::string get_rel_filename(const std::string &objectid) const;
+    /// returns path + filename to specfile for id "objectid", path is absolute
+    std::string get_filename(const std::string &objectid) const;
+    const std::list<std::string> &get_airplane_list() const { return airplane_ids; }
+    const std::list<std::string> &get_ship_list() const { return ship_ids; }
+    const std::list<std::string> &get_submarine_list() const { return submarine_ids; }
+    const std::list<std::string> &get_torpedo_list() const { return torpedo_ids; }
+    const std::list<std::string> &get_prop_list() const { return prop_ids; }
 };
 
-inline const data_file_handler& data_file() { return data_file_handler::instance(); }
+inline const data_file_handler &data_file() { return data_file_handler::instance(); }
 
 #endif

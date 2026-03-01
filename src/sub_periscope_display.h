@@ -28,42 +28,41 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "shader.h"
 #include <vector>
 
-class sub_periscope_display : public freeview_display
-{
-	void pre_display(class game& gm) const;
-	projection_data get_projection_data(class game& gm) const;
-	void set_modelview_matrix(class game& gm, const vector3& viewpos) const;
-	void post_display(class game& gm) const;
+class sub_periscope_display : public freeview_display {
+    void pre_display(class game &gm) const;
+    projection_data get_projection_data(class game &gm) const;
+    void set_modelview_matrix(class game &gm, const vector3 &viewpos) const;
+    void post_display(class game &gm) const;
 
-	std::auto_ptr<image> background;
-	texture::ptr compassbar_tex;
-	texture::ptr clock_hours_pointer;
-	texture::ptr clock_minutes_pointer;
-	
-	bool zoomed;	// use 1,5x (false) or 6x zoom (true)
+    std::auto_ptr<image> background;
+    texture::ptr compassbar_tex;
+    texture::ptr clock_hours_pointer;
+    texture::ptr clock_minutes_pointer;
 
-	bool use_hqsfx;
-	texture::ptr viewtex;
-	texture::ptr blurtex;
-	std::auto_ptr<glsl_shader_setup> glsl_blurview;
-	unsigned loc_blur_texc_offset;
-	unsigned loc_tex_view;
-	unsigned loc_tex_blur;
+    bool zoomed; // use 1,5x (false) or 6x zoom (true)
 
-	vector3 get_viewpos(class game& gm) const;
+    bool use_hqsfx;
+    texture::ptr viewtex;
+    texture::ptr blurtex;
+    std::auto_ptr<glsl_shader_setup> glsl_blurview;
+    unsigned loc_blur_texc_offset;
+    unsigned loc_tex_view;
+    unsigned loc_tex_blur;
 
-public:
-	sub_periscope_display(class user_interface& ui_);
-	virtual ~sub_periscope_display();
+    vector3 get_viewpos(class game &gm) const;
 
-	//overload for zoom key handling ('y') and TDC input
-	virtual void process_input(class game& gm, const SDL_Event& event);
-	virtual void display(class game& gm) const;
+  public:
+    sub_periscope_display(class user_interface &ui_);
+    virtual ~sub_periscope_display();
 
-	virtual unsigned get_popup_allow_mask() const;
+    // overload for zoom key handling ('y') and TDC input
+    virtual void process_input(class game &gm, const SDL_Event &event);
+    virtual void display(class game &gm) const;
 
-	void enter(bool is_day);
-	void leave();
+    virtual unsigned get_popup_allow_mask() const;
+
+    void enter(bool is_day);
+    void leave();
 };
 
 #endif

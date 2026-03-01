@@ -23,28 +23,28 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef SUB_DAMAGE_DISPLAY_H
 #define SUB_DAMAGE_DISPLAY_H
 
-#include "user_display.h"
-#include "texture.h"
-#include "vector3.h"
 #include "submarine.h"
+#include "texture.h"
+#include "user_display.h"
+#include "vector3.h"
 
-class sub_damage_display : public user_display
-{
-	int mx, my;	// last mouse position, needed for popup display
-	std::auto_ptr<image> damage_screen_background;
-	std::auto_ptr<image> sub_damage_scheme_all;
-	texture::ptr repairlight, repairmedium, repairheavy, repaircritical, repairwrecked;
-	objcachet<texture>::reference notepadsheet;
-public:
-	sub_damage_display(class user_interface& ui_);
+class sub_damage_display : public user_display {
+    int mx, my; // last mouse position, needed for popup display
+    std::auto_ptr<image> damage_screen_background;
+    std::auto_ptr<image> sub_damage_scheme_all;
+    texture::ptr repairlight, repairmedium, repairheavy, repaircritical, repairwrecked;
+    objcachet<texture>::reference notepadsheet;
 
-	virtual void display_popup (int x, int y, const std::string& text, bool atleft, bool atbottom) const;
+  public:
+    sub_damage_display(class user_interface &ui_);
 
-	virtual void display(class game& gm) const;
-	virtual void process_input(class game& gm, const SDL_Event& event);
+    virtual void display_popup(int x, int y, const std::string &text, bool atleft, bool atbottom) const;
 
-	void enter(bool is_day);
-	void leave();
+    virtual void display(class game &gm) const;
+    virtual void process_input(class game &gm, const SDL_Event &event);
+
+    void enter(bool is_day);
+    void leave();
 };
 
 #endif /* SUB_DAMAGE_DISPLAY_H */

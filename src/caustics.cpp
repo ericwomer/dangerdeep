@@ -20,53 +20,37 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // underwater caustic simulation
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
-
 #include <float.h>
-#include <sstream>
 #include <iomanip>
+#include <sstream>
 
 using namespace std;
 
 #include "caustics.h"
 #include "datadirs.h"
 
-
-
-
 #define FRAME_TEXTURE_COUNT 32
 
-
-
-
-
 caustics::caustics()
- : mytime(-DBL_MAX), current_texture(0)
-{
-	//	load caustic maps "caustic??.png"
-	for(unsigned int i=0; i<FRAME_TEXTURE_COUNT; i++)
-	{
-		stringstream filename;
-		filename << "caustic" << setfill('0') << setw(2) << i << ".png";
+    : mytime(-DBL_MAX), current_texture(0) {
+    //	load caustic maps "caustic??.png"
+    for (unsigned int i = 0; i < FRAME_TEXTURE_COUNT; i++) {
+        stringstream filename;
+        filename << "caustic" << setfill('0') << setw(2) << i << ".png";
 
-		texture_pointers.push_back(auto_ptr<texture>( new texture(get_texture_dir()+filename.str(), texture::LINEAR) ));
-	}
+        texture_pointers.push_back(auto_ptr<texture>(new texture(get_texture_dir() + filename.str(), texture::LINEAR)));
+    }
 }
 
-
-
-void caustics::set_time(double tm)
-{
-	//	FIXME add speed calculation
-	if( (tm-mytime) > 1.0/25 )	//	25 pictures per sec
-	{
-		mytime = tm;
-		current_texture = (current_texture+1) % FRAME_TEXTURE_COUNT;
-	}
+void caustics::set_time(double tm) {
+    //	FIXME add speed calculation
+    if ((tm - mytime) > 1.0 / 25) //	25 pictures per sec
+    {
+        mytime = tm;
+        current_texture = (current_texture + 1) % FRAME_TEXTURE_COUNT;
+    }
 }
 
-
-
-texture *caustics::get_map() const
-{
-	return texture_pointers[current_texture];
+texture *caustics::get_map() const {
+    return texture_pointers[current_texture];
 }

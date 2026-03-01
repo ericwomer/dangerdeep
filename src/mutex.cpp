@@ -24,32 +24,22 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "error.h"
 #include <SDL.h>
 
-mutex::mutex()
-{
-	mtx = SDL_CreateMutex();
-	if (!mtx)
-		throw sdl_error("mutex creation failed");
+mutex::mutex() {
+    mtx = SDL_CreateMutex();
+    if (!mtx)
+        throw sdl_error("mutex creation failed");
 }
 
-
-
-mutex::~mutex()
-{
-	SDL_DestroyMutex(mtx);
+mutex::~mutex() {
+    SDL_DestroyMutex(mtx);
 }
 
-
-
-void mutex::lock()
-{
-	if (SDL_mutexP(mtx) < 0)
-		throw sdl_error("mutex lock failed");
+void mutex::lock() {
+    if (SDL_mutexP(mtx) < 0)
+        throw sdl_error("mutex lock failed");
 }
 
-
-
-void mutex::unlock()
-{
-	if (SDL_mutexV(mtx) < 0)
-		throw sdl_error("mutex unlock failed");
+void mutex::unlock() {
+    if (SDL_mutexV(mtx) < 0)
+        throw sdl_error("mutex unlock failed");
 }

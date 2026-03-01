@@ -23,12 +23,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef SUBMARINE_INTERFACE_H
 #define SUBMARINE_INTERFACE_H
 
+#include "submarine.h"
 #include <list>
 #include <vector>
-#include "submarine.h"
-//#include "datadirs.h"
-#include "user_interface.h"
+// #include "datadirs.h"
 #include "color.h"
+#include "user_interface.h"
 
 // pop-ups:
 // can be used in various screens, so they should be stored in submarine_interface
@@ -44,83 +44,81 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /** This class handles all the input and output to and from the player and the game if the user
     plays a commander of a submarine. */
 ///\ingroup interfaces
-class submarine_interface : public user_interface
-{
-public:
+class submarine_interface : public user_interface {
+  public:
+    // the indices for the displays
+    enum {
+        display_mode_gauges,
+        display_mode_valves,
+        display_mode_periscope,
+        display_mode_uzo,
+        display_mode_bridge,
+        display_mode_map,
+        display_mode_torpedoroom,
+        display_mode_damagestatus,
+        display_mode_captainscabin,
+        display_mode_logbook,
+        display_mode_successes,
+        display_mode_sonar,
+        display_mode_freeview,
+        display_mode_tdc,
+        display_mode_torpsetup,
+        display_mode_recogmanual,
+        nr_of_displays
+    };
 
-	// the indices for the displays
-	enum {
-		display_mode_gauges,
-		display_mode_valves,
-		display_mode_periscope,
-		display_mode_uzo,
-		display_mode_bridge,
-		display_mode_map,
-		display_mode_torpedoroom,
-		display_mode_damagestatus,
-		display_mode_captainscabin,
-		display_mode_logbook,
-		display_mode_successes,
-		display_mode_sonar,
-		display_mode_freeview,
-		display_mode_tdc,
-		display_mode_torpsetup,
-		display_mode_recogmanual,
-		nr_of_displays
-	};
+    enum {
+        popup_mode_control,
+        popup_mode_tdc,
+        popup_mode_ecard,
+        popup_mode_recogmanual,
+        nr_of_popups
+    };
 
-	enum {
-		popup_mode_control,
-		popup_mode_tdc,
-		popup_mode_ecard,
-		popup_mode_recogmanual,
-		nr_of_popups
-	};
+  private:
+    submarine_interface();
+    submarine_interface &operator=(const submarine_interface &other);
+    submarine_interface(const submarine_interface &other);
 
- private:
-	submarine_interface();
-	submarine_interface& operator= (const submarine_interface& other);
-	submarine_interface(const submarine_interface& other);
+  protected:
+    unsigned selected_tube;
+    std::auto_ptr<class torpedo_camera_display> torpedo_cam_view;
+    mutable unsigned torpedo_cam_track_nr;
 
- protected:
-	unsigned selected_tube;
-	std::auto_ptr<class torpedo_camera_display> torpedo_cam_view;
-	mutable unsigned torpedo_cam_track_nr;
+    /// overloaded from user_interface, for forced screen switching
+    virtual void set_time(double tm);
 
-	/// overloaded from user_interface, for forced screen switching
-	virtual void set_time(double tm);
+  public:
+    // public, because the functions could be called by heirs of user_display,
+    // and should be called only from there.
+    void goto_gauges();
+    void goto_periscope();
+    void goto_UZO();
+    void goto_bridge();
+    void goto_map();
+    void goto_torpedomanagement();
+    void goto_damagecontrol();
+    void goto_captainscabin();
+    void goto_logbook();
+    void goto_successes();
+    void goto_sonar();
+    void goto_freeview();
+    void goto_TDC();
+    void goto_torpedosettings();
+    void goto_recogmanual();
+    void goto_valves();
 
- public:
-	// public, because the functions could be called by heirs of user_display,
-	// and should be called only from there.
-	void goto_gauges();
-	void goto_periscope();
-	void goto_UZO();
-	void goto_bridge();
-	void goto_map();
-	void goto_torpedomanagement();
-	void goto_damagecontrol();
-	void goto_captainscabin();
-	void goto_logbook();
-	void goto_successes();
-	void goto_sonar();
-	void goto_freeview();
-	void goto_TDC();
-	void goto_torpedosettings();
-	void goto_recogmanual();
-	void goto_valves();
+    void toggle_popup();
 
-	void toggle_popup();
+    submarine_interface(class game &gm);
+    virtual ~submarine_interface();
 
-	submarine_interface(class game& gm);
-	virtual ~submarine_interface();
+    void fire_tube(submarine *player, int nr);
 
-	void fire_tube(submarine* player, int nr);
-
-	virtual void display() const;
-	virtual void process_input(const SDL_Event& events);
-	virtual unsigned get_selected_tube() const { return selected_tube; }
-	virtual void select_tube(unsigned nr) { selected_tube = nr; }
+    virtual void display() const;
+    virtual void process_input(const SDL_Event &events);
+    virtual unsigned get_selected_tube() const { return selected_tube; }
+    virtual void select_tube(unsigned nr) { selected_tube = nr; }
 };
 
 #endif

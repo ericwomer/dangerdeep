@@ -27,37 +27,35 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "oglext/OglExt.h"
 #include "perlinnoise.h"
-#include <glu.h>
 #include <SDL.h>
+#include <glu.h>
 
-#include "terrain.h"
-#include "system.h"
-#include "vector3.h"
-#include "model.h"
-#include "texture.h"
-#include "image.h"
-#include "faulthandler.h"
+#include "angle.h"
+#include "bivector.h"
+#include "bspline.h"
+#include "cfg.h"
 #include "datadirs.h"
-#include "frustum.h"
-#include "shader.h"
+#include "faulthandler.h"
 #include "font.h"
 #include "fpsmeasure.h"
-#include "log.h"
-#include "mymain.cpp"
-#include "height_generator.h"
-#include "perlinnoise.h"
-#include "global_data.h"
-#include "bivector.h"
+#include "frustum.h"
 #include "geoclipmap.h"
-#include "fpsmeasure.h"
-#include "bspline.h"
-#include "angle.h"
-#include <time.h>
+#include "global_data.h"
+#include "height_generator.h"
+#include "height_generator_map.h"
+#include "image.h"
+#include "log.h"
+#include "model.h"
+#include "mymain.cpp"
+#include "perlinnoise.h"
+#include "shader.h"
+#include "system.h"
+#include "terrain.h"
+#include "texture.h"
+#include "vector3.h"
 #include <iostream>
 #include <sstream>
-#include "height_generator_map.h"
-#include "cfg.h"
-
+#include <time.h>
 
 // ------------------------------------------- code ---------------------------------------
 
@@ -254,7 +252,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
     About terrain synthesis:
-    
+
     final height data is built recursivly from coarsest level to finest level.
     Each value of level x is build of surrounding values of level x+1 using
     smooth surface interpolation with factors -1/16 9/16 9/16 -1/16.
@@ -303,23 +301,20 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
  */
 
-
-class height_generator_test1 : public height_generator
-{
-public:
-
-    height_generator_test1() : height_generator(1.0)
-    {
+class height_generator_test1 : public height_generator {
+  public:
+    height_generator_test1() : height_generator(1.0) {
     }
 
-    void compute_heights(int detail, const vector2i& coord_bl,
-                         const vector2i& coord_sz, float* dest, unsigned stride = 0,
-                         unsigned line_stride = 0)
-    {
-        if (!stride) stride = 1;
-        if (!line_stride) line_stride = coord_sz.x * stride;
+    void compute_heights(int detail, const vector2i &coord_bl,
+                         const vector2i &coord_sz, float *dest, unsigned stride = 0,
+                         unsigned line_stride = 0) {
+        if (!stride)
+            stride = 1;
+        if (!line_stride)
+            line_stride = coord_sz.x * stride;
         for (int y = 0; y < coord_sz.y; ++y) {
-            float* dest2 = dest;
+            float *dest2 = dest;
             for (int x = 0; x < coord_sz.x; ++x) {
                 vector2i coord = coord_bl + vector2i(x, y);
                 if (detail >= 0) {
@@ -337,16 +332,14 @@ public:
         }
     }
 
-    void get_min_max_height(double& minh, double& maxh) const
-    {
+    void get_min_max_height(double &minh, double &maxh) const {
         minh = -40.0;
         maxh = 0.0;
     }
 };
 
-class height_generator_test2 : public height_generator
-{
-protected:
+class height_generator_test2 : public height_generator {
+  protected:
     perlinnoise pn;
     const unsigned s2;
     const unsigned height_segments;
@@ -357,14 +350,13 @@ protected:
 
     std::vector<uint8_t> ct[8];
     unsigned cw, ch;
-public:
 
+  public:
     height_generator_test2()
-    : height_generator(1.0, 2),
-    pn(64, 4, 6, true), s2(256 * 16), height_segments(10),
-    total_height(256.0), terrace_height(total_height / height_segments),
-    pn2(64, 2, 16)
-    {
+        : height_generator(1.0, 2),
+          pn(64, 4, 6, true), s2(256 * 16), height_segments(10),
+          total_height(256.0), terrace_height(total_height / height_segments),
+          pn2(64, 2, 16) {
         /*
           lookup_function<float, 256U> asin_lookup;
           for (unsigned i = 0; i <= 256; ++i)
@@ -374,8 +366,8 @@ public:
         extrah.resize(64 * 64);
         for (unsigned y = 0; y < 64; ++y)
             for (unsigned x = 0; x < 64; ++x)
-                extrah[64 * y + x] = rnd() - 0.5; //extrah2[64*y+x]/256.0-0.5;
-        const char* texnames[8] = {
+                extrah[64 * y + x] = rnd() - 0.5; // extrah2[64*y+x]/256.0-0.5;
+        const char *texnames[8] = {
             "tex_grass.jpg",
             "tex_grass2.jpg",
             "tex_grass3.jpg",
@@ -383,33 +375,34 @@ public:
             "tex_grass5.jpg",
             "tex_mud.jpg",
             "tex_stone.jpg",
-            "tex_sand.jpg"
-        };
+            "tex_sand.jpg"};
         for (unsigned i = 0; i < 8; ++i) {
             sdl_image tmp(get_texture_dir() + texnames[i]);
             unsigned bpp = 0;
             ct[i] = tmp.get_plain_data(cw, ch, bpp);
-            if (bpp != 3) throw error("color bpp != 3");
+            if (bpp != 3)
+                throw error("color bpp != 3");
         }
     }
 
-    void compute_heights(int detail, const vector2i& coord_bl,
-                         const vector2i& coord_sz, float* dest, unsigned stride = 0,
-                         unsigned line_stride = 0, bool = true)
-    {
-        if (!stride) stride = 1;
-        if (!line_stride) line_stride = coord_sz.x * stride;
+    void compute_heights(int detail, const vector2i &coord_bl,
+                         const vector2i &coord_sz, float *dest, unsigned stride = 0,
+                         unsigned line_stride = 0, bool = true) {
+        if (!stride)
+            stride = 1;
+        if (!line_stride)
+            line_stride = coord_sz.x * stride;
         if (detail >= 0) {
             for (int y = 0; y < coord_sz.y; ++y) {
-                float* dest2 = dest;
+                float *dest2 = dest;
                 for (int x = 0; x < coord_sz.x; ++x) {
                     vector2i coord = coord_bl + vector2i(x, y);
                     int xc = coord.x * int(1 << detail);
                     int yc = coord.y * int(1 << detail);
                     if (detail <= 6) {
-                        //float h = pn.value(xc, yc, 6 - detail) / 255.0f;
+                        // float h = pn.value(xc, yc, 6 - detail) / 255.0f;
                         //*dest2 = h * h * h * h * 0.5 * 256;
-						*dest2 = -130+pn.value(xc, yc, 6 - detail);
+                        *dest2 = -130 + pn.value(xc, yc, 6 - detail);
                     } else
                         *dest2 = -130;
                     dest2 += stride;
@@ -426,11 +419,11 @@ public:
                 tmp.swap(d0h);
             }
             for (int y = 0; y < coord_sz.y; ++y) {
-                float* dest2 = dest;
+                float *dest2 = dest;
                 for (int x = 0; x < coord_sz.x; ++x) {
                     vector2i coord = coord_bl + vector2i(x, y);
                     float baseh = d0h[vector2i(x, y)];
-                    baseh += extrah[(coord.y & 63)*64 + (coord.x & 63)] * 0.25;
+                    baseh += extrah[(coord.y & 63) * 64 + (coord.x & 63)] * 0.25;
                     *dest2 = baseh;
                     dest2 += stride;
                 }
@@ -439,61 +432,52 @@ public:
         }
     }
 
-    void get_min_max_height(double& minh, double& maxh) const
-    {
+    void get_min_max_height(double &minh, double &maxh) const {
         minh = -130;
         maxh = 128.0 - 130;
     }
 };
 
-template<class T, class U>
-std::vector<T> scaledown(const std::vector<T>& v, unsigned newres)
-{
+template <class T, class U>
+std::vector<T> scaledown(const std::vector<T> &v, unsigned newres) {
     std::vector<T> result(newres * newres);
     for (unsigned y = 0; y < newres; ++y) {
         for (unsigned x = 0; x < newres; ++x) {
             result[y * newres + x] = T((U(v[2 * y * newres * 2 + 2 * x]) +
-                                       U(v[2 * y * newres * 2 + 2 * x + 1]) +
-                                       U(v[(2 * y + 1) * newres * 2 + 2 * x]) +
-                                       U(v[(2 * y + 1) * newres * 2 + 2 * x + 1])) / 4);
+                                        U(v[2 * y * newres * 2 + 2 * x + 1]) +
+                                        U(v[(2 * y + 1) * newres * 2 + 2 * x]) +
+                                        U(v[(2 * y + 1) * newres * 2 + 2 * x + 1])) /
+                                       4);
         }
     }
     return result;
 }
 
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // copied from credits.cpp, later move to own file(s)!
 
-class camera
-{
+class camera {
     vector3 position;
     vector3 look_at;
-public:
 
-    camera(const vector3& p = vector3(), const vector3& la = vector3(0, 1, 0))
-    : position(p), look_at(la)
-    {
+  public:
+    camera(const vector3 &p = vector3(), const vector3 &la = vector3(0, 1, 0))
+        : position(p), look_at(la) {
     }
 
-    const vector3& get_pos() const
-    {
+    const vector3 &get_pos() const {
         return position;
     }
 
-    vector3 view_dir() const
-    {
+    vector3 view_dir() const {
         return (look_at - position).normal();
     }
 
-    angle look_direction() const
-    {
+    angle look_direction() const {
         return angle((look_at - position).xy());
     }
 
-    void set(const vector3& pos, const vector3& lookat)
-    {
+    void set(const vector3 &pos, const vector3 &lookat) {
         position = pos;
         look_at = lookat;
     }
@@ -501,8 +485,7 @@ public:
     void set_gl_trans() const;
 };
 
-matrix4 camera::get_transformation() const
-{
+matrix4 camera::get_transformation() const {
     // compute transformation matrix from camera
     // orientation
     // camera points to -z axis with OpenGL
@@ -517,15 +500,13 @@ matrix4 camera::get_transformation() const
                    0, 0, 0, 1);
 }
 
-void camera::set_gl_trans() const
-{
+void camera::set_gl_trans() const {
     get_transformation().multiply_gl();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void run()
-{
+void run() {
 
 #if 0
     float camadd = 700;
@@ -539,13 +520,13 @@ void run()
     height_generator_map hgtm("default.xml");
     geoclipmap gcm(7, 5/*3*/, hgtm);
 #endif
-#else	
+#else
     float camadd = -1000.0;
     terrain<Sint16> m_terrain(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", 8);
     geoclipmap gcm(7, 7, m_terrain);
 #endif
 
-    //gcm.set_viewerpos(vector3(0, 0, 30.0));
+    // gcm.set_viewerpos(vector3(0, 0, 30.0));
 
     glClearColor(0.3, 0.4, 1.0, 0.0);
 
@@ -570,11 +551,10 @@ void run()
         vector2f(0.00, 0.00),
         vector2f(-0.75, 0.00),
         vector2f(-0.75, 0.75),
-        vector2f(0.00, 0.75)
-    };
+        vector2f(0.00, 0.75)};
     for (unsigned j = 0; j < 13; ++j) {
         vector2f a = bsp[j] * 256;
-        bsppts.push_back(a.xyz(0.0/*terrain height*/ * 0.5 + 20.0));
+        bsppts.push_back(a.xyz(0.0 /*terrain height*/ * 0.5 + 20.0));
     }
     bsplinet<vector3f> cam_path(2, bsppts);
 
@@ -597,19 +577,19 @@ void run()
         for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
             if (it->type == SDL_KEYDOWN) {
                 switch ((*it).key.keysym.sym) {
-                    case SDLK_ESCAPE:
-                        quit = true;
-                        break;
-                    case SDLK_PAGEUP:
-                        camadd += 15;
-                        break;
-                    case SDLK_PAGEDOWN:
-                        camadd -= 15;
-                        break;
-                    default:
-                        break;
+                case SDLK_ESCAPE:
+                    quit = true;
+                    break;
+                case SDLK_PAGEUP:
+                    camadd += 15;
+                    break;
+                case SDLK_PAGEDOWN:
+                    camadd -= 15;
+                    break;
+                default:
+                    break;
                 }
-                //gcm.set_viewerpos(campos);
+                // gcm.set_viewerpos(campos);
             }
             if (it->type == SDL_MOUSEBUTTONDOWN) {
                 gcm.wireframe = !gcm.wireframe;
@@ -627,7 +607,7 @@ void run()
         float path_fac = myfrac((1.0 / 120) * (sys().millisec() - tm0) / 1000);
         vector3f campos = cam_path.value(path_fac);
         vector3f camlookat = cam_path.value(myfrac(path_fac + 0.01)) - vector3f(0, 0, 20);
-        //camera cm(viewpos2, viewpos2 + angle(zang).direction().xyz(-0.25));
+        // camera cm(viewpos2, viewpos2 + angle(zang).direction().xyz(-0.25));
         campos.z += camadd;
         cammove += 200;
         //		campos.x-=cammove;
@@ -638,10 +618,9 @@ void run()
 
         // sky also sets light source position
         //		mysky->display(colorf(1.0f, 1.0f, 1.0f), viewpos2, 30000.0, false);
-        //glDisable(GL_FOG);
+        // glDisable(GL_FOG);
         glFogi(GL_FOG_MODE, GL_EXP);
-        float fog_color[4] = {0.6, 0.6, 0.6, 1.0
-        };
+        float fog_color[4] = {0.6, 0.6, 0.6, 1.0};
         glFogfv(GL_FOG_COLOR, fog_color);
         glFogf(GL_FOG_DENSITY, 0.0008);
 
@@ -663,29 +642,27 @@ void run()
         sys().swap_buffers();
     }
 
-    log_info("slowest frame " << fpsm.get_slowest_frame_time_ms() << "ms, fps total " <<
-             fpsm.get_total_fps());
+    log_info("slowest frame " << fpsm.get_slowest_frame_time_ms() << "ms, fps total " << fpsm.get_total_fps());
 
     glClearColor(0, 0, 1, 0);
 }
 
-int mymain(list<string>& args)
-{
+int mymain(list<string> &args) {
     // report critical errors (on Unix/Posix systems)
     install_segfault_handler();
-	
-	cfg::instance().register_option("use_ani_filtering", true);
-	cfg::instance().register_option("anisotropic_level", 16.0f);
-	cfg::instance().register_option("use_compressed_textures", false);
-	cfg::instance().register_option("multisampling_level", 0);
-	cfg::instance().register_option("use_multisampling", false);
-	cfg::instance().register_option("hint_multisampling", 0);
-	cfg::instance().register_option("hint_fog", 0);
-	cfg::instance().register_option("hint_mipmap", 0);
-	cfg::instance().register_option("hint_texture_compression", 0);
-	cfg::instance().register_option("vsync", false);
-	cfg::instance().register_option("terrain_texture_resolution", 0.1f);
-	
+
+    cfg::instance().register_option("use_ani_filtering", true);
+    cfg::instance().register_option("anisotropic_level", 16.0f);
+    cfg::instance().register_option("use_compressed_textures", false);
+    cfg::instance().register_option("multisampling_level", 0);
+    cfg::instance().register_option("use_multisampling", false);
+    cfg::instance().register_option("hint_multisampling", 0);
+    cfg::instance().register_option("hint_fog", 0);
+    cfg::instance().register_option("hint_mipmap", 0);
+    cfg::instance().register_option("hint_texture_compression", 0);
+    cfg::instance().register_option("vsync", false);
+    cfg::instance().register_option("terrain_texture_resolution", 0.1f);
+
     // randomize
     srand(time(0));
 
@@ -697,24 +674,24 @@ int mymain(list<string>& args)
     for (list<string>::iterator it = args.begin(); it != args.end(); ++it) {
         if (*it == "--help") {
             cout << "*** Danger from the Deep ***\nusage:\n--help\t\tshow this\n"
-                    << "--res n\t\tuse resolution n horizontal,\n\t\tn is 512,640,800,1024 (recommended) or 1280\n"
-                    << "--nofullscreen\tdon't use fullscreen\n"
-                    << "--debug\t\tdebug mode: no fullscreen, resolution 800\n"
-#if !(defined (WIN32) || (defined (__APPLE__) && defined (__MACH__)))
-                    << "--vsync\tsync to vertical retrace signal (for nvidia cards)\n"
+                 << "--res n\t\tuse resolution n horizontal,\n\t\tn is 512,640,800,1024 (recommended) or 1280\n"
+                 << "--nofullscreen\tdon't use fullscreen\n"
+                 << "--debug\t\tdebug mode: no fullscreen, resolution 800\n"
+#if !(defined(WIN32) || (defined(__APPLE__) && defined(__MACH__)))
+                 << "--vsync\tsync to vertical retrace signal (for nvidia cards)\n"
 #endif
-                    << "--nosound\tdon't use sound\n";
+                 << "--nosound\tdon't use sound\n";
             return 0;
         } else if (*it == "--nofullscreen") {
             fullscreen = false;
         } else if (*it == "--debug") {
             fullscreen = false;
             res_x = 800;
-#if !(defined (WIN32) || (defined (__APPLE__) && defined (__MACH__)))
+#if !(defined(WIN32) || (defined(__APPLE__) && defined(__MACH__)))
         } else if (*it == "--vsync") {
-            if (putenv((char*) "__GL_SYNC_TO_VBLANK=1") < 0)
+            if (putenv((char *)"__GL_SYNC_TO_VBLANK=1") < 0)
                 cout << "ERROR: vsync setting failed.\n";
-            //maxfps = 0;
+            // maxfps = 0;
 #endif
         } else if (*it == "--res") {
             list<string>::iterator it2 = it;
@@ -752,7 +729,7 @@ int mymain(list<string>& args)
     glEnable(GL_LIGHT0);
 
     font_arial = new font(get_font_dir() + "font_arial");
-	auto_ptr<font> fa(font_arial);
+    auto_ptr<font> fa(font_arial);
     sys().draw_console_with(font_arial, 0);
 
     run();

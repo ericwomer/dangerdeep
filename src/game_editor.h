@@ -26,28 +26,27 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "game.h"
 
 ///\brief Central object of the game world with physics simulation etc. Editor specialization
-class game_editor : public game
-{
-protected:
-	game_editor();
-	game_editor& operator= (const game_editor& other);
-	game_editor(const game_editor& other);
+class game_editor : public game {
+  protected:
+    game_editor();
+    game_editor &operator=(const game_editor &other);
+    game_editor(const game_editor &other);
 
-public:
-	/// create new editor instance. subtype can be changed later.
-	game_editor(const date& start_date /*const std::string& subtype*/);
+  public:
+    /// create new editor instance. subtype can be changed later.
+    game_editor(const date &start_date /*const std::string& subtype*/);
 
-	// create from mission file or savegame (xml file)
-	game_editor(const std::string& filename);
+    // create from mission file or savegame (xml file)
+    game_editor(const std::string &filename);
 
-	const ptrvector<convoy>& get_convoy_list() const { return convoys; }
+    const ptrvector<convoy> &get_convoy_list() const { return convoys; }
 
-	// is editor?
-	virtual bool is_editor() const { return true; }
+    // is editor?
+    virtual bool is_editor() const { return true; }
 
-	// manipulator functions
-	virtual void manipulate_time(double tm);
-	virtual void manipulate_equipment_date(date equipdate);
+    // manipulator functions
+    virtual void manipulate_time(double tm);
+    virtual void manipulate_equipment_date(date equipdate);
 };
 
 #endif

@@ -27,106 +27,94 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Win32 and MacOsX do not suppport backtracking
 */
 
-
-
-
-#if (defined (__APPLE__) && defined (__MACH__)) || defined MINGW32
+#if (defined(__APPLE__) && defined(__MACH__)) || defined MINGW32
 
 #include <stdio.h>
 
 __attribute__((always_inline))
 
-inline void print_stack_trace()
-{
-	printf("Stack backtracing not supported on Win32 and MacOSX systems.\n");
+inline void
+print_stack_trace() {
+    printf("Stack backtracing not supported on Win32 and MacOSX systems.\n");
 }
 
-void install_segfault_handler()
-{
-	printf("SIGSEGV catching not supported on Win32 and MacOSX systems.\n");
+void install_segfault_handler() {
+    printf("SIGSEGV catching not supported on Win32 and MacOSX systems.\n");
 }
 
 #elif defined WIN32
 
-#include <windows.h>
-#include <shlobj.h>
 #include "dbghelp.h"
+#include <shlobj.h>
+#include <windows.h>
 
-typedef BOOL (WINAPI *MINIDUMPWRITEDUMP)(HANDLE hprocess, DWORD pid, HANDLE hfile, MINIDUMP_TYPE dumptype,
-									CONST PMINIDUMP_EXCEPTION_INFORMATION exceptionparam,
-									CONST PMINIDUMP_USER_STREAM_INFORMATION userstreamparam,
-									CONST PMINIDUMP_CALLBACK_INFORMATION callbackparam);
-inline void print_stack_trace()
-{
-	printf("Stack backtracing not supported on Win32 and MacOSX systems.\n");
+typedef BOOL(WINAPI *MINIDUMPWRITEDUMP)(HANDLE hprocess, DWORD pid, HANDLE hfile, MINIDUMP_TYPE dumptype,
+                                        CONST PMINIDUMP_EXCEPTION_INFORMATION exceptionparam,
+                                        CONST PMINIDUMP_USER_STREAM_INFORMATION userstreamparam,
+                                        CONST PMINIDUMP_CALLBACK_INFORMATION callbackparam);
+inline void print_stack_trace() {
+    printf("Stack backtracing not supported on Win32 and MacOSX systems.\n");
 }
 
-static  LONG WINAPI DangerdeepCrashDump(struct _EXCEPTION_POINTERS *pexceptioninfo)
-{
-	std::ofstream f("log.txt");
-	log::instance().write(f, log::LOG_SYSINFO);
+static LONG WINAPI DangerdeepCrashDump(struct _EXCEPTION_POINTERS *pexceptioninfo) {
+    std::ofstream f("log.txt");
+    log::instance().write(f, log::LOG_SYSINFO);
 
-	MINIDUMPWRITEDUMP m_dump;
-	static HANDLE m_hfile;
-	static HMODULE m_hdll;
-	char path[MAX_PATH + 1];
-	char file[MAX_PATH + 1];
-	BOOL ok;
-	SYSTEMTIME sysTime = {0};
-	GetSystemTime(&sysTime);
+    MINIDUMPWRITEDUMP m_dump;
+    static HANDLE m_hfile;
+    static HMODULE m_hdll;
+    char path[MAX_PATH + 1];
+    char file[MAX_PATH + 1];
+    BOOL ok;
+    SYSTEMTIME sysTime = {0};
+    GetSystemTime(&sysTime);
 
-	SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, path);
+    SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, path);
 
-	_snprintf( file, MAX_PATH, "\\dangerdeep-%04u-%02u-%02u_%02u-%02u-%02u.dmp", sysTime.wYear, sysTime.wMonth, sysTime.wDay, sysTime.wHour, sysTime.wMinute, sysTime.wSecond );
-	std::string foo = path;
-	foo = foo + file;
-//	foo = foo + "\\dangerdeep.dmp";
+    _snprintf(file, MAX_PATH, "\\dangerdeep-%04u-%02u-%02u_%02u-%02u-%02u.dmp", sysTime.wYear, sysTime.wMonth, sysTime.wDay, sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
+    std::string foo = path;
+    foo = foo + file;
+    //	foo = foo + "\\dangerdeep.dmp";
 
+    _MINIDUMP_EXCEPTION_INFORMATION exinfo;
+    exinfo.ThreadId = ::GetCurrentThreadId();
+    exinfo.ExceptionPointers = pexceptioninfo;
+    exinfo.ClientPointers = NULL;
 
+    m_hfile = CreateFile(foo.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	_MINIDUMP_EXCEPTION_INFORMATION exinfo;
-	exinfo.ThreadId = ::GetCurrentThreadId();
-	exinfo.ExceptionPointers = pexceptioninfo;
-	exinfo.ClientPointers = NULL;
+    m_hdll = LoadLibrary("DBGHELP.DLL");
 
+    m_dump = (MINIDUMPWRITEDUMP)::GetProcAddress(m_hdll, "MiniDumpWriteDump");
 
+    ok = m_dump(GetCurrentProcess(), GetCurrentProcessId(), m_hfile, MiniDumpNormal, &exinfo, NULL, NULL);
 
-	m_hfile = CreateFile( foo.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+    foo = "Please send the following file to the developers: " + foo;
 
-	m_hdll = LoadLibrary("DBGHELP.DLL");
+    if (ok) {
+        MessageBox(NULL, foo.c_str(), "Core dumped", MB_OK | MB_TASKMODAL | MB_ICONERROR);
+        return EXCEPTION_EXECUTE_HANDLER;
+    }
 
-        m_dump = (MINIDUMPWRITEDUMP)::GetProcAddress(m_hdll, "MiniDumpWriteDump");
-
-	ok = m_dump(GetCurrentProcess(), GetCurrentProcessId(), m_hfile, MiniDumpNormal, &exinfo, NULL, NULL );
-
-	foo = "Please send the following file to the developers: " + foo;
-
-	if ( ok )
-	{
-		MessageBox(NULL, foo.c_str(), "Core dumped", MB_OK | MB_TASKMODAL | MB_ICONERROR);
-		return EXCEPTION_EXECUTE_HANDLER;
-	}
-
-	return EXCEPTION_CONTINUE_SEARCH;
+    return EXCEPTION_CONTINUE_SEARCH;
 }
 
-void install_segfault_handler()
-{
-	SetUnhandledExceptionFilter( DangerdeepCrashDump );
+void install_segfault_handler() {
+    SetUnhandledExceptionFilter(DangerdeepCrashDump);
 }
 
-#else	//non-WIN32-MacOSX
+#else // non-WIN32-MacOSX
 
+#include <cxxabi.h> // Needed for __cxa_demangle
 #include <execinfo.h>
+#include <list>
+#include <signal.h>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <cxxabi.h>      // Needed for __cxa_demangle
-#include <signal.h>
 #include <string>
-#include <sstream>
-#include <unistd.h>
-#include <list>
 #include <sys/types.h>
+#include <unistd.h>
 
 // Note: use --export-dynamic as linker option or you won't get function names here.
 
@@ -134,7 +122,6 @@ void print_stack_trace();
 void sigsegv_handler(int number);
 void install_segfault_handler();
 
+#endif // WIN32 || MacOSX
 
-#endif	// WIN32 || MacOSX
-
-#endif	// FAULTHANDLER_H
+#endif // FAULTHANDLER_H

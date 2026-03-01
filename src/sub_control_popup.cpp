@@ -21,49 +21,38 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "sub_control_popup.h"
-#include "system.h"
-#include "global_data.h"
-#include "game.h"
-#include "keys.h"
 #include "cfg.h"
 #include "datadirs.h"
+#include "game.h"
+#include "global_data.h"
+#include "keys.h"
+#include "system.h"
 
-
-
-sub_control_popup::sub_control_popup(user_interface& ui_) : user_popup(ui_)
-{
-	x = 8;
-	y = 134;
-	background_daylight.reset(new image(get_image_dir() + "popup_TDC_daylight.jpg|png"));
-	background_nightlight.reset(new image(get_image_dir() + "popup_TDC_redlight.jpg|png"));
+sub_control_popup::sub_control_popup(user_interface &ui_) : user_popup(ui_) {
+    x = 8;
+    y = 134;
+    background_daylight.reset(new image(get_image_dir() + "popup_TDC_daylight.jpg|png"));
+    background_nightlight.reset(new image(get_image_dir() + "popup_TDC_redlight.jpg|png"));
 }
 
-
-
-sub_control_popup::~sub_control_popup()
-{
+sub_control_popup::~sub_control_popup() {
 }
 
-
-
-bool sub_control_popup::process_input(class game& gm, const SDL_Event& event)
-{
-	switch (event.type) {
-	default: return false;
-	}
-	return false;
+bool sub_control_popup::process_input(class game &gm, const SDL_Event &event) {
+    switch (event.type) {
+    default:
+        return false;
+    }
+    return false;
 }
 
+void sub_control_popup::display(class game &gm) const {
+    sys().prepare_2d_drawing();
 
-
-void sub_control_popup::display(class game& gm) const
-{
-	sys().prepare_2d_drawing();
-
-	bool is_day = gm.is_day_mode();
-	if (is_day)
-		background_daylight->draw(x, y);
-	else
-		background_nightlight->draw(x, y);
-	sys().unprepare_2d_drawing();
+    bool is_day = gm.is_day_mode();
+    if (is_day)
+        background_daylight->draw(x, y);
+    else
+        background_nightlight->draw(x, y);
+    sys().unprepare_2d_drawing();
 }

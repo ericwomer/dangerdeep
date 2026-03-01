@@ -25,24 +25,23 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "freeview_display.h"
 
-class torpedo_camera_display : public freeview_display
-{
-	void pre_display(class game& gm) const;
-	projection_data get_projection_data(class game& gm) const;
-	void post_display(class game& gm) const;
-	vector3 get_viewpos(class game& gm) const;
+class torpedo_camera_display : public freeview_display {
+    void pre_display(class game &gm) const;
+    projection_data get_projection_data(class game &gm) const;
+    void post_display(class game &gm) const;
+    vector3 get_viewpos(class game &gm) const;
 
-	mutable const class torpedo* trackobj;
+    mutable const class torpedo *trackobj;
 
-public:
-	torpedo_camera_display(class user_interface& ui_);
+  public:
+    torpedo_camera_display(class user_interface &ui_);
 
-	virtual unsigned get_popup_allow_mask() const;
+    virtual unsigned get_popup_allow_mask() const;
 
-	void enter(bool is_day);
-	void leave();
+    void enter(bool is_day);
+    void leave();
 
-	void set_tracker(const class torpedo* t) { trackobj = t; }
+    void set_tracker(const class torpedo *t) { trackobj = t; }
 };
 
 #endif

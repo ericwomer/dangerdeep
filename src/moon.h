@@ -20,25 +20,22 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef MOON_H
 #define MOON_H
 
-
-#include "vector3.h"
-#include "texture.h"
 #include "shader.h"
-
+#include "texture.h"
+#include "vector3.h"
 
 ///\brief Moon rendering.
-class moon
-{
- private:
-	texture::ptr map_diffuse;
-	texture::ptr map_normal;
-	std::auto_ptr<glsl_shader_setup> glsl_moon;
-	unsigned loc_diffcol, loc_nrml, loc_lightdir;
+class moon {
+  private:
+    texture::ptr map_diffuse;
+    texture::ptr map_normal;
+    std::auto_ptr<glsl_shader_setup> glsl_moon;
+    unsigned loc_diffcol, loc_nrml, loc_lightdir;
 
- public:
-	moon();
+  public:
+    moon();
 
-	void display(const vector3 &moon_pos, const vector3 &sun_pos, double max_view_dist) const;
+    void display(const vector3 &moon_pos, const vector3 &sun_pos, double max_view_dist) const;
 };
 
 #endif

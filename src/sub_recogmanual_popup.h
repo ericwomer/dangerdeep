@@ -20,48 +20,47 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef SUB_RECOGMANUAL_POPUP_H
 #define SUB_RECOGMANUAL_POPUP_H
 
-#include "user_popup.h"
-#include "image.h"
-#include "system.h"
-#include "game.h"
 #include "datadirs.h"
-#include "widget.h"
-#include "ptrvector.h"
+#include "game.h"
 #include "global_data.h"
+#include "image.h"
 #include "log.h"
+#include "ptrvector.h"
+#include "system.h"
+#include "user_popup.h"
+#include "widget.h"
 
-class sub_recogmanual_popup : public user_popup
-{
-protected:
-	class widget_button_next : public widget_button 
-	{
-	protected:
-		int direction;
-		int& page;
-	public:
-		widget_button_next(int x, int y, int w, int h, int dir, int& att_page, const std::string& text_,  const std::string& bg_image_, widget* parent_ =0);
-		void draw() const;
-		void on_release ();		
-	};
-	
-	int page;
-	std::auto_ptr<image> background_daylight;
-	std::auto_ptr<image> background_nightlight;
-	ptrvector<image> silhouettes;
-	std::vector<std::string> classes;
-	std::vector<std::string> lengths;
-	std::vector<std::string> displacements;
-	std::vector<std::string> weapons;
-	std::vector<std::string> countries;
-	widget_button_next btn_left;
-	widget_button_next btn_right;	
+class sub_recogmanual_popup : public user_popup {
+  protected:
+    class widget_button_next : public widget_button {
+      protected:
+        int direction;
+        int &page;
 
-public:
-	sub_recogmanual_popup(class user_interface& ui_);
+      public:
+        widget_button_next(int x, int y, int w, int h, int dir, int &att_page, const std::string &text_, const std::string &bg_image_, widget *parent_ = 0);
+        void draw() const;
+        void on_release();
+    };
 
-	void display(class game& gm) const;
+    int page;
+    std::auto_ptr<image> background_daylight;
+    std::auto_ptr<image> background_nightlight;
+    ptrvector<image> silhouettes;
+    std::vector<std::string> classes;
+    std::vector<std::string> lengths;
+    std::vector<std::string> displacements;
+    std::vector<std::string> weapons;
+    std::vector<std::string> countries;
+    widget_button_next btn_left;
+    widget_button_next btn_right;
 
-	bool process_input(class game& gm, const SDL_Event& event);
+  public:
+    sub_recogmanual_popup(class user_interface &ui_);
+
+    void display(class game &gm) const;
+
+    bool process_input(class game &gm, const SDL_Event &event);
 };
 
 #endif /* SUB_RECOGMANUAL_POPUP_H */

@@ -14,32 +14,29 @@
 /* You should have received a copy of the GNU Lesser General Public License along with this library; if  not, */
 /* write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA       */
 
-#ifndef	_OGLEXT_H_
-#define	_OGLEXT_H_
+#ifndef _OGLEXT_H_
+#define _OGLEXT_H_
 
 #ifdef __cplusplus
-   extern "C" {
+extern "C" {
 #endif
-
 
 /* ---[ INCLUDE ALL API FUNCTIONS ]-------------------------------------------------------------------------- */
 
-#define	GL_GLEXT_PROTOTYPES
+#define GL_GLEXT_PROTOTYPES
 #include "glext.h"
-
 
 /* ---[ ADDITIONAL MACRO FOR VERSION COMPARISON ]------------------------------------------------------------ */
 
-#define	GLEX_VERSION(MAJOR, MINOR, RELEASE)		((GLuint) ((MAJOR << 24) | (MINOR << 16) | (RELEASE << 0)))
-
+#define GLEX_VERSION(MAJOR, MINOR, RELEASE) ((GLuint)((MAJOR << 24) | (MINOR << 16) | (RELEASE << 0)))
 
 /* ---[ ADDITIONAL API FUNCTIONS ]--------------------------------------------------------------------------- */
 
-GLAPI			GLboolean			glexExtensionsSupported(char const * szExtensions);	/*  Extensions supported? */
-GLAPI			GLuint				glexGetVersion();													/*     Return GL version. */
+GLAPI GLboolean glexExtensionsSupported(char const *szExtensions); /*  Extensions supported? */
+GLAPI GLuint glexGetVersion();                                     /*     Return GL version. */
 
 #ifdef __cplusplus
-   }
+}
 #endif
 
-#endif	/* _OGLEXT_H_ */
+#endif /* _OGLEXT_H_ */

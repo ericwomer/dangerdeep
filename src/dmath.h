@@ -24,21 +24,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define DMATH_H
 
 #if (defined(__APPLE__) && defined(__GNUC__)) || defined(__MACOSX__)
-	#include <complex.h>
-	#ifndef isfinite
-		#define isfinite(x) finite(x)
-	#endif
+#include <complex.h>
+#ifndef isfinite
+#define isfinite(x) finite(x)
+#endif
 #elif defined(WIN32)
-	#include <float.h>
-	#ifndef isfinite
-		#define isfinite(x) _finite(x)
-	#endif
-#elif defined( USINGICC )
-	#define isfinite(x) (fpclassify(x) != FP_NAN && fpclassify(x) != FP_INFINITE)
-#elif defined( USINGSUN )
-	#define isfinite(x) finite(x)
+#include <float.h>
+#ifndef isfinite
+#define isfinite(x) _finite(x)
+#endif
+#elif defined(USINGICC)
+#define isfinite(x) (fpclassify(x) != FP_NAN && fpclassify(x) != FP_INFINITE)
+#elif defined(USINGSUN)
+#define isfinite(x) finite(x)
 #else
-	using std::isfinite;
+using std::isfinite;
 #endif
 
 #endif // DMATH_H

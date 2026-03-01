@@ -30,25 +30,25 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 
 ///\brief Triangulation algorithm for planar meshes.
-struct triangulate
-{
-	static unsigned next(const std::vector<unsigned>& vl, unsigned i) {
-		do {
-			++i;
-			if (i == vl.size()) i = 0;
-		} while (vl[i] == unsigned(-1));
-		return i;
-	}
+struct triangulate {
+    static unsigned next(const std::vector<unsigned> &vl, unsigned i) {
+        do {
+            ++i;
+            if (i == vl.size())
+                i = 0;
+        } while (vl[i] == unsigned(-1));
+        return i;
+    }
 
-	static bool is_correct_triangle(const vector2& a, const vector2& b, const vector2& c) {
-		return (b.x-a.x)*(c.y-a.y) > (b.y-a.y)*(c.x-a.x);
-	}
-	
-	static bool is_inside_triangle(const vector2& a, const vector2& b, const vector2& c, const vector2& p);
+    static bool is_correct_triangle(const vector2 &a, const vector2 &b, const vector2 &c) {
+        return (b.x - a.x) * (c.y - a.y) > (b.y - a.y) * (c.x - a.x);
+    }
 
-	static std::vector<unsigned> compute(const std::vector<vector2>& vertices);
-	
-	static void debug_test(const std::vector<vector2>& vertices, const std::string& outputfile);
+    static bool is_inside_triangle(const vector2 &a, const vector2 &b, const vector2 &c, const vector2 &p);
+
+    static std::vector<unsigned> compute(const std::vector<vector2> &vertices);
+
+    static void debug_test(const std::vector<vector2> &vertices, const std::string &outputfile);
 };
 
 #endif

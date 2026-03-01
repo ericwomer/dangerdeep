@@ -23,80 +23,79 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef SUB_TORPEDO_DISPLAY_H
 #define SUB_TORPEDO_DISPLAY_H
 
-#include "user_display.h"
-#include "submarine.h"
-#include "vector2.h"
-#include "texture.h"
-#include "objcache.h"
 #include "log.h"
+#include "objcache.h"
+#include "submarine.h"
+#include "texture.h"
+#include "user_display.h"
+#include "vector2.h"
 
-class sub_torpedo_display : public user_display
-{
-	// source tube nr for manual torpedo transfer, used for drag & drop drawing
-	unsigned torptranssrc;
+class sub_torpedo_display : public user_display {
+    // source tube nr for manual torpedo transfer, used for drag & drop drawing
+    unsigned torptranssrc;
 
-	// textures for drawing the screen
-	std::auto_ptr<texture> torpempty;
-	std::auto_ptr<texture> torpload;
-	std::auto_ptr<texture> torpunload;
-	std::auto_ptr<texture> torp1fat1;
-	std::auto_ptr<texture> torp1lut1;
-	std::auto_ptr<texture> torp1lut2;
-	std::auto_ptr<texture> torp1;
-	std::auto_ptr<texture> torp1practice;
-	std::auto_ptr<texture> torp2;
-	std::auto_ptr<texture> torp3afat2;
-	std::auto_ptr<texture> torp3alut1;
-	std::auto_ptr<texture> torp3alut2;
-	std::auto_ptr<texture> torp3fat2;
-	std::auto_ptr<texture> torp3;
-	std::auto_ptr<texture> torp4;
-	std::auto_ptr<texture> torp5b;
-	std::auto_ptr<texture> torp5;
-	std::auto_ptr<texture> torp6lut1;
-//	std::auto_ptr<texture> torp11;
-	std::auto_ptr<texture> submodelVIIc;
-	std::auto_ptr<image> background;
-	std::auto_ptr<image> subtopsideview;
-	rotat_tex pointer_seconds;
-	rotat_tex pointer_minutes;
-	rotat_tex pointer_hours;
+    // textures for drawing the screen
+    std::auto_ptr<texture> torpempty;
+    std::auto_ptr<texture> torpload;
+    std::auto_ptr<texture> torpunload;
+    std::auto_ptr<texture> torp1fat1;
+    std::auto_ptr<texture> torp1lut1;
+    std::auto_ptr<texture> torp1lut2;
+    std::auto_ptr<texture> torp1;
+    std::auto_ptr<texture> torp1practice;
+    std::auto_ptr<texture> torp2;
+    std::auto_ptr<texture> torp3afat2;
+    std::auto_ptr<texture> torp3alut1;
+    std::auto_ptr<texture> torp3alut2;
+    std::auto_ptr<texture> torp3fat2;
+    std::auto_ptr<texture> torp3;
+    std::auto_ptr<texture> torp4;
+    std::auto_ptr<texture> torp5b;
+    std::auto_ptr<texture> torp5;
+    std::auto_ptr<texture> torp6lut1;
+    //	std::auto_ptr<texture> torp11;
+    std::auto_ptr<texture> submodelVIIc;
+    std::auto_ptr<image> background;
+    std::auto_ptr<image> subtopsideview;
+    rotat_tex pointer_seconds;
+    rotat_tex pointer_minutes;
+    rotat_tex pointer_hours;
 
-	class desc_text
-	{
-		std::vector<std::string> txtlines;
-		desc_text();
-	public:
-		desc_text(const std::string& filename);
-		// give startline and number of lines to fetch (nr=0: all).
-		std::string str(unsigned startline = 0, unsigned nrlines = 0) const;
-		unsigned nr_of_lines() const { return txtlines.size(); }
-	};
+    class desc_text {
+        std::vector<std::string> txtlines;
+        desc_text();
 
-	mutable objcachet<desc_text> desc_texts;
+      public:
+        desc_text(const std::string &filename);
+        // give startline and number of lines to fetch (nr=0: all).
+        std::string str(unsigned startline = 0, unsigned nrlines = 0) const;
+        unsigned nr_of_lines() const { return txtlines.size(); }
+    };
 
-	void draw_torpedo(class game& gm, bool usebow, const vector2i& pos, const submarine::stored_torpedo& st) const;
+    mutable objcachet<desc_text> desc_texts;
 
-	int mx, my, mb;
+    void draw_torpedo(class game &gm, bool usebow, const vector2i &pos, const submarine::stored_torpedo &st) const;
 
-	mutable unsigned torp_desc_line;
+    int mx, my, mb;
 
-	objcachet<texture>::reference notepadsheet;
+    mutable unsigned torp_desc_line;
 
-	const texture& torptex(const std::string& torpname) const;
+    objcachet<texture>::reference notepadsheet;
 
-	std::vector<vector2i> get_tubecoords(class submarine* sub) const;
+    const texture &torptex(const std::string &torpname) const;
 
-	unsigned get_tube_below_mouse(const std::vector<vector2i>& tubecoords) const;
+    std::vector<vector2i> get_tubecoords(class submarine *sub) const;
 
-public:
-	sub_torpedo_display(class user_interface& ui_);
+    unsigned get_tube_below_mouse(const std::vector<vector2i> &tubecoords) const;
 
-	virtual void display(class game& gm) const;
-	virtual void process_input(class game& gm, const SDL_Event& event);
+  public:
+    sub_torpedo_display(class user_interface &ui_);
 
-	void enter(bool is_day);
-	void leave();
+    virtual void display(class game &gm) const;
+    virtual void process_input(class game &gm, const SDL_Event &event);
+
+    void enter(bool is_day);
+    void leave();
 };
 
 #endif

@@ -24,20 +24,19 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef FPSMEASURE_H
 #define FPSMEASURE_H
 
-class fpsmeasure
-{
- public:
-	fpsmeasure(float measure_interval = 5.0f);
-	float account_frame();
-	float get_total_fps() const;
-	unsigned get_slowest_frame_time_ms() const { return slowest_frame; }
-	unsigned get_fastest_frame_time_ms() const { return fastest_frame; }
+class fpsmeasure {
+  public:
+    fpsmeasure(float measure_interval = 5.0f);
+    float account_frame();
+    float get_total_fps() const;
+    unsigned get_slowest_frame_time_ms() const { return slowest_frame; }
+    unsigned get_fastest_frame_time_ms() const { return fastest_frame; }
 
- protected:
-	const unsigned measure_interval;
-	unsigned tm0, tm_lastframe, tm_lastmeasure, nr_frames, frames_lastmeasure;
-	float curfps;
-	unsigned slowest_frame, fastest_frame;
+  protected:
+    const unsigned measure_interval;
+    unsigned tm0, tm_lastframe, tm_lastmeasure, nr_frames, frames_lastmeasure;
+    float curfps;
+    unsigned slowest_frame, fastest_frame;
 };
 
 #endif

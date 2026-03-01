@@ -32,82 +32,60 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // or the static initiliazation order fiasco will result.
 std::string global_datadir = DATADIR;
 
-const std::string& get_data_dir()
-{
-	return global_datadir;
+const std::string &get_data_dir() {
+    return global_datadir;
 }
-
-
 
 // Note! call this only once, and very early in main()!
-void set_data_dir(const std::string& datadir)
-{
-	global_datadir = datadir;
+void set_data_dir(const std::string &datadir) {
+    global_datadir = datadir;
 }
 
-
-
-data_file_handler::data_file_handler()
-{
-	// scan data dir for all .data files
-	std::string dir = "objects/";
-	parse_for_data_files(dir + "airplanes/", airplane_ids);
-	parse_for_data_files(dir + "ships/", ship_ids);
-	parse_for_data_files(dir + "submarines/", submarine_ids);
-	parse_for_data_files(dir + "torpedoes/", torpedo_ids);
-	parse_for_data_files(dir + "props/", prop_ids);
+data_file_handler::data_file_handler() {
+    // scan data dir for all .data files
+    std::string dir = "objects/";
+    parse_for_data_files(dir + "airplanes/", airplane_ids);
+    parse_for_data_files(dir + "ships/", ship_ids);
+    parse_for_data_files(dir + "submarines/", submarine_ids);
+    parse_for_data_files(dir + "torpedoes/", torpedo_ids);
+    parse_for_data_files(dir + "props/", prop_ids);
 }
-
-
 
 static const std::string data_file_ext = ".data";
-void data_file_handler::parse_for_data_files(std::string dir, std::list<std::string>& idlist)
-{
-	directory d(get_data_dir() + dir);
-	for (std::string f = d.read(); !f.empty(); f = d.read()) {
-		if (f[0] == '.' || f == "CVS") {
-			// avoid . and .. entries, as well as hidden files, and CVS directories as well
-			continue;
-		} else if (is_directory(get_data_dir() + dir + f)) {
-			parse_for_data_files(dir + f + "/", idlist);
-		} else if (f.length() > data_file_ext.length() && f.substr(f.length() - data_file_ext.length()) == data_file_ext) {
-			std::string id = f.substr(0, f.length() - data_file_ext.length());
-// 			log_info("found file " << dir << " for id " << id);
-			data_files[id] = dir;
-			idlist.push_back(id);
-		}
-	}
+void data_file_handler::parse_for_data_files(std::string dir, std::list<std::string> &idlist) {
+    directory d(get_data_dir() + dir);
+    for (std::string f = d.read(); !f.empty(); f = d.read()) {
+        if (f[0] == '.' || f == "CVS") {
+            // avoid . and .. entries, as well as hidden files, and CVS directories as well
+            continue;
+        } else if (is_directory(get_data_dir() + dir + f)) {
+            parse_for_data_files(dir + f + "/", idlist);
+        } else if (f.length() > data_file_ext.length() && f.substr(f.length() - data_file_ext.length()) == data_file_ext) {
+            std::string id = f.substr(0, f.length() - data_file_ext.length());
+            // 			log_info("found file " << dir << " for id " << id);
+            data_files[id] = dir;
+            idlist.push_back(id);
+        }
+    }
 }
 
-
-
-const std::string& data_file_handler::get_rel_path(const std::string& objectid) const
-{
-	static std::string emptystr;
-	std::map<std::string, std::string>::const_iterator it = data_files.find(objectid);
-	if (it == data_files.end()) {
-		throw error(std::string("can't find path for object '") + objectid + std::string("'"));
-	}
-	return it->second;
+const std::string &data_file_handler::get_rel_path(const std::string &objectid) const {
+    static std::string emptystr;
+    std::map<std::string, std::string>::const_iterator it = data_files.find(objectid);
+    if (it == data_files.end()) {
+        throw error(std::string("can't find path for object '") + objectid + std::string("'"));
+    }
+    return it->second;
 }
 
-
-
-std::string data_file_handler::get_path(const std::string& objectid) const
-{
-	return get_data_dir() + get_rel_path(objectid);
+std::string data_file_handler::get_path(const std::string &objectid) const {
+    return get_data_dir() + get_rel_path(objectid);
 }
 
-
-
-std::string data_file_handler::get_rel_filename(const std::string& objectid) const
-{
-	return get_rel_path(objectid) + objectid + data_file_ext;
+std::string data_file_handler::get_rel_filename(const std::string &objectid) const {
+    return get_rel_path(objectid) + objectid + data_file_ext;
 }
 
-
-
-std::string data_file_handler::get_filename(const std::string& objectid) const
-{
-	return get_data_dir() + get_rel_filename(objectid);
+std::string data_file_handler::get_filename(const std::string &objectid) const {
+    return get_data_dir() + get_rel_filename(objectid);
 }

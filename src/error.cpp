@@ -21,23 +21,18 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
 #include "error.h"
-#include <sstream>
 #include <SDL.h>
+#include <sstream>
 
 #if defined(DEBUG) && defined(__GNUC__)
 
-std::string error::str(const char* file, unsigned line)
-{
-	std::ostringstream oss;
-	oss << ", in file: " << file << ", in line: " << line;
-	return oss.str();
+std::string error::str(const char *file, unsigned line) {
+    std::ostringstream oss;
+    oss << ", in file: " << file << ", in line: " << line;
+    return oss.str();
 }
 #endif
 
-
-
-sdl_error::sdl_error(const std::string& msg)
-	: error(std::string("SDL error: ") + msg + std::string(", SDL: ")
-		+ SDL_GetError())
-{
+sdl_error::sdl_error(const std::string &msg)
+    : error(std::string("SDL error: ") + msg + std::string(", SDL: ") + SDL_GetError()) {
 }

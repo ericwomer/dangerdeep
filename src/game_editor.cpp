@@ -29,86 +29,79 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <SDL.h>
 
 #include "system.h"
-#include <sstream>
 #include <float.h>
+#include <sstream>
 
-#include "game_editor.h"
-#include "ship.h"
-#include "submarine.h"
 #include "airplane.h"
-#include "torpedo.h"
-#include "depth_charge.h"
-#include "gun_shell.h"
-#include "water_splash.h"
-#include "model.h"
-#include "global_data.h"
-#include "user_interface.h"
-#include "submarine_interface.h"
 #include "airplane_interface.h"
-#include "ship_interface.h"
-#include "texts.h"
 #include "convoy.h"
-#include "particle.h"
-#include "sensors.h"
-#include "network.h"
+#include "depth_charge.h"
+#include "game_editor.h"
+#include "global_data.h"
+#include "gun_shell.h"
 #include "matrix4.h"
+#include "model.h"
+#include "network.h"
+#include "particle.h"
 #include "quaternion.h"
-using std::pair;
-using std::make_pair;
+#include "sensors.h"
+#include "ship.h"
+#include "ship_interface.h"
+#include "submarine.h"
+#include "submarine_interface.h"
+#include "texts.h"
+#include "torpedo.h"
+#include "user_interface.h"
+#include "water_splash.h"
 using std::list;
-using std::vector;
+using std::make_pair;
+using std::pair;
 using std::string;
+using std::vector;
 
 const unsigned SAVEVERSION = 1;
-const unsigned GAMETYPE = 0;//fixme, 0-mission , 1-patrol etc.
+const unsigned GAMETYPE = 0; // fixme, 0-mission , 1-patrol etc.
 
 /***************************************************************************/
 
-game_editor::game_editor(const date& start_date)
-{
-	networktype = 0;
-	servercon = 0;
-	time = start_date.get_time() + 86400/2;	// 12.00 o'clock
-	equipment_date = start_date;
+game_editor::game_editor(const date &start_date) {
+    networktype = 0;
+    servercon = 0;
+    time = start_date.get_time() + 86400 / 2; // 12.00 o'clock
+    equipment_date = start_date;
 
-	// standard sub type, can be changed later
-	string subtype = "submarine_VIIc";
+    // standard sub type, can be changed later
+    string subtype = "submarine_VIIc";
 
-	submarine* psub = 0;
-	for (unsigned i = 0; i < 1/*nr_of_players*/; ++i) {
-		xml_doc doc(data_file().get_filename(subtype));
-		doc.load();
-		submarine* sub = new submarine(*this, doc.first_child());
-		sub->set_skin_layout(model::default_layout);
-		sub->init_fill_torpedo_tubes(start_date);
-		sub->manipulate_invulnerability(true);
-		if (i == 0) {
-			psub = sub;
-			player = psub;
-			compute_max_view_dist();
-		}
+    submarine *psub = 0;
+    for (unsigned i = 0; i < 1 /*nr_of_players*/; ++i) {
+        xml_doc doc(data_file().get_filename(subtype));
+        doc.load();
+        submarine *sub = new submarine(*this, doc.first_child());
+        sub->set_skin_layout(model::default_layout);
+        sub->init_fill_torpedo_tubes(start_date);
+        sub->manipulate_invulnerability(true);
+        if (i == 0) {
+            psub = sub;
+            player = psub;
+            compute_max_view_dist();
+        }
 
-		spawn_submarine(sub);
-	}
-	player = psub;
+        spawn_submarine(sub);
+    }
+    player = psub;
 
-	my_run_state = running;
-	last_trail_time = time - TRAIL_TIME;
+    my_run_state = running;
+    last_trail_time = time - TRAIL_TIME;
 }
-
-
 
 // --------------------------------------------------------------------------------
 //                        LOAD GAME (SAVEGAME OR MISSION)
 // --------------------------------------------------------------------------------
-game_editor::game_editor(const string& filename)
-	: game(filename)
-{
-	// nothing special for now
+game_editor::game_editor(const string &filename)
+    : game(filename) {
+    // nothing special for now
 }
-
-
-
 
 /*
 game_editor::~game_editor()
@@ -116,29 +109,21 @@ game_editor::~game_editor()
 }
 */
 
-
-
 // copied from class game
-template<class T> void cleanup(ptrvector<T>& s)
-{
-	for (unsigned i = 0; i < s.size(); ++i) {
-		if (s[i] && s[i]->is_defunct()) {
-			s.reset(i);
-		}
-	}
-	s.compact();
+template <class T>
+void cleanup(ptrvector<T> &s) {
+    for (unsigned i = 0; i < s.size(); ++i) {
+        if (s[i] && s[i]->is_defunct()) {
+            s.reset(i);
+        }
+    }
+    s.compact();
 }
 
-
-
-void game_editor::manipulate_time(double tm)
-{
-	time = tm;
+void game_editor::manipulate_time(double tm) {
+    time = tm;
 }
 
-
-
-void game_editor::manipulate_equipment_date(date equipdate)
-{
-	equipment_date = equipdate;
+void game_editor::manipulate_equipment_date(date equipdate) {
+    equipment_date = equipdate;
 }

@@ -23,54 +23,54 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef SUB_CAPTAINSCABIN_DISPLAY_H
 #define SUB_CAPTAINSCABIN_DISPLAY_H
 
-#include "user_display.h"
-#include "submarine.h"
-#include "vector2.h"
-#include "texture.h"
 #include "color.h"
+#include "submarine.h"
+#include "texture.h"
+#include "user_display.h"
+#include "vector2.h"
 
-class sub_captainscabin_display : public user_display
-{
-	std::auto_ptr<image> background;
+class sub_captainscabin_display : public user_display {
+    std::auto_ptr<image> background;
 
-	class clickable_area
-	{
-	protected:
-		vector2i topleft;
-		vector2i bottomright;
-		int description;
-		void (sub_captainscabin_display::*action)();
-		color desc_color;
-	private:
-		clickable_area();
-	public:
-		clickable_area(const vector2i& tl, const vector2i& br,
-			       int descr,
-			       void (sub_captainscabin_display::*func)(),
-			       color dc);
-		bool is_mouse_over(int mx, int my) const;
-		int get_description() const { return description; }
-		void do_action(sub_captainscabin_display& obj);
-		color get_description_color() const { return desc_color; }
-	};
+    class clickable_area {
+      protected:
+        vector2i topleft;
+        vector2i bottomright;
+        int description;
+        void (sub_captainscabin_display::*action)();
+        color desc_color;
 
-	std::vector<clickable_area> clickable_areas;
+      private:
+        clickable_area();
 
-	void goto_successes();
-	void goto_logbook();
-	void goto_torpedoes();
-	void goto_recogmanual();
+      public:
+        clickable_area(const vector2i &tl, const vector2i &br,
+                       int descr,
+                       void (sub_captainscabin_display::*func)(),
+                       color dc);
+        bool is_mouse_over(int mx, int my) const;
+        int get_description() const { return description; }
+        void do_action(sub_captainscabin_display &obj);
+        color get_description_color() const { return desc_color; }
+    };
 
-	int mx, my;
+    std::vector<clickable_area> clickable_areas;
 
-public:
-	sub_captainscabin_display(class user_interface& ui_);
+    void goto_successes();
+    void goto_logbook();
+    void goto_torpedoes();
+    void goto_recogmanual();
 
-	virtual void display(class game& gm) const;
-	virtual void process_input(class game& gm, const SDL_Event& event);
+    int mx, my;
 
-	void enter(bool is_day);
-	void leave();
+  public:
+    sub_captainscabin_display(class user_interface &ui_);
+
+    virtual void display(class game &gm) const;
+    virtual void process_input(class game &gm, const SDL_Event &event);
+
+    void enter(bool is_day);
+    void leave();
 };
 
 #endif

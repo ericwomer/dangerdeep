@@ -24,40 +24,40 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "tone_reproductor.h"
 
 class daysky {
- public:
-	//! Constructor.
-	daysky();
-	daysky(float azimuth, float elevation, float turbidity);
-	//! Set turbidity.
-	void set_turbidity( float pT );
-	//! Get turbidity.
-	inline float get_turbidity() const { return m_T; }
-	//! Set sun position.
-	void set_sun_position( float azimuth, float elevation );
-	//! Get color.
-	colorf get_color( float theta, float phi, float elevation ) const;
+  public:
+    //! Constructor.
+    daysky();
+    daysky(float azimuth, float elevation, float turbidity);
+    //! Set turbidity.
+    void set_turbidity(float pT);
+    //! Get turbidity.
+    inline float get_turbidity() const { return m_T; }
+    //! Set sun position.
+    void set_sun_position(float azimuth, float elevation);
+    //! Get color.
+    colorf get_color(float theta, float phi, float elevation) const;
 
- private:
-	struct alphabet {
-		float A, B, C, D, E;
-	};
-	  
-	//! Calculate distribution
-	inline float distribution( const alphabet &ABCDE, float Theta, float Gamma ) const;
-	//! Calc the actual color/chromaticity
-	inline float chromaticity( const float ZC[3][4] ) const;
+  private:
+    struct alphabet {
+        float A, B, C, D, E;
+    };
 
-	inline void recalculate_chroma();
-	inline void recalculate_alphabet();
+    //! Calculate distribution
+    inline float distribution(const alphabet &ABCDE, float Theta, float Gamma) const;
+    //! Calc the actual color/chromaticity
+    inline float chromaticity(const float ZC[3][4]) const;
 
-	float m_T, m_T2;    // Turbidity T and T^2
-	float m_sun_theta;
-	float m_sun_phi, m_sun_phi2, m_sun_phi3;
-	float m_chroma_xZC, m_chroma_yZC;
-	alphabet m_luminance, m_x, m_y;
+    inline void recalculate_chroma();
+    inline void recalculate_alphabet();
 
-	mutable tone_reproductor tonerepro;
-};  //DaySky
+    float m_T, m_T2; // Turbidity T and T^2
+    float m_sun_theta;
+    float m_sun_phi, m_sun_phi2, m_sun_phi3;
+    float m_chroma_xZC, m_chroma_yZC;
+    alphabet m_luminance, m_x, m_y;
+
+    mutable tone_reproductor tonerepro;
+}; // DaySky
 
 // class DaySky is used to create the colormap used for sky in dd
 

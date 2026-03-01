@@ -20,27 +20,26 @@
 #ifndef SUB_VALVES_DISPLAY_H
 #define SUB_VALVES_DISPLAY_H
 
-#include "system.h"
-#include "image.h"
 #include "game.h"
+#include "image.h"
+#include "system.h"
 #include "user_display.h"
 #include "user_interface.h"
 
 class sub_valves_display : public user_display {
 
-protected:
+  protected:
+    std::auto_ptr<image> background;
+    std::vector<image> valves_bl, valves_tr;
 
-	std::auto_ptr<image> background;
-	std::vector<image> valves_bl, valves_tr;
-public:
-	sub_valves_display(class user_interface& ui_);
+  public:
+    sub_valves_display(class user_interface &ui_);
 
-	virtual void display(class game& gm) const;
-	virtual void process_input(class game& gm, const SDL_Event& event);
+    virtual void display(class game &gm) const;
+    virtual void process_input(class game &gm, const SDL_Event &event);
 
-	void enter(bool is_day);
-	void leave();
+    void enter(bool is_day);
+    void leave();
 };
 
 #endif
-

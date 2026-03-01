@@ -23,41 +23,40 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef PARSER_H
 #define PARSER_H
 
-#include <string>
 #include <fstream>
+#include <string>
 
 /// generic parser for tabular text files
-class parser
-{
- public:
-	/// open file with given separator
-	parser(const std::string& filename_, char separator_ = ';');
+class parser {
+  public:
+    /// open file with given separator
+    parser(const std::string &filename_, char separator_ = ';');
 
-	/// advance to next line
-	///@returns true when next line could be read, false on end of file
-	bool next_line();
+    /// advance to next line
+    ///@returns true when next line could be read, false on end of file
+    bool next_line();
 
-	/// advance to next column of table
-	///@returns true when next column could be read, false on end of line
-	bool next_column();
+    /// advance to next column of table
+    ///@returns true when next column could be read, false on end of line
+    bool next_column();
 
-	/// get text of current cell
-	std::string get_cell() const { return cell; }
+    /// get text of current cell
+    std::string get_cell() const { return cell; }
 
-	/// get text of current cell as number, returns true if possible
-	bool get_cell_number(unsigned& n) const;
+    /// get text of current cell as number, returns true if possible
+    bool get_cell_number(unsigned &n) const;
 
-	/// report error at current position (throws error)
-	void error(const std::string& text);
+    /// report error at current position (throws error)
+    void error(const std::string &text);
 
- protected:
-	std::string filename;
-	char separator;
-	std::ifstream file;
-	std::string currline;
-	unsigned line;
-	std::string::size_type currcol;
-	std::string cell;
+  protected:
+    std::string filename;
+    char separator;
+    std::ifstream file;
+    std::string currline;
+    unsigned line;
+    std::string::size_type currcol;
+    std::string cell;
 };
 
 #endif

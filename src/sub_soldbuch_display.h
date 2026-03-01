@@ -25,22 +25,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "user_display.h"
 
-class sub_soldbuch_display : public user_display
-{
-protected:
-	std::auto_ptr<image> background;
-	std::auto_ptr<image> player_photo;
-	std::auto_ptr<image> primary_overlay;
-	std::auto_ptr<image> stamps;
+class sub_soldbuch_display : public user_display {
+  protected:
+    std::auto_ptr<image> background;
+    std::auto_ptr<image> player_photo;
+    std::auto_ptr<image> primary_overlay;
+    std::auto_ptr<image> stamps;
 
-public:
-	sub_soldbuch_display(class user_interface& ui_);
+  public:
+    sub_soldbuch_display(class user_interface &ui_);
 
-	virtual void display(class game& gm) const;
-	virtual void process_input(class game& gm, const SDL_Event& event);
+    virtual void display(class game &gm) const;
+    virtual void process_input(class game &gm, const SDL_Event &event);
 
-	void enter(bool is_day);
-	void leave();
+    void enter(bool is_day);
+    void leave();
 };
 
 #endif

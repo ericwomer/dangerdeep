@@ -93,7 +93,6 @@ Only partly, only older, simpler model.
 
 */
 
-
 #include "xml.h"
 #include <list>
 
@@ -104,62 +103,65 @@ class game;
 
 ///\brief This class implements artificial intelligence for various objects.
 ///\todo split this class in heir classes for specific objects or AI types.
-class ai
-{
-public:
-	enum types { dumb, escort, convoy };	// fixme: make heir classes for this
-	enum states { retreat, followpath, followobject,
-		attackcontact };
+class ai {
+  public:
+    enum types { dumb,
+                 escort,
+                 convoy }; // fixme: make heir classes for this
+    enum states { retreat,
+                  followpath,
+                  followobject,
+                  attackcontact };
 
-protected:
-	types type;
-	states state;
-	unsigned zigzagstate;
-	bool attackrun;		// true when running full speed shortly before the attack
-	bool evasive_manouver;	// true when set_course tries an alternative route
-	double rem_manouver_time; // remaining time that ai should wait for during an evasive manouver
-	ship* parent;		// fixme: should be sea_object and redefined by heirs!
-	sea_object* followme;		// could be a sea_object instead of ship?
-	class convoy* myconvoy;	// convoy to which parent belongs (if any)
-	bool has_contact;
-	vector3 contact;	// position of target to attack
-	double remaining_time;	// time to next thought/situation analysis
-	angle main_course;	// which angle to steer, ship zig-zags around it.
-	
-	bool cyclewaypoints;
-	std::list<vector2> waypoints;	
-	
-	ai();
-	ai(const ai& other);
-	ai& operator= (const ai& other);
+  protected:
+    types type;
+    states state;
+    unsigned zigzagstate;
+    bool attackrun;           // true when running full speed shortly before the attack
+    bool evasive_manouver;    // true when set_course tries an alternative route
+    double rem_manouver_time; // remaining time that ai should wait for during an evasive manouver
+    ship *parent;             // fixme: should be sea_object and redefined by heirs!
+    sea_object *followme;     // could be a sea_object instead of ship?
+    class convoy *myconvoy;   // convoy to which parent belongs (if any)
+    bool has_contact;
+    vector3 contact;       // position of target to attack
+    double remaining_time; // time to next thought/situation analysis
+    angle main_course;     // which angle to steer, ship zig-zags around it.
 
-public:
-	ai(ship* parent_, types type_);
-	virtual ~ai();
+    bool cyclewaypoints;
+    std::list<vector2> waypoints;
 
-	// attention: all sea_objects must exist BEFORE this is called!
-	void load(game& gm_, const xml_elem& parent);
-	void save(game& gm, xml_elem& parent) const;
+    ai();
+    ai(const ai &other);
+    ai &operator=(const ai &other);
 
-private:
-	void clear_waypoints() { waypoints.clear(); };
-	void add_waypoint(const vector2& wp) { waypoints.push_back(wp); };
-	void set_convoy(class convoy* cv) { myconvoy = cv; }
+  public:
+    ai(ship *parent_, types type_);
+    virtual ~ai();
 
-public:
-	virtual void attack_contact(const vector3& c);
-	virtual void act(class game& gm, double delta_time);
+    // attention: all sea_objects must exist BEFORE this is called!
+    void load(game &gm_, const xml_elem &parent);
+    void save(game &gm, xml_elem &parent) const;
 
-private:
-	// various ai's and helper functions, fixme replace with subclasses
-	virtual void set_zigzag(bool stat = true);
-	virtual void act_escort(class game& g, double delta_time);
-	virtual void act_dumb(class game& g, double delta_time);
-	virtual void act_convoy(class game& g, double delta_time);
-	virtual bool set_course_to_pos(class game& gm, const vector2& pos);	// steer parent to pos, returns true if direct turn is possible
-	virtual void relax(class game& gm);	// follow path/object, remove contact info
-	virtual void follow(sea_object* t = 0);	// follows path if t is 0
-	void cycle_waypoints(bool cycle = true) { cyclewaypoints = cycle; };
+  private:
+    void clear_waypoints() { waypoints.clear(); };
+    void add_waypoint(const vector2 &wp) { waypoints.push_back(wp); };
+    void set_convoy(class convoy *cv) { myconvoy = cv; }
+
+  public:
+    virtual void attack_contact(const vector3 &c);
+    virtual void act(class game &gm, double delta_time);
+
+  private:
+    // various ai's and helper functions, fixme replace with subclasses
+    virtual void set_zigzag(bool stat = true);
+    virtual void act_escort(class game &g, double delta_time);
+    virtual void act_dumb(class game &g, double delta_time);
+    virtual void act_convoy(class game &g, double delta_time);
+    virtual bool set_course_to_pos(class game &gm, const vector2 &pos); // steer parent to pos, returns true if direct turn is possible
+    virtual void relax(class game &gm);                                 // follow path/object, remove contact info
+    virtual void follow(sea_object *t = 0);                             // follows path if t is 0
+    void cycle_waypoints(bool cycle = true) { cyclewaypoints = cycle; };
 };
 
 #endif

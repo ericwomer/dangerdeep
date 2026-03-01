@@ -24,119 +24,131 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define PTRLIST_H
 
 #include <list>
-#include <stdexcept>
 #include <memory>
+#include <stdexcept>
 
 // same as std::list regarding the interface (partly), but handles pointers.
 template <class T>
-class ptrlist
-{
- protected:
-	std::list<T*> data;
+class ptrlist {
+  protected:
+    std::list<T *> data;
 
- private:
-	ptrlist(const ptrlist& );
-	ptrlist& operator= (const ptrlist& );
+  private:
+    ptrlist(const ptrlist &);
+    ptrlist &operator=(const ptrlist &);
 
- public:
-	ptrlist() {}
-	~ptrlist() { clear(); }
+  public:
+    ptrlist() {}
+    ~ptrlist() { clear(); }
 
-	size_t size() const { return data.size(); }
-	void clear() {
-		while (!data.empty()) {
-			delete data.front();
-			data.pop_front();
-		}
-	}
+    size_t size() const { return data.size(); }
+    void clear() {
+        while (!data.empty()) {
+            delete data.front();
+            data.pop_front();
+        }
+    }
 
-	// exception safe, so first create space, then store
-	void push_back(std::auto_ptr<T> ptr) {
-		data.push_back(0);
-		data.back() = ptr.release();
-	}
-	void push_front(std::auto_ptr<T> ptr) {
-		data.push_front(0);
-		data.front() = ptr.release();
-	}
-	void push_back(T* ptr) {
-		std::auto_ptr<T> p(ptr);
-		push_back(p);
-	}
-	void push_front(T* ptr) {
-		std::auto_ptr<T> p(ptr);
-		push_front(p);
-	}
+    // exception safe, so first create space, then store
+    void push_back(std::auto_ptr<T> ptr) {
+        data.push_back(0);
+        data.back() = ptr.release();
+    }
+    void push_front(std::auto_ptr<T> ptr) {
+        data.push_front(0);
+        data.front() = ptr.release();
+    }
+    void push_back(T *ptr) {
+        std::auto_ptr<T> p(ptr);
+        push_back(p);
+    }
+    void push_front(T *ptr) {
+        std::auto_ptr<T> p(ptr);
+        push_front(p);
+    }
 
-	void pop_front() {
-		if (!data.empty()) {
-			delete data.front();
-			data.pop_front();
-		}
-	}
-	void pop_back() {
-		if (!data.empty()) {
-			delete data.back();
-			data.pop_back();
-		}
-	}
-	std::auto_ptr<T> release_front() {
-		std::auto_ptr<T> result;
-		if (!data.empty()) {
-			result.reset(data.front());
-			data.pop_front();
-		}
-		return result;
-	}
-	std::auto_ptr<T> release_back() {
-		std::auto_ptr<T> result;
-		if (!data.empty()) {
-			result.reset(data.back());
-			data.pop_back();
-		}
-		return result;
-	}
+    void pop_front() {
+        if (!data.empty()) {
+            delete data.front();
+            data.pop_front();
+        }
+    }
+    void pop_back() {
+        if (!data.empty()) {
+            delete data.back();
+            data.pop_back();
+        }
+    }
+    std::auto_ptr<T> release_front() {
+        std::auto_ptr<T> result;
+        if (!data.empty()) {
+            result.reset(data.front());
+            data.pop_front();
+        }
+        return result;
+    }
+    std::auto_ptr<T> release_back() {
+        std::auto_ptr<T> result;
+        if (!data.empty()) {
+            result.reset(data.back());
+            data.pop_back();
+        }
+        return result;
+    }
 
-	T* const& front() const { return data.front(); }
-	T* const& back() const { return data.back(); }
+    T *const &front() const { return data.front(); }
+    T *const &back() const { return data.back(); }
 
-	bool empty() const { return data.empty(); }
+    bool empty() const { return data.empty(); }
 
-	void swap(ptrlist<T>& other) { data.swap(other.data); }
+    void swap(ptrlist<T> &other) { data.swap(other.data); }
 
-	struct const_iterator
-	{
-		typename std::list<T*>::const_iterator it;
+    struct const_iterator {
+        typename std::list<T *>::const_iterator it;
 
-		const_iterator(typename std::list<T*>::const_iterator i) : it(i) {}
-		T& operator* () const { return *(*it); }
-		T* operator-> () const { return *it; }
-		const_iterator& operator++ () { ++it; return *this; }
-		const_iterator& operator-- () { --it; return *this; }
-		bool operator== (const const_iterator& other) const { return it == other.it; }
-		bool operator!= (const const_iterator& other) const { return it != other.it; }
-	};
+        const_iterator(typename std::list<T *>::const_iterator i) : it(i) {}
+        T &operator*() const { return *(*it); }
+        T *operator->() const { return *it; }
+        const_iterator &operator++() {
+            ++it;
+            return *this;
+        }
+        const_iterator &operator--() {
+            --it;
+            return *this;
+        }
+        bool operator==(const const_iterator &other) const { return it == other.it; }
+        bool operator!=(const const_iterator &other) const { return it != other.it; }
+    };
 
-	const_iterator begin() const { return const_iterator(data.begin()); }
-	const_iterator end() const { return const_iterator(data.end()); }
+    const_iterator begin() const { return const_iterator(data.begin()); }
+    const_iterator end() const { return const_iterator(data.end()); }
 
-	struct iterator
-	{
-		typename std::list<T*>::iterator it;
+    struct iterator {
+        typename std::list<T *>::iterator it;
 
-		iterator(typename std::list<T*>::iterator i) : it(i) {}
-		T& operator* () const { return *(*it); }
-		T* operator-> () const { return *it; }
-		iterator& operator++ () { ++it; return *this; }
-		iterator& operator-- () { --it; return *this; }
-		bool operator== (const iterator& other) const { return it == other.it; }
-		bool operator!= (const iterator& other) const { return it != other.it; }
-		std::auto_ptr<T> release() const { std::auto_ptr<T> result(*it); *it = 0; return result; }
-	};
+        iterator(typename std::list<T *>::iterator i) : it(i) {}
+        T &operator*() const { return *(*it); }
+        T *operator->() const { return *it; }
+        iterator &operator++() {
+            ++it;
+            return *this;
+        }
+        iterator &operator--() {
+            --it;
+            return *this;
+        }
+        bool operator==(const iterator &other) const { return it == other.it; }
+        bool operator!=(const iterator &other) const { return it != other.it; }
+        std::auto_ptr<T> release() const {
+            std::auto_ptr<T> result(*it);
+            *it = 0;
+            return result;
+        }
+    };
 
-	iterator nc_begin() { return iterator(data.begin()); }
-	iterator nc_end() { return iterator(data.end()); }
+    iterator nc_begin() { return iterator(data.begin()); }
+    iterator nc_end() { return iterator(data.end()); }
 };
-
 
 #endif

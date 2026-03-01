@@ -37,48 +37,46 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 
 /// directory reading/writing encapsulated for compatibility and ease of use
-class directory
-{
-	directory();
-	directory(const directory& );
-	directory& operator= (const directory& );
- public:
-	/// Open directory.
-	///@note throws exception if it is an invalid directory or if filename does note exist
-	directory(const std::string& filename);
+class directory {
+    directory();
+    directory(const directory &);
+    directory &operator=(const directory &);
 
-	/// Close directory
-	~directory();
+  public:
+    /// Open directory.
+    ///@note throws exception if it is an invalid directory or if filename does note exist
+    directory(const std::string &filename);
 
-	/// Read next filename from directory.
-	///@returns empty string if directory is fully read, filename else
-	std::string read();
+    /// Close directory
+    ~directory();
 
- private:
-	// system specific part
+    /// Read next filename from directory.
+    ///@returns empty string if directory is fully read, filename else
+    std::string read();
+
+  private:
+    // system specific part
 #ifdef WIN32
-	HANDLE dir;
-	WIN32_FIND_DATA Win32_FileFind_Temporary;	// needed because findfirst does
-	bool temporary_used;				// open and first read together
+    HANDLE dir;
+    WIN32_FIND_DATA Win32_FileFind_Temporary; // needed because findfirst does
+    bool temporary_used;                      // open and first read together
 #else
-	DIR* dir;
+    DIR *dir;
 #endif
 };
-
-
 
 // file helper interface
 
 ///\brief Make new directory. Returns true on success.
-bool make_dir(const std::string& dirname);
+bool make_dir(const std::string &dirname);
 
 ///\brief Returns absolute path of current working directory.
 std::string get_current_directory();
 
 ///\brief Test if the given filename is a directory.
-bool is_directory(const std::string& filename);
+bool is_directory(const std::string &filename);
 
 ///\brief Test if the given filename is a file (can be read by fopen())
-bool is_file(const std::string& filename);
+bool is_file(const std::string &filename);
 
 #endif

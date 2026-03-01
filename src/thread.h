@@ -26,11 +26,11 @@
 #include "condvar.h"
 #include <stdexcept>
 
-#if defined  WIN32 && defined _MSC_VER
-	// win32 lacks stdint.h (thankfully SDL provides...)
-	#include <SDL_config_win32.h>
+#if defined WIN32 && defined _MSC_VER
+// win32 lacks stdint.h (thankfully SDL provides...)
+#include <SDL_config_win32.h>
 #else
-	#include <stdint.h>	
+#include <stdint.h>
 #endif
 
 /// base class for threads.
@@ -39,107 +39,109 @@
 ///	like init(), deinit(), loop()
 ///	threads must be allocated with new.\n
 ///	heir from this class and implement init() / loop() / deinit()
-class thread
-{
- private:
-	enum thread_state_t {
-		THRSTAT_NONE,		// before start
-		THRSTAT_RUNNING,	// normal operation
-		THRSTAT_FINISHED,	// after thread has exited (can't be restarted)
-		THRSTAT_INIT_FAILED,	// when init has failed
-		THRSTAT_ABORTED		// when run/deinit has failed (internal error!)
-	};
+class thread {
+  private:
+    enum thread_state_t {
+        THRSTAT_NONE,        // before start
+        THRSTAT_RUNNING,     // normal operation
+        THRSTAT_FINISHED,    // after thread has exited (can't be restarted)
+        THRSTAT_INIT_FAILED, // when init has failed
+        THRSTAT_ABORTED      // when run/deinit has failed (internal error!)
+    };
 
-	struct SDL_Thread* thread_id;
-	bool thread_abort_request;
-	thread_state_t thread_state;
-	::mutex thread_state_mutex;
-	condvar thread_start_cond;
-	std::string thread_error_message; // to pass exception texts via thread boundaries
-	const char* myname;
+    struct SDL_Thread *thread_id;
+    bool thread_abort_request;
+    thread_state_t thread_state;
+    ::mutex thread_state_mutex;
+    condvar thread_start_cond;
+    std::string thread_error_message; // to pass exception texts via thread boundaries
+    const char *myname;
 
-	void run();
+    void run();
 
-	// can't copy thread objects
-	thread(const thread& );
-	thread& operator=(const thread& );
-	thread();
+    // can't copy thread objects
+    thread(const thread &);
+    thread &operator=(const thread &);
+    thread();
 
- public:
-	static int thread_entry(void* arg);
- protected:
-	virtual ~thread();
+  public:
+    static int thread_entry(void *arg);
 
-	virtual void init() {}	///< will be called once after thread starts
-	virtual void loop() {}	///< will be called periodically in main thread loop
-	virtual void deinit() {} ///< will be called once after main thread loop ends
+  protected:
+    virtual ~thread();
 
-	bool abort_requested() const { return thread_abort_request; }
- public:
-	/// create a thread
-	thread(const char* name);
+    virtual void init() {}   ///< will be called once after thread starts
+    virtual void loop() {}   ///< will be called periodically in main thread loop
+    virtual void deinit() {} ///< will be called once after main thread loop ends
 
-	/// abort thread (do not force, just request)
-	virtual void request_abort();
+    bool abort_requested() const { return thread_abort_request; }
 
-	/// start thread execution
-	/// thread will run in a loop, calling loop() each time. It will automatically check the abort flag
-	/// anything that needs to be done before or after the loop can be placed in redefined
-	/// constructors or destructors.
-	void start();
+  public:
+    /// create a thread
+    thread(const char *name);
 
-	/// caller thread waits for completion of this thread,
-	/// object storage is freed after thread completion.
-	void join();
+    /// abort thread (do not force, just request)
+    virtual void request_abort();
 
-	/// destroy thread, try to abort and join it or delete the object if it hasn't started yet.
-	void destruct();
+    /// start thread execution
+    /// thread will run in a loop, calling loop() each time. It will automatically check the abort flag
+    /// anything that needs to be done before or after the loop can be placed in redefined
+    /// constructors or destructors.
+    void start();
 
-	/// let this thread sleep
-	///@param ms - sleep time in milliseconds
-	static void sleep(unsigned ms);
+    /// caller thread waits for completion of this thread,
+    /// object storage is freed after thread completion.
+    void join();
 
-	/// define SDL conform thread id type
-	typedef uint32_t id;
+    /// destroy thread, try to abort and join it or delete the object if it hasn't started yet.
+    void destruct();
 
-	/// get ID of current (caller) thread
-	static id get_my_id();
+    /// let this thread sleep
+    ///@param ms - sleep time in milliseconds
+    static void sleep(unsigned ms);
 
-	/// get ID of this thread
-	id get_id() const;
+    /// define SDL conform thread id type
+    typedef uint32_t id;
 
-	/// request if thread runs
-	bool is_running();
+    /// get ID of current (caller) thread
+    static id get_my_id();
 
-	/// an auto_ptr similar class for threads
-	template<class T>
-	class auto_ptr
-	{
-		auto_ptr(const auto_ptr& );
-		auto_ptr& operator=(const auto_ptr& );
+    /// get ID of this thread
+    id get_id() const;
 
-		T* p;
-	public:
-		/// construct thread auto pointer with thread pointer
-		///@note will throw error when t is not a thread
-		auto_ptr(T* t = 0) : p(0) { reset(t); }
-		/// destruct thread auto pointer (will destruct thread)
-		~auto_ptr() { reset(0); }
-		/// reset pointer (destructs current thread)
-		///@note will throw error when t is not a thread
-		///@note seems bizarre, use with care!
-		void reset(T* t = 0) {
-			// extra paranoia test to ensure we handly only thread objects here
-			if (t && (dynamic_cast<thread*>(t) == 0))
-				throw std::invalid_argument("invalid pointer given to thread::auto_ptr!");
-			if (p) p->destruct();
-			p = t;
-		}
-		/// use pointer like normal pointer
-		T* operator-> () const { return p; }
-		/// get pointer
-		const T* get() const { return p; }
-	};
+    /// request if thread runs
+    bool is_running();
+
+    /// an auto_ptr similar class for threads
+    template <class T>
+    class auto_ptr {
+        auto_ptr(const auto_ptr &);
+        auto_ptr &operator=(const auto_ptr &);
+
+        T *p;
+
+      public:
+        /// construct thread auto pointer with thread pointer
+        ///@note will throw error when t is not a thread
+        auto_ptr(T *t = 0) : p(0) { reset(t); }
+        /// destruct thread auto pointer (will destruct thread)
+        ~auto_ptr() { reset(0); }
+        /// reset pointer (destructs current thread)
+        ///@note will throw error when t is not a thread
+        ///@note seems bizarre, use with care!
+        void reset(T *t = 0) {
+            // extra paranoia test to ensure we handly only thread objects here
+            if (t && (dynamic_cast<thread *>(t) == 0))
+                throw std::invalid_argument("invalid pointer given to thread::auto_ptr!");
+            if (p)
+                p->destruct();
+            p = t;
+        }
+        /// use pointer like normal pointer
+        T *operator->() const { return p; }
+        /// get pointer
+        const T *get() const { return p; }
+    };
 };
 
 #endif

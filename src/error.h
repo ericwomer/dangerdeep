@@ -23,42 +23,37 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef ERROR_H
 #define ERROR_H
 
-#include <string>
 #include <stdexcept>
-
+#include <string>
 
 ///\brief Base exception class for any runtime error.
-class error : public std::runtime_error
-{
- public:
-
+class error : public std::runtime_error {
+  public:
 #if defined WIN32 || defined MINGW32
-       #undef ERROR
+#undef ERROR
 #endif
 
 #ifdef _MSC_VER
-       #pragma warning (disable: 4005)
-#endif//_MSVC
+#pragma warning(disable : 4005)
+#endif //_MSVC
 
 #if defined(DEBUG) && defined(__GNUC__)
-	static std::string str(const char* file, unsigned line);
-	#define ERROR(x) error(x + error::str(__FILE__, __LINE__))
+    static std::string str(const char *file, unsigned line);
+#define ERROR(x) error(x + error::str(__FILE__, __LINE__))
 #else
-	#define ERROR(x) error(x)
-#endif//DEBUG
-	error(const std::string& s) : std::runtime_error(std::string("DftD error: ") + s) {}
+#define ERROR(x) error(x)
+#endif // DEBUG
+    error(const std::string &s) : std::runtime_error(std::string("DftD error: ") + s) {}
 };
 
-class file_read_error : public error
-{
- public:
-	file_read_error(const std::string& filename) : error(std::string("failed to load: ") + filename) {}
+class file_read_error : public error {
+  public:
+    file_read_error(const std::string &filename) : error(std::string("failed to load: ") + filename) {}
 };
 
-class sdl_error : public error
-{
- public:
-	sdl_error(const std::string& msg);
+class sdl_error : public error {
+  public:
+    sdl_error(const std::string &msg);
 };
 
 #endif

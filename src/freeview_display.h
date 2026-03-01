@@ -23,63 +23,61 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef FREEVIEW_DISPLAY_H
 #define FREEVIEW_DISPLAY_H
 
-#include "user_display.h"
 #include "angle.h"
+#include "user_display.h"
 #include "vector3.h"
 
 ///\brief User display implementation for free 3D view of the game world.
-class freeview_display : public user_display
-{
-public:
-	struct projection_data
-	{
-		unsigned x, y, w, h;	// viewport, holds also aspect info
-		double fov_x;		// angle of field of view (horizontal) in degrees
-		double near_z, far_z;
-		bool fullscreen;
-	};
+class freeview_display : public user_display {
+  public:
+    struct projection_data {
+        unsigned x, y, w, h; // viewport, holds also aspect info
+        double fov_x;        // angle of field of view (horizontal) in degrees
+        double near_z, far_z;
+        bool fullscreen;
+    };
 
-protected:
-	vector3 add_pos;	// additional offset to viewpos
+  protected:
+    vector3 add_pos; // additional offset to viewpos
 
-	bool aboard;		// is player aboard?
-	bool withunderwaterweapons;	// draw underwater weapons?
-	bool drawbridge;	// draw bridge if aboard?
+    bool aboard;                // is player aboard?
+    bool withunderwaterweapons; // draw underwater weapons?
+    bool drawbridge;            // draw bridge if aboard?
 
-	// used only in 3d view. a bit hackish to place it here, but better than in global data.
-	// later store in class submarine. use cache to store, this is only a reference.
-	class model *conning_tower;
+    // used only in 3d view. a bit hackish to place it here, but better than in global data.
+    // later store in class submarine. use cache to store, this is only a reference.
+    class model *conning_tower;
 
-	class texture* underwater_background;
+    class texture *underwater_background;
 
-	freeview_display();
+    freeview_display();
 
-	// display() calls these functions
-	virtual void pre_display(class game& gm) const;
-//fixme: reflections need special viewport... depends on detail settings. mabye retrieve from ui
-	virtual projection_data get_projection_data(class game& gm) const;
-	virtual void set_modelview_matrix(class game& gm, const vector3& viewpos) const;
-	virtual void post_display(class game& gm) const;
+    // display() calls these functions
+    virtual void pre_display(class game &gm) const;
+    // fixme: reflections need special viewport... depends on detail settings. mabye retrieve from ui
+    virtual projection_data get_projection_data(class game &gm) const;
+    virtual void set_modelview_matrix(class game &gm, const vector3 &viewpos) const;
+    virtual void post_display(class game &gm) const;
 
-	// draw all sea_objects
-	virtual void draw_objects(class game& gm, const vector3& viewpos,
-				  const std::vector<sea_object*>& objects,
-				  const colorf& light_color,
-				  const bool underwater,
-				  bool mirrorclip) const;
+    // draw all sea_objects
+    virtual void draw_objects(class game &gm, const vector3 &viewpos,
+                              const std::vector<sea_object *> &objects,
+                              const colorf &light_color,
+                              const bool underwater,
+                              bool mirrorclip) const;
 
-	// draw the whole view
-	virtual void draw_view(class game& gm, const vector3& viewpos) const;
+    // draw the whole view
+    virtual void draw_view(class game &gm, const vector3 &viewpos) const;
 
-	// compute view position for this display (can be overloaded!)
-	virtual vector3 get_viewpos(class game& gm) const;
+    // compute view position for this display (can be overloaded!)
+    virtual vector3 get_viewpos(class game &gm) const;
 
-public:
-	freeview_display(class user_interface& ui_);
-	virtual ~freeview_display();
+  public:
+    freeview_display(class user_interface &ui_);
+    virtual ~freeview_display();
 
-	virtual void display(class game& gm) const;
-	virtual void process_input(class game& gm, const SDL_Event& event);
+    virtual void display(class game &gm) const;
+    virtual void process_input(class game &gm, const SDL_Event &event);
 };
 
 #endif

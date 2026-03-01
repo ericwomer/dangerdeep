@@ -25,42 +25,40 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "date.h"
 
-enum countrycode
-{
-	UNKNOWNCOUNTRY,
-	GERMANY,
-	GREATBRITAIN,
-	FRANCE,
-	UNITEDSTATES,
-	CANADA,
-	ITALY,
-	NORWAY,
-	SWEDEN,
-	NETHERLANDS,
-	DENMARK,
-	BELGIUM,
-	GREECE,
-	SOWJETUNION,
-	JAPAN,
-	BRAZIL,
-	IRELAND,
-	PORTUGAL,
-	TURKEY,
-	AUSTRALIA,
-	NR_OF_COUNTRIES
+enum countrycode {
+    UNKNOWNCOUNTRY,
+    GERMANY,
+    GREATBRITAIN,
+    FRANCE,
+    UNITEDSTATES,
+    CANADA,
+    ITALY,
+    NORWAY,
+    SWEDEN,
+    NETHERLANDS,
+    DENMARK,
+    BELGIUM,
+    GREECE,
+    SOWJETUNION,
+    JAPAN,
+    BRAZIL,
+    IRELAND,
+    PORTUGAL,
+    TURKEY,
+    AUSTRALIA,
+    NR_OF_COUNTRIES
 };
 
-enum partycode
-{
-	UNKNOWNPARTY,
-	NEUTRAL,
-	ALLIES,
-	AXIS,
-	NR_OF_PARTIES
+enum partycode {
+    UNKNOWNPARTY,
+    NEUTRAL,
+    ALLIES,
+    AXIS,
+    NR_OF_PARTIES
 };
 
-extern const char* countrycodes[NR_OF_COUNTRIES];
-extern const char* parties[NR_OF_PARTIES];
+extern const char *countrycodes[NR_OF_COUNTRIES];
+extern const char *parties[NR_OF_PARTIES];
 
 partycode party_of_country(countrycode c, date d);
 

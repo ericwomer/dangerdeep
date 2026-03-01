@@ -23,29 +23,49 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef SINGLETON_H
 #define SINGLETON_H
 
-template<typename D>
-class singleton
-{
- private:
-	static D*& instance_ptr() { static D* myinstanceptr = 0; return myinstanceptr; }
+template <typename D>
+class singleton {
+  private:
+    static D *&instance_ptr() {
+        static D *myinstanceptr = 0;
+        return myinstanceptr;
+    }
 
- public:
-	// since D is constructed not before first call, it avoids
-	// the static initialization order fiasco.
-	static D& instance() { D*& p = instance_ptr(); if (!p) p = new D(); return *p; }
+  public:
+    // since D is constructed not before first call, it avoids
+    // the static initialization order fiasco.
+    static D &instance() {
+        D *&p = instance_ptr();
+        if (!p)
+            p = new D();
+        return *p;
+    }
 
-	static void create_instance(D* ptr) { D*& p = instance_ptr(); delete p; p = ptr; }
+    static void create_instance(D *ptr) {
+        D *&p = instance_ptr();
+        delete p;
+        p = ptr;
+    }
 
-	static void destroy_instance() { D*& p = instance_ptr(); delete p; p = 0; }
+    static void destroy_instance() {
+        D *&p = instance_ptr();
+        delete p;
+        p = 0;
+    }
 
-	static D* release_instance() { D*& p = instance_ptr(); D* ptr = p; p = 0; return ptr; }
+    static D *release_instance() {
+        D *&p = instance_ptr();
+        D *ptr = p;
+        p = 0;
+        return ptr;
+    }
 
- protected:
-	singleton() {}
+  protected:
+    singleton() {}
 
- private:
-	singleton(const singleton& );
-	singleton& operator= (const singleton& );
+  private:
+    singleton(const singleton &);
+    singleton &operator=(const singleton &);
 };
 
 #endif

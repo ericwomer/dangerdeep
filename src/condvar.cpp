@@ -24,44 +24,31 @@
 #include "error.h"
 #include <SDL.h>
 
-condvar::condvar()
-{
-	cdv = SDL_CreateCond();
-	if (!cdv)
-		throw sdl_error("condvar creation failed");
+condvar::condvar() {
+    cdv = SDL_CreateCond();
+    if (!cdv)
+        throw sdl_error("condvar creation failed");
 }
 
-
-
-condvar::~condvar()
-{
-	SDL_DestroyCond(cdv);
+condvar::~condvar() {
+    SDL_DestroyCond(cdv);
 }
 
-
-
-void condvar::wait(mutex& m)
-{
-	if (SDL_CondWait(cdv, m.mtx) < 0)
-		throw sdl_error("condvar wait failed");
+void condvar::wait(mutex &m) {
+    if (SDL_CondWait(cdv, m.mtx) < 0)
+        throw sdl_error("condvar wait failed");
 }
 
-
-
-bool condvar::timed_wait(mutex& m, unsigned ms)
-{
-	int res = SDL_CondWaitTimeout(cdv, m.mtx, ms);
-	if (res == SDL_MUTEX_TIMEDOUT)
-		return false;
-	if (res < 0)
-		throw sdl_error("condvar timed_wait failed");
-	return true;
+bool condvar::timed_wait(mutex &m, unsigned ms) {
+    int res = SDL_CondWaitTimeout(cdv, m.mtx, ms);
+    if (res == SDL_MUTEX_TIMEDOUT)
+        return false;
+    if (res < 0)
+        throw sdl_error("condvar timed_wait failed");
+    return true;
 }
 
-
-
-void condvar::signal()
-{
-	if (SDL_CondBroadcast(cdv) < 0)
-		throw sdl_error("condvar signal failed");
+void condvar::signal() {
+    if (SDL_CondBroadcast(cdv) < 0)
+        throw sdl_error("condvar signal failed");
 }

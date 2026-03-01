@@ -25,26 +25,25 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "user_display.h"
 
-class logbook_display : public user_display
-{
-protected:
-	const vector2i page_left_offset;
-	const vector2i page_right_offset;
-	const vector2i page_size;
-	std::auto_ptr<image> background;
-	unsigned current_page;
-	mutable unsigned nr_of_pages;
+class logbook_display : public user_display {
+  protected:
+    const vector2i page_left_offset;
+    const vector2i page_right_offset;
+    const vector2i page_size;
+    std::auto_ptr<image> background;
+    unsigned current_page;
+    mutable unsigned nr_of_pages;
 
-	void next_page();
-	void previous_page();
+    void next_page();
+    void previous_page();
 
-public:
-	logbook_display(class user_interface& ui_);
-	virtual void display(class game& gm) const;
-	virtual void process_input(class game& gm, const SDL_Event& event);
+  public:
+    logbook_display(class user_interface &ui_);
+    virtual void display(class game &gm) const;
+    virtual void process_input(class game &gm, const SDL_Event &event);
 
-	void enter(bool is_day);
-	void leave();
+    void enter(bool is_day);
+    void leave();
 };
 
 #endif

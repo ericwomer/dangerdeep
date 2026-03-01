@@ -28,39 +28,38 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /// this class handles a OpenGL Frame Buffer Object
 ///@note needs the GL_EXT_framebuffer_object extension, that is available on
 ///	newer cards (GeForce5+), or on all cards supporting OpenGL 2.0
-class framebufferobject
-{
- public:
-	/// create buffer object.
-	 framebufferobject(class texture& attachedtex, bool withdepthbuffer = false);
+class framebufferobject {
+  public:
+    /// create buffer object.
+    framebufferobject(class texture &attachedtex, bool withdepthbuffer = false);
 
-	/// free buffer object
-	~framebufferobject();
+    /// free buffer object
+    ~framebufferobject();
 
-	/// bind buffer and set up rendering
-	void bind() const;
+    /// bind buffer and set up rendering
+    void bind() const;
 
-	/// unbind buffer
-	void unbind() const;
+    /// unbind buffer
+    void unbind() const;
 
-	/// check if FBOs are supported
-	static bool supported();
+    /// check if FBOs are supported
+    static bool supported();
 
- protected:
-	GLuint id;
-	GLuint depthbuf_id;
-	class texture& mytex;
-	mutable bool bound;	// for extra error checks
-	static int fbo_supported;
+  protected:
+    GLuint id;
+    GLuint depthbuf_id;
+    class texture &mytex;
+    mutable bool bound; // for extra error checks
+    static int fbo_supported;
 
-	void destroy();
+    void destroy();
 
- private:
-	framebufferobject();
-	framebufferobject(const framebufferobject& );	// no copy
-	framebufferobject& operator= (const framebufferobject&);
+  private:
+    framebufferobject();
+    framebufferobject(const framebufferobject &); // no copy
+    framebufferobject &operator=(const framebufferobject &);
 
-	const char* init_failure_reason( int status );
+    const char *init_failure_reason(int status);
 };
 
 #endif

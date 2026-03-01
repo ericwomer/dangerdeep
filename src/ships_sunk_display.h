@@ -25,22 +25,22 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "user_display.h"
 
-class ships_sunk_display : public user_display
-{
-protected:
-	unsigned first_displayed_object;
-	virtual void next_page(unsigned nrships);
-	virtual void previous_page(unsigned nrships);
+class ships_sunk_display : public user_display {
+  protected:
+    unsigned first_displayed_object;
+    virtual void next_page(unsigned nrships);
+    virtual void previous_page(unsigned nrships);
 
-	texture::ptr cloudsbackgr;
-public:
-	ships_sunk_display(class user_interface& ui_);
+    texture::ptr cloudsbackgr;
 
-	virtual void display(class game& gm) const;
-	virtual void process_input(class game& gm, const SDL_Event& event);
+  public:
+    ships_sunk_display(class user_interface &ui_);
 
-	void enter(bool is_day);
-	void leave();
+    virtual void display(class game &gm) const;
+    virtual void process_input(class game &gm, const SDL_Event &event);
+
+    void enter(bool is_day);
+    void leave();
 };
 
 #endif

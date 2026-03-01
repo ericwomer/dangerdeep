@@ -23,46 +23,46 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef SUB_KDB_DISPLAY_H
 #define SUB_KDB_DISPLAY_H
 
-#include "user_display.h"
 #include "image.h"
-#include <vector>
 #include "sonar.h" // fixme: only for testing!
+#include "user_display.h"
+#include <vector>
 
-class sub_kdb_display : public user_display
-{
-	class scheme {
-	public:
-		std::auto_ptr<image> background;
-		rotat_tex direction_ptr;
-		fix_tex turn_wheel[6];
-		fix_tex volume_knob[6];
-		scheme(bool day);
-	protected:
-		scheme();
-		scheme(const scheme& );
-		scheme& operator= (const scheme& );
-	};
+class sub_kdb_display : public user_display {
+    class scheme {
+      public:
+        std::auto_ptr<image> background;
+        rotat_tex direction_ptr;
+        fix_tex turn_wheel[6];
+        fix_tex volume_knob[6];
+        scheme(bool day);
 
-	enum turnknobtype {
-		TK_NONE = -1,
-		TK_DIRECTION = 0,
-		TK_VOLUME = 1,
-		TK_NR = 2
-	};
+      protected:
+        scheme();
+        scheme(const scheme &);
+        scheme &operator=(const scheme &);
+    };
 
-	std::auto_ptr<scheme> myscheme;
+    enum turnknobtype {
+        TK_NONE = -1,
+        TK_DIRECTION = 0,
+        TK_VOLUME = 1,
+        TK_NR = 2
+    };
 
-	turnknobtype turnknobdrag;
-	std::vector<float> turnknobang;
+    std::auto_ptr<scheme> myscheme;
 
- public:
-	sub_kdb_display(class user_interface& ui_);
+    turnknobtype turnknobdrag;
+    std::vector<float> turnknobang;
 
-	virtual void process_input(class game& gm, const SDL_Event& event);
-	virtual void display(class game& gm) const;
+  public:
+    sub_kdb_display(class user_interface &ui_);
 
-	void enter(bool is_day);
-	void leave();
+    virtual void process_input(class game &gm, const SDL_Event &event);
+    virtual void display(class game &gm) const;
+
+    void enter(bool is_day);
+    void leave();
 };
 
 #endif
