@@ -48,6 +48,21 @@ add_executable(bivector_test ${TEST_DIR}/bivector_test.cpp)
 target_link_libraries(bivector_test ${LIBS})
 add_test(NAME bivector_test COMMAND bivector_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
+# global_data_utils_test: ulog2, nextgteqpow2, ispow2 (inline en global_data.h)
+add_executable(global_data_utils_test ${TEST_DIR}/global_data_utils_test.cpp)
+target_link_libraries(global_data_utils_test ${LIBS})
+add_test(NAME global_data_utils_test COMMAND global_data_utils_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# rnd_global_test: rnd(), seed_global_rnd() (rnd.cpp, solo std)
+add_executable(rnd_global_test ${TEST_DIR}/rnd_global_test.cpp ${SRC_PARENT}/rnd.cpp)
+target_link_libraries(rnd_global_test ${LIBS})
+add_test(NAME rnd_global_test COMMAND rnd_global_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# string_split_test: string_split() (string_split.cpp)
+add_executable(string_split_test ${TEST_DIR}/string_split_test.cpp ${SRC_PARENT}/string_split.cpp)
+target_link_libraries(string_split_test ${LIBS})
+add_test(NAME string_split_test COMMAND string_split_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
 # mutex_test: mutex + error (requieren SDL2)
 add_executable(mutex_test ${TEST_DIR}/mutex_test.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp)
 target_link_libraries(mutex_test ${LIBS})

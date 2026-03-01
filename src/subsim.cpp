@@ -1874,8 +1874,8 @@ int mymain(list<string> &args) {
     // mycfg.register_option("ocean_res_y", 128);
     // mycfg.register_option("", );
 
-    // randomize
-    srand(time(0));
+    // randomize (generador global usado por rnd() en global_data.h)
+    seed_global_rnd(static_cast<unsigned>(time(nullptr)));
 
     // read data files
     data_file();

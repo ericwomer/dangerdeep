@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 
 #include "cfg.h"
+#include "global_data.h"
 #include "log.h"
 #include "mymain.cpp"
 #include "oglext/OglExt.h"
@@ -35,8 +36,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <SDL.h>
 
 using std::vector;
-
-inline double rnd() { return double(rand()) / RAND_MAX; }
 
 int mymain(list<string> &args) {
     cfg &mycfg = cfg::instance();
@@ -73,7 +72,7 @@ int mymain(list<string> &args) {
     sys().set_res_2d(1024, 768);
     sys().set_max_fps(60);
 
-    srand(time(0));
+    seed_global_rnd(static_cast<unsigned>(time(nullptr)));
     vector3f triab[6];
     for (int i = 0; i < 6; ++i) {
         triab[i].x = rnd() * 2 - 1;

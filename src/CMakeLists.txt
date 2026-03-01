@@ -99,7 +99,9 @@ set(WIDGET_OBJ
 	widget.cpp)
 
 set(GLOBALDATAOBJ
-	global_data.cpp)
+	global_data.cpp
+	rnd.cpp
+	string_split.cpp)
 
 set(DATADIRSOBJ
 	datadirs.cpp)

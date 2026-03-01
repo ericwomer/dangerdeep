@@ -18,32 +18,32 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 //
-//  A generic generator for random numbers (C)+(W) 2008 Thorsten Jordan
+//  Wrapper sobre la librería estándar de aleatorios C++11 (<random>).
+//  Mantiene la interfaz rnd() / rndf() / set_seed() para no romper call sites.
 //
 
 #ifndef RANDOM_GENERATOR_H
 #define RANDOM_GENERATOR_H
 
+#include <random>
+
 class random_generator {
   public:
-    random_generator(unsigned seed = 0) : reg(seed) {}
-    virtual ~random_generator() {}
+    random_generator(unsigned seed = 0) : gen(seed) {}
+    virtual ~random_generator() = default;
+
     virtual unsigned rnd() {
-        chaos();
-        return reg;
+        return static_cast<unsigned>(gen());
     }
+
     virtual float rndf() {
-        unsigned n = rnd();
-        return float(double(n) / unsigned(-1));
+        return static_cast<float>(gen() - gen.min()) / (static_cast<float>(gen.max() - gen.min()) + 1.0f);
     }
-    virtual void set_seed(unsigned seed) { reg = seed; }
+
+    virtual void set_seed(unsigned seed) { gen.seed(seed); }
 
   protected:
-    virtual void chaos() {
-        reg = reg * 9699691 + 223092870;
-    }
-
-    unsigned reg;
+    std::mt19937 gen;
 };
 
 #endif

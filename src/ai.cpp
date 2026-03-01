@@ -576,7 +576,7 @@ int main(int argc, char** argv)
 	if (argc > 1)
 		enemy_distance = atof(argv[1]);
 	
-	srand(time(0));
+	seed_global_rnd(static_cast<unsigned>(time(nullptr)));
 	
 	initialize_angle_estimation(a, v0, g, min_elev, max_elev, min_angle_diff);
 

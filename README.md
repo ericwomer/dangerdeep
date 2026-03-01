@@ -187,7 +187,7 @@ Para el reporte de cobertura se usa **lcov** con *branch coverage*; instalación
 | `src/`         | Código C++ (simulación, gráficos, UI) |
 | `data/`        | Datos del juego (modelos, texturas, sonidos, mapas; parte vía Git LFS) |
 | `cmake/`       | Módulos de CMake |
-| `docs/`        | Documentación adicional (p. ej. [REFACTORING.md](docs/REFACTORING.md) con plan de refactor) |
+| `docs/`        | Documentación adicional: [REFACTORING.md](docs/REFACTORING.md) (refactor), [STD_ALTERNATIVES.md](docs/STD_ALTERNATIVES.md) (uso de la std) |
 | `packaging/`   | Scripts para empaquetado (p. ej. Ubuntu) |
 
 Stack: SDL2 (vídeo, imagen, audio), OpenGL, FFTW, BZip2, TinyXML, X11.  

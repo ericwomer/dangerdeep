@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "cfg.h"
 #include "datadirs.h"
+#include "global_data.h"
 #include "faulthandler.h"
 #include "font.h"
 #include "fpsmeasure.h"
@@ -129,7 +130,7 @@ int mymain(list<string> &args) {
     install_segfault_handler();
 
     // randomize
-    srand(time(0));
+    seed_global_rnd(static_cast<unsigned>(time(nullptr)));
 
     // command line argument parsing
     res_x = 1024;

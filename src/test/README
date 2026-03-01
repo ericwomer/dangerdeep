@@ -16,5 +16,8 @@ Tests unitarios (se compilan con -DBUILD_UNIT_TESTS=ON, se ejecutan con ctest o 
   fixed_test           - fixed32 (punto fijo)
   random_generator_test - random_generator
   bivector_test        - bivector (array 2D)
+  global_data_utils_test - ulog2, nextgteqpow2, ispow2 (global_data.h)
+  rnd_global_test      - rnd(), seed_global_rnd() (rnd.cpp, std::mt19937)
+  string_split_test    - string_split() (string_split.cpp, std::getline)
   mutex_test           - mutex (bloqueo recursivo)
   parser_test          - parser (CSV; requiere ruta a data o DFTD_DATA)

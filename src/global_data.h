@@ -125,9 +125,8 @@ template <class T>
 inline T myinterpolate(const T &v0, const T &v1, double f) { return T(v0 * (1.0 - f) + v1 * f); }
 template <class C>
 inline void add_saturated(C &sum, const C &add, const C &max) { sum = std::min(sum + add, max); }
-// return a random value in [0, 1(
-inline double rnd() { return double(rand()) / RAND_MAX; }
-inline unsigned rnd(unsigned b) { return unsigned(b * rnd()); }
+// Aleatorios: ver rnd.h (std::mt19937). Semilla con seed_global_rnd() donde antes srand().
+#include "rnd.h"
 
 // fast clamping
 inline Sint32 clamp_zero(Sint32 x) { return x & ~(x >> 31); }
@@ -155,7 +154,7 @@ double transform_nautic_posy_to_real(const std::string &s);
 
 void jacobi_amp(double u, double k, double &sn, double &cn);
 vector2f transform_real_to_geo(vector2f &pos);
-std::list<std::string> string_split(const std::string &src, char splitter = ',');
+#include "string_split.h"
 
 // save a PGM (for debugging mostly)
 void save_pgm(const char *fn, unsigned w, unsigned h, const Uint8 *d, unsigned stride = 0);
