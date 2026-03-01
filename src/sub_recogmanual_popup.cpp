@@ -46,8 +46,8 @@ sub_recogmanual_popup::sub_recogmanual_popup(user_interface &ui_)
     : user_popup(ui_), page(0), btn_left(15, 690, 11, 31, -1, page, "", "BG_btn_left.png"), btn_right(414, 690, 11, 31, 1, page, "", "BG_btn_right.png") {
     x = 0;
     y = 49;
-    background_daylight.reset(new image(get_image_dir() + "shiprecog_popup_daylight.png"));
-    background_nightlight.reset(new image(get_image_dir() + "shiprecog_popup_redlight.png"));
+    background_daylight = std::make_unique<image>(get_image_dir() + "shiprecog_popup_daylight.png");
+    background_nightlight = std::make_unique<image>(get_image_dir() + "shiprecog_popup_redlight.png");
 
     std::list<string> ship_ids = data_file_handler::instance().get_ship_list();
     for (list<string>::iterator it = ship_ids.begin(); it != ship_ids.end(); it++) {

@@ -433,8 +433,8 @@ void run_game(std::unique_ptr<game> gm) {
     // clear memory of menu widgets
     widget::unref_all_backgrounds();
 
-    std::unique_ptr<widget::theme> gametheme(new widget::theme("widgetelements_game.png", "widgeticons_game.png",
-                                                               font_vtremington12, color(182, 146, 137), color(240, 217, 127), color(64, 64, 64)));
+    auto gametheme = std::make_unique<widget::theme>("widgetelements_game.png", "widgeticons_game.png",
+                                                     font_vtremington12, color(182, 146, 137), color(240, 217, 127), color(64, 64, 64));
     reset_loading_screen();
     // embrace user interface generation with right theme set!
     std::unique_ptr<widget::theme> tmp = widget::replace_theme(std::move(gametheme));
@@ -480,7 +480,7 @@ void run_game(std::unique_ptr<game> gm) {
                 // of player (and thus same type of ui)
                 gm.reset();
                 ui.reset();
-                gm.reset(new game(dlg.get_gamefilename_to_load()));
+                gm = std::make_unique<game>(dlg.get_gamefilename_to_load());
                 // embrace user interface generation with right theme set!
                 tmp = widget::replace_theme(std::move(gametheme));
                 ui.reset(user_interface::create(*gm));
@@ -511,8 +511,8 @@ void run_game_editor(std::unique_ptr<game> gm) {
     // clear memory of menu widgets
     widget::unref_all_backgrounds();
 
-    std::unique_ptr<widget::theme> gametheme(new widget::theme("widgetelements_game.png", "widgeticons_game.png",
-                                                               font_vtremington12, color(182, 146, 137), color(240, 217, 127), color(64, 64, 64)));
+    auto gametheme = std::make_unique<widget::theme>("widgetelements_game.png", "widgeticons_game.png",
+                                                     font_vtremington12, color(182, 146, 137), color(240, 217, 127), color(64, 64, 64));
     reset_loading_screen();
     // embrace user interface generation with right theme set!
     std::unique_ptr<widget::theme> tmp = widget::replace_theme(std::move(gametheme));
@@ -538,7 +538,7 @@ void run_game_editor(std::unique_ptr<game> gm) {
             // won't work.
             gm.reset();
             ui.reset();
-            gm.reset(new game_editor(dlg.get_gamefilename_to_load()));
+            gm = std::make_unique<game_editor>(dlg.get_gamefilename_to_load());
             // embrace user interface generation with right theme set!
             tmp = widget::replace_theme(std::move(gametheme));
             ui.reset(user_interface::create(*gm));
@@ -991,12 +991,12 @@ void create_convoy_mission() {
             // reset loading screen here to show user we are doing something
             // fixme: give data to game! player data. maybe combine that to a struct!
             reset_loading_screen();
-            run_game(std::unique_ptr<game>(new game(st,
-                                                    wcvsize->get_selected(),
-                                                    wescortsize->get_selected(),
-                                                    wtimeofday->get_selected(),
-                                                    gamedate,
-                                                    pi)));
+            run_game(std::make_unique<game>(st,
+                                            wcvsize->get_selected(),
+                                            wescortsize->get_selected(),
+                                            wtimeofday->get_selected(),
+                                            gamedate,
+                                            pi));
         } else {
             break;
         }
@@ -1088,7 +1088,7 @@ void choose_historical_mission() {
     if (result == 2) { // start game
         std::unique_ptr<game> gm;
         try {
-            gm.reset(new game(get_mission_dir() + missions[wmission->get_selected()]));
+            gm = std::make_unique<game>(get_mission_dir() + missions[wmission->get_selected()]);
         } catch (error &e) {
             log_warning("error loading game: " << e.what());
             // fixme: show dialogue!
@@ -1111,7 +1111,7 @@ void choose_saved_game() {
     if (q == 2) {
         // reset loading screen here to show user we are doing something
         reset_loading_screen();
-        run_game(std::unique_ptr<game>(new game(dlg.get_gamefilename_to_load())));
+        run_game(std::make_unique<game>(dlg.get_gamefilename_to_load()));
     }
 }
 
@@ -1158,7 +1158,7 @@ void menu_mission_editor() {
                        */
         // reset loading screen here to show user we are doing something
         reset_loading_screen();
-        run_game_editor(std::unique_ptr<game>(new game_editor(date(1939, 9, 1) /*st*/)));
+        run_game_editor(std::make_unique<game_editor>(date(1939, 9, 1) /*st*/));
     }
 }
 
@@ -1494,7 +1494,7 @@ class vessel_view {
                 break;
             }
         }
-        std::unique_ptr<model> mdl(new model(data_file().get_path(*current) + mdlname));
+        auto mdl = std::make_unique<model>(data_file().get_path(*current) + mdlname);
         // register and set default layout.
         mdl->register_layout();
         mdl->set_layout();
@@ -2026,13 +2026,13 @@ int mymain(list<string> &args) {
     // music::instance().set_playback_mode(music::PBM_SHUFFLE_TRACK);
     music::instance().play();
 
-    widget::set_theme(std::unique_ptr<widget::theme>(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png",
-                                                                       font_typenr16,
-                                                                       color(182, 146, 137),
-                                                                       color(240, 217, 127) /*color(222, 208, 195)*/,
-                                                                       color(92, 72, 68))));
+    widget::set_theme(std::make_unique<widget::theme>("widgetelements_menu.png", "widgeticons_menu.png",
+                                                      font_typenr16,
+                                                      color(182, 146, 137),
+                                                      color(240, 217, 127) /*color(222, 208, 195)*/,
+                                                      color(92, 72, 68)));
 
-    std::unique_ptr<texture> metalbackground(new texture(get_image_dir() + "metalbackground.jpg"));
+    auto metalbackground = std::make_unique<texture>(get_image_dir() + "metalbackground.jpg");
     sys().draw_console_with(font_arial, metalbackground.get());
 
     // try to make directories if they do not exist
@@ -2069,13 +2069,13 @@ int mymain(list<string> &args) {
     if (runeditor) {
         // reset loading screen here to show user we are doing something
         reset_loading_screen();
-        run_game_editor(std::unique_ptr<game>(new game_editor(editor_start_date)));
+        run_game_editor(std::make_unique<game_editor>(editor_start_date));
     } else if (cmdmissionfilename.length() > 0) {
         // fixme: check here that the file exists or tinyxml faults with a embarassing error message
         std::unique_ptr<game> gm;
         bool ok = true;
         try {
-            gm.reset(new game(get_mission_dir() + cmdmissionfilename));
+            gm = std::make_unique<game>(get_mission_dir() + cmdmissionfilename);
         } catch (error &e) {
             log_warning("error loading mission: " << e.what());
             // fixme: show dialogue!

@@ -30,8 +30,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 sub_tdc_popup::sub_tdc_popup(user_interface &ui_) : user_popup(ui_) {
     x = 9;
     y = 151;
-    background_daylight.reset(new image(get_image_dir() + "popup_control_daylight.jpg|png"));
-    background_nightlight.reset(new image(get_image_dir() + "popup_control_redlight.jpg|png"));
+    background_daylight = std::make_unique<image>(get_image_dir() + "popup_control_daylight.jpg|png");
+    background_nightlight = std::make_unique<image>(get_image_dir() + "popup_control_redlight.jpg|png");
 }
 
 sub_tdc_popup::~sub_tdc_popup() {

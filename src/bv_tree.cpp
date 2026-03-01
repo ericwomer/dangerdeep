@@ -55,7 +55,7 @@ std::unique_ptr<bv_tree> bv_tree::create(const std::vector<vector3f> &vertices, 
     }
     // if list has one entry, return that
     if (nodes.size() == 1) {
-        result.reset(new bv_tree(bound_sphere, nodes.front()));
+        result = std::make_unique<bv_tree>(bound_sphere, nodes.front());
         return result;
     }
     //
@@ -98,7 +98,7 @@ std::unique_ptr<bv_tree> bv_tree::create(const std::vector<vector3f> &vertices, 
         empty_list.splice(empty_list.end(), full_list, full_list.begin(), it);
     }
     PRINT("left " << left_nodes.size() << " right " << right_nodes.size() << "\n");
-    result.reset(new bv_tree(bound_sphere, bv_tree::create(vertices, left_nodes), bv_tree::create(vertices, right_nodes)));
+    result = std::make_unique<bv_tree>(bound_sphere, bv_tree::create(vertices, left_nodes), bv_tree::create(vertices, right_nodes));
     PRINT("final volume " << result->volume.center << "|" << result->volume.radius << "\n");
     return result;
 }

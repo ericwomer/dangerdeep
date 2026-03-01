@@ -157,9 +157,9 @@ sub_periscope_display::sub_periscope_display(user_interface &ui_)
     drawbridge = false;
 
     use_hqsfx = cfg::instance().getb("use_hqsfx");
-    viewtex.reset(new texture(512, 512, GL_RGB, texture::LINEAR, texture::CLAMP));
-    glsl_blurview.reset(new glsl_shader_setup(get_shader_dir() + "blurview.vshader",
-                                              get_shader_dir() + "blurview.fshader"));
+    viewtex = std::make_unique<texture>(512, 512, GL_RGB, texture::LINEAR, texture::CLAMP);
+    glsl_blurview = std::make_unique<glsl_shader_setup>(get_shader_dir() + "blurview.vshader",
+                                                        get_shader_dir() + "blurview.fshader");
     glsl_blurview->use();
     loc_blur_texc_offset = glsl_blurview->get_uniform_location("blur_texc_offset");
     loc_tex_view = glsl_blurview->get_uniform_location("tex_view");
@@ -179,7 +179,7 @@ sub_periscope_display::sub_periscope_display(user_interface &ui_)
        This can be done quick & cheap, but the current scrolling texture
        is also ok.
     */
-    blurtex.reset(new texture(get_texture_dir() + "blurtest.png", texture::LINEAR, texture::REPEAT));
+    blurtex = std::make_unique<texture>(get_texture_dir() + "blurtest.png", texture::LINEAR, texture::REPEAT);
 }
 
 sub_periscope_display::~sub_periscope_display() {
@@ -233,14 +233,14 @@ unsigned sub_periscope_display::get_popup_allow_mask() const {
 
 void sub_periscope_display::enter(bool is_day) {
     if (is_day)
-        background.reset(new image(get_image_dir() + "periscope_daylight.jpg|png"));
+        background = std::make_unique<image>(get_image_dir() + "periscope_daylight.jpg|png");
     else
-        background.reset(new image(get_image_dir() + "periscope_redlight.jpg|png"));
+        background = std::make_unique<image>(get_image_dir() + "periscope_redlight.jpg|png");
 
-    clock_minutes_pointer = texture::ptr(new texture(get_image_dir() + "clock_minutes_pointer.png"));
-    clock_hours_pointer = texture::ptr(new texture(get_image_dir() + "clock_hours_pointer.png"));
+    clock_minutes_pointer = std::make_unique<texture>(get_image_dir() + "clock_minutes_pointer.png");
+    clock_hours_pointer = std::make_unique<texture>(get_image_dir() + "clock_hours_pointer.png");
 
-    compassbar_tex.reset(new texture(get_image_dir() + "periscope_compassbar.png", texture::NEAREST, texture::CLAMP));
+    compassbar_tex = std::make_unique<texture>(get_image_dir() + "periscope_compassbar.png", texture::NEAREST, texture::CLAMP);
 }
 
 void sub_periscope_display::leave() {

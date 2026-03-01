@@ -288,7 +288,7 @@ map_display::map_display(user_interface &ui_) : user_display(ui_), mapzoom(0.1),
         game_editor &gme = *ge;
 
         // create editor main panel
-        edit_panel.reset(new widget(0, 0, 1024, 32, "", 0));
+        edit_panel = std::make_unique<widget>(0, 0, 1024, 32, "", nullptr);
         edit_panel->set_background(0);
         edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game_editor &), game_editor &>(this, &map_display::edit_add_obj, gme, 0, 0, 128, 32, texts::get(224)));
         edit_btn_del = new widget_caller_arg_button<map_display, void (map_display::*)(game_editor &), game_editor &>(this, &map_display::edit_del_obj, gme, 128, 0, 128, 32, texts::get(225));
@@ -304,7 +304,7 @@ map_display::map_display(user_interface &ui_) : user_display(ui_), mapzoom(0.1),
         edit_panel->add_child(new widget_caller_arg_button<map_display, void (map_display::*)(game_editor &), game_editor &>(this, &map_display::edit_help, gme, 896, 0, 128, 32, texts::get(230)));
 
         // create "add ship" window
-        edit_panel_add.reset(new widget(0, 32, 1024, 768 - 2 * 32, texts::get(224)));
+        edit_panel_add = std::make_unique<widget>(0, 32, 1024, 768 - 2 * 32, texts::get(224));
         edit_panel_add->set_background(0);
         edit_shiplist = new widget_list(20, 32, 1024 - 2 * 20, 768 - 2 * 32 - 2 * 32 - 8);
         edit_panel_add->add_child(edit_shiplist);
@@ -316,7 +316,7 @@ map_display::map_display(user_interface &ui_) : user_display(ui_), mapzoom(0.1),
 
         // create "motion edit" window
         // open widget with text edits: course, speed, throttle
-        edit_panel_chgmot.reset(new widget(0, 32, 1024, 768 - 2 * 32, texts::get(226)));
+        edit_panel_chgmot = std::make_unique<widget>(0, 32, 1024, 768 - 2 * 32, texts::get(226));
         edit_panel_chgmot->set_background(0);
         edit_heading = new widget_slider(20, 128, 1024 - 40, 80, texts::get(1), 0, 360, 0, 15);
         edit_panel_chgmot->add_child(edit_heading);
@@ -329,13 +329,13 @@ map_display::map_display(user_interface &ui_) : user_display(ui_), mapzoom(0.1),
         // also edit: target, country, damage status, fuel amount
 
         // create help window
-        edit_panel_help.reset(new widget(0, 32, 1024, 768 - 2 * 32, texts::get(230)));
+        edit_panel_help = std::make_unique<widget>(0, 32, 1024, 768 - 2 * 32, texts::get(230));
         edit_panel_help->set_background(0);
         edit_panel_help->add_child(new widget_text(20, 32, 1024 - 2 * 20, 768 - 2 * 32 - 2 * 32 - 8, texts::get(231), 0, true));
         edit_panel_help->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_help.get(), &widget::close, EPFG_CANCEL, 20, 768 - 3 * 32 - 8, 1024 - 20, 32, texts::get(105)));
 
         // create edit time window
-        edit_panel_time.reset(new widget(0, 32, 1024, 768 - 2 * 32, texts::get(229)));
+        edit_panel_time = std::make_unique<widget>(0, 32, 1024, 768 - 2 * 32, texts::get(229));
         edit_panel_time->set_background(0);
         edit_panel_time->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_time.get(), &widget::close, EPFG_CHANGETIME, 20, 768 - 3 * 32 - 8, 512 - 20, 32, texts::get(229)));
         edit_panel_time->add_child(new widget_caller_arg_button<widget, void (widget::*)(int), int>(edit_panel_time.get(), &widget::close, EPFG_CANCEL, 512, 768 - 3 * 32 - 8, 512 - 20, 32, texts::get(117)));
@@ -353,7 +353,7 @@ map_display::map_display(user_interface &ui_) : user_display(ui_), mapzoom(0.1),
         edit_panel_time->add_child(edit_timesecond);
 
         // create convoy menu
-        edit_panel_convoy.reset(new widget(0, 32, 1024, 768 - 2 * 32, texts::get(228)));
+        edit_panel_convoy = std::make_unique<widget>(0, 32, 1024, 768 - 2 * 32, texts::get(228));
         edit_panel_convoy->set_background(0);
         edit_panel_convoy->add_child(new widget_text(20, 32, 256, 32, texts::get(244)));
         edit_cvname = new widget_edit(256 + 20, 32, 1024 - 256 - 2 * 20, 32, "-not usable yet, fixme-");
@@ -767,7 +767,7 @@ void map_display::process_input(class game &gm, const SDL_Event &event) {
                     // add ship
                     xml_doc spec(data_file().get_filename(edit_shiplist->get_selected_entry()));
                     spec.load();
-                    std::unique_ptr<ship> shp(new ship(gm, spec.first_child()));
+                    auto shp = std::make_unique<ship>(gm, spec.first_child());
                     shp->set_skin_layout(model::default_layout);
                     // set pos and other values etc.
                     vector2 pos = gm.get_player()->get_pos().xy() + mapoffset;
@@ -809,7 +809,7 @@ void map_display::process_input(class game &gm, const SDL_Event &event) {
                     }
                     center = center * (1.0 / nrsh);
                     // create convoy object
-                    std::unique_ptr<convoy> cv(new convoy(gm, center, edit_cvname->get_text()));
+                    auto cv = std::make_unique<convoy>(gm, center, edit_cvname->get_text());
                     // add all ships to convoy with relative positions
                     nrsh = 0;
                     for (std::set<sea_object *>::iterator it = selection.begin(); it != selection.end(); ++it) {

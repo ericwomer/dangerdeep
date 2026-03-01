@@ -102,23 +102,23 @@ void glsl_shader_setup::default_init() {
     // attrib for positions, does the gl2 driver handles this efficiently,
     // i.e. without interpolating the gl_Position additionally?
 
-    default_opaque.reset(new glsl_shader_setup(vss, fss, dl, true));
+    default_opaque = std::make_unique<glsl_shader_setup>(vss, fss, dl, true);
     default_opaque->use();
     loc_o_color = default_opaque->get_uniform_location("color");
 
     dl.push_back("USE_COL");
-    default_col.reset(new glsl_shader_setup(vss, fss, dl, true));
+    default_col = std::make_unique<glsl_shader_setup>(vss, fss, dl, true);
     default_col->use();
     idx_c_color = default_col->get_vertex_attrib_index("vcolor");
 
     dl.push_back("USE_TEX");
-    default_coltex.reset(new glsl_shader_setup(vss, fss, dl, true));
+    default_coltex = std::make_unique<glsl_shader_setup>(vss, fss, dl, true);
     default_coltex->use();
     loc_ct_tex = default_coltex->get_uniform_location("tex");
     idx_ct_color = default_coltex->get_vertex_attrib_index("vcolor");
 
     dl.pop_front(); // remove "USE_COL"
-    default_tex.reset(new glsl_shader_setup(vss, fss, dl, true));
+    default_tex = std::make_unique<glsl_shader_setup>(vss, fss, dl, true);
     default_tex->use();
     loc_t_color = default_tex->get_uniform_location("color");
     loc_t_tex = default_tex->get_uniform_location("tex");
@@ -158,7 +158,7 @@ glsl_shader::glsl_shader(const string &filename, type stype, const glsl_shader::
         // read shader source
         std::unique_ptr<ifstream> ifprg;
         if (stype == VERTEX || stype == FRAGMENT) {
-            ifprg.reset(new ifstream(filename.c_str(), ios::in));
+            ifprg = std::make_unique<ifstream>(filename.c_str(), ios::in);
             if (ifprg->fail())
                 throw file_read_error(filename);
         }

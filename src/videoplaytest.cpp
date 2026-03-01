@@ -331,9 +331,9 @@ void videoplay::display(framebuffer &fb) {
         tex_uv.reset();
     }
     if (!tex_y.get()) {
-        tex_y.reset(new texture(fb.width, fb.height, GL_LUMINANCE, texture::LINEAR, texture::CLAMP));
+        tex_y = std::make_unique<texture>(fb.width, fb.height, GL_LUMINANCE, texture::LINEAR, texture::CLAMP);
         // no UV filtering, so use nearest! - we could place UV in planes, not interleaved...
-        tex_uv.reset(new texture(fb.width / 2, fb.height / 2, GL_LUMINANCE_ALPHA, texture::NEAREST, texture::CLAMP));
+        tex_uv = std::make_unique<texture>(fb.width / 2, fb.height / 2, GL_LUMINANCE_ALPHA, texture::NEAREST, texture::CLAMP);
     }
     tex_y->sub_image(0, 0, fb.width, fb.height, fb.y, GL_LUMINANCE);
     tex_uv->sub_image(0, 0, fb.width / 2, fb.height / 2, fb.uv, GL_LUMINANCE_ALPHA);

@@ -36,7 +36,7 @@ void sub_valves_display::process_input(class game &gm, const SDL_Event &event) {
 }
 
 void sub_valves_display::enter(bool is_day) {
-    background.reset(new image(get_image_dir() + "valves_screen_" + (is_day ? "daylight" : "redlight") + "_t7cv1.jpg"));
+    background = std::make_unique<image>(get_image_dir() + "valves_screen_" + (is_day ? "daylight" : "redlight") + "_t7cv1.jpg");
 }
 
 void sub_valves_display::leave() {

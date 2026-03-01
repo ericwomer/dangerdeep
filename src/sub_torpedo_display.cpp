@@ -322,33 +322,33 @@ void sub_torpedo_display::process_input(class game &gm, const SDL_Event &event) 
 }
 
 void sub_torpedo_display::enter(bool is_day) {
-    torpempty.reset(new texture(get_image_dir() + "torpmanage_emptytube.png"));
-    torpload.reset(new texture(get_image_dir() + "torpmanage_tubeload.png"));
-    torpunload.reset(new texture(get_image_dir() + "torpmanage_tubeunload.png"));
-    torp1fat1.reset(new texture(get_image_dir() + "torpmanage_torp1fat1.png"));
-    torp1lut1.reset(new texture(get_image_dir() + "torpmanage_torp1lut1.png"));
-    torp1lut2.reset(new texture(get_image_dir() + "torpmanage_torp1lut2.png"));
-    torp1.reset(new texture(get_image_dir() + "torpmanage_torp1.png"));
-    torp1practice.reset(new texture(get_image_dir() + "torpmanage_torp1practice.png"));
-    torp2.reset(new texture(get_image_dir() + "torpmanage_torp2.png"));
-    torp3afat2.reset(new texture(get_image_dir() + "torpmanage_torp3afat2.png"));
-    torp3alut1.reset(new texture(get_image_dir() + "torpmanage_torp3alut1.png"));
-    torp3alut2.reset(new texture(get_image_dir() + "torpmanage_torp3alut2.png"));
-    torp3fat2.reset(new texture(get_image_dir() + "torpmanage_torp3fat2.png"));
-    torp3.reset(new texture(get_image_dir() + "torpmanage_torp3.png"));
-    torp4.reset(new texture(get_image_dir() + "torpmanage_torp4.png"));
-    torp5b.reset(new texture(get_image_dir() + "torpmanage_torp5b.png"));
-    torp5.reset(new texture(get_image_dir() + "torpmanage_torp5.png"));
-    torp6lut1.reset(new texture(get_image_dir() + "torpmanage_torp6lut1.png"));
+    torpempty = std::make_unique<texture>(get_image_dir() + "torpmanage_emptytube.png");
+    torpload = std::make_unique<texture>(get_image_dir() + "torpmanage_tubeload.png");
+    torpunload = std::make_unique<texture>(get_image_dir() + "torpmanage_tubeunload.png");
+    torp1fat1 = std::make_unique<texture>(get_image_dir() + "torpmanage_torp1fat1.png");
+    torp1lut1 = std::make_unique<texture>(get_image_dir() + "torpmanage_torp1lut1.png");
+    torp1lut2 = std::make_unique<texture>(get_image_dir() + "torpmanage_torp1lut2.png");
+    torp1 = std::make_unique<texture>(get_image_dir() + "torpmanage_torp1.png");
+    torp1practice = std::make_unique<texture>(get_image_dir() + "torpmanage_torp1practice.png");
+    torp2 = std::make_unique<texture>(get_image_dir() + "torpmanage_torp2.png");
+    torp3afat2 = std::make_unique<texture>(get_image_dir() + "torpmanage_torp3afat2.png");
+    torp3alut1 = std::make_unique<texture>(get_image_dir() + "torpmanage_torp3alut1.png");
+    torp3alut2 = std::make_unique<texture>(get_image_dir() + "torpmanage_torp3alut2.png");
+    torp3fat2 = std::make_unique<texture>(get_image_dir() + "torpmanage_torp3fat2.png");
+    torp3 = std::make_unique<texture>(get_image_dir() + "torpmanage_torp3.png");
+    torp4 = std::make_unique<texture>(get_image_dir() + "torpmanage_torp4.png");
+    torp5b = std::make_unique<texture>(get_image_dir() + "torpmanage_torp5b.png");
+    torp5 = std::make_unique<texture>(get_image_dir() + "torpmanage_torp5.png");
+    torp6lut1 = std::make_unique<texture>(get_image_dir() + "torpmanage_torp6lut1.png");
     if (is_day)
-        background.reset(new image(get_image_dir() + "tmanage_cleanbase_daylight.jpg"));
+        background = std::make_unique<image>(get_image_dir() + "tmanage_cleanbase_daylight.jpg");
     else
-        background.reset(new image(get_image_dir() + "tmanage_cleanbase_redlight.jpg"));
+        background = std::make_unique<image>(get_image_dir() + "tmanage_cleanbase_redlight.jpg");
     const submarine *pl = dynamic_cast<const submarine *>(ui.get_game().get_player());
     // fixme: catch errors for load, later do not accept missing images
     try {
         log_debug("loading '" << get_data_dir() + data_file().get_rel_path(pl->get_specfilename()) + pl->get_torpedomanage_img_name());
-        subtopsideview.reset(new image(get_data_dir() + data_file().get_rel_path(pl->get_specfilename()) + pl->get_torpedomanage_img_name()));
+        subtopsideview = std::make_unique<image>(get_data_dir() + data_file().get_rel_path(pl->get_specfilename()) + pl->get_torpedomanage_img_name());
     } catch (std::exception &e) {
         std::cout << "ERROR: " << e.what() << "\n";
     } catch (...) {

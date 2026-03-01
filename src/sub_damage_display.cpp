@@ -197,13 +197,13 @@ void sub_damage_display::process_input(class game &gm, const SDL_Event &event) {
 }
 
 void sub_damage_display::enter(bool /*is_day*/) {
-    damage_screen_background.reset(new image(get_image_dir() + "damage_screen_backg.jpg"));
-    sub_damage_scheme_all.reset(new image(get_image_dir() + "sub_damage_scheme_all.png"));
-    repairlight.reset(new texture(get_texture_dir() + "repairlight.png"));
-    repairmedium.reset(new texture(get_texture_dir() + "repairmedium.png"));
-    repairheavy.reset(new texture(get_texture_dir() + "repairheavy.png"));
-    repaircritical.reset(new texture(get_texture_dir() + "repaircritical.png"));
-    repairwrecked.reset(new texture(get_texture_dir() + "repairwrecked.png"));
+    damage_screen_background = std::make_unique<image>(get_image_dir() + "damage_screen_backg.jpg");
+    sub_damage_scheme_all = std::make_unique<image>(get_image_dir() + "sub_damage_scheme_all.png");
+    repairlight = std::make_unique<texture>(get_texture_dir() + "repairlight.png");
+    repairmedium = std::make_unique<texture>(get_texture_dir() + "repairmedium.png");
+    repairheavy = std::make_unique<texture>(get_texture_dir() + "repairheavy.png");
+    repaircritical = std::make_unique<texture>(get_texture_dir() + "repaircritical.png");
+    repairwrecked = std::make_unique<texture>(get_texture_dir() + "repairwrecked.png");
 }
 
 void sub_damage_display::leave() {

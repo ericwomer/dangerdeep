@@ -121,8 +121,8 @@ sky::sky(const double tm, const unsigned int sectors_h, const unsigned int secto
     }
     clouds_texcoords.unmap();
 
-    glsl_clouds.reset(new glsl_shader_setup(get_shader_dir() + "clouds.vshader",
-                                            get_shader_dir() + "clouds.fshader"));
+    glsl_clouds = std::make_unique<glsl_shader_setup>(get_shader_dir() + "clouds.vshader",
+                                                      get_shader_dir() + "clouds.fshader");
     glsl_clouds->use();
     loc_cloudstex = glsl_clouds->get_uniform_location("tex_cloud");
 }

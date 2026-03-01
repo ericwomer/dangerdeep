@@ -232,17 +232,17 @@ water::water(double tm) : mytime(tm),
     }
     // fixme: make ^ that configureable! reflection doesn't need to have that high detail...
     // fixme: auto mipmap?
-    reflectiontex.reset(new texture(rx, ry, GL_RGB, texture::LINEAR, texture::CLAMP, true));
+    reflectiontex = std::make_unique<texture>(rx, ry, GL_RGB, texture::LINEAR, texture::CLAMP, true);
 
     log_info("wave resolution " << wave_resolution << " (shift=" << wave_resolution_shift << ")");
     log_info("reflection image size " << rx << "x" << ry);
     log_info("water detail: " << geoclipmap_resolution);
 
     // initialize shaders
-    glsl_water.reset(new glsl_shader_setup(get_shader_dir() + "water.vshader",
-                                           get_shader_dir() + "water.fshader"));
-    glsl_under_water.reset(new glsl_shader_setup(get_shader_dir() + "under_water.vshader",
-                                                 get_shader_dir() + "under_water.fshader"));
+    glsl_water = std::make_unique<glsl_shader_setup>(get_shader_dir() + "water.vshader",
+                                                     get_shader_dir() + "water.fshader");
+    glsl_under_water = std::make_unique<glsl_shader_setup>(get_shader_dir() + "under_water.vshader",
+                                                           get_shader_dir() + "under_water.fshader");
     glsl_water->use();
     vattr_aof_index = glsl_water->get_vertex_attrib_index("amount_of_foam");
     loc_w_noise_xform_0 = glsl_water->get_uniform_location("noise_xform_0");
@@ -267,16 +267,16 @@ water::water(double tm) : mytime(tm),
     loc_uw_upwelltopbot = glsl_under_water->get_uniform_location("upwelltopbot");
     loc_uw_tex_normal = glsl_under_water->get_uniform_location("tex_normal");
 
-    foamtex.reset(new texture(get_texture_dir() + "foam.png", texture::LINEAR, texture::REPEAT)); // fixme maybe mipmap it
-    foamamounttex.reset(new texture(FOAMAMOUNTRES, FOAMAMOUNTRES, GL_RGB, texture::LINEAR, texture::CLAMP, true));
+    foamtex = std::make_unique<texture>(get_texture_dir() + "foam.png", texture::LINEAR, texture::REPEAT); // fixme maybe mipmap it
+    foamamounttex = std::make_unique<texture>(FOAMAMOUNTRES, FOAMAMOUNTRES, GL_RGB, texture::LINEAR, texture::CLAMP, true);
 
-    foamamounttrail.reset(new texture(get_texture_dir() + "foamamounttrail.png", texture::LINEAR, texture::REPEAT)); // fixme maybe mipmap it
+    foamamounttrail = std::make_unique<texture>(get_texture_dir() + "foamamounttrail.png", texture::LINEAR, texture::REPEAT); // fixme maybe mipmap it
 
     // check FBO usage
     if (framebufferobject::supported()) {
         log_info("using opengl frame buffer objects");
-        reflectiontex_fbo.reset(new framebufferobject(*reflectiontex, true));
-        foamamounttex_fbo.reset(new framebufferobject(*foamamounttex, false));
+        reflectiontex_fbo = std::make_unique<framebufferobject>(*reflectiontex, true);
+        foamamounttex_fbo = std::make_unique<framebufferobject>(*foamamounttex, false);
     }
 
     const unsigned perimetertexs = 256;
@@ -301,8 +301,8 @@ water::water(double tm) : mytime(tm),
             perimetertexptr += 2;
         }
     }
-    foamperimetertex.reset(new texture(perimetertex, perimetertexs, perimetertexs,
-                                       GL_LUMINANCE_ALPHA, texture::LINEAR, texture::CLAMP));
+    foamperimetertex = std::make_unique<texture>(perimetertex, perimetertexs, perimetertexs,
+                                                 GL_LUMINANCE_ALPHA, texture::LINEAR, texture::CLAMP);
 
     fresnelcolortexd.resize(FRESNEL_FCT_RES * REFRAC_COLOR_RES * 4);
     for (unsigned f = 0; f < FRESNEL_FCT_RES; ++f) {
@@ -1206,10 +1206,10 @@ void water::generate_subdetail_texture() {
         // by this class, not glu!
         // this could explain some artifacts in the distance, at least
         // when using relief mapping - heights are not downsampled...?!
-        water_bumpmap.reset(new texture(curr_wtp->mipmaps[0].normals_tex,
-                                        wave_resolution, wave_resolution,
-                                        GL_RGB, texture::LINEAR_MIPMAP_LINEAR,
-                                        texture::REPEAT));
+        water_bumpmap = std::make_unique<texture>(curr_wtp->mipmaps[0].normals_tex,
+                                                  wave_resolution, wave_resolution,
+                                                  GL_RGB, texture::LINEAR_MIPMAP_LINEAR,
+                                                  texture::REPEAT);
     }
 }
 
@@ -1291,8 +1291,8 @@ void water::set_refraction_color(const colorf &light_color) {
             // update color only, leave fresnel term (alpha) intact
         }
     }
-    fresnelcolortex.reset(new texture(fresnelcolortexd, FRESNEL_FCT_RES, REFRAC_COLOR_RES, GL_RGBA,
-                                      texture::LINEAR /*_MIPMAP_LINEAR*/, texture::CLAMP));
+    fresnelcolortex = std::make_unique<texture>(fresnelcolortexd, FRESNEL_FCT_RES, REFRAC_COLOR_RES, GL_RGBA,
+                                                texture::LINEAR /*_MIPMAP_LINEAR*/, texture::CLAMP);
 }
 
 void water::refltex_render_bind() const {

@@ -111,10 +111,10 @@ void sub_soldbuch_display::process_input(class game &gm, const SDL_Event &event)
 }
 
 void sub_soldbuch_display::enter(bool is_day) {
-    background.reset(new image(get_image_dir() + "soldbuchscreen_background.jpg"));
-    primary_overlay.reset(new image(get_image_dir() + "soldbuch_primaryoverlay.png"));
-    player_photo.reset(new image(get_image_dir() + "photo_stamp" + ui.get_game().get_player_info().photo + ".jpg|png"));
-    stamps.reset(new image(get_image_dir() + "stamp" + str(ui.get_game().get_date().get_value(date::year)) + ".png"));
+    background = std::make_unique<image>(get_image_dir() + "soldbuchscreen_background.jpg");
+    primary_overlay = std::make_unique<image>(get_image_dir() + "soldbuch_primaryoverlay.png");
+    player_photo = std::make_unique<image>(get_image_dir() + "photo_stamp" + ui.get_game().get_player_info().photo + ".jpg|png");
+    stamps = std::make_unique<image>(get_image_dir() + "stamp" + str(ui.get_game().get_date().get_value(date::year)) + ".png");
 }
 
 void sub_soldbuch_display::leave() {

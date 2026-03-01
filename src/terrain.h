@@ -111,18 +111,18 @@ terrain<T>::terrain(const std::string &header_file, const std::string &data_dir,
     elem = root.child("sample_spacing");
     sample_spacing = elem.attrf("value");
 
-    base_texture.reset(new texture(get_texture_dir() += "terrain_base.png", texture::LINEAR, texture::REPEAT));
-    noise_texture.reset(new texture(get_texture_dir() += "terrain_noise.dds", true, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
-    sand_texture.reset(new texture(get_texture_dir() += "terrain_sand.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
-    mud_texture.reset(new texture(get_texture_dir() += "terrain_mud.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
-    forest_texture.reset(new texture(get_texture_dir() += "terrain_forest.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
-    grass_texture.reset(new texture(get_texture_dir() += "terrain_grass.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
-    rock_texture.reset(new texture(get_texture_dir() += "terrain_rock.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
-    snow_texture.reset(new texture(get_texture_dir() += "terrain_snow.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
-    forest_brdf_texture.reset(new texture(get_texture_dir() += "terrain_forest_brdf.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
-    rock_brdf_texture.reset(new texture(get_texture_dir() += "terrain_rock_brdf.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
+    base_texture = std::make_unique<texture>(get_texture_dir() += "terrain_base.png", texture::LINEAR, texture::REPEAT);
+    noise_texture = std::make_unique<texture>(get_texture_dir() += "terrain_noise.dds", true, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT);
+    sand_texture = std::make_unique<texture>(get_texture_dir() += "terrain_sand.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT);
+    mud_texture = std::make_unique<texture>(get_texture_dir() += "terrain_mud.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT);
+    forest_texture = std::make_unique<texture>(get_texture_dir() += "terrain_forest.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT);
+    grass_texture = std::make_unique<texture>(get_texture_dir() += "terrain_grass.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT);
+    rock_texture = std::make_unique<texture>(get_texture_dir() += "terrain_rock.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT);
+    snow_texture = std::make_unique<texture>(get_texture_dir() += "terrain_snow.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT);
+    forest_brdf_texture = std::make_unique<texture>(get_texture_dir() += "terrain_forest_brdf.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT);
+    rock_brdf_texture = std::make_unique<texture>(get_texture_dir() += "terrain_rock_brdf.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT);
 
-    frac = std::unique_ptr<fractal_noise>(new fractal_noise(noise_h, noise_lac, num_levels + 1, noise_off, noise_gain));
+    frac = std::make_unique<fractal_noise>(noise_h, noise_lac, num_levels + 1, noise_off, noise_gain);
 
     tex_stretch_factor = cfg::instance().getf("terrain_texture_resolution") / 100.0;
 

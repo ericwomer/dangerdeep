@@ -53,23 +53,23 @@ static const vector2i torpspeed_pos(834, 251);
 
 sub_torpsetup_display::scheme::scheme(bool day) {
     const string x = day ? "torpsetup_daylight" : "torpsetup_redlight";
-    background.reset(new image(get_image_dir() + x + "_background.jpg|png"));
+    background = std::make_unique<image>(get_image_dir() + x + "_background.jpg|png");
     rundepthptr.set(x + "_rundepthptr.png", 609, 66, 638, 169);
     secondaryrangeptr.set(x + "_secondaryrangeptr.png", 228, 157, 257, 262);
     primaryrangeptr.set(x + "_primaryrangeptr.png", 241, 90, 260, 263);
     torpspeeddial.set(x + "_torpspeed.png", 541, 77, 636, 172);
     turnangledial.set(x + "_turnangle.png", 469, 508, 619, 658);
     primaryrangedial.set(x + "_primaryrunlength.png", 231, 508, 381, 658);
-    torpspeed[0].reset(new texture(get_image_dir() + x + "_speedslow.png"));
-    torpspeed[1].reset(new texture(get_image_dir() + x + "_speedmedium.png"));
-    torpspeed[2].reset(new texture(get_image_dir() + x + "_speedhigh.png"));
-    firstturn[0].reset(new texture(get_image_dir() + x + "_turnleft.png"));
-    firstturn[1].reset(new texture(get_image_dir() + x + "_turnright.png"));
-    secondaryrange[0].reset(new texture(get_image_dir() + x + "_secondaryrange_short.png"));
-    secondaryrange[1].reset(new texture(get_image_dir() + x + "_secondaryrange_long.png"));
-    preheating[0].reset(new texture(get_image_dir() + x + "_preheatoff.png"));
-    preheating[1].reset(new texture(get_image_dir() + x + "_preheaton.png"));
-    temperaturescale.reset(new texture(get_image_dir() + x + "_tempscale.png"));
+    torpspeed[0] = std::make_unique<texture>(get_image_dir() + x + "_speedslow.png");
+    torpspeed[1] = std::make_unique<texture>(get_image_dir() + x + "_speedmedium.png");
+    torpspeed[2] = std::make_unique<texture>(get_image_dir() + x + "_speedhigh.png");
+    firstturn[0] = std::make_unique<texture>(get_image_dir() + x + "_turnleft.png");
+    firstturn[1] = std::make_unique<texture>(get_image_dir() + x + "_turnright.png");
+    secondaryrange[0] = std::make_unique<texture>(get_image_dir() + x + "_secondaryrange_short.png");
+    secondaryrange[1] = std::make_unique<texture>(get_image_dir() + x + "_secondaryrange_long.png");
+    preheating[0] = std::make_unique<texture>(get_image_dir() + x + "_preheatoff.png");
+    preheating[1] = std::make_unique<texture>(get_image_dir() + x + "_preheaton.png");
+    temperaturescale = std::make_unique<texture>(get_image_dir() + x + "_tempscale.png");
 
     // read knobs images and cut to separate images
     sdl_image primaryrangeknobs_day(get_image_dir() + x + "_primaryrangeknobs.png");
@@ -316,7 +316,7 @@ void sub_torpsetup_display::display(class game &gm) const {
 }
 
 void sub_torpsetup_display::enter(bool is_day) {
-    myscheme.reset(new scheme(is_day));
+    myscheme = std::make_unique<scheme>(is_day);
 }
 
 void sub_torpsetup_display::leave() {

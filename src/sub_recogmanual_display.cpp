@@ -96,7 +96,7 @@ void sub_recogmanual_display::process_input(class game &gm, const SDL_Event &eve
 }
 
 void sub_recogmanual_display::enter(bool is_day) {
-    background.reset(new image(get_image_dir() + "shiprecogmanual_background.jpg"));
+    background = std::make_unique<image>(get_image_dir() + "shiprecogmanual_background.jpg");
 
     std::list<string> ship_ids = data_file_handler::instance().get_ship_list();
     for (list<string>::iterator it = ship_ids.begin(); it != ship_ids.end(); it++) {
@@ -109,11 +109,11 @@ void sub_recogmanual_display::enter(bool is_day) {
             doc.load();
             xml_elem elem = doc.child("dftd-ship"); // will this get destroyed on leaving function?
             elem = elem.child("shipmanual");
-            displacements.push_back(std::unique_ptr<string>(new string(elem.attr("displacement"))));
-            lengths.push_back(std::unique_ptr<string>(new string(elem.attr("length"))));
-            classes.push_back(std::unique_ptr<string>(new string(elem.attr("class"))));
-            weapons.push_back(std::unique_ptr<string>(new string(elem.attr("weapons"))));
-            countries.push_back(std::unique_ptr<string>(new string(elem.attr("countries"))));
+            displacements.push_back(std::make_unique<string>(elem.attr("displacement")));
+            lengths.push_back(std::make_unique<string>(elem.attr("length")));
+            classes.push_back(std::make_unique<string>(elem.attr("class")));
+            weapons.push_back(std::make_unique<string>(elem.attr("weapons")));
+            countries.push_back(std::make_unique<string>(elem.attr("countries")));
         } catch (exception &e) { // fixme: remove the try..catch when all silhouette files are on place
         }
     }

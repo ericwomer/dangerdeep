@@ -106,7 +106,7 @@ class model_load_dialog {
 };
 
 model_load_dialog::model_load_dialog() : theme(0) {
-    theme.reset(new widget::theme("widgetelements_menu.png", "widgeticons_menu.png", font_vtremington12, color(182, 146, 137), color(222, 208, 195), color(92, 72, 68)));
+    theme = std::make_unique<widget::theme>("widgetelements_menu.png", "widgeticons_menu.png", font_vtremington12, color(182, 146, 137), color(222, 208, 195), color(92, 72, 68));
 }
 
 void model_load_dialog::get_model_list(const list<string> &namelist) {

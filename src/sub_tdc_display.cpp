@@ -49,12 +49,12 @@ static const int tubelightcoordx[6] = {
 
 sub_tdc_display::scheme_screen1::scheme_screen1(bool day) {
     const string x = day ? "TDCScreen1_Daylight" : "TDCScreen1_Redlight";
-    background.reset(new image(get_image_dir() + x + "_Base_image.jpg|png"));
+    background = std::make_unique<image>(get_image_dir() + x + "_Base_image.jpg|png");
     aob_ptr.set(x + "_Lagenwinkel_pointer_rotating.png", 484, 426, 512, 551);
     aob_inner.set(x + "_AngleOnBow_innerdial_rotating.png", 417, 456, 512, 550);
     spread_ang_ptr.set(x + "_Facherwinkel_pointer_rotating.png", 799, 502, 846, 527);
     spread_ang_mkr.set(x + "_Facherwinkel_usermarker_rotating.png", 950, 512, 846, 527);
-    firesolution.reset(new texture(get_image_dir() + x + "_firesolution_slidingscale_pointer.png"));
+    firesolution = std::make_unique<texture>(get_image_dir() + x + "_firesolution_slidingscale_pointer.png");
     parallax_ptr.set(x + "_parallaxwinkel_pointer_rotating.png", 820, 104, 846, 201);
     parallax_mkr.set(x + "_parallaxwinkel_usermarker_rotating.png", 952, 186, 846, 201);
     torptime_min.set(x + "_TorpedoLaufzeit_pointer_minutes_rotating.png", 175, 484, 195, 563);
@@ -66,7 +66,7 @@ sub_tdc_display::scheme_screen1::scheme_screen1(bool day) {
 
 sub_tdc_display::scheme_screen2::scheme_screen2(bool day) {
     const string x = day ? "TDCScreen2_Daylight" : "TDCScreen2_Redlight";
-    background.reset(new image(get_image_dir() + x + "_base_image.jpg"));
+    background = std::make_unique<image>(get_image_dir() + x + "_base_image.jpg");
     for (unsigned i = 0; i < 6; ++i) {
         tubelight[i].set(x + "_tube" + str(i + 1) + "_on.png", tubelightcoordx[i], 605);
     }
@@ -314,9 +314,9 @@ void sub_tdc_display::next_sub_screen(bool is_day) {
 
 void sub_tdc_display::enter(bool is_day) {
     if (show_screen1)
-        myscheme1.reset(new scheme_screen1(is_day));
+        myscheme1 = std::make_unique<scheme_screen1>(is_day);
     else
-        myscheme2.reset(new scheme_screen2(is_day));
+        myscheme2 = std::make_unique<scheme_screen2>(is_day);
 }
 
 void sub_tdc_display::leave() {

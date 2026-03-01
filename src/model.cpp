@@ -215,28 +215,28 @@ void model::render_init() {
     // log_info("Using OpenGL GLSL shaders...");
 
     glsl_shader::defines_list dl;
-    glsl_plastic.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
-                                             get_shader_dir() + "modelrender.fshader"));
+    glsl_plastic = std::make_unique<glsl_shader_setup>(get_shader_dir() + "modelrender.vshader",
+                                                       get_shader_dir() + "modelrender.fshader");
     dl.push_back("USE_COLORMAP");
-    glsl_color.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
-                                           get_shader_dir() + "modelrender.fshader"));
+    glsl_color = std::make_unique<glsl_shader_setup>(get_shader_dir() + "modelrender.vshader",
+                                                     get_shader_dir() + "modelrender.fshader");
     dl.push_back("USE_NORMALMAP");
-    glsl_color_normal.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
-                                                  get_shader_dir() + "modelrender.fshader"));
+    glsl_color_normal = std::make_unique<glsl_shader_setup>(get_shader_dir() + "modelrender.vshader",
+                                                            get_shader_dir() + "modelrender.fshader");
     glsl_shader::defines_list dl2 = dl;
     dl.push_back("USE_SPECULARMAP");
-    glsl_color_normal_specular.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
-                                                           get_shader_dir() + "modelrender.fshader", dl));
+    glsl_color_normal_specular = std::make_unique<glsl_shader_setup>(get_shader_dir() + "modelrender.vshader",
+                                                                     get_shader_dir() + "modelrender.fshader", dl);
     dl = dl2;
     dl.push_back("USE_CAUSTIC");
-    glsl_color_normal_caustic.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
-                                                          get_shader_dir() + "modelrender.fshader", dl));
+    glsl_color_normal_caustic = std::make_unique<glsl_shader_setup>(get_shader_dir() + "modelrender.vshader",
+                                                                    get_shader_dir() + "modelrender.fshader", dl);
     dl.push_back("USE_SPECULARMAP");
-    glsl_color_normal_specular_caustic.reset(new glsl_shader_setup(get_shader_dir() + "modelrender.vshader",
-                                                                   get_shader_dir() + "modelrender.fshader", dl));
+    glsl_color_normal_specular_caustic = std::make_unique<glsl_shader_setup>(get_shader_dir() + "modelrender.vshader",
+                                                                             get_shader_dir() + "modelrender.fshader", dl);
     dl = dl2;
-    glsl_mirror_clip.reset(new glsl_shader_setup(get_shader_dir() + "modelrender_mirrorclip.vshader",
-                                                 get_shader_dir() + "modelrender_mirrorclip.fshader", dl));
+    glsl_mirror_clip = std::make_unique<glsl_shader_setup>(get_shader_dir() + "modelrender_mirrorclip.vshader",
+                                                           get_shader_dir() + "modelrender_mirrorclip.fshader", dl);
     // request uniform locations
     glsl_color->use();
     loc_c_tex_color = glsl_color->get_uniform_location("tex_color");
@@ -393,9 +393,9 @@ const char *model::mesh::name_primitive_type() const {
 std::unique_ptr<model::mesh::triangle_iterator> model::mesh::get_tri_iterator() const {
     switch (indices_type) {
     case pt_triangles:
-        return std::unique_ptr<triangle_iterator>(new triangle_iterator(indices));
+        return std::make_unique<triangle_iterator>(indices);
     case pt_triangle_strip:
-        return std::unique_ptr<triangle_iterator>(new triangle_strip_iterator(indices));
+        return std::make_unique<triangle_strip_iterator>(indices);
     default:
         throw std::runtime_error("invalid primitive type for mesh!");
     }
@@ -1277,11 +1277,11 @@ void model::material::map::register_layout(const std::string &name,
         if (ref_count == 0) {
             // load texture
             try {
-                mytexture.reset(new texture(basepath + filename, mapping, texture::CLAMP,
-                                            makenormalmap, detailh, rgb2grey));
+                mytexture = std::make_unique<texture>(basepath + filename, mapping, texture::CLAMP,
+                                                      makenormalmap, detailh, rgb2grey);
             } catch (std::exception &e) {
-                mytexture.reset(new texture(get_texture_dir() + filename, mapping, texture::CLAMP,
-                                            makenormalmap, detailh, rgb2grey));
+                mytexture = std::make_unique<texture>(get_texture_dir() + filename, mapping, texture::CLAMP,
+                                                      makenormalmap, detailh, rgb2grey);
             }
         }
         ++ref_count;
@@ -2148,7 +2148,7 @@ void model::read_dftd_model_file(const std::string &filename) {
                                             es.attr("vertex"), es.attr("fragment"));
                 mat.reset(matglsl);
             } else {
-                mat.reset(new material(e.attr("name")));
+                mat = std::make_unique<material>(e.attr("name"));
             }
             unsigned id = e.attru("id");
             mat_id_mapping[id] = mat.get();
@@ -2165,15 +2165,15 @@ void model::read_dftd_model_file(const std::string &filename) {
                 if (is_shader_material) {
                     if (matglsl->nrtex >= DFTD_MAX_TEXTURE_UNITS)
                         throw xml_error(string("too many material maps for glsl material ") + type, emap.doc_name());
-                    matglsl->texmaps[matglsl->nrtex].reset(new material::map(emap));
+                    matglsl->texmaps[matglsl->nrtex] = std::make_unique<material::map>(emap);
                     matglsl->texnames[matglsl->nrtex] = type;
                     matglsl->nrtex++;
                 } else if (type == "diffuse") {
-                    mat->colormap.reset(new material::map(emap));
+                    mat->colormap = std::make_unique<material::map>(emap);
                 } else if (type == "normal") {
-                    mat->normalmap.reset(new material::map(emap));
+                    mat->normalmap = std::make_unique<material::map>(emap);
                 } else if (type == "specular") {
-                    mat->specularmap.reset(new material::map(emap));
+                    mat->specularmap = std::make_unique<material::map>(emap);
                 } else {
                     throw xml_error(string("unknown material map type ") + type, emap.doc_name());
                 }

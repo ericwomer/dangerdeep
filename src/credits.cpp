@@ -258,18 +258,18 @@ canyon::canyon(unsigned w, unsigned h)
         }
     }
 
-    mymesh.reset(new model::mesh(w, h, heightdata, vector3f(2.0f, 2.0f, 0.5f),
-                                 vector3f(0.0f, 0.0f, 0.0f)));
+    mymesh = std::make_unique<model::mesh>(w, h, heightdata, vector3f(2.0f, 2.0f, 0.5f),
+                                           vector3f(0.0f, 0.0f, 0.0f));
     // fixme: only color here!
-    sandrocktex.reset(new texture(get_texture_dir() + "sandrock.png", texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
+    sandrocktex = std::make_unique<texture>(get_texture_dir() + "sandrock.png", texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT);
     vector<Uint8> noisevalues = perlinnoise(256, 2, 128).generate();
-    noisetex.reset(new texture(noisevalues, 256, 256, GL_LUMINANCE, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
-    grasstex.reset(new texture(get_texture_dir() + "grass.png", texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
+    noisetex = std::make_unique<texture>(noisevalues, 256, 256, GL_LUMINANCE, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT);
+    grasstex = std::make_unique<texture>(get_texture_dir() + "grass.png", texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT);
     mymesh->mymaterial = new canyon_material(*this);
 #if 0
 	mymesh->mymaterial = new model::material();
 	mymesh->mymaterial->diffuse = color(32, 32, 255);
-	mymesh->mymaterial->colormap.reset(new model::material::map());
+	mymesh->mymaterial->colormap = std::make_unique<model::material::map>();
 	mymesh->mymaterial->colormap->set_texture(new texture(get_texture_dir() + "sandrock.jpg", texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
 	mymesh->mymaterial->specular = color(0, 0, 0);
 #endif
@@ -387,7 +387,7 @@ plant_set::plant_set(vector<float> &heightdata, unsigned nr, unsigned w, unsigne
                                vector2f(treewidth + tw, treeheight + th),
                                rnd(plant::nr_plant_types)));
     }
-    planttex.reset(new texture(get_texture_dir() + "plants.png", texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP));
+    planttex = std::make_unique<texture>(get_texture_dir() + "plants.png", texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP);
 
     // set up sorting indices
     sortindices.resize(plants.size());
@@ -604,7 +604,7 @@ void add_tree(const vector3f &pos, float ang,
 
 std::unique_ptr<model::mesh> generate_trees(vector<float> &heightdata, unsigned nr = 20000, unsigned w = 256, unsigned h = 256, const vector2f &scal = vector2f(2.0f, 2.0f)) {
     float areaw = w * scal.x, areah = h * scal.y;
-    std::unique_ptr<model::mesh> m(new model::mesh("trees"));
+    auto m = std::make_unique<model::mesh>("trees");
     for (unsigned t = 0; t < nr;) {
         float x = (rnd() - 0.5) * areaw;
         float y = (rnd() - 0.5) * areah;
@@ -627,7 +627,7 @@ std::unique_ptr<model::mesh> generate_trees(vector<float> &heightdata, unsigned 
         add_tree(vector3f(x, y, h), rnd() * 90, m->vertices, m->texcoords, m->normals, m->indices);
     }
     m->mymaterial = new model::material();
-    m->mymaterial->colormap.reset(new model::material::map());
+    m->mymaterial->colormap = std::make_unique<model::material::map>();
     //	m->mymaterial->colormap->set_texture(new texture(get_texture_dir() + "tree1.png", texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP));
     m->mymaterial->specular = color(0, 0, 0);
     m->compile();
@@ -695,7 +695,7 @@ void show_credits() {
     heightmap chm(cyn.get_heightdata(), 256, 256, vector2f(2.0f, 2.0f), vector2f(-256, -256));
     std::unique_ptr<model::mesh> trees = generate_trees(cyn.get_heightdata());
     plant_set ps(cyn.get_heightdata());
-    std::unique_ptr<sky> mysky(new sky(8 * 3600.0)); // 10 o'clock
+    auto mysky = std::make_unique<sky>(8 * 3600.0); // 10 o'clock
     vector3 sunpos(0, 3000, 4000);
     mysky->rebuild_colors(sunpos, vector3(-500, -3000, 1000), viewpos);
 
@@ -745,8 +745,8 @@ void show_credits() {
     std::unique_ptr<texture> fadein_tex;
     std::vector<Uint8> fadein_pixels(8 * 8 * 2);
     generate_fadein_pixels(fadein_pixels, 0, 8);
-    fadein_tex.reset(new texture(fadein_pixels, 8, 8, GL_LUMINANCE_ALPHA,
-                                 texture::NEAREST, texture::REPEAT));
+    fadein_tex = std::make_unique<texture>(fadein_pixels, 8, 8, GL_LUMINANCE_ALPHA,
+                                           texture::NEAREST, texture::REPEAT);
     unsigned fadein_ctr = 0;
 
 #undef TEX3DTEST
@@ -828,8 +828,8 @@ void show_credits() {
             fadein_ctr = (sys().millisec() - tm0) * 64 / 3200;
             // generate fadein tex
             generate_fadein_pixels(fadein_pixels, fadein_ctr, 8);
-            fadein_tex.reset(new texture(fadein_pixels, 8, 8, GL_LUMINANCE_ALPHA,
-                                         texture::NEAREST, texture::REPEAT));
+            fadein_tex = std::make_unique<texture>(fadein_pixels, 8, 8, GL_LUMINANCE_ALPHA,
+                                                   texture::NEAREST, texture::REPEAT);
             glPushMatrix();
             glScalef(4.0, 4.0, 4.0);
             fadein_tex->draw_tiles(0, 0, sys().get_res_x_2d() / 4, sys().get_res_y_2d() / 4);

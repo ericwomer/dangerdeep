@@ -60,9 +60,9 @@ moon::moon() {
             mnpc += 3;
         }
     }
-    map_normal = texture::ptr(new texture(mnp, mns, mns, GL_RGB, texture::LINEAR, texture::CLAMP));
-    glsl_moon.reset(new glsl_shader_setup(get_shader_dir() + "moon.vshader",
-                                          get_shader_dir() + "moon.fshader"));
+    map_normal = std::make_unique<texture>(mnp, mns, mns, GL_RGB, texture::LINEAR, texture::CLAMP);
+    glsl_moon = std::make_unique<glsl_shader_setup>(get_shader_dir() + "moon.vshader",
+                                                    get_shader_dir() + "moon.fshader");
     glsl_moon->use();
     loc_diffcol = glsl_moon->get_uniform_location("tex_diff");
     loc_nrml = glsl_moon->get_uniform_location("tex_nrml");

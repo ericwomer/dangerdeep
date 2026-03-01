@@ -133,7 +133,7 @@ void ships_sunk_display::process_input(class game &gm, const SDL_Event &event) {
 }
 
 void ships_sunk_display::enter(bool /*is_day*/) {
-    cloudsbackgr.reset(new texture(get_texture_dir() + "cloudsbackgr.jpg"));
+    cloudsbackgr = std::make_unique<texture>(get_texture_dir() + "cloudsbackgr.jpg");
 }
 
 void ships_sunk_display::leave() {

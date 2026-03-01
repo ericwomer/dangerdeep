@@ -69,12 +69,12 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
         levels.reset(lvl, new level(*this, lvl, lvl + 1 == levels.size()));
     }
 
-    myshader[0].reset(new glsl_shader_setup(get_shader_dir() + "geoclipmap.vshader",
-                                            get_shader_dir() + "geoclipmap.fshader"));
+    myshader[0] = std::make_unique<glsl_shader_setup>(get_shader_dir() + "geoclipmap.vshader",
+                                                      get_shader_dir() + "geoclipmap.fshader");
     glsl_shader::defines_list defines;
     defines.push_back("MIRROR");
-    myshader[1].reset(new glsl_shader_setup(get_shader_dir() + "geoclipmap.vshader",
-                                            get_shader_dir() + "geoclipmap.fshader", defines));
+    myshader[1] = std::make_unique<glsl_shader_setup>(get_shader_dir() + "geoclipmap.vshader",
+                                                      get_shader_dir() + "geoclipmap.fshader", defines);
 
     // do not use too high w_fac with too small resolutions.
     // Otherwise the decaying transition factor (going from 1.0 at outer border
@@ -116,7 +116,7 @@ geoclipmap::geoclipmap(unsigned nr_levels, unsigned resolution_exp, height_gener
     // set a texture for normals outside coarsest level, just 0,0,1
     std::vector<Uint8> pxl(3, 128);
     pxl[2] = 255;
-    horizon_normal.reset(new texture(pxl, 1, 1, GL_RGB, texture::LINEAR, texture::REPEAT));
+    horizon_normal = std::make_unique<texture>(pxl, 1, 1, GL_RGB, texture::LINEAR, texture::REPEAT);
 }
 
 geoclipmap::~geoclipmap() {
@@ -239,8 +239,8 @@ geoclipmap::level::level(geoclipmap &gcm_, unsigned idx, bool outmost_level)
 #endif
     // create space for normal texture
     std::vector<Uint8> pxl(3 * gcm.resolution_vbo * gcm.resolution_vbo * 2 * 2);
-    normals.reset(new texture(pxl, gcm.resolution_vbo * 2,
-                              gcm.resolution_vbo * 2, GL_RGB, texture::LINEAR, texture::REPEAT));
+    normals = std::make_unique<texture>(pxl, gcm.resolution_vbo * 2,
+                                        gcm.resolution_vbo * 2, GL_RGB, texture::LINEAR, texture::REPEAT);
 
     // fixme: is this still needed?
     if (color_res_fac == 2) {

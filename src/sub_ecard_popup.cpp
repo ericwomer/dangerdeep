@@ -31,8 +31,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 sub_ecard_popup::sub_ecard_popup(user_interface &ui_) : user_popup(ui_) {
     x = 4;
     y = 79;
-    background_daylight.reset(new image(get_image_dir() + "recognition_card_popup_daylight.jpg|png"));
-    background_nightlight.reset(new image(get_image_dir() + "recognition_card_popup_redlight.jpg|png"));
+    background_daylight = std::make_unique<image>(get_image_dir() + "recognition_card_popup_daylight.jpg|png");
+    background_nightlight = std::make_unique<image>(get_image_dir() + "recognition_card_popup_redlight.jpg|png");
 }
 
 sub_ecard_popup::~sub_ecard_popup() {
