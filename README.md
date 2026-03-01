@@ -46,8 +46,10 @@ git lfs pull
 | Requisito   | Detalle                          |
 | ----------- | --------------------------------- |
 | Sistema     | Linux (X11), OpenGL 2.x o superior |
-| Compilador  | GCC o Clang con C++11             |
+| Compilador  | GCC o Clang, estándar C++11       |
 | CMake       | 3.10 o superior                   |
+
+El código usa C++11 (p. ej. `std::unique_ptr`); no se usa `std::auto_ptr`.
 
 ---
 
@@ -152,7 +154,8 @@ Para el reporte de cobertura se usa **lcov** con *branch coverage*; instalación
 | `cmake/`       | Módulos de CMake |
 | `packaging/`   | Scripts para empaquetado (p. ej. Ubuntu) |
 
-Stack: SDL2 (vídeo, imagen, audio), OpenGL, FFTW, BZip2, TinyXML, X11.
+Stack: SDL2 (vídeo, imagen, audio), OpenGL, FFTW, BZip2, TinyXML, X11.  
+Los headers se incluyen por nombre (`#include "foo.h"`) desde `src/`; CMake añade las rutas de dependencias externas. No se usa precompiled header.
 
 ---
 
