@@ -1,9 +1,9 @@
 #include "parser.h"
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
 #include <string>
-int main(int argc, char** argv) {
-    const char* data_env = std::getenv("DFTD_DATA");
+int main(int argc, char **argv) {
+    const char *data_env = std::getenv("DFTD_DATA");
     std::string csv_path = (argc >= 2) ? argv[1] : (data_env ? std::string(data_env) + "/texts/common.csv" : "");
     if (csv_path.empty()) {
         std::cerr << "Uso: parser_test <ruta_a_data> o DFTD_DATA=<dir_data>\n";

@@ -118,7 +118,7 @@ Para indicar otra ruta de datos:
 
 ## Tests y calidad de código
 
-El script `run_tests.sh` aplica por defecto **formato** (clang-format) y **lint** (cppcheck). La compilación solo se ejecuta si se pasa `--build` o `-b`.
+El script `run_tests.sh` aplica por defecto **formato** (clang-format) y **lint** (cppcheck). La compilación solo se ejecuta si se pasa `--build` o `-b`. Requiere **Bash** (si se invoca con `sh`, se reejecuta con `bash`).
 
 | Comando | Descripción |
 | ------- | ----------- |
@@ -127,7 +127,7 @@ El script `run_tests.sh` aplica por defecto **formato** (clang-format) y **lint*
 | `./run_tests.sh --format` | Verificar formato (falla si hay diferencias) |
 | `./run_tests.sh --lint` | Lint rápido |
 | `./run_tests.sh --lint-full` | Lint completo (warning, style, performance) |
-| `./run_tests.sh --asan -b` | Compilar con AddressSanitizer/LeakSanitizer |
+| `./run_tests.sh --asan -b` | Compilar con ASan+LSan y ejecutar tests unitarios (detecta fugas/errores de memoria) |
 | `./run_tests.sh --valgrind -b` | Compilar compatible con Valgrind y ejecutar bajo Valgrind |
 | `./run_tests.sh --valgrind` | Ejecutar bajo Valgrind (compilar antes con `--valgrind -b` si aparece «Instrucción ilegal») |
 | `./run_tests.sh --unit` | Compilar y ejecutar **tests unitarios** (ptrlist_test, mutex_test, parser_test) |

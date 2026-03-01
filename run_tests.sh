@@ -10,6 +10,9 @@
 #   ./run_tests.sh --valgrind   # ejecutar el juego bajo Valgrind (fugas de memoria)
 #   ./run_tests.sh --lint-full  # lint completo
 #   ./run_tests.sh --gl         # test OpenGL (requiere haber compilado antes)
+#
+# Requiere Bash (arrays, [[ ]], etc.). Si se invoca con sh, se reejecuta con bash.
+[[ -n "$BASH_VERSION" ]] || exec bash "$0" "$@"
 
 set -e
 
@@ -281,10 +284,10 @@ EXTRA_CMAKE_ARGS=""
 for arg in "$@"; do
 	case "$arg" in
 		--build|-b)        DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
-		--asan)            EXTRA_CMAKE_ARGS="-DBUILD_ASAN=ON"; DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
+		--asan)            EXTRA_CMAKE_ARGS="-DBUILD_ASAN=ON -DBUILD_COVERAGE=OFF -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1; DO_UNIT_TESTS=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
 		--valgrind)        DO_VALGRIND=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0; EXTRA_CMAKE_ARGS="-DBUILD_VALGRIND_FRIENDLY=ON" ;;
 		--unit|--tests)    DO_UNIT_TESTS=1; EXTRA_CMAKE_ARGS="${EXTRA_CMAKE_ARGS} -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
-		--coverage)        DO_COVERAGE=1; EXTRA_CMAKE_ARGS="${EXTRA_CMAKE_ARGS} -DBUILD_COVERAGE=ON -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
+		--coverage)        DO_COVERAGE=1; EXTRA_CMAKE_ARGS="${EXTRA_CMAKE_ARGS} -DBUILD_COVERAGE=ON -DBUILD_ASAN=OFF -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
 		--format|-f)      DO_FORMAT_CHECK=1; DO_FORMAT_APPLY=0 ;;
 		--format-apply)   DO_FORMAT_APPLY=1 ;;
 		--no-format)      DO_FORMAT_APPLY=0 ;;
@@ -296,7 +299,7 @@ for arg in "$@"; do
 			echo "Uso: $0 [opciones]"
 			echo "  Por defecto: aplicar formato y lint rápido."
 			echo "  --build, -b     Solo compilación (sin formato ni lint)"
-			echo "  --asan -b      Compilar con AddressSanitizer+LeakSanitizer (fugas de memoria)"
+			echo "  --asan -b      Compilar con ASan+LSan y ejecutar tests unitarios (detecta fugas/errores de memoria)"
 			echo "  --valgrind     Ejecutar bajo Valgrind. Primera vez: $0 --valgrind -b"
 			echo "  --format, -f   Solo verificar formato (no aplicar)"
 			echo "  --format-apply Aplicar formato (por defecto)"
