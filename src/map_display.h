@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class game;
 class game_editor;
 class sea_object;
+class submarine;
 
 class map_display : public user_display {
   protected:

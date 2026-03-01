@@ -22,9 +22,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define POSTPROCESSING_H
 
 #include "framebufferobject.h"
+#include "shader.h"
 #include "singleton.h"
-// #include "texture.h"
-// #include "shader.h"
+#include "texture.h"
 
 #define PP_FILTERS 4
 #define PP_BUFFER_WIDTH 128

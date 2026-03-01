@@ -23,7 +23,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef LOGBOOK_DISPLAY_H
 #define LOGBOOK_DISPLAY_H
 
+#include "image.h"
 #include "user_display.h"
+#include "vector2.h"
 
 class logbook_display : public user_display {
   protected:

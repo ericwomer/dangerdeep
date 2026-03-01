@@ -5,7 +5,7 @@
 #
 # Uso:
 #   ./run_tests.sh              # formato + lint rápido (por defecto)
-#   ./run_tests.sh --build, -b  # compilación + formato + lint rápido
+#   ./run_tests.sh --build, -b  # solo compilación (sin formato ni lint)
 #   ./run_tests.sh --lint-full  # lint completo (warning+style+performance, todo el código)
 #   ./run_tests.sh --format, -f # verificar formato (falla si hay diferencias)
 #   ./run_tests.sh --gl         # test OpenGL (requiere haber compilado antes)
@@ -169,7 +169,7 @@ DO_GL=0
 
 for arg in "$@"; do
 	case "$arg" in
-		--build|-b)        DO_BUILD=1 ;;
+		--build|-b)        DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
 		--format|-f)      DO_FORMAT_CHECK=1; DO_FORMAT_APPLY=0 ;;
 		--format-apply)   DO_FORMAT_APPLY=1 ;;
 		--no-format)      DO_FORMAT_APPLY=0 ;;
@@ -180,7 +180,7 @@ for arg in "$@"; do
 		-h|--help)
 			echo "Uso: $0 [opciones]"
 			echo "  Por defecto: aplicar formato y lint rápido."
-			echo "  --build, -b     Incluir compilación (cmake + make)"
+			echo "  --build, -b     Solo compilación (sin formato ni lint)"
 			echo "  --format, -f   Solo verificar formato (no aplicar)"
 			echo "  --format-apply Aplicar formato (por defecto)"
 			echo "  --no-format    No aplicar ni verificar formato"

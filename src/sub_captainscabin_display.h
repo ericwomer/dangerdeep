@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define SUB_CAPTAINSCABIN_DISPLAY_H
 
 #include "color.h"
+#include "image.h"
 #include "submarine.h"
 #include "texture.h"
 #include "user_display.h"

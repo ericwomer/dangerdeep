@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef SUB_TORPEDO_DISPLAY_H
 #define SUB_TORPEDO_DISPLAY_H
 
+#include "image.h"
 #include "log.h"
 #include "objcache.h"
 #include "submarine.h"
