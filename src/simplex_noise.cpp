@@ -174,7 +174,7 @@ double simplex_noise::interpolate3D(const vector3 &coord) {
             i2 = 1;
             j2 = 0;
             k2 = 1;
-        }    // Z X Y order
+        } // Z X Y order
     } else { // x0<y0
         if (y0 < z0) {
             i1 = 0;

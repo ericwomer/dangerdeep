@@ -4,10 +4,10 @@
 # La compilación solo se ejecuta con --build.
 #
 # Uso:
-#   ./run_tests.sh              # formato + lint (por defecto)
-#   ./run_tests.sh --build, -b  # compilación + formato + lint
+#   ./run_tests.sh              # formato + lint rápido (por defecto)
+#   ./run_tests.sh --build, -b  # compilación + formato + lint rápido
+#   ./run_tests.sh --lint-full  # lint completo (warning+style+performance, todo el código)
 #   ./run_tests.sh --format, -f # verificar formato (falla si hay diferencias)
-#   ./run_tests.sh --lint, -l   # solo lint
 #   ./run_tests.sh --gl         # test OpenGL (requiere haber compilado antes)
 
 set -e
@@ -82,18 +82,49 @@ run_format_apply() {
 }
 
 run_lint() {
-	log_info "Lint (cppcheck)..."
+	log_info "Lint rápido (cppcheck, solo warning)..."
 	if ! command -v cppcheck &>/dev/null; then
 		log_skip "cppcheck no instalado. Instalación: sudo apt install cppcheck"
 		return 0
 	fi
+	local jobs=$(nproc 2>/dev/null || echo 4)
 	local inc=(-I"${SRC_DIR}" -I"${BUILD_DIR}")
 	[[ -d "${BUILD_DIR}/src" ]] && inc+=(-I"${BUILD_DIR}/src")
 	for d in /usr/include/SDL2 /usr/include/GL /usr/include; do
 		[[ -d "$d" ]] && inc+=(-I"$d")
 	done
-	# Excluir código de terceros y tests
-	if cppcheck --quiet --enable=warning,style,performance \
+	if cppcheck --quiet -j"$jobs" --enable=warning \
+		--suppress=missingInclude \
+		--suppress=unmatchedSuppression \
+		--inline-suppr \
+		--force \
+		-i "${SRC_DIR}/oglext" \
+		-i "${SRC_DIR}/tinyxml" \
+		-i "${SRC_DIR}/test" \
+		-i "${SRC_DIR}/tools" \
+		-i "${SRC_DIR}/dftdtester" \
+		"${inc[@]}" \
+		"$SRC_DIR" 2>/dev/null; then
+		log_ok "Lint sin errores."
+	else
+		log_ok "Lint finalizado (revisar salida arriba)."
+	fi
+	return 0
+}
+
+run_lint_full() {
+	log_info "Lint completo (cppcheck, warning + style + performance)..."
+	if ! command -v cppcheck &>/dev/null; then
+		log_skip "cppcheck no instalado. Instalación: sudo apt install cppcheck"
+		return 0
+	fi
+	local jobs=$(nproc 2>/dev/null || echo 4)
+	local inc=(-I"${SRC_DIR}" -I"${BUILD_DIR}")
+	[[ -d "${BUILD_DIR}/src" ]] && inc+=(-I"${BUILD_DIR}/src")
+	for d in /usr/include/SDL2 /usr/include/GL /usr/include; do
+		[[ -d "$d" ]] && inc+=(-I"$d")
+	done
+	if cppcheck --quiet -j"$jobs" --enable=warning,style,performance \
 		--suppress=missingInclude \
 		--suppress=unmatchedSuppression \
 		--inline-suppr \
@@ -102,9 +133,9 @@ run_lint() {
 		-i "${SRC_DIR}/tinyxml" \
 		"${inc[@]}" \
 		"$SRC_DIR" 2>/dev/null; then
-		log_ok "Lint sin errores."
+		log_ok "Lint completo sin errores."
 	else
-		log_ok "Lint finalizado (revisar salida arriba)."
+		log_ok "Lint completo finalizado (revisar salida arriba)."
 	fi
 	return 0
 }
@@ -133,6 +164,7 @@ DO_BUILD=0
 DO_FORMAT_CHECK=0
 DO_FORMAT_APPLY=1
 DO_LINT=1
+DO_LINT_FULL=0
 DO_GL=0
 
 for arg in "$@"; do
@@ -141,18 +173,20 @@ for arg in "$@"; do
 		--format|-f)      DO_FORMAT_CHECK=1; DO_FORMAT_APPLY=0 ;;
 		--format-apply)   DO_FORMAT_APPLY=1 ;;
 		--no-format)      DO_FORMAT_APPLY=0 ;;
-		--lint|-l)        DO_LINT=1 ;;
-		--no-lint)        DO_LINT=0 ;;
+		--lint|-l)        DO_LINT=1; DO_LINT_FULL=0 ;;
+		--lint-full)      DO_LINT=0; DO_LINT_FULL=1 ;;
+		--no-lint)        DO_LINT=0; DO_LINT_FULL=0 ;;
 		--gl|--opengl)    DO_GL=1 ;;
 		-h|--help)
 			echo "Uso: $0 [opciones]"
-			echo "  Por defecto: aplicar formato y ejecutar lint."
+			echo "  Por defecto: aplicar formato y lint rápido."
 			echo "  --build, -b     Incluir compilación (cmake + make)"
 			echo "  --format, -f   Solo verificar formato (no aplicar)"
 			echo "  --format-apply Aplicar formato (por defecto)"
 			echo "  --no-format    No aplicar ni verificar formato"
-			echo "  --lint, -l     Ejecutar cppcheck (por defecto)"
-			echo "  --no-lint      No ejecutar lint"
+			echo "  --lint, -l     Lint rápido: solo warning, excl. test/tools (por defecto)"
+			echo "  --lint-full    Lint completo: warning+style+performance, todo el código"
+			echo "  --no-lint     No ejecutar lint"
 			echo "  --gl, --opengl Test OpenGL (dftdtester)"
 			exit 0
 			;;
@@ -162,7 +196,11 @@ done
 [[ $DO_BUILD -eq 1 ]] && { run_build_test || FAIL=1; } || true
 [[ $DO_FORMAT_APPLY -eq 1 ]] && run_format_apply || true
 [[ $DO_FORMAT_CHECK -eq 1 ]] && { run_format_check || FAIL=1; } || true
-[[ $DO_LINT -eq 1 ]]         && run_lint || true
+if [[ $DO_LINT_FULL -eq 1 ]]; then
+	run_lint_full
+elif [[ $DO_LINT -eq 1 ]]; then
+	run_lint
+fi
 [[ $DO_GL -eq 1 ]]           && { run_opengl_test || FAIL=1; } || true
 
 if [[ $FAIL -eq 0 ]]; then
