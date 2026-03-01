@@ -207,9 +207,9 @@ void freeview_display::process_input(class game &gm, const SDL_Event &event) {
     }
 }
 
-struct alpha_cmp : public std::binary_function<water_splash *, water_splash *, bool> {
+struct alpha_cmp {
     vector2 playerpos;
-    bool operator()(water_splash *a, water_splash *b) {
+    bool operator()(water_splash *a, water_splash *b) const {
         return a->get_pos().xy().square_distance(playerpos) >
                b->get_pos().xy().square_distance(playerpos);
     }
