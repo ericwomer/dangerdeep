@@ -4,3 +4,17 @@ What is this directory about?
 Here we place many small test programs for certain aspects of the code
 of Danger from the Deep, mostly for tests of certain containers,
 classes or models.
+
+Tests unitarios (se compilan con -DBUILD_UNIT_TESTS=ON, se ejecutan con ctest o ./run_tests.sh --unit):
+
+  ptrlist_test         - ptrlist (lista de punteros con ownership)
+  ptrvector_test       - ptrvector (vector de punteros con ownership)
+  angle_test           - angle (ángulo náutico 0..360)
+  vector2_test         - vector2 (vector 2D)
+  vector3_test         - vector3 (vector 3D)
+  color_test           - color / colorf
+  fixed_test           - fixed32 (punto fijo)
+  random_generator_test - random_generator
+  bivector_test        - bivector (array 2D)
+  mutex_test           - mutex (bloqueo recursivo)
+  parser_test          - parser (CSV; requiere ruta a data o DFTD_DATA)
