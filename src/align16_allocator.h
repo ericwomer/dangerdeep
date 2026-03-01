@@ -24,6 +24,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef ALIGN16_ALLOCATOR_H
 #define ALIGN16_ALLOCATOR_H
 
+#include <cstddef>
+#include <new>
+
 // We can't heir from std::allocator, since its functions are not virtual,
 // and thus overloading doesn't work as needed.
 // The alignment could be fetched as extra parameter, so we can align to
@@ -58,7 +61,7 @@ class align16_allocator {
 
     pointer allocate(size_type __n, const void * = 0) {
         if (__builtin_expect(__n + 16 > this->max_size(), false))
-            std::__throw_bad_alloc();
+            throw std::bad_alloc();
 
         // allocate 16 bytes more to make 16 bytes alignment.
         // Uses 4 bytes before returned address to store original

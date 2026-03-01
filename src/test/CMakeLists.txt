@@ -112,3 +112,53 @@ add_test(NAME mutex_test COMMAND mutex_test WORKING_DIRECTORY ${CMAKE_CURRENT_BI
 add_executable(parser_test ${TEST_DIR}/parser_test.cpp ${SRC_PARENT}/parser.cpp ${SRC_PARENT}/error.cpp)
 target_link_libraries(parser_test ${LIBS})
 add_test(NAME parser_test COMMAND parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# error_test: error.h (excepciones error, file_read_error)
+add_executable(error_test ${TEST_DIR}/error_test.cpp)
+target_link_libraries(error_test ${LIBS})
+add_test(NAME error_test COMMAND error_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# align16_allocator_test: align16_allocator.h
+add_executable(align16_allocator_test ${TEST_DIR}/align16_allocator_test.cpp)
+target_link_libraries(align16_allocator_test ${LIBS})
+add_test(NAME align16_allocator_test COMMAND align16_allocator_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# dmath_test: dmath.h (isfinite)
+add_executable(dmath_test ${TEST_DIR}/dmath_test.cpp)
+target_link_libraries(dmath_test ${LIBS})
+add_test(NAME dmath_test COMMAND dmath_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# binstream_test: binstream.h (roundtrip write/read)
+add_executable(binstream_test ${TEST_DIR}/binstream_test.cpp)
+target_link_libraries(binstream_test ${LIBS})
+add_test(NAME binstream_test COMMAND binstream_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# matrix4_test: matrix4.h
+add_executable(matrix4_test ${TEST_DIR}/matrix4_test.cpp)
+target_link_libraries(matrix4_test ${LIBS})
+add_test(NAME matrix4_test COMMAND matrix4_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# condvar_test: condvar + mutex + error (SDL2)
+add_executable(condvar_test ${TEST_DIR}/condvar_test.cpp ${SRC_PARENT}/condvar.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp)
+target_link_libraries(condvar_test ${LIBS})
+add_test(NAME condvar_test COMMAND condvar_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# bspline_test: bspline.h
+add_executable(bspline_test ${TEST_DIR}/bspline_test.cpp)
+target_link_libraries(bspline_test ${LIBS})
+add_test(NAME bspline_test COMMAND bspline_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# singleton_test: singleton.h
+add_executable(singleton_test ${TEST_DIR}/singleton_test.cpp)
+target_link_libraries(singleton_test ${LIBS})
+add_test(NAME singleton_test COMMAND singleton_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# objcache_test: objcache.h
+add_executable(objcache_test ${TEST_DIR}/objcache_test.cpp)
+target_link_libraries(objcache_test ${LIBS})
+add_test(NAME objcache_test COMMAND objcache_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# polygon_test: polygon.h
+add_executable(polygon_test ${TEST_DIR}/polygon_test.cpp)
+target_link_libraries(polygon_test ${LIBS})
+add_test(NAME polygon_test COMMAND polygon_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
