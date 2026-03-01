@@ -162,3 +162,13 @@ add_test(NAME objcache_test COMMAND objcache_test WORKING_DIRECTORY ${CMAKE_CURR
 add_executable(polygon_test ${TEST_DIR}/polygon_test.cpp)
 target_link_libraries(polygon_test ${LIBS})
 add_test(NAME polygon_test COMMAND polygon_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# matrix_test: matrix.h (matrix_invert, matrix_swap_rows, matrixt)
+add_executable(matrix_test ${TEST_DIR}/matrix_test.cpp)
+target_link_libraries(matrix_test ${LIBS})
+add_test(NAME matrix_test COMMAND matrix_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# global_constants_test: global_constants.h
+add_executable(global_constants_test ${TEST_DIR}/global_constants_test.cpp)
+target_link_libraries(global_constants_test ${LIBS})
+add_test(NAME global_constants_test COMMAND global_constants_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
