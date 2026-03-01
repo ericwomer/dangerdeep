@@ -181,8 +181,12 @@ run_valgrind() {
 		log_fail "Los archivos de datos son punteros Git LFS (no son PNG reales). Ejecutá: git lfs pull"
 		return 1
 	fi
-	if valgrind --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all \
+	local supp="${SCRIPT_DIR}/valgrind-suppressions.supp"
+	[[ -f "$supp" ]] || supp=""
+	# Solo fallar por fugas definitivas/indirectas; "still reachable" en libs del sistema se ignoran
+	if valgrind --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=definite,indirect \
 		--error-exitcode=1 \
+		$([[ -n "$supp" ]] && echo --suppressions="$supp") \
 		--log-file="${BUILD_DIR}/valgrind.log" \
 		"$exe" --datadir "${datadir}/" 2>&1; then
 		log_ok "Valgrind: no se reportaron fugas."

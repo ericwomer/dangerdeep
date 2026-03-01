@@ -1,0 +1,217 @@
+# Supresiones de Valgrind para Danger from the Deep
+# Fugas conocidas en librerías del sistema (NVIDIA, X11, SDL2, PulseAudio, D-Bus, etc.)
+# El script solo falla por fugas en código del proyecto.
+
+# Uso de "..." permite cualquier número de frames intermedios (p. ej. malloc -> strdup -> libX11).
+
+# NVIDIA (OpenGL/GLX/gpucomp)
+{
+   suppress_nvidia_gl
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:*libnvidia-glcore*
+}
+{
+   suppress_nvidia_gl_calloc
+   Memcheck:Leak
+   fun:calloc
+   ...
+   obj:*libnvidia-glcore*
+}
+{
+   suppress_nvidia_glx
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:*libGLX_nvidia*
+}
+{
+   suppress_nvidia_glx_calloc
+   Memcheck:Leak
+   fun:calloc
+   ...
+   obj:*libGLX_nvidia*
+}
+{
+   suppress_nvidia_gpucomp
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:*libnvidia-gpucomp*
+}
+
+# X11 y extensiones (el frame tras malloc suele ser strdup en libc)
+{
+   suppress_x11
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:*libX11*
+}
+{
+   suppress_x11_strdup
+   Memcheck:Leak
+   fun:strdup
+   ...
+   obj:*libX11*
+}
+{
+   suppress_x11_calloc
+   Memcheck:Leak
+   fun:calloc
+   ...
+   obj:*libX11*
+}
+{
+   suppress_xext
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:*libXext*
+}
+{
+   suppress_xrandr
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:*libXrandr*
+}
+{
+   suppress_xfixes
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:*libXfixes*
+}
+{
+   suppress_xi
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:*libXi*
+}
+
+# Xcb
+{
+   suppress_xcb
+   Memcheck:Leak
+   fun:calloc
+   ...
+   obj:*libxcb*
+}
+
+# SDL2
+{
+   suppress_sdl2
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:*libSDL2*
+}
+{
+   suppress_sdl2_calloc
+   Memcheck:Leak
+   fun:calloc
+   ...
+   obj:*libSDL2*
+}
+
+# PulseAudio
+{
+   suppress_pulse
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:*libpulse*
+}
+{
+   suppress_pulse_calloc
+   Memcheck:Leak
+   fun:calloc
+   ...
+   obj:*libpulse*
+}
+{
+   suppress_pulsecommon
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:*libpulsecommon*
+}
+{
+   suppress_pulsecommon_strdup
+   Memcheck:Leak
+   fun:strdup
+   ...
+   obj:*pulseaudio*
+}
+
+# D-Bus
+{
+   suppress_dbus
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:*libdbus-1*
+}
+{
+   suppress_dbus_calloc
+   Memcheck:Leak
+   fun:calloc
+   ...
+   obj:*libdbus-1*
+}
+{
+   suppress_dbus_strdup
+   Memcheck:Leak
+   fun:strdup
+   ...
+   obj:*libdbus-1*
+}
+{
+   suppress_dbus_realloc
+   Memcheck:Leak
+   fun:realloc
+   ...
+   obj:*libdbus-1*
+}
+
+# libc (strdup desde bindtextdom, etc., usado por PulseAudio/i18n)
+{
+   suppress_libc_strdup_pulse
+   Memcheck:Leak
+   fun:strdup
+   ...
+   obj:*libpulse*
+}
+{
+   suppress_libc_strdup_pulsecommon
+   Memcheck:Leak
+   fun:strdup
+   ...
+   obj:*libpulsecommon*
+}
+
+# ld-linux / loader
+{
+   suppress_ld_linux
+   Memcheck:Leak
+   fun:calloc
+   ...
+   obj:*ld-linux*
+}
+
+# Driver NVIDIA: realloc(0) y posix_memalign(0) en carga de libs
+{
+   suppress_nvidia_realloc_zero
+   Memcheck:ReallocZero
+   fun:realloc
+   obj:*libnvidia-glcore*
+}
+{
+   suppress_nvidia_memalign_badsize
+   Memcheck:BadSize
+   fun:posix_memalign
+   obj:*libnvidia-glcore*
+}

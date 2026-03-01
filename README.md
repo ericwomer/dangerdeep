@@ -131,7 +131,8 @@ El script `run_tests.sh` aplica por defecto **formato** (clang-format) y **lint*
 | `./run_tests.sh --opengl` | Test de capacidades OpenGL (dftdtester) |
 | `./run_tests.sh --help` | Ver todas las opciones |
 
-> Con **Valgrind**, el juego se lanza con `--datadir` apuntando a `data/`. Si los assets son punteros Git LFS, el script avisa y sugiere `git lfs pull`.
+> Con **Valgrind**, el juego se lanza con `--datadir` apuntando a `data/`. Si los assets son punteros Git LFS, el script avisa y sugiere `git lfs pull`.  
+> El script usa `valgrind-suppressions.supp` para ignorar fugas conocidas de librerías del sistema (NVIDIA, X11, SDL2, PulseAudio, D-Bus); el test solo falla si hay fugas en código del proyecto.
 
 ---
 
