@@ -46,10 +46,10 @@ git lfs pull
 | Requisito   | Detalle                          |
 | ----------- | --------------------------------- |
 | Sistema     | Linux (X11), OpenGL 2.x o superior |
-| Compilador  | GCC o Clang, estándar C++11       |
+| Compilador  | GCC o Clang, estándar C++14       |
 | CMake       | 3.10 o superior                   |
 
-El código usa C++11 (p. ej. `std::unique_ptr`); no se usa `std::auto_ptr`.
+El código usa C++14 (p. ej. `std::unique_ptr`, `std::make_unique`).
 
 ---
 

@@ -315,18 +315,18 @@ for arg in "$@"; do
 	esac
 done
 
-[[ $DO_BUILD -eq 1 ]] && { run_build_test || FAIL=1; } || true
-[[ $DO_UNIT_TESTS -eq 1 ]] && { run_unit_tests || FAIL=1; } || true
-[[ $DO_COVERAGE -eq 1 ]] && { run_coverage || FAIL=1; } || true
-[[ $DO_FORMAT_APPLY -eq 1 ]] && run_format_apply || true
-[[ $DO_FORMAT_CHECK -eq 1 ]] && { run_format_check || FAIL=1; } || true
+[[ $DO_BUILD -eq 1 ]] && { run_build_test || FAIL=1; } || :
+[[ $DO_UNIT_TESTS -eq 1 ]] && { run_unit_tests || FAIL=1; } || :
+[[ $DO_COVERAGE -eq 1 ]] && { run_coverage || FAIL=1; } || :
+[[ $DO_FORMAT_APPLY -eq 1 ]] && run_format_apply || :
+[[ $DO_FORMAT_CHECK -eq 1 ]] && { run_format_check || FAIL=1; } || :
 if [[ $DO_LINT_FULL -eq 1 ]]; then
 	run_lint_full
 elif [[ $DO_LINT -eq 1 ]]; then
 	run_lint
 fi
-[[ $DO_GL -eq 1 ]]           && { run_opengl_test || FAIL=1; } || true
-[[ $DO_VALGRIND -eq 1 ]]     && { run_valgrind || FAIL=1; } || true
+[[ $DO_GL -eq 1 ]]           && { run_opengl_test || FAIL=1; } || :
+[[ $DO_VALGRIND -eq 1 ]]     && { run_valgrind || FAIL=1; } || :
 
 if [[ $FAIL -eq 0 ]]; then
 	log_ok "Todos los tests pasaron."
