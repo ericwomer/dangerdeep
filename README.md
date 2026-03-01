@@ -104,17 +104,19 @@ El ejecutable se genera en `build/src/dangerdeep` (en algunas configuraciones pu
 
 ## Ejecución
 
-Desde la raíz del repositorio (para que se use el directorio `data/`):
+Por defecto el juego usa el directorio `data/` del repositorio (CMake define la ruta absoluta al configurar). Desde la raíz del repo:
 
 ```bash
 ./build/src/dangerdeep
 ```
 
-Para indicar otra ruta de datos:
+Para indicar otra ruta de datos en tiempo de ejecución:
 
 ```bash
 ./build/src/dangerdeep --datadir /ruta/a/data/
 ```
+
+Para una instalación en el sistema, configurar con: `cmake .. -Ddatadir=/usr/local/share/dangerdeep/` (o la ruta donde se instalarán los datos).
 
 ---
 

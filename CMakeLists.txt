@@ -116,9 +116,17 @@ message(STATUS "TINYXML_LIBRARIES:      ${TINYXML_LIBRARIES}")
 #------------------------------------
 
 #------------------------------------
-# !Rake: Do platform check to see where datadir needs
-# to point to then set DATADIR to datadir (overly complicated)
-set(datadir "/usr/local/share/dangerdeep/") # default to linux for now
+# Por defecto usar data/ del repo (desarrollo). Para instalación: -Ddatadir=/usr/local/share/dangerdeep/
+if(NOT DEFINED datadir)
+  set(datadir "${CMAKE_SOURCE_DIR}/data/")
+endif()
+if(NOT IS_ABSOLUTE "${datadir}")
+  get_filename_component(datadir "${datadir}" ABSOLUTE BASE_DIR "${CMAKE_SOURCE_DIR}")
+endif()
+if(NOT datadir MATCHES "/$")
+  set(datadir "${datadir}/")
+endif()
+message(STATUS "DATADIR (default): ${datadir}")
 set(version 0.3.900)
 configure_file(
 	"${CMAKE_CURRENT_SOURCE_DIR}/system_defines.h.in"
