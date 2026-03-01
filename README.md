@@ -49,6 +49,21 @@ git lfs pull
 | Compilador  | GCC o Clang, estándar C++17       |
 | CMake       | 3.10 o superior                   |
 
+Dependencias de sistema (las versiones son las que proporcione tu distro; no se fijan en el proyecto):
+
+| Dependencia   | Uso en el proyecto | Versión mínima recomendada |
+| ------------- | ------------------ | --------------------------- |
+| **SDL2**      | Ventana, eventos   | 2.0.5+                      |
+| **SDL2_image**| Carga de imágenes  | 2.0.x                       |
+| **SDL2_mixer**| Audio / música     | 2.0.x                       |
+| **FFTW3**     | FFT (sonar, etc.)  | 3.3.x                       |
+| **TinyXML**   | XML (datos, config)| 2.6.x                       |
+| **bzip2**     | Descompresión      | 1.0.x                       |
+| **OpenGL**    | Render 3D          | 2.x (Mesa o drivers)        |
+| **X11**       | Display            | —                           |
+
+Puedes **actualizar** las dependencias con lo que ofrezca tu sistema (p. ej. en Debian/Ubuntu: `sudo apt update && sudo apt upgrade`). Al reconfigurar y recompilar, el proyecto usará las versiones instaladas. Si CMake muestra versiones al configurar (SDL2_MIXER_VERSION, etc.), son las que está usando.
+
 El código usa C++17 (p. ej. `std::unique_ptr`, `std::make_unique`; disponibles `std::optional`, structured bindings, `std::filesystem`).
 
 ---

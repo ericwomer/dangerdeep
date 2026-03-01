@@ -73,18 +73,27 @@ find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIR})
 message(STATUS "SDL2_INCLUDE_DIR:       ${SDL2_INCLUDE_DIR}")
 message(STATUS "SDL2_LIBRARY:           ${SDL2_LIBRARY}")
+if(DEFINED SDL2_VERSION)
+	message(STATUS "SDL2_VERSION:           ${SDL2_VERSION}")
+endif()
 
 #------------------------------------
 
 find_package(SDL2_mixer REQUIRED)
 include_directories(${SDL2_MIXER_INCLUDE_DIRS})
 message(STATUS "SDL2_MIXER_LIBRARY:     ${SDL2_MIXER_LIBRARIES}")
+if(DEFINED SDL2_MIXER_VERSION_STRING)
+	message(STATUS "SDL2_MIXER_VERSION:     ${SDL2_MIXER_VERSION_STRING}")
+endif()
 
 #------------------------------------
 
 find_package(SDL2_image REQUIRED)
 include_directories(${SDL2_IMAGE_INCLUDE_DIRS})
 message(STATUS "SDL2_IMAGE_LIBRARY:     ${SDL2_IMAGE_LIBRARIES}")
+if(DEFINED SDL2_IMAGE_VERSION_STRING)
+	message(STATUS "SDL2_IMAGE_VERSION:     ${SDL2_IMAGE_VERSION_STRING}")
+endif()
 
 #------------------------------------
 
@@ -122,6 +131,9 @@ find_package(TinyXML REQUIRED)
 include_directories(${TINYXML_INCLUDE_DIR})
 message(STATUS "TINYXML_INCLUDE_DIR:    ${TINYXML_INCLUDE_DIR}")
 message(STATUS "TINYXML_LIBRARIES:      ${TINYXML_LIBRARIES}")
+if(DEFINED TINYXML_VERSION)
+	message(STATUS "TINYXML_VERSION:        ${TINYXML_VERSION}")
+endif()
 
 #------------------------------------
 
