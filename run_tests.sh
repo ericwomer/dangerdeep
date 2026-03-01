@@ -6,8 +6,9 @@
 # Uso:
 #   ./run_tests.sh              # formato + lint rápido (por defecto)
 #   ./run_tests.sh --build, -b  # solo compilación (sin formato ni lint)
-#   ./run_tests.sh --lint-full  # lint completo (warning+style+performance, todo el código)
-#   ./run_tests.sh --format, -f # verificar formato (falla si hay diferencias)
+#   ./run_tests.sh --asan -b    # compilar con AddressSanitizer+LeakSanitizer y compilar
+#   ./run_tests.sh --valgrind   # ejecutar el juego bajo Valgrind (fugas de memoria)
+#   ./run_tests.sh --lint-full  # lint completo
 #   ./run_tests.sh --gl         # test OpenGL (requiere haber compilado antes)
 
 set -e
@@ -29,8 +30,10 @@ run_build_test() {
 	log_info "Test de compilación..."
 	mkdir -p "$BUILD_DIR"
 	cd "$BUILD_DIR"
-	if ! cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -q 2>/dev/null; then
-		cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
+	local cmake_opts=(-DCMAKE_BUILD_TYPE=RelWithDebInfo)
+	[[ -n "$EXTRA_CMAKE_ARGS" ]] && cmake_opts+=($EXTRA_CMAKE_ARGS)
+	if ! cmake .. "${cmake_opts[@]}" -q 2>/dev/null; then
+		cmake .. "${cmake_opts[@]}"
 	fi
 	if make -j$(nproc 2>/dev/null || echo 2); then
 		log_ok "Compilación del proyecto correcta."
@@ -157,6 +160,39 @@ run_opengl_test() {
 	fi
 }
 
+run_valgrind() {
+	log_info "Ejecutando con Valgrind (detección de fugas de memoria)..."
+	if ! command -v valgrind &>/dev/null; then
+		log_skip "valgrind no instalado. Instalación: sudo apt install valgrind"
+		return 0
+	fi
+	local exe="${BUILD_DIR}/src/dangerdeep"
+	[[ -x "$exe" ]] || exe="${BUILD_DIR}/dangerdeep"
+	if [[ ! -x "$exe" ]]; then
+		log_fail "Ejecutable no encontrado. Compilá con: $0 --valgrind -b"
+		return 1
+	fi
+	log_info "Ejecutá el juego y cerrá la ventana para ver el reporte de fugas."
+	log_info "Si aparece 'Instrucción ilegal', compilá antes con: $0 --valgrind -b"
+	local datadir="${SCRIPT_DIR}/data"
+	[[ -d "$datadir" ]] || datadir="${SCRIPT_DIR}"
+	# Si los assets son punteros Git LFS (no se descargaron), avisar
+	if [[ -f "${datadir}/fonts/font_arial.png" ]] && head -c 40 "${datadir}/fonts/font_arial.png" 2>/dev/null | grep -q "git-lfs"; then
+		log_fail "Los archivos de datos son punteros Git LFS (no son PNG reales). Ejecutá: git lfs pull"
+		return 1
+	fi
+	if valgrind --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all \
+		--error-exitcode=1 \
+		--log-file="${BUILD_DIR}/valgrind.log" \
+		"$exe" --datadir "${datadir}/" 2>&1; then
+		log_ok "Valgrind: no se reportaron fugas."
+		return 0
+	else
+		log_fail "Valgrind reportó fugas o errores. Ver ${BUILD_DIR}/valgrind.log"
+		return 1
+	fi
+}
+
 # --- main ---
 cd "$SCRIPT_DIR"
 FAIL=0
@@ -166,10 +202,14 @@ DO_FORMAT_APPLY=1
 DO_LINT=1
 DO_LINT_FULL=0
 DO_GL=0
+DO_VALGRIND=0
+EXTRA_CMAKE_ARGS=""
 
 for arg in "$@"; do
 	case "$arg" in
 		--build|-b)        DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
+		--asan)            EXTRA_CMAKE_ARGS="-DBUILD_ASAN=ON"; DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
+		--valgrind)        DO_VALGRIND=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0; EXTRA_CMAKE_ARGS="-DBUILD_VALGRIND_FRIENDLY=ON" ;;
 		--format|-f)      DO_FORMAT_CHECK=1; DO_FORMAT_APPLY=0 ;;
 		--format-apply)   DO_FORMAT_APPLY=1 ;;
 		--no-format)      DO_FORMAT_APPLY=0 ;;
@@ -181,6 +221,8 @@ for arg in "$@"; do
 			echo "Uso: $0 [opciones]"
 			echo "  Por defecto: aplicar formato y lint rápido."
 			echo "  --build, -b     Solo compilación (sin formato ni lint)"
+			echo "  --asan -b      Compilar con AddressSanitizer+LeakSanitizer (fugas de memoria)"
+			echo "  --valgrind     Ejecutar bajo Valgrind. Primera vez: $0 --valgrind -b"
 			echo "  --format, -f   Solo verificar formato (no aplicar)"
 			echo "  --format-apply Aplicar formato (por defecto)"
 			echo "  --no-format    No aplicar ni verificar formato"
@@ -202,6 +244,7 @@ elif [[ $DO_LINT -eq 1 ]]; then
 	run_lint
 fi
 [[ $DO_GL -eq 1 ]]           && { run_opengl_test || FAIL=1; } || true
+[[ $DO_VALGRIND -eq 1 ]]     && { run_valgrind || FAIL=1; } || true
 
 if [[ $FAIL -eq 0 ]]; then
 	log_ok "Todos los tests pasaron."
