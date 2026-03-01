@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.10)
 
 project(dangerdeep)
 # set(CMAKE_BUILD_TYPE "Debug")
@@ -73,6 +73,8 @@ elseif(NOT_SDL2_IMAGE_FOUND)
 endif(SDL2_IMAGE_FOUND)
 
 #------------------------------------
+# Preferencia explícita para FindOpenGL (evita warning CMP0072 con CMake 3.10+)
+set(OpenGL_GL_PREFERENCE "LEGACY")
 
 find_package(OpenGL REQUIRED)
 if(OPENGL_FOUND)
