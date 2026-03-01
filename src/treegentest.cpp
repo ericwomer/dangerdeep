@@ -146,7 +146,7 @@ void run() {
     fpsmeasure fpsm(1.0f);
 
     tree_generator tgn;
-    std::auto_ptr<model> treemdl = tgn.generate();
+    std::unique_ptr<model> treemdl = tgn.generate();
 
     vector3f wind_movement;
 

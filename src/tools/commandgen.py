@@ -83,7 +83,7 @@ def makeitso(myline, header, header2, header3, cpp, cpp2):
 
     cpp += ['bool ' + classname + '::' + cmdname + '(' + parstr[2:] + ')']
     cpp += ['{']
-    cpp += ['\treturn ' + cmdqname + '.send(std::auto_ptr<' + msgclass + '>(new command_' + cmdname + '(*this' + parstr3 + ')));']
+    cpp += ['\treturn ' + cmdqname + '.send(std::unique_ptr<' + msgclass + '>(new command_' + cmdname + '(*this' + parstr3 + ')));']
     cpp += ['}']
     cpp += ['']
     #cpp += ['']

@@ -203,10 +203,10 @@ class game {
     unsigned freezetime, freezetime_start;
 
     // water height data, and everything around it.
-    std::auto_ptr<water> mywater;
+    std::unique_ptr<water> mywater;
 
     // terrain height data
-    std::auto_ptr<height_generator> myheightgen;
+    std::unique_ptr<height_generator> myheightgen;
 
     // multi-threading helper for simulation
     void simulate_objects_mt(double delta_t, unsigned idxoff, unsigned idxmod, bool record,

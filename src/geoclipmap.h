@@ -158,7 +158,7 @@ class geoclipmap {
         return vector2i(mod(v.x), mod(v.y));
     }
 
-    /*mutable*/ std::auto_ptr<glsl_shader_setup> myshader[2];
+    /*mutable*/ std::unique_ptr<glsl_shader_setup> myshader[2];
     // mutable glsl_shader_setup myshader_mirror;
     unsigned myshader_vattr_z_c_index[2];
     unsigned loc_texnormal[2];

@@ -97,7 +97,7 @@ class model_load_dialog {
         string dir;
     };
 
-    auto_ptr<widget::theme> theme;
+    std::unique_ptr<widget::theme> theme;
     vector<model_entry> files;
 
     int selected_model;
@@ -123,7 +123,7 @@ void model_load_dialog::load_menu() {
     widget_list *models_list;
 
     widget w(0, 0, 1024, 768, "", 0, "threesubs.jpg");
-    w.set_theme(theme);
+    w.set_theme(std::move(theme));
 
     title = new widget_text(10, 10, 800, 80, "Danger from the Deep Viewmodel OpenGL Frontend.\nCopyright (C) 2003-2006 Thorsten Jordan.");
     w.add_child(title);

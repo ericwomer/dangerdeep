@@ -44,8 +44,8 @@ class sub_recogmanual_popup : public user_popup {
     };
 
     int page;
-    std::auto_ptr<image> background_daylight;
-    std::auto_ptr<image> background_nightlight;
+    std::unique_ptr<image> background_daylight;
+    std::unique_ptr<image> background_nightlight;
     ptrvector<image> silhouettes;
     std::vector<std::string> classes;
     std::vector<std::string> lengths;

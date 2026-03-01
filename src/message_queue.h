@@ -30,7 +30,7 @@
 /// a generic message, base class
 class message {
   public:
-    typedef std::auto_ptr<message> ptr;
+    typedef std::unique_ptr<message> ptr;
 
   private:
     friend class message_queue;

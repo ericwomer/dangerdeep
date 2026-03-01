@@ -58,22 +58,22 @@ class user_interface {
     // command panel, to submarine_interface!
     // display texts above panel, fading out, no widget! fixme
     bool panel_visible;
-    std::auto_ptr<class widget> panel;
+    std::unique_ptr<class widget> panel;
     class widget_text *panel_valuetexts[6];
 
     // screen selector menu
-    std::auto_ptr<class widget> screen_selector;
+    std::unique_ptr<class widget> screen_selector;
     bool screen_selector_visible;
 
     // music playlist
-    std::auto_ptr<class widget> music_playlist;
+    std::unique_ptr<class widget> music_playlist;
     bool playlist_visible;
     class widget_checkbox *playlist_repeat_checkbox;
     class widget_checkbox *playlist_shuffle_checkbox;
     class widget_checkbox *playlist_mute_checkbox;
 
     // main menu
-    std::auto_ptr<class widget> main_menu;
+    std::unique_ptr<class widget> main_menu;
     bool main_menu_visible;
 
     /// holds the last n messages. They're displayed above the panel and fading out over time.
@@ -97,10 +97,10 @@ class user_interface {
     ptrvector<user_popup> popups;
 
     // environmental data
-    std::auto_ptr<class sky> mysky;         // the one and only sky
-    caustics mycaustics;                    //	caustic map
-    coastmap mycoastmap;                    // this may get moved to game.h, yet it is used for display only, that's why it is here
-    std::auto_ptr<geoclipmap> mygeoclipmap; // terrain rendering instance
+    std::unique_ptr<class sky> mysky;         // the one and only sky
+    caustics mycaustics;                      //	caustic map
+    coastmap mycoastmap;                      // this may get moved to game.h, yet it is used for display only, that's why it is here
+    std::unique_ptr<geoclipmap> mygeoclipmap; // terrain rendering instance
 
     // is display in day mode (or night/redlight mode)?
     bool daymode;

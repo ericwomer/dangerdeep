@@ -29,8 +29,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
     do {         \
     } while (0)
 
-std::auto_ptr<bv_tree> bv_tree::create(const std::vector<vector3f> &vertices, std::list<leaf_data> &nodes) {
-    std::auto_ptr<bv_tree> result;
+std::unique_ptr<bv_tree> bv_tree::create(const std::vector<vector3f> &vertices, std::list<leaf_data> &nodes) {
+    std::unique_ptr<bv_tree> result;
     // if list has zero entries, return empty pointer
     if (nodes.empty())
         return result;
@@ -98,15 +98,15 @@ std::auto_ptr<bv_tree> bv_tree::create(const std::vector<vector3f> &vertices, st
         empty_list.splice(empty_list.end(), full_list, full_list.begin(), it);
     }
     PRINT("left " << left_nodes.size() << " right " << right_nodes.size() << "\n");
-    result.reset(new bv_tree(bound_sphere, create(vertices, left_nodes), create(vertices, right_nodes)));
+    result.reset(new bv_tree(bound_sphere, bv_tree::create(vertices, left_nodes), bv_tree::create(vertices, right_nodes)));
     PRINT("final volume " << result->volume.center << "|" << result->volume.radius << "\n");
     return result;
 }
 
-bv_tree::bv_tree(const spheref &sph, std::auto_ptr<bv_tree> left_tree, std::auto_ptr<bv_tree> right_tree)
+bv_tree::bv_tree(const spheref &sph, std::unique_ptr<bv_tree> left_tree, std::unique_ptr<bv_tree> right_tree)
     : volume(sph) {
-    children[0] = left_tree;
-    children[1] = right_tree;
+    children[0] = std::move(left_tree);
+    children[1] = std::move(right_tree);
 }
 
 bool bv_tree::is_inside(const vector3f &v) const {

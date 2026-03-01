@@ -74,8 +74,8 @@ class bv_tree {
 
     bv_tree(const spheref &sph, const leaf_data &ld)
         : volume(sph), leafdata(ld) {}
-    bv_tree(const spheref &sph, std::auto_ptr<bv_tree> left_tree, std::auto_ptr<bv_tree> right_tree);
-    static std::auto_ptr<bv_tree> create(const std::vector<vector3f> &vertices, std::list<leaf_data> &nodes);
+    bv_tree(const spheref &sph, std::unique_ptr<bv_tree> left_tree, std::unique_ptr<bv_tree> right_tree);
+    static std::unique_ptr<bv_tree> create(const std::vector<vector3f> &vertices, std::list<leaf_data> &nodes);
     bool is_inside(const vector3f &v) const;
 
     /** determine if two bv_trees intersect each other (are colliding). A list of contact points is computed. */
@@ -94,7 +94,7 @@ class bv_tree {
   protected:
     spheref volume;
     leaf_data leafdata;
-    std::auto_ptr<bv_tree> children[2];
+    std::unique_ptr<bv_tree> children[2];
 
   private:
     bv_tree();

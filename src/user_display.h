@@ -50,7 +50,7 @@ class user_display {
     class rotat_tex {
       public:
         rotat_tex() : left(0), top(0), centerx(0), centery(0) {}
-        std::auto_ptr<texture> tex;
+        std::unique_ptr<texture> tex;
         int left, top, centerx, centery;
         void draw(double angle) const {
             // fixme: maybe rotate around pixel center (x/y + 0.5)
@@ -78,7 +78,7 @@ class user_display {
     class fix_tex {
       public:
         fix_tex() : left(0), top(0) {}
-        std::auto_ptr<texture> tex;
+        std::unique_ptr<texture> tex;
         int left, top;
         void draw() const {
             tex->draw(left, top);

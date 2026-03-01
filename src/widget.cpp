@@ -35,15 +35,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <algorithm>
 #include <set>
 #include <sstream>
-using std::auto_ptr;
 using std::cout;
 using std::list;
 using std::ostringstream;
 using std::set;
 using std::string;
+using std::unique_ptr;
 using std::vector;
 
-std::auto_ptr<widget::theme> widget::globaltheme;
+std::unique_ptr<widget::theme> widget::globaltheme;
 widget *widget::focussed = 0;
 widget *widget::mouseover = 0;
 int widget::oldmx = 0;
@@ -67,7 +67,7 @@ widget::widget(xml_elem &elem, widget *_parent)
         background_image_name = elem.attr("bg_image");
     background = imagecache().ref(background_image_name);
     if (elem.has_attr("bg_texture")) {
-        set_background(std::auto_ptr<texture>(new texture(get_texture_dir() += elem.attr("bg_texture"))).get());
+        set_background(std::unique_ptr<texture>(new texture(get_texture_dir() += elem.attr("bg_texture"))).get());
     }
     if (elem.has_attr("enabled"))
         enabled = elem.attrb("enabled");
@@ -355,9 +355,9 @@ widget::theme::theme(const char *elements_filename, const char *icons_filename, 
     }
 }
 
-std::auto_ptr<widget::theme> widget::replace_theme(std::auto_ptr<widget::theme> t) {
-    std::auto_ptr<theme> r = globaltheme;
-    globaltheme = t;
+std::unique_ptr<widget::theme> widget::replace_theme(std::unique_ptr<widget::theme> t) {
+    std::unique_ptr<theme> r = std::move(globaltheme);
+    globaltheme = std::move(t);
     return r;
 }
 
@@ -565,7 +565,7 @@ void widget::on_wheel(int wd) {
 }
 
 void widget::draw_frame(int x, int y, int w, int h, bool out) {
-    std::auto_ptr<texture> *frelem = (out ? globaltheme->frame : globaltheme->frameinv);
+    std::unique_ptr<texture> *frelem = (out ? globaltheme->frame : globaltheme->frameinv);
     int fw = globaltheme->frame_size();
     frelem[0]->draw(x, y);
     frelem[1]->draw(x + fw, y, w - 2 * fw, fw);
@@ -695,8 +695,8 @@ bool widget::is_mouse_over(int mx, int my) const {
     return (mx >= p.x && my >= p.y && mx < p.x + size.x && my < p.y + size.y);
 }
 
-std::auto_ptr<widget> widget::create_dialogue_ok(widget *parent_, const string &title, const string &text,
-                                                 int w, int h) {
+std::unique_ptr<widget> widget::create_dialogue_ok(widget *parent_, const string &title, const string &text,
+                                                   int w, int h) {
     unsigned res_x = sys().get_res_x_2d();
     unsigned res_y = sys().get_res_y_2d();
     int x = w ? (res_x - w) / 2 : res_x / 4;
@@ -705,7 +705,7 @@ std::auto_ptr<widget> widget::create_dialogue_ok(widget *parent_, const string &
         w = res_x / 2;
     if (!h)
         h = res_y / 2;
-    std::auto_ptr<widget> wi(new widget(x, y, w, h, title, parent_));
+    std::unique_ptr<widget> wi(new widget(x, y, w, h, title, parent_));
     wi->add_child(new widget_text(32, 64, w - 64, h - 128, text));
     int fw = globaltheme->frame_size();
     int fh = int(globaltheme->myfont->get_height());
@@ -714,8 +714,8 @@ std::auto_ptr<widget> widget::create_dialogue_ok(widget *parent_, const string &
     return wi;
 }
 
-std::auto_ptr<widget> widget::create_dialogue_ok_cancel(widget *parent_, const string &title, const string &text,
-                                                        int w, int h) {
+std::unique_ptr<widget> widget::create_dialogue_ok_cancel(widget *parent_, const string &title, const string &text,
+                                                          int w, int h) {
     unsigned res_x = sys().get_res_x_2d();
     unsigned res_y = sys().get_res_y_2d();
     int x = w ? (res_x - w) / 2 : res_x / 4;
@@ -724,7 +724,7 @@ std::auto_ptr<widget> widget::create_dialogue_ok_cancel(widget *parent_, const s
         w = res_x / 2;
     if (!h)
         h = res_y / 2;
-    std::auto_ptr<widget> wi(new widget(x, y, w, h, title, parent_));
+    std::unique_ptr<widget> wi(new widget(x, y, w, h, title, parent_));
     wi->add_child(new widget_text(32, 64, w - 64, h - 128, text));
     int fw = globaltheme->frame_size();
     int fh = int(globaltheme->myfont->get_height());
@@ -1456,8 +1456,8 @@ void widget_fileselector::listclick() {
     }
 }
 
-widget_3dview::widget_3dview(int x, int y, int w, int h, auto_ptr<model> mdl_, color bgcol, widget *parent_)
-    : widget(x, y, w, h, "", parent_), mdl(mdl_), backgrcol(bgcol),
+widget_3dview::widget_3dview(int x, int y, int w, int h, std::unique_ptr<model> mdl_, color bgcol, widget *parent_)
+    : widget(x, y, w, h, "", parent_), mdl(std::move(mdl_)), backgrcol(bgcol),
       z_angle(90), x_angle(0), lightdir(0, 0, 1, 0), lightcol(color::white()) {
     translation.z = 100;
     if (mdl.get()) {
@@ -1465,8 +1465,8 @@ widget_3dview::widget_3dview(int x, int y, int w, int h, auto_ptr<model> mdl_, c
     }
 }
 
-void widget_3dview::set_model(std::auto_ptr<model> mdl_) {
-    mdl = mdl_;
+void widget_3dview::set_model(std::unique_ptr<model> mdl_) {
+    mdl = std::move(mdl_);
     if (mdl.get()) {
         translation.z = mdl->get_boundbox_size().length() / 1.2;
     } else {

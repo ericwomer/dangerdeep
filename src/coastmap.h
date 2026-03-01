@@ -118,7 +118,7 @@ class coastmap {
     };
     std::list<prop> props;
 
-    std::auto_ptr<texture> atlanticmap;
+    std::unique_ptr<texture> atlanticmap;
 
     coastmap();
     coastmap(const coastmap &);

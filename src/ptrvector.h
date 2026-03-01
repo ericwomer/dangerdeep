@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-// ptrvector - vector of ptrs, like std::auto_ptr, but with std::vector interface
+// ptrvector - vector of ptrs, like std::unique_ptr, but with std::vector interface
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #ifndef PTRVECTOR_H
@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <stdexcept>
 #include <vector>
 
-/// same as std::vector regarding the interface, but handles pointers like std::auto_ptr.
+/// same as std::vector regarding the interface, but handles pointers like std::unique_ptr.
 template <class T>
 class ptrvector {
   protected:
@@ -65,14 +65,14 @@ class ptrvector {
     }
 
     /// push_back element. exception safe, so first create space, then store
-    void push_back(std::auto_ptr<T> ptr) {
+    void push_back(std::unique_ptr<T> ptr) {
         data.push_back(NULL);
         data.back() = ptr.release();
     }
 
     /// push_back a pointer exception safe.
     void push_back(T *ptr) {
-        std::auto_ptr<T> p(ptr);
+        std::unique_ptr<T> p(ptr);
         data.push_back(NULL);
         data.back() = p.release();
     }

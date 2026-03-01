@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class sub_torpsetup_display : public user_display {
     class scheme {
       public:
-        std::auto_ptr<image> background;
+        std::unique_ptr<image> background;
         rotat_tex rundepthptr;
         rotat_tex secondaryrangeptr;
         rotat_tex primaryrangeptr;
@@ -39,15 +39,15 @@ class sub_torpsetup_display : public user_display {
         rotat_tex primaryrangedial;
         // everything that does not rotate could also be an "image"...
         // but only when this doesn't trash the image cache
-        std::auto_ptr<texture> torpspeed[3];      // slow/medium/fast
-        std::auto_ptr<texture> firstturn[2];      // left/right
-        std::auto_ptr<texture> secondaryrange[2]; // short/long
-        std::auto_ptr<texture> preheating[2];     // on/off
-        std::auto_ptr<texture> temperaturescale;
+        std::unique_ptr<texture> torpspeed[3];      // slow/medium/fast
+        std::unique_ptr<texture> firstturn[2];      // left/right
+        std::unique_ptr<texture> secondaryrange[2]; // short/long
+        std::unique_ptr<texture> preheating[2];     // on/off
+        std::unique_ptr<texture> temperaturescale;
         rotat_tex primaryrangeknob[6];
         rotat_tex turnangleknob[6];
         rotat_tex rundepthknob[6];
-        bool is_over(const std::auto_ptr<texture> &tex, const vector2i &pos,
+        bool is_over(const std::unique_ptr<texture> &tex, const vector2i &pos,
                      int mx, int my, int border = 32) const {
             return (mx >= pos.x - border) && (my >= pos.y - border)
                    // 2006-11-30 doc1972 only hight and width is unsigned, so we cast the result back to signed
@@ -69,7 +69,7 @@ class sub_torpsetup_display : public user_display {
         TK_NR = 3
     };
 
-    std::auto_ptr<scheme> myscheme;
+    std::unique_ptr<scheme> myscheme;
 
     turnknobtype turnknobdrag;
     std::vector<float> turnknobang;

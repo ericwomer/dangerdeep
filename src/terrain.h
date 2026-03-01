@@ -55,7 +55,7 @@ class terrain : public height_generator {
     vector2l origin;
     float noise_h, noise_lac, noise_off, noise_scale, noise_coord_factor, noise_gain, octaves;
 
-    std::auto_ptr<fractal_noise> frac;
+    std::unique_ptr<fractal_noise> frac;
     std::fstream map_file;
 
     bivector<double> noise_map;
@@ -122,7 +122,7 @@ terrain<T>::terrain(const std::string &header_file, const std::string &data_dir,
     forest_brdf_texture.reset(new texture(get_texture_dir() += "terrain_forest_brdf.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
     rock_brdf_texture.reset(new texture(get_texture_dir() += "terrain_rock_brdf.dds", false, texture::LINEAR_MIPMAP_LINEAR, texture::REPEAT));
 
-    frac = std::auto_ptr<fractal_noise>(new fractal_noise(noise_h, noise_lac, num_levels + 1, noise_off, noise_gain));
+    frac = std::unique_ptr<fractal_noise>(new fractal_noise(noise_h, noise_lac, num_levels + 1, noise_off, noise_gain));
 
     tex_stretch_factor = cfg::instance().getf("terrain_texture_resolution") / 100.0;
 

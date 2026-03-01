@@ -46,12 +46,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif
 #include <sstream>
 
-using std::auto_ptr;
 using std::list;
 using std::make_pair;
 using std::ostringstream;
 using std::pair;
 using std::string;
+using std::unique_ptr;
 using std::vector;
 
 #define MAPGRIDSIZE 1000 // meters
@@ -767,7 +767,7 @@ void map_display::process_input(class game &gm, const SDL_Event &event) {
                     // add ship
                     xml_doc spec(data_file().get_filename(edit_shiplist->get_selected_entry()));
                     spec.load();
-                    auto_ptr<ship> shp(new ship(gm, spec.first_child()));
+                    std::unique_ptr<ship> shp(new ship(gm, spec.first_child()));
                     shp->set_skin_layout(model::default_layout);
                     // set pos and other values etc.
                     vector2 pos = gm.get_player()->get_pos().xy() + mapoffset;
@@ -809,7 +809,7 @@ void map_display::process_input(class game &gm, const SDL_Event &event) {
                     }
                     center = center * (1.0 / nrsh);
                     // create convoy object
-                    auto_ptr<convoy> cv(new convoy(gm, center, edit_cvname->get_text()));
+                    std::unique_ptr<convoy> cv(new convoy(gm, center, edit_cvname->get_text()));
                     // add all ships to convoy with relative positions
                     nrsh = 0;
                     for (std::set<sea_object *>::iterator it = selection.begin(); it != selection.end(); ++it) {

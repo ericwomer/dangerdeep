@@ -52,8 +52,8 @@ sub_recogmanual_popup::sub_recogmanual_popup(user_interface &ui_)
     std::list<string> ship_ids = data_file_handler::instance().get_ship_list();
     for (list<string>::iterator it = ship_ids.begin(); it != ship_ids.end(); it++) {
         try {
-            auto_ptr<image> img(new image(data_file_handler::instance().get_path(*it) + (*it) + "_silhouette.png"));
-            silhouettes.push_back(auto_ptr<image>(img));
+            std::unique_ptr<image> img(new image(data_file_handler::instance().get_path(*it) + (*it) + "_silhouette.png"));
+            silhouettes.push_back(std::move(img));
 
             xml_doc doc(data_file_handler::instance().get_filename(*it));
             doc.load();

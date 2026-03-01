@@ -142,7 +142,7 @@ class height_generator {
     // fixme: is this still needed?
     unsigned log2_color_res_factor; // colors have 2^x more values as vertices
 
-    std::auto_ptr<texture> sand_texture, mud_texture, forest_texture,
+    std::unique_ptr<texture> sand_texture, mud_texture, forest_texture,
         grass_texture, rock_texture, snow_texture,
         forest_brdf_texture, rock_brdf_texture,
         base_texture, noise_texture;

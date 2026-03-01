@@ -91,7 +91,7 @@ class sdl_image {
 ///\brief Handles an OpenGL texture with loading and display.
 class texture {
   public:
-    typedef std::auto_ptr<texture> ptr;
+    typedef std::unique_ptr<texture> ptr;
 
     enum mapping_mode {
         NEAREST,

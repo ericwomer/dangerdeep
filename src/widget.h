@@ -46,7 +46,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // make a special flag: widget* wait_for?
 // process_input(){if (wait_for)wait_for->process_input();else ...old...;} ?
 // ein widget.close fehlt. close:= parent.remove(this), wenn parent==0 dann globale liste nach this
-// durchsuchen. run() l‰uft dann bis globale liste leer ist.
+// durchsuchen. run() lùuft dann bis globale liste leer ist.
 
 // more widgets: progress bar
 
@@ -94,13 +94,13 @@ class widget {
         theme &operator=(const theme &);
 
       public:
-        std::auto_ptr<texture> backg;
-        std::auto_ptr<texture> skbackg;
-        std::auto_ptr<texture> frame[8];
-        std::auto_ptr<texture> frameinv[8];
-        std::auto_ptr<texture> icons[4];
-        std::auto_ptr<texture> sbarbackg;
-        std::auto_ptr<texture> sbarsurf;
+        std::unique_ptr<texture> backg;
+        std::unique_ptr<texture> skbackg;
+        std::unique_ptr<texture> frame[8];
+        std::unique_ptr<texture> frameinv[8];
+        std::unique_ptr<texture> icons[4];
+        std::unique_ptr<texture> sbarbackg;
+        std::unique_ptr<texture> sbarsurf;
         const font *myfont;
         color textcol, textselectcol, textdisabledcol;
         int frame_size() const;
@@ -148,7 +148,7 @@ class widget {
     };
 
   protected:
-    static std::auto_ptr<widget::theme> globaltheme;
+    static std::unique_ptr<widget::theme> globaltheme;
     static widget *focussed;  // which widget has the focus
     static widget *mouseover; // which widget the mouse is over
 
@@ -168,9 +168,9 @@ class widget {
 
     static std::string text_ok, text_cancel;
 
-    static void set_theme(std::auto_ptr<theme> t) { globaltheme = t; }
+    static void set_theme(std::unique_ptr<theme> t) { globaltheme = std::move(t); }
     static const theme *get_theme() { return globaltheme.get(); }
-    static std::auto_ptr<theme> replace_theme(std::auto_ptr<theme> t);
+    static std::unique_ptr<theme> replace_theme(std::unique_ptr<theme> t);
     widget(int x, int y, int w, int h, const std::string &text_, widget *parent_ = 0, const std::string &backgrimg = std::string());
     widget(xml_elem &, widget *parent = 0);
     void add_action_listener(const action_listener *listener, bool recursive = true);
@@ -241,11 +241,11 @@ class widget {
     virtual bool check_for_mouse_event(const SDL_Event &event);
 
     // run() always returns 1    - fixme: make own widget classes for them?
-    static std::auto_ptr<widget> create_dialogue_ok(widget *parent_, const std::string &title, const std::string &text = "", int w = 0, int h = 0);
-    std::auto_ptr<widget> create_dialogue_ok(const std::string &title, const std::string &text = "", int w = 0, int h = 0) { return create_dialogue_ok(this, title, text, w, h); }
+    static std::unique_ptr<widget> create_dialogue_ok(widget *parent_, const std::string &title, const std::string &text = "", int w = 0, int h = 0);
+    std::unique_ptr<widget> create_dialogue_ok(const std::string &title, const std::string &text = "", int w = 0, int h = 0) { return create_dialogue_ok(this, title, text, w, h); }
     // run() returns 1 for ok, 0 for cancel
-    static std::auto_ptr<widget> create_dialogue_ok_cancel(widget *parent_, const std::string &title, const std::string &text = "", int w = 0, int h = 0);
-    std::auto_ptr<widget> create_dialogue_ok_cancel(const std::string &title, const std::string &text = "") { return create_dialogue_ok_cancel(this, title, text); }
+    static std::unique_ptr<widget> create_dialogue_ok_cancel(widget *parent_, const std::string &title, const std::string &text = "", int w = 0, int h = 0);
+    std::unique_ptr<widget> create_dialogue_ok_cancel(const std::string &title, const std::string &text = "") { return create_dialogue_ok_cancel(this, title, text); }
 
     // show & exec. widget, automatically disable widgets below
     // run() runs for "time" milliseconds (or forever if time == 0), then returns
@@ -550,7 +550,7 @@ class widget_fileselector : public widget {
 
 class widget_3dview : public widget {
   protected:
-    std::auto_ptr<model> mdl;
+    std::unique_ptr<model> mdl;
     color backgrcol;
     double z_angle;
     double x_angle;
@@ -566,10 +566,10 @@ class widget_3dview : public widget {
     widget_3dview &operator=(const widget_3dview &);
 
   public:
-    widget_3dview(int x, int y, int w, int h, std::auto_ptr<model> mdl, color bgcol, widget *parent_ = 0);
+    widget_3dview(int x, int y, int w, int h, std::unique_ptr<model> mdl, color bgcol, widget *parent_ = 0);
     widget_3dview(xml_elem &elem, widget *_parent = 0);
     void draw() const;
-    void set_model(std::auto_ptr<model> mdl_);
+    void set_model(std::unique_ptr<model> mdl_);
     model *get_model() { return mdl.get(); }
     // widget will handle orientation itself. also user input for changing that...
     // void set_orientation() / set_translation() <- later.

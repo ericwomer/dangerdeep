@@ -29,7 +29,7 @@ class moon {
   private:
     texture::ptr map_diffuse;
     texture::ptr map_normal;
-    std::auto_ptr<glsl_shader_setup> glsl_moon;
+    std::unique_ptr<glsl_shader_setup> glsl_moon;
     unsigned loc_diffcol, loc_nrml, loc_lightdir;
 
   public:

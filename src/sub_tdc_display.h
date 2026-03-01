@@ -30,12 +30,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class sub_tdc_display : public user_display {
     class scheme_screen1 {
       public:
-        std::auto_ptr<image> background;
+        std::unique_ptr<image> background;
         rotat_tex aob_ptr;
         rotat_tex aob_inner;
         rotat_tex spread_ang_ptr;
         rotat_tex spread_ang_mkr;
-        std::auto_ptr<texture> firesolution;
+        std::unique_ptr<texture> firesolution;
         rotat_tex parallax_ptr;
         rotat_tex parallax_mkr;
         rotat_tex torptime_min;
@@ -53,7 +53,7 @@ class sub_tdc_display : public user_display {
 
     class scheme_screen2 {
       public:
-        std::auto_ptr<image> background;
+        std::unique_ptr<image> background;
         // fixme: replace texture::ptr by fix_tex in all display classes where it makes sense
         fix_tex tubelight[6];
         fix_tex firebutton;
@@ -76,8 +76,8 @@ class sub_tdc_display : public user_display {
 
     bool show_screen1; // true = 1, false = 2
 
-    std::auto_ptr<scheme_screen1> myscheme1;
-    std::auto_ptr<scheme_screen2> myscheme2;
+    std::unique_ptr<scheme_screen1> myscheme1;
+    std::unique_ptr<scheme_screen2> myscheme2;
 
     // automatic: means user puts in values or crew - fixme to be defined...
     unsigned selected_mode; // 0-1 (automatic on / off)

@@ -44,7 +44,7 @@ class font {
     font &operator=(const font &other);
     font(const font &other);
     std::vector<character> characters;
-    std::auto_ptr<texture> character_texture;
+    std::unique_ptr<texture> character_texture;
 
     unsigned first_char, last_char; // codes
     unsigned base_height, height;   // base height and real height
@@ -54,7 +54,7 @@ class font {
     void print_text(int x, int y, const std::string &text, bool ignore_colors = false) const;
     void print_plain(int x, int y, const std::string &text, color col, bool with_shadow) const;
 
-    static std::auto_ptr<glsl_shader_setup> shader;
+    static std::unique_ptr<glsl_shader_setup> shader;
     static unsigned init_count;
     static unsigned loc_color;
     static unsigned loc_tex;

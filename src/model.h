@@ -44,7 +44,7 @@ class xml_elem;
 ///\brief Handles a 3D model, it's animation and OpenGL based rendering and display.
 class model {
   public:
-    typedef std::auto_ptr<model> ptr;
+    typedef std::unique_ptr<model> ptr;
 
     class material {
         material(const material &);
@@ -63,7 +63,7 @@ class model {
 
             // maybe unite list of skins and default-texture, both
             // have texture ptr, filename and ref_count.
-            std::auto_ptr<texture> mytexture; // default "skin", MUST BE SET!
+            std::unique_ptr<texture> mytexture; // default "skin", MUST BE SET!
             unsigned ref_count;
 
             struct skin {
@@ -98,12 +98,12 @@ class model {
         };
 
         std::string name;
-        color diffuse;                  // only used when colormap is 0.
-        color specular;                 // material specular color, used with and without texture mapping.
-        float shininess;                // shininess (Halfangle dot Normal exponent)
-        std::auto_ptr<map> colormap;    // replaces diffuse color if not defined.
-        std::auto_ptr<map> normalmap;   // should be of type RGB to work properly.
-        std::auto_ptr<map> specularmap; // should be of type LUMINANCE to work properly.
+        color diffuse;                    // only used when colormap is 0.
+        color specular;                   // material specular color, used with and without texture mapping.
+        float shininess;                  // shininess (Halfangle dot Normal exponent)
+        std::unique_ptr<map> colormap;    // replaces diffuse color if not defined.
+        std::unique_ptr<map> normalmap;   // should be of type RGB to work properly.
+        std::unique_ptr<map> specularmap; // should be of type LUMINANCE to work properly.
         bool two_sided;
 
         material(const std::string &nm = "Unnamed material");
@@ -138,7 +138,7 @@ class model {
         bool use_default_shader() const { return false; }
         glsl_shader_setup &get_shadersetup() { return shadersetup; }
 
-        std::auto_ptr<map> texmaps[DFTD_MAX_TEXTURE_UNITS]; // up to DFTD_MAX_TEXTURE_UNITS texture units
+        std::unique_ptr<map> texmaps[DFTD_MAX_TEXTURE_UNITS]; // up to DFTD_MAX_TEXTURE_UNITS texture units
         std::string texnames[DFTD_MAX_TEXTURE_UNITS];
         unsigned loc_texunit[DFTD_MAX_TEXTURE_UNITS];
         unsigned nrtex;
@@ -178,7 +178,7 @@ class model {
             virtual bool next();
         };
 
-        std::auto_ptr<triangle_iterator> get_tri_iterator() const;
+        std::unique_ptr<triangle_iterator> get_tri_iterator() const;
 
         std::string name;
         // This data is NOT needed for rendering, as it is stored also in VBOs,
@@ -278,7 +278,7 @@ class model {
 
       protected:
         primitive_type indices_type;
-        std::auto_ptr<bv_tree> bounding_volume_tree;
+        std::unique_ptr<bv_tree> bounding_volume_tree;
         void (model::mesh::*get_triangle_ptr)(unsigned triangle, Uint32 indices[3]) const;
 
       private:
@@ -363,13 +363,13 @@ class model {
     static unsigned init_count;
 
     // Shader programs
-    static std::auto_ptr<glsl_shader_setup> glsl_plastic;
-    static std::auto_ptr<glsl_shader_setup> glsl_color;
-    static std::auto_ptr<glsl_shader_setup> glsl_color_normal;
-    static std::auto_ptr<glsl_shader_setup> glsl_color_normal_caustic;
-    static std::auto_ptr<glsl_shader_setup> glsl_color_normal_specular;
-    static std::auto_ptr<glsl_shader_setup> glsl_color_normal_specular_caustic;
-    static std::auto_ptr<glsl_shader_setup> glsl_mirror_clip;
+    static std::unique_ptr<glsl_shader_setup> glsl_plastic;
+    static std::unique_ptr<glsl_shader_setup> glsl_color;
+    static std::unique_ptr<glsl_shader_setup> glsl_color_normal;
+    static std::unique_ptr<glsl_shader_setup> glsl_color_normal_caustic;
+    static std::unique_ptr<glsl_shader_setup> glsl_color_normal_specular;
+    static std::unique_ptr<glsl_shader_setup> glsl_color_normal_specular_caustic;
+    static std::unique_ptr<glsl_shader_setup> glsl_mirror_clip;
     static unsigned loc_c_tex_color;
     static unsigned loc_cn_tex_normal;
     static unsigned loc_cn_tex_color;

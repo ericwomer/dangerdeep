@@ -76,7 +76,7 @@ class sky {
     mutable float sun_azimuth, sun_elevation;
     float turbidity;
 
-    std::auto_ptr<glsl_shader_setup> glsl_clouds;
+    std::unique_ptr<glsl_shader_setup> glsl_clouds;
     unsigned loc_cloudstex;
 
     void build_dome(const unsigned int sectors_h, const unsigned int sectors_v);

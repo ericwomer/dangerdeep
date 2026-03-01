@@ -37,9 +37,9 @@ class water_splash : public sea_object {
     double lifetime;
     double risetime;
     double riseheight;
-    std::auto_ptr<bspline> bradius_top;
-    std::auto_ptr<bspline> bradius_bottom;
-    std::auto_ptr<bspline> balpha;
+    std::unique_ptr<bspline> bradius_top;
+    std::unique_ptr<bspline> bradius_bottom;
+    std::unique_ptr<bspline> balpha;
 
     static void render_cylinder(double radius_bottom, double radius_top, double height,
                                 double alpha, const texture &tex,

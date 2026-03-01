@@ -52,17 +52,17 @@ class water {
     const float wavetile_length_rcp;  // reciprocal of former value
     const double wave_tidecycle_time; // depends on fps. with 25fps and 256 phases, use ~10seconds.
 
-    std::auto_ptr<texture> reflectiontex;
-    std::auto_ptr<texture> foamtex;
-    std::auto_ptr<texture> foamamounttex;
-    std::auto_ptr<texture> foamamounttrail;
-    std::auto_ptr<texture> foamperimetertex;
-    std::auto_ptr<texture> fresnelcolortex; // texture for fresnel values and water color
+    std::unique_ptr<texture> reflectiontex;
+    std::unique_ptr<texture> foamtex;
+    std::unique_ptr<texture> foamamounttex;
+    std::unique_ptr<texture> foamamounttrail;
+    std::unique_ptr<texture> foamperimetertex;
+    std::unique_ptr<texture> fresnelcolortex; // texture for fresnel values and water color
 
-    std::auto_ptr<framebufferobject> reflectiontex_fbo;
-    std::auto_ptr<framebufferobject> foamamounttex_fbo;
+    std::unique_ptr<framebufferobject> reflectiontex_fbo;
+    std::unique_ptr<framebufferobject> foamamounttex_fbo;
 
-    std::auto_ptr<texture> waterspecularlookup; // lookup 1d texture map for water specular term
+    std::unique_ptr<texture> waterspecularlookup; // lookup 1d texture map for water specular term
 
     std::vector<Uint8> fresnelcolortexd; // stored for updates of water color
 
@@ -114,14 +114,14 @@ class water {
     ocean_wave_generator<float> owg;
 
     // with fragment programs we need some sub-noise
-    std::auto_ptr<texture> water_bumpmap;
+    std::unique_ptr<texture> water_bumpmap;
 
     // Config options (only used when supported)
     bool use_hqsfx; // high quality special effects.
 
     // Shader program
-    std::auto_ptr<glsl_shader_setup> glsl_water;
-    std::auto_ptr<glsl_shader_setup> glsl_under_water;
+    std::unique_ptr<glsl_shader_setup> glsl_water;
+    std::unique_ptr<glsl_shader_setup> glsl_under_water;
     // locations of uniforms for shaders
     unsigned loc_w_noise_xform_0;
     unsigned loc_uw_noise_xform_0;

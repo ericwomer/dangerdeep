@@ -30,8 +30,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 class sub_damage_display : public user_display {
     int mx, my; // last mouse position, needed for popup display
-    std::auto_ptr<image> damage_screen_background;
-    std::auto_ptr<image> sub_damage_scheme_all;
+    std::unique_ptr<image> damage_screen_background;
+    std::unique_ptr<image> sub_damage_scheme_all;
     texture::ptr repairlight, repairmedium, repairheavy, repaircritical, repairwrecked;
     objcachet<texture>::reference notepadsheet;
 

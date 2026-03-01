@@ -50,21 +50,21 @@ class ptrlist {
     }
 
     // exception safe, so first create space, then store
-    void push_back(std::auto_ptr<T> ptr) {
+    void push_back(std::unique_ptr<T> ptr) {
         data.push_back(0);
         data.back() = ptr.release();
     }
-    void push_front(std::auto_ptr<T> ptr) {
+    void push_front(std::unique_ptr<T> ptr) {
         data.push_front(0);
         data.front() = ptr.release();
     }
     void push_back(T *ptr) {
-        std::auto_ptr<T> p(ptr);
-        push_back(p);
+        std::unique_ptr<T> p(ptr);
+        push_back(std::move(p));
     }
     void push_front(T *ptr) {
-        std::auto_ptr<T> p(ptr);
-        push_front(p);
+        std::unique_ptr<T> p(ptr);
+        push_front(std::move(p));
     }
 
     void pop_front() {
@@ -79,16 +79,16 @@ class ptrlist {
             data.pop_back();
         }
     }
-    std::auto_ptr<T> release_front() {
-        std::auto_ptr<T> result;
+    std::unique_ptr<T> release_front() {
+        std::unique_ptr<T> result;
         if (!data.empty()) {
             result.reset(data.front());
             data.pop_front();
         }
         return result;
     }
-    std::auto_ptr<T> release_back() {
-        std::auto_ptr<T> result;
+    std::unique_ptr<T> release_back() {
+        std::unique_ptr<T> result;
         if (!data.empty()) {
             result.reset(data.back());
             data.pop_back();
@@ -140,8 +140,8 @@ class ptrlist {
         }
         bool operator==(const iterator &other) const { return it == other.it; }
         bool operator!=(const iterator &other) const { return it != other.it; }
-        std::auto_ptr<T> release() const {
-            std::auto_ptr<T> result(*it);
+        std::unique_ptr<T> release() const {
+            std::unique_ptr<T> result(*it);
             *it = 0;
             return result;
         }

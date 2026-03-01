@@ -102,18 +102,18 @@ void sub_recogmanual_display::enter(bool is_day) {
     for (list<string>::iterator it = ship_ids.begin(); it != ship_ids.end(); it++) {
 
         try {
-            auto_ptr<image> img(new image(data_file_handler::instance().get_path(*it) + (*it) + "_silhouette.png"));
-            silhouettes.push_back(img);
+            std::unique_ptr<image> img(new image(data_file_handler::instance().get_path(*it) + (*it) + "_silhouette.png"));
+            silhouettes.push_back(std::move(img));
 
             xml_doc doc(data_file_handler::instance().get_filename(*it));
             doc.load();
             xml_elem elem = doc.child("dftd-ship"); // will this get destroyed on leaving function?
             elem = elem.child("shipmanual");
-            displacements.push_back(auto_ptr<string>(new string(elem.attr("displacement"))));
-            lengths.push_back(auto_ptr<string>(new string(elem.attr("length"))));
-            classes.push_back(auto_ptr<string>(new string(elem.attr("class"))));
-            weapons.push_back(auto_ptr<string>(new string(elem.attr("weapons"))));
-            countries.push_back(auto_ptr<string>(new string(elem.attr("countries"))));
+            displacements.push_back(std::unique_ptr<string>(new string(elem.attr("displacement"))));
+            lengths.push_back(std::unique_ptr<string>(new string(elem.attr("length"))));
+            classes.push_back(std::unique_ptr<string>(new string(elem.attr("class"))));
+            weapons.push_back(std::unique_ptr<string>(new string(elem.attr("weapons"))));
+            countries.push_back(std::unique_ptr<string>(new string(elem.attr("countries"))));
         } catch (exception &e) { // fixme: remove the try..catch when all silhouette files are on place
         }
     }

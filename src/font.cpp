@@ -32,7 +32,7 @@ using std::ifstream;
 using std::string;
 using std::vector;
 
-std::auto_ptr<glsl_shader_setup> font::shader;
+std::unique_ptr<glsl_shader_setup> font::shader;
 unsigned font::init_count = 0;
 unsigned font::loc_color = 0;
 unsigned font::loc_tex = 0;

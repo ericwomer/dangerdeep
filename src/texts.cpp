@@ -38,7 +38,7 @@ static const char *categoryfiles[texts::nr_of_categories] = {
     "languages",
     "formats"};
 
-auto_ptr<texts> texts_singleton_handler;
+std::unique_ptr<texts> texts_singleton_handler;
 
 vector<string> texts::available_language_codes;
 

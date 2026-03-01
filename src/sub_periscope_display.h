@@ -34,7 +34,7 @@ class sub_periscope_display : public freeview_display {
     void set_modelview_matrix(class game &gm, const vector3 &viewpos) const;
     void post_display(class game &gm) const;
 
-    std::auto_ptr<image> background;
+    std::unique_ptr<image> background;
     texture::ptr compassbar_tex;
     texture::ptr clock_hours_pointer;
     texture::ptr clock_minutes_pointer;
@@ -44,7 +44,7 @@ class sub_periscope_display : public freeview_display {
     bool use_hqsfx;
     texture::ptr viewtex;
     texture::ptr blurtex;
-    std::auto_ptr<glsl_shader_setup> glsl_blurview;
+    std::unique_ptr<glsl_shader_setup> glsl_blurview;
     unsigned loc_blur_texc_offset;
     unsigned loc_tex_view;
     unsigned loc_tex_blur;

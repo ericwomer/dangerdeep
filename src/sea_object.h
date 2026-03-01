@@ -247,7 +247,7 @@ class sea_object {
     // fixme: this is per model/type only. it is a waste to store it for every object
     std::string descr_near, descr_medium, descr_far; // read from spec file
 
-    std::auto_ptr<ai> myai; // created from spec file, but data needs to be saved, [SAVE]
+    std::unique_ptr<ai> myai; // created from spec file, but data needs to be saved, [SAVE]
 
     /// pointer to target or similar object.
     /// used by airplanes/ships/submarines to store a reference to their target.

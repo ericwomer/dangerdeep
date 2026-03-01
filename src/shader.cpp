@@ -44,10 +44,10 @@ bool glsl_shader::is_nvidia_card = false;
 
 const glsl_program *glsl_program::used_program = 0;
 
-std::auto_ptr<glsl_shader_setup> glsl_shader_setup::default_opaque;
-std::auto_ptr<glsl_shader_setup> glsl_shader_setup::default_col;
-std::auto_ptr<glsl_shader_setup> glsl_shader_setup::default_tex;
-std::auto_ptr<glsl_shader_setup> glsl_shader_setup::default_coltex;
+std::unique_ptr<glsl_shader_setup> glsl_shader_setup::default_opaque;
+std::unique_ptr<glsl_shader_setup> glsl_shader_setup::default_col;
+std::unique_ptr<glsl_shader_setup> glsl_shader_setup::default_tex;
+std::unique_ptr<glsl_shader_setup> glsl_shader_setup::default_coltex;
 unsigned glsl_shader_setup::loc_o_color = 0;
 unsigned glsl_shader_setup::idx_c_color = 0;
 unsigned glsl_shader_setup::loc_t_tex = 0;
@@ -156,7 +156,7 @@ glsl_shader::glsl_shader(const string &filename, type stype, const glsl_shader::
         throw runtime_error("can't create glsl shader");
     try {
         // read shader source
-        std::auto_ptr<ifstream> ifprg;
+        std::unique_ptr<ifstream> ifprg;
         if (stype == VERTEX || stype == FRAGMENT) {
             ifprg.reset(new ifstream(filename.c_str(), ios::in));
             if (ifprg->fail())

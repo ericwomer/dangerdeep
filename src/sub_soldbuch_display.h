@@ -28,10 +28,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 class sub_soldbuch_display : public user_display {
   protected:
-    std::auto_ptr<image> background;
-    std::auto_ptr<image> player_photo;
-    std::auto_ptr<image> primary_overlay;
-    std::auto_ptr<image> stamps;
+    std::unique_ptr<image> background;
+    std::unique_ptr<image> player_photo;
+    std::unique_ptr<image> primary_overlay;
+    std::unique_ptr<image> stamps;
 
   public:
     sub_soldbuch_display(class user_interface &ui_);

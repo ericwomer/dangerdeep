@@ -237,10 +237,10 @@ class glsl_shader_setup {
         return prog.get_vertex_attrib_index(name);
     }
 
-    static std::auto_ptr<glsl_shader_setup> default_opaque;
-    static std::auto_ptr<glsl_shader_setup> default_col;
-    static std::auto_ptr<glsl_shader_setup> default_tex;
-    static std::auto_ptr<glsl_shader_setup> default_coltex;
+    static std::unique_ptr<glsl_shader_setup> default_opaque;
+    static std::unique_ptr<glsl_shader_setup> default_col;
+    static std::unique_ptr<glsl_shader_setup> default_tex;
+    static std::unique_ptr<glsl_shader_setup> default_coltex;
     static unsigned loc_o_color;
     static unsigned idx_c_color;
     static unsigned loc_t_tex;

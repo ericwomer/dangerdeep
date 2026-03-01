@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class sub_bg_display : public user_display {
     class scheme {
       public:
-        std::auto_ptr<image> background;
+        std::unique_ptr<image> background;
         rotat_tex direction_ptr;
         fix_tex turn_wheel[6];
         scheme(bool day);
@@ -47,7 +47,7 @@ class sub_bg_display : public user_display {
         TK_NR = 1
     };
 
-    std::auto_ptr<scheme> myscheme;
+    std::unique_ptr<scheme> myscheme;
 
     turnknobtype turnknobdrag;
     std::vector<float> turnknobang;

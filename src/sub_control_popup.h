@@ -29,8 +29,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 class sub_control_popup : public user_popup {
   protected:
-    std::auto_ptr<image> background_daylight;
-    std::auto_ptr<image> background_nightlight;
+    std::unique_ptr<image> background_daylight;
+    std::unique_ptr<image> background_nightlight;
 
   public:
     sub_control_popup(class user_interface &ui_);

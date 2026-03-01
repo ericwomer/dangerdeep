@@ -32,7 +32,7 @@ class logbook_display : public user_display {
     const vector2i page_left_offset;
     const vector2i page_right_offset;
     const vector2i page_size;
-    std::auto_ptr<image> background;
+    std::unique_ptr<image> background;
     unsigned current_page;
     mutable unsigned nr_of_pages;
 

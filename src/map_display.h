@@ -57,13 +57,13 @@ class map_display : public user_display {
     // only used in editor mode
     // fixme: this should be part of the user interface, so that the editor panel
     // is available also in other screens...
-    std::auto_ptr<widget> edit_panel;
-    std::auto_ptr<widget> edit_panel_add;
-    std::auto_ptr<widget> edit_panel_chgmot;
-    std::auto_ptr<widget> edit_panel_time;
-    std::auto_ptr<widget> edit_panel_descr;
-    std::auto_ptr<widget> edit_panel_help;
-    std::auto_ptr<widget> edit_panel_convoy;
+    std::unique_ptr<widget> edit_panel;
+    std::unique_ptr<widget> edit_panel_add;
+    std::unique_ptr<widget> edit_panel_chgmot;
+    std::unique_ptr<widget> edit_panel_time;
+    std::unique_ptr<widget> edit_panel_descr;
+    std::unique_ptr<widget> edit_panel_help;
+    std::unique_ptr<widget> edit_panel_convoy;
     widget *edit_btn_del;
     widget *edit_btn_chgmot;
     widget *edit_btn_copy;

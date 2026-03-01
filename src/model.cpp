@@ -76,13 +76,13 @@ fixme: possible cleanup/simplification of rendering EVERYWHERE:
    But this would mean to use VBO only.
 */
 
-auto_ptr<glsl_shader_setup> model::glsl_plastic;
-auto_ptr<glsl_shader_setup> model::glsl_color;
-auto_ptr<glsl_shader_setup> model::glsl_color_normal;
-auto_ptr<glsl_shader_setup> model::glsl_color_normal_specular;
-auto_ptr<glsl_shader_setup> model::glsl_color_normal_caustic;
-auto_ptr<glsl_shader_setup> model::glsl_color_normal_specular_caustic;
-auto_ptr<glsl_shader_setup> model::glsl_mirror_clip;
+std::unique_ptr<glsl_shader_setup> model::glsl_plastic;
+std::unique_ptr<glsl_shader_setup> model::glsl_color;
+std::unique_ptr<glsl_shader_setup> model::glsl_color_normal;
+std::unique_ptr<glsl_shader_setup> model::glsl_color_normal_specular;
+std::unique_ptr<glsl_shader_setup> model::glsl_color_normal_caustic;
+std::unique_ptr<glsl_shader_setup> model::glsl_color_normal_specular_caustic;
+std::unique_ptr<glsl_shader_setup> model::glsl_mirror_clip;
 unsigned model::loc_c_tex_color;
 unsigned model::loc_cn_tex_normal;
 unsigned model::loc_cn_tex_color;
@@ -390,12 +390,12 @@ const char *model::mesh::name_primitive_type() const {
     }
 }
 
-std::auto_ptr<model::mesh::triangle_iterator> model::mesh::get_tri_iterator() const {
+std::unique_ptr<model::mesh::triangle_iterator> model::mesh::get_tri_iterator() const {
     switch (indices_type) {
     case pt_triangles:
-        return std::auto_ptr<triangle_iterator>(new triangle_iterator(indices));
+        return std::unique_ptr<triangle_iterator>(new triangle_iterator(indices));
     case pt_triangle_strip:
-        return std::auto_ptr<triangle_iterator>(new triangle_strip_iterator(indices));
+        return std::unique_ptr<triangle_iterator>(new triangle_strip_iterator(indices));
     default:
         throw std::runtime_error("invalid primitive type for mesh!");
     }
@@ -482,7 +482,7 @@ void model::mesh::compute_normals() {
     if (normals.size() != vertices.size()) {
         normals.clear();
         normals.resize(vertices.size());
-        std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+        std::unique_ptr<triangle_iterator> tit(get_tri_iterator());
         do {
             const vector3f &v0 = vertices[tit->i0()];
             const vector3f &v1 = vertices[tit->i1()];
@@ -518,7 +518,7 @@ void model::mesh::compute_normals() {
         righthanded.clear();
         righthanded.resize(vertices.size(), 0);
         vector<bool> vertexok(vertices.size());
-        std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+        std::unique_ptr<triangle_iterator> tit(get_tri_iterator());
         do {
             unsigned i0 = tit->i0();
             unsigned i1 = tit->i1();
@@ -729,7 +729,7 @@ bool model::mesh::intersects(const mesh &other, const matrix4f &transformation_t
     // we need to handle transformation of meshes.
     // compare transformed vertices: T * v == o.T * o.v
     // equivalent to v == T^-1 * o.T * o.v
-    std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+    std::unique_ptr<triangle_iterator> tit(get_tri_iterator());
     // std::cout << "check intersection\n";
     do {
         const vector3f &v0_ = vertices[tit->i0()];
@@ -739,7 +739,7 @@ bool model::mesh::intersects(const mesh &other, const matrix4f &transformation_t
             vector3f v0 = transformation_this_to_other * v0_;
             vector3f v1 = transformation_this_to_other * v1_;
             vector3f v2 = transformation_this_to_other * v2_;
-            std::auto_ptr<triangle_iterator> otit(other.get_tri_iterator());
+            std::unique_ptr<triangle_iterator> otit(other.get_tri_iterator());
             do {
                 const vector3f &v3 = other.vertices[otit->i0()];
                 const vector3f &v4 = other.vertices[otit->i1()];
@@ -1016,7 +1016,7 @@ bool model::mesh::is_inside(const vector3f &p) const {
        if (b cross c) * d >= 0 then A,B,C is facing D.
     */
     int in_out_count = 0;
-    std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+    std::unique_ptr<triangle_iterator> tit(get_tri_iterator());
     do {
         unsigned i0 = tit->i0();
         unsigned i1 = tit->i1();
@@ -1046,7 +1046,7 @@ bool model::mesh::is_inside(const vector3f &p) const {
  */
 double model::mesh::compute_volume() const {
     double vsum = 0;
-    std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+    std::unique_ptr<triangle_iterator> tit(get_tri_iterator());
     do {
         unsigned i0 = tit->i0();
         unsigned i1 = tit->i1();
@@ -1075,7 +1075,7 @@ double model::mesh::compute_volume() const {
 vector3 model::mesh::compute_center_of_gravity() const {
     vector3 vsum;
     double vdiv = 0;
-    std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+    std::unique_ptr<triangle_iterator> tit(get_tri_iterator());
     do {
         unsigned i0 = tit->i0();
         unsigned i1 = tit->i1();
@@ -1187,7 +1187,7 @@ matrix3 model::mesh::compute_inertia_tensor(const matrix4f &transmat) const {
     const double mass = 1.0; // is just a scalar to the matrix
     const vector3 center_of_gravity = transmat.mul4vec3xlat(compute_center_of_gravity());
     double vdiv = 0;
-    std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+    std::unique_ptr<triangle_iterator> tit(get_tri_iterator());
     do {
         unsigned i0 = tit->i0();
         unsigned i1 = tit->i1();
@@ -1227,7 +1227,7 @@ matrix3 model::mesh::compute_inertia_tensor(const matrix4f &transmat) const {
 void model::mesh::compute_bv_tree() {
     // build leaf nodes for every triangle of m
     std::list<bv_tree::leaf_data> leaf_nodes;
-    std::auto_ptr<triangle_iterator> tit(get_tri_iterator());
+    std::unique_ptr<triangle_iterator> tit(get_tri_iterator());
     unsigned tri_index = 0;
     do {
         bv_tree::leaf_data ld;
@@ -2140,7 +2140,7 @@ void model::read_dftd_model_file(const std::string &filename) {
         if (etype == "material") {
             // materials.
             bool is_shader_material = e.has_child("shader");
-            std::auto_ptr<material> mat;
+            std::unique_ptr<material> mat;
             material_glsl *matglsl = 0;
             if (is_shader_material) {
                 xml_elem es = e.child("shader");

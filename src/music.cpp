@@ -210,69 +210,69 @@ void music::request_abort() {
 // -------------------- commands --------------------
 
 bool music::append_track(const std::string &filename) {
-    return command_queue.send(std::auto_ptr<message>(new command_append_track(*this, filename)));
+    return command_queue.send(std::unique_ptr<message>(new command_append_track(*this, filename)));
 }
 
 bool music::set_playback_mode(playback_mode pbm) {
-    return command_queue.send(std::auto_ptr<message>(new command_set_playback_mode(*this, pbm)));
+    return command_queue.send(std::unique_ptr<message>(new command_set_playback_mode(*this, pbm)));
 }
 
 bool music::play(unsigned fadein) {
-    return command_queue.send(std::auto_ptr<message>(new command_play(*this, fadein)));
+    return command_queue.send(std::unique_ptr<message>(new command_play(*this, fadein)));
 }
 
 bool music::stop(unsigned fadeout) {
-    return command_queue.send(std::auto_ptr<message>(new command_stop(*this, fadeout)));
+    return command_queue.send(std::unique_ptr<message>(new command_stop(*this, fadeout)));
 }
 
 bool music::pause() {
-    return command_queue.send(std::auto_ptr<message>(new command_pause(*this)));
+    return command_queue.send(std::unique_ptr<message>(new command_pause(*this)));
 }
 
 bool music::resume() {
-    return command_queue.send(std::auto_ptr<message>(new command_resume(*this)));
+    return command_queue.send(std::unique_ptr<message>(new command_resume(*this)));
 }
 
 bool music::set_music_position(float pos) {
-    return command_queue.send(std::auto_ptr<message>(new command_set_music_position(*this, pos)));
+    return command_queue.send(std::unique_ptr<message>(new command_set_music_position(*this, pos)));
 }
 
 bool music::play_track(unsigned nr, unsigned fadeouttime, unsigned fadeintime) {
-    return command_queue.send(std::auto_ptr<message>(new command_play_track(*this, nr, fadeouttime, fadeintime)));
+    return command_queue.send(std::unique_ptr<message>(new command_play_track(*this, nr, fadeouttime, fadeintime)));
 }
 
 bool music::track_finished() {
-    return command_queue.send(std::auto_ptr<message>(new command_track_finished(*this)), false);
+    return command_queue.send(std::unique_ptr<message>(new command_track_finished(*this)), false);
 }
 
 std::vector<std::string> music::get_playlist() {
     std::vector<std::string> myplaylist;
-    command_queue.send(std::auto_ptr<message>(new command_get_playlist(*this, myplaylist)));
+    command_queue.send(std::unique_ptr<message>(new command_get_playlist(*this, myplaylist)));
     return myplaylist;
 }
 
 unsigned music::get_current_track() {
     unsigned track = 0;
-    command_queue.send(std::auto_ptr<message>(new command_get_current_track(*this, track)));
+    command_queue.send(std::unique_ptr<message>(new command_get_current_track(*this, track)));
     return track;
 }
 
 bool music::is_playing() {
     bool isply = false;
-    command_queue.send(std::auto_ptr<message>(new command_is_playing(*this, isply)));
+    command_queue.send(std::unique_ptr<message>(new command_is_playing(*this, isply)));
     return isply;
 }
 
 bool music::play_sfx(const std::string &category, const vector3 &listener, angle listener_dir, const vector3 &noise_pos) {
-    return command_queue.send(std::auto_ptr<message>(new command_play_sfx(*this, category, listener, listener_dir, noise_pos)));
+    return command_queue.send(std::unique_ptr<message>(new command_play_sfx(*this, category, listener, listener_dir, noise_pos)));
 }
 
 bool music::play_sfx_machine(const std::string &name, unsigned throttle) {
-    return command_queue.send(std::auto_ptr<message>(new command_play_sfx_machine(*this, name, throttle)));
+    return command_queue.send(std::unique_ptr<message>(new command_play_sfx_machine(*this, name, throttle)));
 }
 
 bool music::pause_sfx(bool on) {
-    return command_queue.send(std::auto_ptr<message>(new command_pause_sfx(*this, on)));
+    return command_queue.send(std::unique_ptr<message>(new command_pause_sfx(*this, on)));
 }
 
 // -------------------- command exec --------------------

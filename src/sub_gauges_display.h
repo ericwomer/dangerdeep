@@ -42,15 +42,15 @@ class sub_gauges_display : public user_display {
         angle get_angle(int mx, int my) const;
     };
 
-    std::auto_ptr<image> controlscreen;
+    std::unique_ptr<image> controlscreen;
 
-    std::auto_ptr<indicator> indicator_compass;
-    std::auto_ptr<indicator> indicator_bow_depth_rudder;
-    std::auto_ptr<indicator> indicator_stern_depth_rudder;
-    std::auto_ptr<indicator> indicator_depth;
-    std::auto_ptr<indicator> indicator_knots;
-    std::auto_ptr<indicator> indicator_main_rudder;
-    std::auto_ptr<indicator> indicator_mt;
+    std::unique_ptr<indicator> indicator_compass;
+    std::unique_ptr<indicator> indicator_bow_depth_rudder;
+    std::unique_ptr<indicator> indicator_stern_depth_rudder;
+    std::unique_ptr<indicator> indicator_depth;
+    std::unique_ptr<indicator> indicator_knots;
+    std::unique_ptr<indicator> indicator_main_rudder;
+    std::unique_ptr<indicator> indicator_mt;
 
     // old control screen, now for type II had these indicators:
     //	enum { compass, battery, compressor, diesel, bow_depth_rudder, stern_depth_rudder,

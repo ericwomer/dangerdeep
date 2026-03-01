@@ -81,8 +81,8 @@ int mymain(list<string> &args) {
     sys().set_max_fps(60);
 
     list<string>::iterator it = ++args.begin();
-    std::auto_ptr<model> modelA(new model(*it++));
-    std::auto_ptr<model> modelB(new model(*it++));
+    std::unique_ptr<model> modelA(new model(*it++));
+    std::unique_ptr<model> modelB(new model(*it++));
     modelA->register_layout(model::default_layout);
     modelB->register_layout(model::default_layout);
     modelA->set_layout(model::default_layout);
@@ -249,8 +249,8 @@ int mymain(list<string> &args) {
             const bv_tree &b1 = modelA->get_base_mesh().get_bv_tree();
             b0.collect_volumes_of_tree_depth(volumesA, splevel);
             b1.collect_volumes_of_tree_depth(volumesB, splevel);
-            std::auto_ptr<model::material> mat0(new model::material());
-            std::auto_ptr<model::material> mat1(new model::material());
+            std::unique_ptr<model::material> mat0(new model::material());
+            std::unique_ptr<model::material> mat1(new model::material());
             mat0->diffuse = color(255, 255, 255, 128);
             mat1->diffuse = color(128, 32, 32, 128);
             ptrvector<model::mesh> spheresA, spheresB;
