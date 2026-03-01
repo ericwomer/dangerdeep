@@ -224,6 +224,7 @@ void sonar_operator::load(const xml_elem &parent) {
 
 void sonar_operator::save(xml_elem &parent) const {
     xml_elem so = parent.add_child("sonar_operator");
+    (void)so;
 
     // 	states state;
     // 	angle current_angle;

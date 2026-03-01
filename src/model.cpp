@@ -777,6 +777,7 @@ void model::mesh::compile() {
         if (mymaterial->normalmap.get())
             has_texture_u1 = true;
     }
+    (void)has_texture_u1;
     const unsigned vs = vertices.size();
 
     // vertices
@@ -1058,6 +1059,7 @@ double model::mesh::compute_volume() const {
         vector3 b = B - D;
         vector3 c = C - D;
         vector3 abcd = A + B + C + D;
+        (void)abcd;
         double V_i = (1.0 / 6.0) * (b.cross(c) * a);
         vsum += V_i;
     } while (tit->next());
@@ -1548,6 +1550,7 @@ void model::mesh::display(const texture *caustic_map) const {
         if (mymaterial->normalmap.get())
             has_texture_u1 = true;
     }
+    (void)has_texture_u1;
 
     // set up vertex data.
     vbo_positions.bind();

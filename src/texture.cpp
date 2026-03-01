@@ -102,7 +102,7 @@ sdl_image::sdl_image(const std::string &filename)
     // get extension
     string::size_type st = filename.rfind(".");
     string extension = filename.substr(st);
-    Uint32 *sdl_color_key; // used for the color key
+    Uint32 sdl_color_key = 0; // used for the color key
 
     if (extension != ".jpg|png") {
         // standard texture, just one file
@@ -124,7 +124,7 @@ sdl_image::sdl_image(const std::string &filename)
         if (teximagergb->format->BytesPerPixel != 3 || (teximagergb->format->Amask != 0))
             throw texture::texerror(fnrgb, ".jpg: no 3 byte/pixel RGB image!");
 
-        if (teximagea->format->BytesPerPixel != 1 || teximagea->format->palette == 0 || teximagea->format->palette->ncolors != 256 || ((SDL_GetColorKey(img, sdl_color_key) != -1))) // !Rake: if SDL_GetColorKey == -1 colorkey was not enabled.
+        if (teximagea->format->BytesPerPixel != 1 || teximagea->format->palette == 0 || teximagea->format->palette->ncolors != 256 || ((SDL_GetColorKey(teximagea.get_SDL_Surface(), &sdl_color_key) != -1))) // !Rake: if SDL_GetColorKey == -1 colorkey was not enabled.
             throw texture::texerror(fna, ".png: no 8bit greyscale non-alpha-channel image!");
 
         Uint32 rmask, gmask, bmask, amask;
@@ -302,8 +302,8 @@ void texture::sdl_init(SDL_Surface *teximage, unsigned sx, unsigned sy, unsigned
             unsigned char *offset = ((unsigned char *)(teximage->pixels)) + sy * teximage->pitch + sx;
 
             // This is used to set the color key to the value, if set, for the color key.
-            Uint32 *sdl_color_key;
-            SDL_GetColorKey(teximage, sdl_color_key);
+            Uint32 sdl_color_key = 0;
+            SDL_GetColorKey(teximage, &sdl_color_key);
             for (unsigned y = 0; y < sh; y++) {
                 unsigned char *ptr2 = ptr;
                 for (unsigned x = 0; x < sw; ++x) {
@@ -313,7 +313,7 @@ void texture::sdl_init(SDL_Surface *teximage, unsigned sx, unsigned sy, unsigned
                     *ptr2++ = pixcolor.g;
                     *ptr2++ = pixcolor.b;
                     if (usealpha)
-                        *ptr2++ = (pixindex == (*sdl_color_key & 0xff)) ? 0x00 : 0xff; // !Rake: Hope this works
+                        *ptr2++ = (pixindex == (sdl_color_key & 0xff)) ? 0x00 : 0xff; // !Rake: Hope this works
                 }
                 // old color table code, does not work
                 // memcpy(ptr, offset, sw);

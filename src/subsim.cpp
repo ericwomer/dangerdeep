@@ -363,6 +363,7 @@ game::run_state game__exec(game &gm, user_interface &ui) {
     unsigned frames = 1;
     unsigned lasttime = sys().millisec();
     unsigned lastframes = 1;
+    (void)lastframes;
     double fpstime = 0;
     double totaltime = 0;
     double measuretime = 5; // seconds

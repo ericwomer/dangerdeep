@@ -337,7 +337,8 @@ vector2i font::get_size(const string &text) const {
                 else
                     nr[i] = 0;
             }
-            --ti; // compensate for(...++ti)
+            (void)nr; // color info parsed, reserved for future use
+            --ti;     // compensate for(...++ti)
         } else if (unsigned(c) >= first_char && unsigned(c) <= last_char) {
             unsigned t = unsigned(c) - first_char;
             x += characters[t].width + spacing;

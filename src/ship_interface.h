@@ -56,6 +56,8 @@ class ship_interface : public user_interface {
     void display_damagestatus(class game &gm);
 
   public:
+    using user_interface::display;
+
     ship_interface(ship *player_ship, class game &gm);
     virtual ~ship_interface();
 

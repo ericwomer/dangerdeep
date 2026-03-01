@@ -53,6 +53,7 @@ sub_bg_display::sub_bg_display(user_interface &ui_)
 
 void sub_bg_display::process_input(class game &gm, const SDL_Event &event) {
     int mx, my, mb;
+    (void)mb;
 
     if (!myscheme.get())
         throw error("sub_bg_display::process_input without scheme!");

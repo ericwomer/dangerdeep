@@ -124,7 +124,8 @@ system::system(const parameters &params_) : params(params_),
     // ...hopefully.
 
     // SDL_DisplayMode* modes = new(SDL_DisplayMode);
-    int numdisplays = 0, displayindex = 0; // displayindex can always be 0 here since its only for testing on one monitor/display
+    int numdisplays = 0, displayindex = 0;
+    (void)numdisplays; // displayindex can always be 0 here since its only for testing on one monitor/display
 
     numdisplays = SDL_GetNumVideoDisplays();
 

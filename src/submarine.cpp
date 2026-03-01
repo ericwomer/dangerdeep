@@ -311,6 +311,7 @@ void submarine::load(const xml_elem &parent) {
 #endif
 
     xml_elem tk = parent.child("tanks");
+    (void)tk;
     for (xml_elem::iterator it = tp.iterate("tank"); !it.end(); it.next()) {
         xml_elem e = it.elem();
         unsigned id = e.attru("nr");

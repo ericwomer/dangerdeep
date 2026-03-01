@@ -105,13 +105,13 @@ widget::widget(xml_elem &elem, widget *_parent)
 }
 
 widget_text::widget_text(xml_elem &elem, widget *_parent)
-    : widget(elem, parent) {
+    : widget(elem, _parent) {
     if (elem.has_attr("align_x") && elem.has_attr("align_y"))
         align(elem.attri("align_x"), elem.attri("align_y"));
 }
 
 widget_checkbox::widget_checkbox(xml_elem &elem, widget *_parent)
-    : widget(elem, parent) {
+    : widget(elem, _parent) {
     if (elem.has_attr("checked"))
         checked = elem.attrb("checked");
     else
@@ -121,7 +121,7 @@ widget_checkbox::widget_checkbox(xml_elem &elem, widget *_parent)
 }
 
 widget_button::widget_button(xml_elem &elem, widget *_parent)
-    : widget(elem, parent), pressed(false) {
+    : widget(elem, _parent), pressed(false) {
     if (elem.has_attr("align_x") && elem.has_attr("align_y"))
         align(elem.attri("align_x"), elem.attri("align_y"));
 }
@@ -1195,7 +1195,7 @@ void widget_list::sort_entries() {
 }
 
 void widget_list::make_entries_unique() {
-    unique(entries.begin(), entries.end());
+    entries.erase(unique(entries.begin(), entries.end()), entries.end());
     unsigned es = entries.size();
     if (es == 1)
         set_selected(0); // set to first entry

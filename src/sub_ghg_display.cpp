@@ -50,6 +50,7 @@ sub_ghg_display::sub_ghg_display(user_interface &ui_)
 
 void sub_ghg_display::process_input(class game &gm, const SDL_Event &event) {
     int mx, my, mb;
+    (void)mb;
 
     // fixme: errors like this are rather bug indicators. they should throw a special
     // exception or rather use an assert like thing etc. same for many other screens.

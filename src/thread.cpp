@@ -116,13 +116,6 @@ void thread::request_abort() {
 }
 
 void thread::start() {
-
-    if (this == nullptr) {
-        std::cout << "Error this is null" << std::endl;
-    } else {
-        std::cout << "this->myname = " << this->myname << std::endl;
-    }
-
     std::cout << "this->myname " << this->myname << std::endl;
     if (thread_abort_request)
         throw error("thread abort requested, but start() called");
@@ -132,7 +125,7 @@ void thread::start() {
         throw error("thread already started, but start() called again");
 
     thread_id = SDL_CreateThread(thread_entry, this->myname, this);
-    if (&thread_id == NULL) {
+    if (thread_id == NULL) {
         throw sdl_error("thread start failed");
     }
     // we could wait with timeout, but how long? init could take any time...

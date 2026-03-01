@@ -49,6 +49,8 @@ class airplane_interface : public user_interface {
     virtual void display_damagestatus(game &gm) {}
 
   public:
+    using user_interface::display;
+
     airplane_interface(airplane *player_plane, class game &gm);
     virtual ~airplane_interface();
 

@@ -772,6 +772,7 @@ void show_credits() {
     unsigned tm0 = tm;
     unsigned frames = 1;
     unsigned lastframes = 1;
+    (void)lastframes;
     double fpstime = sys().millisec() / 1000.0;
     double totaltime = sys().millisec() / 1000.0;
     double measuretime = 5; // seconds

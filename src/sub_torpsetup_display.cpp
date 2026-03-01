@@ -97,6 +97,7 @@ void sub_torpsetup_display::process_input(class game &gm, const SDL_Event &event
         throw error("sub_torpsetup_display::process_input without scheme!");
     const scheme &s = *myscheme;
     int mx, my, mb;
+    (void)mb;
     switch (event.type) {
     case SDL_MOUSEBUTTONDOWN:
         mx = sys().translate_position_x(event);

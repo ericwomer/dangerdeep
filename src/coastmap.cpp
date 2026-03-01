@@ -668,6 +668,7 @@ void coastmap::divide_and_distribute_cl(const vector<vector2i> &cl, bool clcycli
                     border = 0;
                 }
             }
+            (void)border; // used in ASSERT below in debug
             //			cout << "mint "<< mint<<" border "<<border <<"\n";
             //			cout << "p0: " << p0 << " p1 " << p1 << " dekta " << delta << "\n";
             ASSERT(border != -1, "paranoia mint");
