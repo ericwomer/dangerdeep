@@ -64,6 +64,16 @@ Dependencias de sistema (las versiones son las que proporcione tu distro; no se 
 
 Puedes **actualizar** las dependencias con lo que ofrezca tu sistema (p. ej. en Debian/Ubuntu: `sudo apt update && sudo apt upgrade`). Al reconfigurar y recompilar, el proyecto usará las versiones instaladas. Si CMake muestra versiones al configurar (SDL2_MIXER_VERSION, etc.), son las que está usando.
 
+### Posibles mejoras de dependencias
+
+| Cambio | ¿Se puede? | Esfuerzo y notas |
+|--------|------------|-------------------|
+| **SDL2 → SDL3** | Sí | Medio–alto. API distinta (ventana, eventos, etc.) en muchas fuentes. SDL3 mejora Wayland y es la línea futura. |
+| **FFTW3 → “FFTW4”** | No | No existe FFTW4; la rama estable actual es FFTW 3.3.x. El proyecto ya usa FFTW3. |
+| **bzip2 → otro compresor** | Sí | Medio. Uso acotado: `bzip.h`/`bzip.cpp` y datos de tiles (`.bz2`). Se puede sustituir por **zstd** o **zlib** con una capa tipo stream similar; habría que reconvertir/recomprimir datos o soportar ambos formatos. |
+| **OpenGL → Vulkan** | Sí, en teoría | Muy alto. Todo el render (shaders, texturas, modelos, agua, cielo, oglext, etc.) está en OpenGL. Implica reescribir el pipeline de render. |
+| **X11 → Wayland** | Parcial / indirecto | El juego usa **SDL** para ventana e input; con SDL2 ya se puede usar Wayland si el sistema y la build de SDL lo permiten. El único uso directo de X11 está en `dftdtester` (herramienta de pruebas). Pasar a SDL3 mejoraría el soporte Wayland sin tocar X11 a mano. |
+
 El código usa C++17 (p. ej. `std::unique_ptr`, `std::make_unique`; disponibles `std::optional`, structured bindings, `std::filesystem`).
 
 ---
@@ -177,6 +187,7 @@ Para el reporte de cobertura se usa **lcov** con *branch coverage*; instalación
 | `src/`         | Código C++ (simulación, gráficos, UI) |
 | `data/`        | Datos del juego (modelos, texturas, sonidos, mapas; parte vía Git LFS) |
 | `cmake/`       | Módulos de CMake |
+| `docs/`        | Documentación adicional (p. ej. [REFACTORING.md](docs/REFACTORING.md) con plan de refactor) |
 | `packaging/`   | Scripts para empaquetado (p. ej. Ubuntu) |
 
 Stack: SDL2 (vídeo, imagen, audio), OpenGL, FFTW, BZip2, TinyXML, X11.  
