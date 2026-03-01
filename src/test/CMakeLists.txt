@@ -63,6 +63,46 @@ add_executable(string_split_test ${TEST_DIR}/string_split_test.cpp ${SRC_PARENT}
 target_link_libraries(string_split_test ${LIBS})
 add_test(NAME string_split_test COMMAND string_split_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
+# vector4_test: vector4.h
+add_executable(vector4_test ${TEST_DIR}/vector4_test.cpp)
+target_link_libraries(vector4_test ${LIBS})
+add_test(NAME vector4_test COMMAND vector4_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# plane_test: plane.h + vector3.h
+add_executable(plane_test ${TEST_DIR}/plane_test.cpp)
+target_link_libraries(plane_test ${LIBS})
+add_test(NAME plane_test COMMAND plane_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# sphere_test: sphere.h
+add_executable(sphere_test ${TEST_DIR}/sphere_test.cpp)
+target_link_libraries(sphere_test ${LIBS})
+add_test(NAME sphere_test COMMAND sphere_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# matrix3_test: matrix3.h + matrix.h
+add_executable(matrix3_test ${TEST_DIR}/matrix3_test.cpp)
+target_link_libraries(matrix3_test ${LIBS})
+add_test(NAME matrix3_test COMMAND matrix3_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# quaternion_test: quaternion.h (matrix4, vector3)
+add_executable(quaternion_test ${TEST_DIR}/quaternion_test.cpp)
+target_link_libraries(quaternion_test ${LIBS})
+add_test(NAME quaternion_test COMMAND quaternion_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# triangle_intersection_test: triangle_intersection.h
+add_executable(triangle_intersection_test ${TEST_DIR}/triangle_intersection_test.cpp)
+target_link_libraries(triangle_intersection_test ${LIBS})
+add_test(NAME triangle_intersection_test COMMAND triangle_intersection_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# keys_test: keys.h + keys.cpp
+add_executable(keys_test ${TEST_DIR}/keys_test.cpp ${SRC_PARENT}/keys.cpp)
+target_link_libraries(keys_test ${LIBS})
+add_test(NAME keys_test COMMAND keys_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# bitstream_test: bitstream.h + bitstream.cpp
+add_executable(bitstream_test ${TEST_DIR}/bitstream_test.cpp ${SRC_PARENT}/bitstream.cpp)
+target_link_libraries(bitstream_test ${LIBS})
+add_test(NAME bitstream_test COMMAND bitstream_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
 # mutex_test: mutex + error (requieren SDL2)
 add_executable(mutex_test ${TEST_DIR}/mutex_test.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp)
 target_link_libraries(mutex_test ${LIBS})
