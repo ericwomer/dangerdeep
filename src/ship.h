@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <map>
 
 class game;
+class particle;
 
 ///\brief Base class for all ships and ship-like objects: ships, submarines, torpedoes.
 /** Handles steering and rudder simulation,

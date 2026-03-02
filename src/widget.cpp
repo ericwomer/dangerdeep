@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texts.h"
 #include "texture.h"
 #include "widget.h"
+#include "xml.h"
 #include <algorithm>
 #include <set>
 #include <sstream>

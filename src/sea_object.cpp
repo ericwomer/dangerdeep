@@ -29,9 +29,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "log.h"
 #include "model.h"
 #include "sensors.h"
+#include "sonar.h"
 #include "system.h"
 #include "texts.h"
 #include "vector2.h"
+#include "xml.h"
 using std::list;
 using std::string;
 

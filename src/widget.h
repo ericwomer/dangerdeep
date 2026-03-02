@@ -28,7 +28,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "model.h"
 #include "objcache.h"
 #include "vector2.h"
-#include "xml.h"
 #include <list>
 #include <string>
 #include <typeinfo>
@@ -36,6 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // Forward declarations
 class image;
 class texture;
+class xml_elem;
 
 // fixme: add image-widget
 
@@ -47,7 +47,7 @@ class texture;
 // make a special flag: widget* wait_for?
 // process_input(){if (wait_for)wait_for->process_input();else ...old...;} ?
 // ein widget.close fehlt. close:= parent.remove(this), wenn parent==0 dann globale liste nach this
-// durchsuchen. run() lùuft dann bis globale liste leer ist.
+// durchsuchen. run() l?uft dann bis globale liste leer ist.
 
 // more widgets: progress bar
 

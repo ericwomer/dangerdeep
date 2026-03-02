@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "sea_object.h"
 
+class ship;
+
 #define AIR_RESISTANCE 0.05 // factor of velocity that gets subtracted
                             // from it to slow the shell down
 

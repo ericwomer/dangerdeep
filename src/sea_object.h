@@ -28,17 +28,23 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <stdexcept>
 #include <string>
 
-#include "ai.h"
 #include "angle.h"
 #include "countrycodes.h"
 #include "matrix3.h"
 #include "objcache.h"
 #include "polygon.h"
 #include "quaternion.h"
-#include "sensors.h"
 #include "sonar.h"
 #include "vector3.h"
-#include "xml.h"
+
+// Forward declarations
+class ai;
+class game;
+class sensor;
+class sensors;
+class texture;
+class model;
+class xml_elem;
 
 /*
 fixme: global todo (2004/06/26):
