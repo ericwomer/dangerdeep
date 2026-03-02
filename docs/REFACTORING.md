@@ -23,12 +23,16 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 ## Prioridad alta (impacto en acoplamiento / compilación)
 
 1. **Migración SDL2 → SDL3**
-   - **Estado**: ⚠️ **Trabajo en progreso** en branch `feature/sdl3-migration` (2026-03-02).
-   - **Progreso**: ~60% completado. CMakeLists.txt actualizado, includes migrados, constantes y eventos actualizados. Ver `docs/SDL3_MIGRATION.md` en el branch para detalles.
-   - **Bloqueantes**: widget.h (dependencia SDL_Keysym), music.h (SDL3_mixer includes), constantes de teclas minúsculas.
-   - **Decisión**: Migración pausada por complejidad. SDL3 aún está en desarrollo y requiere cambios extensivos en la lógica de eventos. **Recomendación actual**: Mantener SDL2 hasta que SDL3 madure y el ecosistema esté más estable.
-   - **Branch**: `feature/sdl3-migration` disponible para continuar cuando SDL3 esté más maduro.
-   - **Referencia**: Ver `docs/SDL3_MIGRATION.md` para progreso detallado y pasos siguientes.
+   - **Estado**: 🚫 **Bloqueada** - SDL3_mixer incompatible (branch `feature/sdl3-migration`, 2026-03-02)
+   - **Progreso**: 75% completado (sin audio). Ver `docs/SDL3_MIGRATION.md` en branch para análisis completo.
+   - **Bloqueante crítico**: SDL3_mixer cambió completamente su API. Los tipos `Mix_Music` y `Mix_Chunk` ya no existen, reemplazados por `MIX_Mixer`, `MIX_Audio`, `MIX_Track`. Requiere reescritura completa del sistema de audio (~2000 líneas + 50 archivos).
+   - **Completado en branch**:
+     - ✅ CMakeLists.txt, includes, constantes (145+ archivos)
+     - ✅ Sistema de eventos y teclado completamente migrado
+     - ✅ widget.h refactorizado (nueva estructura `key_info`)
+     - ✅ Constantes de teclas actualizadas (SDLK_a → SDLK_A)
+   - **Decisión**: **Mantener SDL2 en master**. SDL3 aún no es viable para proyectos con audio complejo.
+   - **Revisión futura**: Evaluar en 6-12 meses cuando SDL3_mixer madure.
 
 ---
 
