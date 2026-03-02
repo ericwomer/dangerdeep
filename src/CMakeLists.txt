@@ -71,6 +71,7 @@ set(DFTDSOURCES
 	user_interface.cpp
 	water.cpp
 	water_splash.cpp
+	world.cpp
 	)
 
 set(DFTDMEDIASOURCES
