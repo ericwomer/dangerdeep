@@ -41,6 +41,7 @@ class cfg;
 class music;
 class sea_object;
 class ui_message_queue;
+class weather_renderer;
 
 ///\defgroup interfaces In-game user interfaces
 ///\brief Base class for a user interface for playing the game.
@@ -113,9 +114,8 @@ class user_interface {
     // is display in day mode (or night/redlight mode)?
     bool daymode;
 
-    // weather graphics
-    ptrvector<class texture> raintex; // images (animation) of rain drops
-    ptrvector<class texture> snowtex; // images (animation) of snow flakes
+    /// Weather renderer subsystem
+    std::unique_ptr<weather_renderer> myweather;
 
     // free view mode
     //	float freeviewsideang, freeviewupang;	// global spectators viewing angles

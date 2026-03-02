@@ -24,6 +24,8 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 
 - **Extraer subsistema de mensajes de user_interface:** Creado subsistema `ui_message_queue` para gestionar mensajes temporales que se desvanecen en pantalla. Antes, `user_interface` manejaba directamente una `std::list<std::pair<double, std::string>>` con lógica duplicada de fade-out y límite de mensajes. Ahora, `ui_message_queue` encapsula toda esta responsabilidad con métodos claros (`add_message`, `draw`, `cleanup`). Archivos nuevos: `ui_messages.h/cpp`. Modificados: `user_interface.h/cpp` (reemplazada lista manual por `std::unique_ptr<ui_message_queue>`). Bonus: restaurados `message_queue.h/cpp` (sistema de threading) que faltaban en el proyecto y actualizados de `std::auto_ptr` a `std::unique_ptr`. Beneficios: menor acoplamiento en user_interface (~20 líneas eliminadas), subsistema reutilizable y testeable, separación clara de responsabilidades. (Completado: 2026-03-02)
 
+- **Extraer subsistema de clima de user_interface:** Creado subsistema `weather_renderer` para gestionar efectos climáticos (lluvia y nieve). Antes, `user_interface` contenía ~100 líneas de código de inicialización de texturas animadas (#ifdef RAIN/SNOW) y ~30 líneas de renderizado. Ahora, `weather_renderer` encapsula toda la lógica de generación de texturas procedurales (gotas de lluvia, copos de nieve) y renderizado de planos billboarded en el frustum. Archivos nuevos: `weather_renderer.h/cpp`. Modificados: `user_interface.h/cpp` (reemplazados `ptrvector<texture> raintex/snowtex` por `std::unique_ptr<weather_renderer>`). Beneficios: user_interface ~130 líneas más ligero, código de clima autocontenido y testeable, facilita agregar nuevos efectos climáticos (niebla, tormentas). Los efectos están actualmente deshabilitados (#ifdef RAIN/SNOW no definidos) pero el sistema es limpio y fácil de reactivar. (Completado: 2026-03-02)
+
 ---
 
 ## Prioridad alta (impacto en acoplamiento / compilación)
@@ -45,9 +47,11 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 ## Prioridad media (responsabilidades y testabilidad)
 
 2. **Extraer responsabilidades de `user_interface` (continuar)**
-   - ✅ **COMPLETADO (parcial)**: Extraído subsistema `ui_message_queue` para mensajes temporales. Ver sección "Hecho" para detalles.
+   - ✅ **COMPLETADO (parcial)**: Extraídos dos subsistemas importantes:
+     - `ui_message_queue`: mensajes temporales (ver sección "Hecho")
+     - `weather_renderer`: efectos climáticos lluvia/nieve (ver sección "Hecho")
    - **Pendiente**: Agrupa más responsabilidades: pantallas, popups, panel, cielo, costa, geoclipmap, pausa.
-   - Opciones para próximos pasos: composición por "subsistemas" adicionales (p. ej. SkyManager, CoastRenderer, MessageQueue ya hecho) inyectados o creados en el constructor.
+   - Opciones para próximos pasos: composición por "subsistemas" adicionales (p. ej. SkyManager, CoastRenderer, GeoclipManager) inyectados o creados en el constructor.
 
 3. **Singletons → inyección (continuar)**
    - ✅ **COMPLETADO**: `game`, `user_interface` y displays ahora usan inyección de dependencias para `cfg`, `log` y `music`. Ver sección "Hecho" para detalles.

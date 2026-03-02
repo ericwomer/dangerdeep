@@ -73,6 +73,7 @@ set(DFTDSOURCES
 	ui_messages.cpp
 	water.cpp
 	water_splash.cpp
+	weather_renderer.cpp
 	world.cpp
 	)
 
