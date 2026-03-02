@@ -202,7 +202,7 @@ void xml_elem::iterator::next() {
         e = e->NextSiblingElement();
 }
 
-xml_doc::xml_doc(std::string fn)
+xml_doc::xml_doc(const std::string &fn)
     : doc(new TiXmlDocument(fn)) {
 }
 

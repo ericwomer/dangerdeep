@@ -20,6 +20,8 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 
 - **Reducir código duplicado en sub_*_display:** Extraídos dos helpers comunes a `user_display` para eliminar el patrón repetitivo de prepare_2d_drawing() / draw_infopanel() / unprepare_2d_drawing() que aparecía en 11 displays. Creado `user_display.cpp` con las implementaciones de `draw_with_2d_and_panel()` (con flag para infopanel) y `draw_with_2d_and_panel_simple()` (siempre llama a draw_infopanel()). Refactorizados 11 displays: sub_bridge_display, sub_periscope_display, sub_uzo_display, sub_ghg_display, sub_tdc_display, sub_torpedo_display, sub_torpsetup_display, sub_valves_display, sub_recogmanual_display, sub_soldbuch_display, sub_kdb_display. Cada display ahora pasa una lambda con su lógica de dibujo personalizada. Beneficios: menos líneas de código repetido (~50 líneas eliminadas), patrón más consistente, facilita agregar logging o cambios globales en el futuro. Archivos: user_display.h/cpp (nuevos helpers), 11 archivos sub_*_display.cpp refactorizados, CMakeLists.txt (agregado user_display.cpp). (Completado: 2026-03-02)
 
+- **Const-correctness:** Mejorada la seguridad de tipos y const-correctness en clases clave. Marcados 4 métodos getter en `submarine` como `const`: `get_bridge_filename()`, `get_camera_position()`, `get_uzo_position()`, `get_freeview_position()`. Actualizado constructor de `xml_doc` para recibir `const std::string &` en lugar de copiar por valor. Estos cambios mejoran la expresividad del código (deja claro qué métodos modifican estado), previenen modificaciones accidentales, y mejoran la eficiencia (evitan copias innecesarias de strings). Archivos: submarine.h, xml.h, xml.cpp. (Completado: 2026-03-02)
+
 ---
 
 ## Prioridad alta (impacto en acoplamiento / compilación)
@@ -55,10 +57,7 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 
 ## Prioridad baja (limpieza y consistencia)
 
-4. **Const-correctness**
-   - Revisar firmas de métodos que no modifican estado y marcar como `const`; parámetros que no se modifican como `const &`.
-
-5. **Naming**
+4. **Naming**
    - El proyecto mezcla estilos (snake_case en nombres de clase). No cambiar todo de golpe; en código nuevo seguir un estilo coherente (p. ej. el ya usado en `sub_*_display`, `user_display`).
 
 ---

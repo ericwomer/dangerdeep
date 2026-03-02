@@ -241,10 +241,10 @@ class submarine : public ship {
     void set_target(sea_object *s);
 
     // get bridge data
-    std::string get_bridge_filename() { return bridge_model_name; }
-    vector3 get_camera_position() { return bridge_camera_pos; }
-    vector3 get_uzo_position() { return bridge_uzo_pos; }
-    vector3 get_freeview_position() { return bridge_freeview_pos; }
+    std::string get_bridge_filename() const { return bridge_model_name; }
+    vector3 get_camera_position() const { return bridge_camera_pos; }
+    vector3 get_uzo_position() const { return bridge_uzo_pos; }
+    vector3 get_freeview_position() const { return bridge_freeview_pos; }
 
     // fill available tubes with common types depending on time period (used for custom missions)
     virtual void init_fill_torpedo_tubes(const class date &d);
