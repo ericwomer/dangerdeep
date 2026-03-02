@@ -70,6 +70,7 @@ set(DFTDSOURCES
 	triangulate.cpp
 	user_display.cpp
 	user_interface.cpp
+	ui_messages.cpp
 	water.cpp
 	water_splash.cpp
 	world.cpp

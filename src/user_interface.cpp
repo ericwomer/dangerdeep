@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "depth_charge.h"
 #include "game.h"
 #include "gun_shell.h"
+#include "ui_messages.h"
 #include "model.h"
 #include "submarine.h" // needed for underwater sound reduction
 #include "submarine_interface.h"
@@ -56,9 +57,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "sky.h"
 #include "water.h"
 using namespace std;
-
-const double message_vanish_time = 10;
-const double message_fadeout_time = 2;
 
 #undef RAIN
 #undef SNOW
@@ -88,6 +86,7 @@ user_interface::user_interface(game &gm) : mygame(&gm),
                                            screen_selector_visible(false),
                                            playlist_visible(false),
                                            main_menu_visible(false),
+                                           mymessages(std::make_unique<ui_message_queue>()),
                                            bearing(0),
                                            elevation(90),
                                            bearing_is_relative(true),
@@ -609,34 +608,13 @@ void user_interface::draw_infopanel(bool onlytexts) const {
         panel->draw();
     }
 
-    // draw messages: fixme later move to separate function ?
-    double vanish_time = mygame->get_time() - message_vanish_time;
-    int y = (onlytexts ? sys().get_res_y_2d() : panel->get_pos().y) - font_vtremington12->get_height();
-    for (std::list<std::pair<double, std::string>>::const_reverse_iterator it = messages.rbegin();
-         it != messages.rend(); ++it) {
-        if (it->first < vanish_time)
-            break;
-        double alpha = std::min(1.0, (it->first - vanish_time) / message_fadeout_time);
-        font_vtremington12->print(0, y, it->second, color(255, 255, 255, Uint8(255 * alpha)), true);
-        y -= font_vtremington12->get_height();
-    }
+    // draw messages using message queue subsystem
+    int y = (onlytexts ? sys().get_res_y_2d() : panel->get_pos().y);
+    mymessages->draw(mygame->get_time(), y, font_vtremington12);
 }
 
 void user_interface::add_message(const string &s) {
-    // add message
-    messages.push_back(std::make_pair(mygame->get_time(), s));
-
-    // remove old messages
-    while (messages.size() > 6)
-        messages.pop_front();
-    double vanish_time = mygame->get_time() - message_vanish_time;
-    for (std::list<std::pair<double, std::string>>::iterator it = messages.begin(); it != messages.end();) {
-        if (it->first < vanish_time) {
-            it = messages.erase(it);
-        } else {
-            ++it;
-        }
-    }
+    mymessages->add_message(s, mygame->get_time());
 }
 
 void user_interface::play_sound_effect(const string &se,

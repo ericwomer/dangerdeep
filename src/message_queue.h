@@ -28,83 +28,86 @@
 #include <memory>
 
 /// a generic message, base class
-class message {
-  public:
-    typedef std::unique_ptr<message> ptr;
+class message
+{
+ public:
+	typedef std::unique_ptr<message> ptr;
+ private:
+	friend class message_queue;
+	bool needsanswer;
+	mutable bool result;
 
-  private:
-    friend class message_queue;
-    bool needsanswer;
-    mutable bool result;
+	// no copy
+	message(const message& );
+	message& operator= (const message& );
 
-    // no copy
-    message(const message &);
-    message &operator=(const message &);
+ protected:
+	/// evaluate the message. overload with your functionality.
+	///@note Failures should be reported with exceptions.
+	virtual void eval() const = 0;
 
-  protected:
-    /// evaluate the message. overload with your functionality.
-    ///@note Failures should be reported with exceptions.
-    virtual void eval() const = 0;
+ public:
+	/// create message
+	message() {}
 
-  public:
-    /// create message
-    message() {}
+	/// destroy message
+	virtual ~message() {}
 
-    /// destroy message
-    virtual ~message() {}
+	/// evaluate the message. Do not overload!
+	///@note Method is <b>not</b> virtual by intent. Do <b>not</b> overload. use eval() instead.
+	void evaluate() const;
 
-    /// evaluate the message. Do not overload!
-    ///@note Method is <b>not</b> virtual by intent. Do <b>not</b> overload. use eval() instead.
-    void evaluate() const;
-
-    /// get result of evaluation
-    bool get_result() const { return result; }
+	/// get result of evaluation
+	bool get_result() const { return result; }
 };
 
+
+
 /// an C++ message queue with generic messages
-class message_queue {
-  private:
-    // no copy
-    message_queue(const message_queue &);
-    message_queue &operator=(const message_queue &);
+class message_queue
+{
+ private:
+	// no copy
+	message_queue(const message_queue& );
+	message_queue& operator= (const message_queue& );
 
-  protected:
-    std::list<message *> myqueue; // fixme use ptrlist
-    mutex mymutex;
-    condvar emptycondvar;
-    condvar ackcondvar;
-    bool msginqueue;
-    bool abortwait;                // set to true by wakeup_receiver()
-    std::list<message *> ackqueue; // queue with acknowledged messages
+ protected:
+	std::list<message*> myqueue;//fixme use ptrlist
+	mutex mymutex;
+	condvar emptycondvar;
+	condvar ackcondvar;
+	bool msginqueue;
+	bool abortwait;	// set to true by wakeup_receiver()
+	std::list<message*> ackqueue; // queue with acknowledged messages
 
-  public:
-    /// create message queue
-    message_queue();
+ public:
+	/// create message queue
+	message_queue();
 
-    /// destroy message queue
-    ~message_queue();
+	/// destroy message queue
+	~message_queue();
 
-    /// send a message
-    ///@param msg - message to send
-    ///@param waitforanswer - true to send message synchronously (wait for reply with result)
-    ///@return result of answer or true when message is asynchronous
-    bool send(message::ptr msg, bool waitforanswer = true);
+	/// send a message
+	///@param msg - message to send
+	///@param waitforanswer - true to send message synchronously (wait for reply with result)
+	///@return result of answer or true when message is asynchronous
+	bool send(message::ptr msg, bool waitforanswer = true);
 
-    /// wakeup thread waiting for a message
-    void wakeup_receiver();
+	/// wakeup thread waiting for a message
+	void wakeup_receiver();
 
-    /// wait for a messages
-    ///@param wait - if true block while queue is empty, if false only test and do not block
-    ///@return list of messages
-    std::list<message *> receive(bool wait = true);
+	/// wait for a messages
+	///@param wait - if true block while queue is empty, if false only test and do not block
+	///@return list of messages
+	std::list<message*> receive(bool wait = true);
 
-    /// acknowledge received message.
-    ///@note Must be called for every message passed from the receive function!
-    void acknowledge(message *msg);
+	/// acknowledge received message.
+	///@note Must be called for every message passed from the receive function!
+	void acknowledge(message* msg);
 
-    /// process all messages, that is wait for messages, run eval() for every message and ack them
-    ///@param wait - true: block if queue is empty
-    void process_messages(bool wait = true);
+	/// process all messages, that is wait for messages, run eval() for every message and ack them
+	///@param wait - true: block if queue is empty
+	void process_messages(bool wait = true);
 };
 
 #endif

@@ -40,6 +40,7 @@ class water;
 class cfg;
 class music;
 class sea_object;
+class ui_message_queue;
 
 ///\defgroup interfaces In-game user interfaces
 ///\brief Base class for a user interface for playing the game.
@@ -83,8 +84,8 @@ class user_interface {
     std::unique_ptr<class widget> main_menu;
     bool main_menu_visible;
 
-    /// holds the last n messages. They're displayed above the panel and fading out over time.
-    std::list<std::pair<double, std::string>> messages;
+    /// Message queue subsystem for managing timed messages
+    std::unique_ptr<ui_message_queue> mymessages;
 
     // used in various screens
     angle bearing;

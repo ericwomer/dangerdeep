@@ -22,6 +22,8 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 
 - **Const-correctness:** Mejorada la seguridad de tipos y const-correctness en clases clave. Marcados 4 métodos getter en `submarine` como `const`: `get_bridge_filename()`, `get_camera_position()`, `get_uzo_position()`, `get_freeview_position()`. Actualizado constructor de `xml_doc` para recibir `const std::string &` en lugar de copiar por valor. Estos cambios mejoran la expresividad del código (deja claro qué métodos modifican estado), previenen modificaciones accidentales, y mejoran la eficiencia (evitan copias innecesarias de strings). Archivos: submarine.h, xml.h, xml.cpp. (Completado: 2026-03-02)
 
+- **Extraer subsistema de mensajes de user_interface:** Creado subsistema `ui_message_queue` para gestionar mensajes temporales que se desvanecen en pantalla. Antes, `user_interface` manejaba directamente una `std::list<std::pair<double, std::string>>` con lógica duplicada de fade-out y límite de mensajes. Ahora, `ui_message_queue` encapsula toda esta responsabilidad con métodos claros (`add_message`, `draw`, `cleanup`). Archivos nuevos: `ui_messages.h/cpp`. Modificados: `user_interface.h/cpp` (reemplazada lista manual por `std::unique_ptr<ui_message_queue>`). Bonus: restaurados `message_queue.h/cpp` (sistema de threading) que faltaban en el proyecto y actualizados de `std::auto_ptr` a `std::unique_ptr`. Beneficios: menor acoplamiento en user_interface (~20 líneas eliminadas), subsistema reutilizable y testeable, separación clara de responsabilidades. (Completado: 2026-03-02)
+
 ---
 
 ## Prioridad alta (impacto en acoplamiento / compilación)
@@ -42,9 +44,10 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 
 ## Prioridad media (responsabilidades y testabilidad)
 
-2. **Extraer responsabilidades de `user_interface`**
-   - Agrupa: pantallas, popups, panel, cielo, costa, geoclipmap, mensajes, pausa.
-   - Opciones: composición por "subsistemas" (p. ej. SkyManager, CoastRenderer, MessageQueue) inyectados o creados en el constructor, en lugar de una clase que hace todo.
+2. **Extraer responsabilidades de `user_interface` (continuar)**
+   - ✅ **COMPLETADO (parcial)**: Extraído subsistema `ui_message_queue` para mensajes temporales. Ver sección "Hecho" para detalles.
+   - **Pendiente**: Agrupa más responsabilidades: pantallas, popups, panel, cielo, costa, geoclipmap, pausa.
+   - Opciones para próximos pasos: composición por "subsistemas" adicionales (p. ej. SkyManager, CoastRenderer, MessageQueue ya hecho) inyectados o creados en el constructor.
 
 3. **Singletons → inyección (continuar)**
    - ✅ **COMPLETADO**: `game`, `user_interface` y displays ahora usan inyección de dependencias para `cfg`, `log` y `music`. Ver sección "Hecho" para detalles.
