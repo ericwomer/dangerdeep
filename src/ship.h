@@ -315,7 +315,7 @@ class ship : public sea_object {
     virtual double get_fuel_level() const { return fuel_level; }
     virtual angle get_turn_rate() const { return turn_rate; };
     virtual double get_max_speed() const { return max_speed_forward; };
-    virtual throttle_status get_throttle() { return (throttle_status)throttle; }
+    virtual throttle_status get_throttle() const { return (throttle_status)throttle; }
     virtual double get_throttle_speed() const;
     virtual double get_throttle_accel() const; // returns acceleration caused by current throttle
     virtual bool screw_cavitation() const;     // returns true if screw causes cavitation

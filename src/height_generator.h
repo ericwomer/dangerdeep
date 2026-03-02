@@ -93,7 +93,7 @@ class height_generator {
     const texture &get_forest_brdf_texture() const { return *forest_brdf_texture; }
     const texture &get_rock_brdf_texture() const { return *rock_brdf_texture; }
 
-    float get_tex_stretch_factor() { return tex_stretch_factor; }
+    float get_tex_stretch_factor() const { return tex_stretch_factor; }
     /// compute normal values of given detail and coordinate area (including given coordinates)
     ///@note here is some reasonable implementation, normally it should be overloaded, normals are always packed
     ///@param detail - detail level to be generated and also coordinate domain,
