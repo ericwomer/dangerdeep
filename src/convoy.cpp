@@ -203,13 +203,13 @@ convoy::convoy(game &gm_, convoy::types type_, convoy::esctypes esct_)
 
         // spawn the objects in class game after creating them
         for (list<pair<ship *, vector2>>::iterator it = merchants.begin(); it != merchants.end(); ++it) {
-            gm.spawn_ship(it->first);
+            gm.spawn_ship(std::unique_ptr<ship>(it->first));
         }
         for (list<pair<ship *, vector2>>::iterator it = warships.begin(); it != warships.end(); ++it) {
-            gm.spawn_ship(it->first);
+            gm.spawn_ship(std::unique_ptr<ship>(it->first));
         }
         for (list<pair<ship *, vector2>>::iterator it = escorts.begin(); it != escorts.end(); ++it) {
-            gm.spawn_ship(it->first);
+            gm.spawn_ship(std::unique_ptr<ship>(it->first));
         }
 
         return;

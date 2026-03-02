@@ -1197,7 +1197,7 @@ bool submarine::launch_torpedo(int tubenr, sea_object *target) {
         // just hand the torpedo object over to class game. tube is empty after that...
         vector3 torppos = position + (fired_at_angle.direction() * (get_length() / 2 + 5 /*5m extra*/)).xy0();
         torp->launch(torppos, fired_at_angle);
-        gm.spawn_torpedo(torp.release());
+        gm.spawn_torpedo(std::move(torp));
         torpedoes[tubenr].status = stored_torpedo::st_empty;
         return true;
     } else {

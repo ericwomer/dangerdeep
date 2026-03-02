@@ -513,7 +513,7 @@ void fire_particle::simulate(game &gm, double delta_t) {
     float lf = get_life_time();
     float l = myfrac(life * lf);
     if (l - lf * delta_t <= 0) {
-        gm.spawn_particle(new smoke_particle(position));
+        gm.spawn_particle(std::make_unique<smoke_particle>(position));
     }
     particle::simulate(gm, delta_t);
     if (life <= 0.0) {

@@ -77,17 +77,17 @@ game_editor::game_editor(const date &start_date) {
     for (unsigned i = 0; i < 1 /*nr_of_players*/; ++i) {
         xml_doc doc(data_file().get_filename(subtype));
         doc.load();
-        submarine *sub = new submarine(*this, doc.first_child());
+        auto sub = std::make_unique<submarine>(*this, doc.first_child());
         sub->set_skin_layout(model::default_layout);
         sub->init_fill_torpedo_tubes(start_date);
         sub->manipulate_invulnerability(true);
         if (i == 0) {
-            psub = sub;
+            psub = sub.get();
             player = psub;
             compute_max_view_dist();
         }
 
-        spawn_submarine(sub);
+        spawn_submarine(std::move(sub));
     }
     player = psub;
 

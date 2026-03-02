@@ -510,7 +510,7 @@ void submarine_interface::process_input(const SDL_Event &event) {
                 break;
 #if 1 // fixme test hack
             case SDLK_r:
-                mygame->spawn_particle(new fireworks_particle(mygame->get_player()->get_pos() + vector3(0, 0, 5)));
+                mygame->spawn_particle(std::make_unique<fireworks_particle>(mygame->get_player()->get_pos() + vector3(0, 0, 5)));
                 break;
 #endif
             default:

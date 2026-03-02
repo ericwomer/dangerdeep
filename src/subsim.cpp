@@ -399,9 +399,9 @@ game::run_state game__exec(game &gm, user_interface &ui) {
                 // evaluate events of game, because they are cleared
                 // by next call of game::simulate and new ones are
                 // generated
-                const ptrlist<event> &events = gm.get_events();
-                for (ptrlist<event>::const_iterator it = events.begin(); it != events.end(); ++it) {
-                    it->evaluate(ui);
+                const std::list<std::unique_ptr<event>> &events = gm.get_events();
+                for (auto it = events.begin(); it != events.end(); ++it) {
+                    (*it)->evaluate(ui);
                 }
             }
         }

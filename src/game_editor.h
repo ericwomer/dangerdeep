@@ -39,7 +39,7 @@ class game_editor : public game {
     // create from mission file or savegame (xml file)
     game_editor(const std::string &filename);
 
-    const ptrvector<convoy> &get_convoy_list() const { return convoys; }
+    const std::vector<std::unique_ptr<convoy>> &get_convoy_list() const { return convoys; }
 
     // is editor?
     virtual bool is_editor() const { return true; }

@@ -284,7 +284,7 @@ void ship::ignite() {
         myfire = 0;
     }
     myfire = new fire_particle(get_pos());
-    gm.spawn_particle(myfire);
+    gm.spawn_particle(std::unique_ptr<particle>(myfire));
 }
 
 void ship::set_rudder(double to) {
@@ -604,8 +604,8 @@ void ship::simulate(double delta_time) {
                 vector3 forward = velocity.normal();
                 vector3 sideward = forward.cross(vector3(0, 0, 1)).normal() * 2.0; // speed 2.0 m/s
                 vector3 spawnpos = get_pos() + forward * (get_length() * 0.5);
-                gm.spawn_particle(new spray_particle(spawnpos, sideward));
-                gm.spawn_particle(new spray_particle(spawnpos, -sideward));
+                gm.spawn_particle(std::make_unique<spray_particle>(spawnpos, sideward));
+                gm.spawn_particle(std::make_unique<spray_particle>(spawnpos, -sideward));
             }
         }
     }
@@ -636,7 +636,7 @@ void ship::simulate(double delta_time) {
                     p = new smoke_particle_escort(ppos);
                     break;
                 }
-                gm.spawn_particle(p);
+                gm.spawn_particle(std::unique_ptr<particle>(p));
             }
         }
     }
@@ -680,7 +680,7 @@ void ship::steering_logic() {
     if (head_to_fixed == HEAD_TO_UNDEFINED)
         return;
 
-    // if angle to target course is > 180∞ with set steering direction, just set
+    // if angle to target course is > 180ù with set steering direction, just set
     // rudder to full angle and turn. But only if demanded by special head_to_fixed value.
     if (head_to_fixed & HEAD_TO_FORCE_DIRECTION) {
         if (heading.diff_in_direction(head_to_fixed & HEAD_TO_LEFT, head_to) >= 180.0) {
@@ -715,7 +715,7 @@ void ship::steering_logic() {
     double clamp = head_to_fixed & HEAD_TO_ALLOW_HARD_RUDDER ? 1.0 : 0.5;
     double rd = myclamp(error / 5.0, -clamp, clamp);
     rudder.set_to(rd);
-    // set desired direction, so the 180∞ degree check code above doesn't abort
+    // set desired direction, so the 180ù degree check code above doesn't abort
     head_to_fixed = head_to_param((head_to_fixed & HEAD_TO_ALLOW_HARD_RUDDER) | (rd < 0 ? HEAD_TO_LEFT : HEAD_TO_RIGHT));
     // when error below a certain limit, set head_to_fixed=false, rudder_to=ruddermidships
     if (fabs(anglediff) <= 0.25 && fabs(rudder.angle) < 1.0) {
@@ -730,7 +730,7 @@ void ship::head_to_course(const angle &a, int direction, bool hard_rudder) {
     bool turn_left = false;
     log_debug("HEAD TO " << a << " hdg=" << get_heading() << " dir=" << direction << " hard=" << hard_rudder);
     if (direction != 0) {
-        // if we have to turn more than 180∞ to the target course,
+        // if we have to turn more than 180ù to the target course,
         // a helmsman would normally turn in opposite direction,
         // because target course can be reached faster that way.
         // But in case of set direction, we have to turn in
@@ -1064,7 +1064,7 @@ ship::gun_status ship::fire_shell_at(const vector2 &pos) {
                                     } else {
                                         // fixme: snap angle values to simulate real cannon accuracy.
                                         // fixme #2, we add z + 4m to avoid shell<->water surface collisions
-                                        gm.spawn_gun_shell(new gun_shell(gm, get_pos() + vector3(0, 0, 4), direction, elevation, gun->initial_velocity, gun->shell_damage),
+                                        gm.spawn_gun_shell(std::make_unique<gun_shell>(gm, get_pos() + vector3(0, 0, 4), direction, elevation, gun->initial_velocity, gun->shell_damage),
                                                            gun->calibre);
                                         gun->num_shells_remaining--;
                                         gun_barrel->load_time_remaining = GUN_RELOAD_TIME;

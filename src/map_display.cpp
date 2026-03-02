@@ -435,7 +435,7 @@ void map_display::edit_copy_obj(game_editor &gm) {
             s2->manipulate_heading(s->get_heading());
             s2->manipulate_invulnerability(true);
             s2->set_throttle(int(s->get_throttle()));
-            gm.spawn_ship(s2);
+            gm.spawn_ship(std::unique_ptr<ship>(s2));
             new_selection.insert(s2);
         }
     }
@@ -455,7 +455,7 @@ void map_display::edit_convoy_menu(game_editor &gm) {
     }
     // fill list of convoy names
     edit_cvlist->clear();
-    const ptrvector<convoy> &convoys = gm.get_convoy_list();
+    const std::vector<std::unique_ptr<convoy>> &convoys = gm.get_convoy_list();
     for (unsigned i = 0; i < convoys.size(); ++i) {
         string nm = convoys[i]->get_name();
         if (nm.length() == 0)
@@ -773,7 +773,7 @@ void map_display::process_input(class game &gm, const SDL_Event &event) {
                     vector2 pos = gm.get_player()->get_pos().xy() + mapoffset;
                     shp->manipulate_position(pos.xy0());
                     shp->manipulate_invulnerability(true);
-                    gm.spawn_ship(shp.release());
+                    gm.spawn_ship(std::move(shp));
                 } else if (retval == EPFG_CHANGEMOTION) {
                     for (std::set<sea_object *>::iterator it = selection.begin(); it != selection.end(); ++it) {
                         ship *s = dynamic_cast<ship *>(*it);
@@ -821,7 +821,7 @@ void map_display::process_input(class game &gm, const SDL_Event &event) {
                     }
                     // add convoy to class game, if it has ships
                     if (nrsh > 0) {
-                        gm.spawn_convoy(cv.release());
+                        gm.spawn_convoy(std::move(cv));
                     }
                 }
                 edit_panel->enable();
