@@ -166,7 +166,17 @@ void game::player_info::save(xml_elem &parent) const {
     }
 }
 
-game::game() {
+game::game()
+    : myworld(std::make_unique<world>()),
+      ships(myworld->get_ships_mut()),
+      submarines(myworld->get_submarines_mut()),
+      airplanes(myworld->get_airplanes_mut()),
+      torpedoes(myworld->get_torpedoes_mut()),
+      depth_charges(myworld->get_depth_charges_mut()),
+      gun_shells(myworld->get_gun_shells_mut()),
+      water_splashes(myworld->get_water_splashes_mut()),
+      convoys(myworld->get_convoys_mut()),
+      particles(myworld->get_particles_mut()) {
     // empty, so that heirs can construct a game object. Needed for editor
     freezetime = 0;
     freezetime_start = 0;
@@ -187,7 +197,17 @@ game::game() {
 
 game::game(const string &subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
            const date &timeperioddate, const player_info &pi, unsigned nr_of_players)
-    : playerinfo(pi) {
+    : myworld(std::make_unique<world>()),
+      ships(myworld->get_ships_mut()),
+      submarines(myworld->get_submarines_mut()),
+      airplanes(myworld->get_airplanes_mut()),
+      torpedoes(myworld->get_torpedoes_mut()),
+      depth_charges(myworld->get_depth_charges_mut()),
+      gun_shells(myworld->get_gun_shells_mut()),
+      water_splashes(myworld->get_water_splashes_mut()),
+      convoys(myworld->get_convoys_mut()),
+      particles(myworld->get_particles_mut()),
+      playerinfo(pi) {
     /****************************************************************
             custom mission generation:
             As first find a random date and time, using time of day (tod).
@@ -338,7 +358,17 @@ game::game(const string &subtype, unsigned cvsize, unsigned cvesc, unsigned time
 //                        LOAD GAME (SAVEGAME OR MISSION)
 // --------------------------------------------------------------------------------
 game::game(const string &filename)
-    : my_run_state(running), player(0),
+    : myworld(std::make_unique<world>()),
+      ships(myworld->get_ships_mut()),
+      submarines(myworld->get_submarines_mut()),
+      airplanes(myworld->get_airplanes_mut()),
+      torpedoes(myworld->get_torpedoes_mut()),
+      depth_charges(myworld->get_depth_charges_mut()),
+      gun_shells(myworld->get_gun_shells_mut()),
+      water_splashes(myworld->get_water_splashes_mut()),
+      convoys(myworld->get_convoys_mut()),
+      particles(myworld->get_particles_mut()),
+      my_run_state(running), player(0),
       time(0), last_trail_time(0), max_view_dist(0), networktype(0), servercon(0),
       freezetime(0), freezetime_start(0) {
     xml_doc doc(filename);
@@ -694,15 +724,6 @@ void game::compute_max_view_dist() {
     max_view_dist = 5000.0 + compute_light_brightness(player->get_pos(), sundir) * 25000;
 }
 
-template <class T>
-void cleanup(std::vector<std::unique_ptr<T>> &s) {
-    s.erase(std::remove_if(s.begin(), s.end(),
-                           [](const std::unique_ptr<T> &p) {
-                               return p && p->is_defunct();
-                           }),
-            s.end());
-}
-
 void game::simulate(double delta_t) {
     if (!is_editor()) {
         if (my_run_state != running)
@@ -791,14 +812,7 @@ void game::simulate(double delta_t) {
     // step 1: check for invalidity of every object and remove
     // defunct objects. do NOT mix simulate() calls with real
     // calls to delete an object.
-    cleanup(ships);
-    cleanup(submarines);
-    cleanup(airplanes);
-    cleanup(torpedoes);
-    cleanup(depth_charges);
-    cleanup(gun_shells);
-    cleanup(water_splashes);
-    cleanup(particles);
+    myworld->cleanup_defunct_entities();
 
     // step 2: simulate all objects, possibly setting state to dead/defunct.
     if (myworker.get()) {
@@ -1345,24 +1359,24 @@ pair<double, noise> game::sonar_listen_ships(const ship *listener,
 // create new objects
 //
 void game::spawn_ship(std::unique_ptr<ship> s) {
-    ships.push_back(std::move(s));
+    myworld->spawn_ship(std::move(s));
 }
 
 void game::spawn_submarine(std::unique_ptr<submarine> u) {
-    submarines.push_back(std::move(u));
+    myworld->spawn_submarine(std::move(u));
 }
 
 void game::spawn_airplane(std::unique_ptr<airplane> a) {
-    airplanes.push_back(std::move(a));
+    myworld->spawn_airplane(std::move(a));
 }
 
 void game::spawn_torpedo(std::unique_ptr<torpedo> t) {
-    torpedoes.push_back(std::move(t));
+    myworld->spawn_torpedo(std::move(t));
 }
 
 void game::spawn_gun_shell(std::unique_ptr<gun_shell> s, const double &calibre) {
     vector3 pos = s->get_pos();
-    gun_shells.push_back(std::move(s));
+    myworld->spawn_gun_shell(std::move(s));
     // vary the sound effect based on the gun size
     if (calibre <= 120.0)
         events.push_back(std::make_unique<event_gunfire_light>(pos));
@@ -1373,21 +1387,21 @@ void game::spawn_gun_shell(std::unique_ptr<gun_shell> s, const double &calibre) 
 }
 
 void game::spawn_water_splash(std::unique_ptr<water_splash> s) {
-    water_splashes.push_back(std::move(s));
+    myworld->spawn_water_splash(std::move(s));
 }
 
 void game::spawn_depth_charge(std::unique_ptr<depth_charge> dc) {
     vector3 pos = dc->get_pos();
-    depth_charges.push_back(std::move(dc));
+    myworld->spawn_depth_charge(std::move(dc));
     events.push_back(std::make_unique<event_depth_charge_in_water>(pos));
 }
 
 void game::spawn_convoy(std::unique_ptr<convoy> cv) {
-    convoys.push_back(std::move(cv));
+    myworld->spawn_convoy(std::move(cv));
 }
 
 void game::spawn_particle(std::unique_ptr<particle> pt) {
-    particles.push_back(std::move(pt));
+    myworld->spawn_particle(std::move(pt));
 }
 
 void game::dc_explosion(const depth_charge &dc) {

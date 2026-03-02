@@ -65,6 +65,7 @@ class height_generator;
 #include "sonar.h"
 #include "vector2.h"
 #include "vector3.h"
+#include "world.h"
 #include "xml.h"
 
 // Note! do NOT include user_interface here, class game MUST NOT call any method
@@ -153,17 +154,20 @@ class game {
     static const double TRAIL_TIME;
 
   protected:
-    // begin [SAVE]
-    std::vector<std::unique_ptr<ship>> ships;
-    std::vector<std::unique_ptr<submarine>> submarines;
-    std::vector<std::unique_ptr<airplane>> airplanes;
-    std::vector<std::unique_ptr<torpedo>> torpedoes;
-    std::vector<std::unique_ptr<depth_charge>> depth_charges;
-    std::vector<std::unique_ptr<gun_shell>> gun_shells;
-    std::vector<std::unique_ptr<water_splash>> water_splashes;
-    std::vector<std::unique_ptr<convoy>> convoys;
-    std::vector<std::unique_ptr<particle>> particles;
-    // end [SAVE]
+    // World contains all game entities
+    std::unique_ptr<world> myworld;
+    
+    // Convenience references to world's entity containers (for backward compatibility during refactoring)
+    std::vector<std::unique_ptr<ship>>& ships;
+    std::vector<std::unique_ptr<submarine>>& submarines;
+    std::vector<std::unique_ptr<airplane>>& airplanes;
+    std::vector<std::unique_ptr<torpedo>>& torpedoes;
+    std::vector<std::unique_ptr<depth_charge>>& depth_charges;
+    std::vector<std::unique_ptr<gun_shell>>& gun_shells;
+    std::vector<std::unique_ptr<water_splash>>& water_splashes;
+    std::vector<std::unique_ptr<convoy>>& convoys;
+    std::vector<std::unique_ptr<particle>>& particles;
+    
     run_state my_run_state;
 
     std::list<std::unique_ptr<event>> events;
@@ -286,6 +290,10 @@ class game {
     virtual double get_depth_factor(const vector3 &sub) const;
 
     sea_object *get_player() const { return player; }
+    
+    // Access to world
+    world& get_world() { return *myworld; }
+    const world& get_world() const { return *myworld; }
 
     double get_last_trail_record_time() const { return last_trail_time; }
 
