@@ -34,6 +34,7 @@ set(DFTDSOURCES
 	particle.cpp
 	sea_object.cpp
 	sensors.cpp
+	scene_environment.cpp
 	ship.cpp
 	ships_sunk_display.cpp
 	simplex_noise.cpp

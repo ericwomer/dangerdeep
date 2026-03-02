@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define USER_INTERFACE_H
 
 #include "angle.h"
-#include "caustics.h"
 #include "coastmap.h"
 #include "color.h"
 #include <memory>
@@ -43,6 +42,9 @@ class sea_object;
 class ui_message_queue;
 class weather_renderer;
 class terrain_manager;
+class scene_environment;
+class sky;
+class caustics;
 
 ///\defgroup interfaces In-game user interfaces
 ///\brief Base class for a user interface for playing the game.
@@ -107,10 +109,9 @@ class user_interface {
     ptrvector<user_popup> popups;
 
     // environmental data
-    std::unique_ptr<class sky> mysky;         // the one and only sky
-    caustics mycaustics;                      //	caustic map
-    coastmap mycoastmap;                      // this may get moved to game.h, yet it is used for display only, that's why it is here
-    std::unique_ptr<terrain_manager> myterrain; // terrain rendering subsystem
+    std::unique_ptr<scene_environment> myenvironment; // sky and caustics subsystem
+    coastmap mycoastmap;                              // this may get moved to game.h, yet it is used for display only, that's why it is here
+    std::unique_ptr<terrain_manager> myterrain;       // terrain rendering subsystem
 
     // is display in day mode (or night/redlight mode)?
     bool daymode;
@@ -164,8 +165,8 @@ class user_interface {
     // create ui matching to player type (requested from game)
     static user_interface *create(game &gm);
 
-    const sky &get_sky() const { return *(mysky.get()); }
-    const caustics &get_caustics() const { return mycaustics; }
+    const sky &get_sky() const;
+    const caustics &get_caustics() const;
     const water &get_water() const;
     const coastmap &get_coastmap() const { return mycoastmap; }
     

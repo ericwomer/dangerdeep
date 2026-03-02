@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "freeview_display.h"
 #include "airplane.h"
+#include "caustics.h"
 #include "depth_charge.h"
 #include "frustum.h"
 #include "game.h"

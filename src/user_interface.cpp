@@ -43,6 +43,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector3.h"
 #include "weather_renderer.h"
 #include "terrain_manager.h"
+#include "scene_environment.h"
 #include "widget.h"
 #include <iomanip>
 #include <iostream>
@@ -96,9 +97,9 @@ user_interface::user_interface(game &gm) : mygame(&gm),
                                            current_popup(0),
                                            mycoastmap(get_map_dir() + "default.xml"),
                                            daymode(gm.is_day_mode()),
-                                           myweather(std::make_unique<weather_renderer>()) {
+                                           myweather(std::make_unique<weather_renderer>()),
+                                           myenvironment(std::make_unique<scene_environment>()) {
     add_loading_screen("coast map initialized");
-    mysky = std::make_unique<sky>();
     panel = std::make_unique<widget>(0, 768 - 32, 1024, 32, "", nullptr);
     panel->set_background(0);
     // ca. 1024-2*8 for 6 texts => 168 pix. for each text
@@ -285,8 +286,7 @@ void user_interface::set_time(double tm) {
         daymode = newdaymode;
     }
 
-    mysky->set_time(tm);
-    mycaustics.set_time(tm);
+    myenvironment->set_time(tm);
     mygame->get_water().set_time(tm);
 }
 
@@ -487,6 +487,14 @@ void user_interface::add_message(const string &s) {
 
 void user_interface::switch_geo_wire() {
     myterrain->toggle_wireframe();
+}
+
+const sky &user_interface::get_sky() const {
+    return myenvironment->get_sky();
+}
+
+const caustics &user_interface::get_caustics() const {
+    return myenvironment->get_caustics();
 }
 
 void user_interface::play_sound_effect(const string &se,

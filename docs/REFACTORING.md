@@ -28,6 +28,8 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 
 - **Extraer subsistema de terreno de user_interface:** Creado subsistema `terrain_manager` para encapsular la gestión del rendering de terreno (geoclipmap). Antes, `user_interface` gestionaba directamente `std::unique_ptr<geoclipmap>` con llamadas a `set_viewerpos()` y `display()` esparcidas por el código. Ahora, `terrain_manager` proporciona una interfaz limpia: `set_viewer_position()`, `render()`, `toggle_wireframe()`. Archivos nuevos: `terrain_manager.h/cpp`. Modificados: `user_interface.h/cpp` (reemplazado `mygeoclipmap` por `myterrain`), `map_display.cpp` (agregado include `height_generator.h` que faltaba). Beneficios: responsabilidad bien delimitada, interfaz más clara, facilita futuras mejoras al sistema de terreno (LOD dinámico, streaming). Movida función `switch_geo_wire()` de inline a `.cpp` para evitar dependencias circulares. (Completado: 2026-03-02)
 
+- **Extraer subsistema de entorno de escena de user_interface:** Creado subsistema `scene_environment` para gestionar elementos visuales del entorno (sky y caustics). Antes, `user_interface` manejaba `std::unique_ptr<sky> mysky` y `caustics mycaustics` directamente con llamadas a `set_time()` duplicadas. Ahora, `scene_environment` encapsula ambos elementos y proporciona una interfaz unificada: `set_time()` actualiza ambos componentes, `get_sky()` y `get_caustics()` para acceso const. Archivos nuevos: `scene_environment.h/cpp`. Modificados: `user_interface.h/cpp` (reemplazados `mysky` y `mycaustics` por `myenvironment`), `freeview_display.cpp` (agregado include `caustics.h` que faltaba para llamar a `get_map()`). Beneficios: cohesión de elementos relacionados temporalmente, interfaz más limpia, reduce miembros en user_interface, facilita agregar más elementos ambientales (fog, atmosphere effects). (Completado: 2026-03-02)
+
 ---
 
 ## Prioridad alta (impacto en acoplamiento / compilación)
@@ -49,12 +51,14 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 ## Prioridad media (responsabilidades y testabilidad)
 
 2. **Extraer responsabilidades de `user_interface` (continuar)**
-   - ✅ **COMPLETADO (parcial)**: Extraídos tres subsistemas importantes:
+   - ✅ **COMPLETADO (parcial)**: Extraídos cuatro subsistemas importantes:
      - `ui_message_queue`: mensajes temporales (ver sección "Hecho")
      - `weather_renderer`: efectos climáticos lluvia/nieve (ver sección "Hecho")
      - `terrain_manager`: gestión de rendering de terreno/geoclipmap (ver sección "Hecho")
-   - **Pendiente**: Agrupa más responsabilidades: pantallas, popups, panel, cielo, costa, pausa.
-   - Opciones para próximos pasos: composición por "subsistemas" adicionales (p. ej. SkyManager, CoastRenderer, PanelManager) inyectados o creados en el constructor.
+     - `scene_environment`: elementos ambientales (sky + caustics) (ver sección "Hecho")
+   - **Pendiente**: Agrupa más responsabilidades: pantallas, popups, panel, costa, pausa.
+   - Opciones para próximos pasos: composición por "subsistemas" adicionales (p. ej. CoastRenderer, PanelManager) inyectados o creados en el constructor.
+   - **user_interface está significativamente más ligero** tras estas extracciones.
 
 3. **Singletons → inyección (continuar)**
    - ✅ **COMPLETADO**: `game`, `user_interface` y displays ahora usan inyección de dependencias para `cfg`, `log` y `music`. Ver sección "Hecho" para detalles.
