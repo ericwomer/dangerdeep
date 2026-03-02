@@ -107,26 +107,22 @@ void freeview_display::post_display(game &gm) const {
     sys().unprepare_2d_drawing();
 }
 
-freeview_display::freeview_display(user_interface &ui_) : user_display(ui_), aboard(false), withunderwaterweapons(true), drawbridge(false),
-                                                          conning_tower(0) {
+freeview_display::freeview_display(user_interface &ui_) : user_display(ui_), aboard(false), withunderwaterweapons(true), drawbridge(false) {
     submarine *sub = dynamic_cast<submarine *>(ui_.get_game().get_player());
     add_pos = sub->get_freeview_position();
-    conning_tower = modelcache().ref(sub->get_bridge_filename());
+    conning_tower.load(modelcache(), sub->get_bridge_filename());
 
-    texturecache().ref("splashring.png");
+    splashring.load(texturecache(), "splashring.png");
     conning_tower->register_layout();
     conning_tower->set_layout();
     add_loading_screen("conning tower model loaded");
     // valgrind reports lost memory in the following line, but why?!
     std::unique_ptr<texture> uwbt(new texture(get_texture_dir() + "underwater_background.png", texture::LINEAR, texture::CLAMP));
     texturecache().ref("underwater_background.png", uwbt.get());
-    underwater_background = uwbt.release();
+    underwater_background.load(texturecache(), "underwater_background.png");
 }
 
 freeview_display::~freeview_display() {
-    texturecache().unref("splashring.png");
-    modelcache().unref(conning_tower);
-    texturecache().unref(underwater_background);
 }
 
 vector3 freeview_display::get_viewpos(class game &gm) const {

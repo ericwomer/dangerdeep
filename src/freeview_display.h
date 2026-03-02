@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "angle.h"
 #include "color.h"
+#include "objcache.h"
 #include "sea_object.h"
 #include "user_display.h"
 #include "vector3.h"
@@ -48,9 +49,10 @@ class freeview_display : public user_display {
 
     // used only in 3d view. a bit hackish to place it here, but better than in global data.
     // later store in class submarine. use cache to store, this is only a reference.
-    class model *conning_tower;
+    objcachet<model>::reference conning_tower;
 
-    class texture *underwater_background;
+    objcachet<texture>::reference underwater_background;
+    objcachet<texture>::reference splashring;
 
     freeview_display();
 

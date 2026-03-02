@@ -154,17 +154,53 @@ class objcachet {
 
     // RAII reference handler
     class reference {
-        objcachet<T> &mycache;
+        objcachet<T> *mycache;
         T *myobj;
 
       public:
+        // Constructor that loads from cache
         reference(objcachet<T> &cache, const std::string &objname)
-            : mycache(cache), myobj(cache.ref(objname)) {}
+            : mycache(&cache), myobj(cache.ref(objname)) {}
+        
+        // Default constructor (empty reference)
+        reference() : mycache(nullptr), myobj(nullptr) {}
+        
+        // Disable copy
+        reference(const reference&) = delete;
+        reference& operator=(const reference&) = delete;
+        
+        // Enable move
+        reference(reference&& other) noexcept 
+            : mycache(other.mycache), myobj(other.myobj) {
+            other.myobj = nullptr;
+        }
+        
+        reference& operator=(reference&& other) noexcept {
+            if (this != &other) {
+                reset();
+                mycache = other.mycache;
+                myobj = other.myobj;
+                other.myobj = nullptr;
+            }
+            return *this;
+        }
         
         ~reference() { 
-            if (myobj) {
-                mycache.unref(myobj);
+            reset();
+        }
+        
+        void reset() {
+            if (myobj && mycache) {
+                mycache->unref(myobj);
+                myobj = nullptr;
             }
+        }
+        
+        // Load a new object (releases old one if present)
+        void load(objcachet<T> &cache, const std::string &objname) {
+            reset();
+            mycache = &cache;
+            myobj = cache.ref(objname);
         }
         
         T *get() { return myobj; }
@@ -174,10 +210,13 @@ class objcachet {
         T& operator*() { return *myobj; }
         const T& operator*() const { return *myobj; }
         T* operator->() { return myobj; }
-        const T* operator->() const { return myobj.get(); }
+        const T* operator->() const { return myobj; }
         
         explicit operator bool() const { return myobj != nullptr; }
     };
+    
+    // Convenient alias for RAII handles
+    using ref_ptr = reference;
 };
 
 #endif
