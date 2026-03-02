@@ -24,14 +24,16 @@
 #define THREAD_H
 
 #include "condvar.h"
+#include <atomic>
+#include <chrono>
 #include <stdexcept>
+#include <string>
+#include <cstdint>
 
-#if defined WIN32 && defined _MSC_VER
-// win32 lacks stdint.h (thankfully SDL provides...)
-#include <SDL_config_win32.h>
-#else
-#include <stdint.h>
-#endif
+// Forward declare std::thread to avoid namespace pollution
+namespace std {
+    class thread;
+}
 
 /// base class for threads.
 ///@note Each thread should be an instance of a class that heirs
@@ -49,23 +51,23 @@ class thread {
         THRSTAT_ABORTED      // when run/deinit has failed (internal error!)
     };
 
-    struct SDL_Thread *thread_id;
-    bool thread_abort_request;
-    thread_state_t thread_state;
+    std::thread* thread_obj_ptr;
+    std::atomic<bool> thread_abort_request;
+    std::atomic<thread_state_t> thread_state;
     ::mutex thread_state_mutex;
     condvar thread_start_cond;
     std::string thread_error_message; // to pass exception texts via thread boundaries
-    const char *myname;
+    std::string myname;
 
     void run();
 
     // can't copy thread objects
-    thread(const thread &);
-    thread &operator=(const thread &);
-    thread();
+    thread(const thread &) = delete;
+    thread &operator=(const thread &) = delete;
+    thread() = delete;
 
   public:
-    static int thread_entry(void *arg);
+    static void thread_entry(thread *arg);
 
   protected:
     virtual ~thread();
@@ -74,7 +76,7 @@ class thread {
     virtual void loop() {}   ///< will be called periodically in main thread loop
     virtual void deinit() {} ///< will be called once after main thread loop ends
 
-    bool abort_requested() const { return thread_abort_request; }
+    bool abort_requested() const { return thread_abort_request.load(); }
 
   public:
     /// create a thread
@@ -100,8 +102,8 @@ class thread {
     ///@param ms - sleep time in milliseconds
     static void sleep(unsigned ms);
 
-    /// define SDL conform thread id type
-    typedef uint32_t id;
+    /// define thread id type (using uint64_t for compatibility)
+    typedef uint64_t id;
 
     /// get ID of current (caller) thread
     static id get_my_id();
@@ -115,8 +117,8 @@ class thread {
     /// an auto_ptr similar class for threads
     template <class T>
     class auto_ptr {
-        auto_ptr(const auto_ptr &);
-        auto_ptr &operator=(const auto_ptr &);
+        auto_ptr(const auto_ptr &) = delete;
+        auto_ptr &operator=(const auto_ptr &) = delete;
 
         T *p;
 
@@ -131,7 +133,7 @@ class thread {
         ///@note seems bizarre, use with care!
         void reset(T *t = 0) {
             // extra paranoia test to ensure we handly only thread objects here
-            if (t && (dynamic_cast<thread *>(t) == 0))
+            if (t && (dynamic_cast<::thread *>(t) == 0))
                 throw std::invalid_argument("invalid pointer given to thread::auto_ptr!");
             if (p)
                 p->destruct();

@@ -23,49 +23,65 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef SINGLETON_H
 #define SINGLETON_H
 
+#include <atomic>
+#include <memory>
+
 template <typename D>
 class singleton {
   private:
-    static D *&instance_ptr() {
-        static D *myinstanceptr = 0;
+    // Use atomic pointer for thread-safe lazy initialization
+    static std::atomic<D*>& instance_ptr() {
+        static std::atomic<D*> myinstanceptr{nullptr};
         return myinstanceptr;
     }
 
   public:
-    // since D is constructed not before first call, it avoids
-    // the static initialization order fiasco.
+    // Thread-safe lazy initialization using atomic operations
+    // This is an improvement over the old version which wasn't thread-safe
     static D &instance() {
-        D *&p = instance_ptr();
-        if (!p)
-            p = new D();
-        return *p;
+        std::atomic<D*>& p = instance_ptr();
+        D* inst = p.load(std::memory_order_acquire);
+        
+        if (!inst) {
+            // Double-checked locking pattern for thread safety
+            // Note: In C++11+, static local variables are guaranteed thread-safe
+            // but we keep this pattern for compatibility with the existing API
+            D* new_inst = new D();
+            D* expected = nullptr;
+            if (p.compare_exchange_strong(expected, new_inst, std::memory_order_release)) {
+                inst = new_inst;
+            } else {
+                // Another thread created the instance
+                delete new_inst;
+                inst = expected;
+            }
+        }
+        return *inst;
     }
 
     static void create_instance(D *ptr) {
-        D *&p = instance_ptr();
-        delete p;
-        p = ptr;
+        std::atomic<D*>& p = instance_ptr();
+        D* old = p.exchange(ptr, std::memory_order_acq_rel);
+        delete old;
     }
 
     static void destroy_instance() {
-        D *&p = instance_ptr();
-        delete p;
-        p = 0;
+        std::atomic<D*>& p = instance_ptr();
+        D* old = p.exchange(nullptr, std::memory_order_acq_rel);
+        delete old;
     }
 
     static D *release_instance() {
-        D *&p = instance_ptr();
-        D *ptr = p;
-        p = 0;
-        return ptr;
+        std::atomic<D*>& p = instance_ptr();
+        return p.exchange(nullptr, std::memory_order_acq_rel);
     }
 
   protected:
     singleton() {}
 
   private:
-    singleton(const singleton &);
-    singleton &operator=(const singleton &);
+    singleton(const singleton &) = delete;
+    singleton &operator=(const singleton &) = delete;
 };
 
 #endif

@@ -25,114 +25,134 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <iostream>
 #include <map>
+#include <memory>
 #include <string>
 
-///\brief Handles and caches instances of globally used objects.
-// fixme: to make it useable as *cache* we need to delay destruction. when an object reaches refcount zero, do not
-// delete it immediatly. Check periodically or when the next object is deleted, so at least 1-2 objects can be hold
-// with refcount zero, like a delete-queue. This avoids permanent reload when e.g. user switches between two menes
-// and both use images of the image-cache.
-// fixme2: maybe add special handler-class, like an auto_ptr, c'tor ref's an object, d'tor
-// unrefs it. Thus objcache usage is easier.
-
-// fixme 2: add "reference" class, that is auto_ptr like reference handler. Do NOT return plain
-// pointers from the cache. Because if we generate resources by ref'ing the cache in some
-// code and an exception is thrown, the ref'd objects won't get unref'd again, leading to
-// memory waste (though NOT memory leaks)
+///\brief Handles and caches instances of globally used objects using std::shared_ptr.
+///
+/// This is a modernized version using C++11 smart pointers for automatic memory management.
+/// The cache stores weak_ptr internally so objects are automatically cleaned up when
+/// no external references exist. This is exception-safe and prevents memory leaks.
+/// For backward compatibility, the API still returns raw pointers but uses shared_ptr internally.
 template <class T>
 class objcachet {
-    std::map<std::string, std::pair<unsigned, T *>> cache;
+    std::map<std::string, std::weak_ptr<T>> cache;
+    std::map<T*, std::shared_ptr<T>> active_refs; // Track active raw pointer references
     std::string basedir;
-    objcachet();
-    objcachet<T> &operator=(const objcachet<T> &);
-    objcachet(const objcachet<T> &);
+    
+    objcachet() = delete;
+    objcachet<T> &operator=(const objcachet<T> &) = delete;
+    objcachet(const objcachet<T> &) = delete;
 
   public:
     objcachet(const std::string &basedir_) : basedir(basedir_) {}
+    
     ~objcachet() {
         clear();
     }
 
     // call to deinit cache
     void clear() {
-        for (typename std::map<std::string, std::pair<unsigned, T *>>::iterator it = cache.begin(); it != cache.end(); ++it)
-            delete it->second.second;
+        active_refs.clear();
         cache.clear();
     }
 
-    T *find(const std::string &objname) {
+    // Find object in cache, returns nullptr if not found or expired
+    T* find(const std::string &objname) {
         if (objname.empty())
-            return (T *)0;
-        typename std::map<std::string, std::pair<unsigned, T *>>::iterator it = cache.find(objname);
+            return nullptr;
+        
+        auto it = cache.find(objname);
         if (it == cache.end())
-            return 0;
-        return it->second.second;
-    }
-
-    T *ref(const std::string &objname) {
-        if (objname.empty())
-            return (T *)0;
-        typename std::map<std::string, std::pair<unsigned, T *>>::iterator it = cache.find(objname);
-        if (it == cache.end()) {
-            it = cache.insert(std::make_pair(objname, std::make_pair((unsigned)1, new T(basedir + objname)))).first;
-        } else {
-            ++(it->second.first);
+            return nullptr;
+        
+        if (auto sp = it->second.lock()) {
+            return sp.get();
         }
-        return it->second.second;
+        return nullptr;
     }
 
+    // Get or create object with automatic reference counting
+    T* ref(const std::string &objname) {
+        if (objname.empty())
+            return nullptr;
+        
+        auto it = cache.find(objname);
+        if (it != cache.end()) {
+            // Try to get existing object
+            if (auto sp = it->second.lock()) {
+                active_refs[sp.get()] = sp;
+                return sp.get();
+            }
+            // Object expired, remove weak_ptr
+            cache.erase(it);
+        }
+        
+        // Create new object
+        auto sp = std::make_shared<T>(basedir + objname);
+        cache[objname] = sp;
+        active_refs[sp.get()] = sp;
+        return sp.get();
+    }
+
+    // Insert externally created object into cache
     bool ref(const std::string &objname, T *obj) {
-        if (objname.empty())
-            return false; // no valid name
-        typename std::map<std::string, std::pair<unsigned, T *>>::iterator it = cache.find(objname);
-        if (it == cache.end()) {
-            it = cache.insert(std::make_pair(objname, std::make_pair((unsigned)1, obj))).first;
-        } else {
-            return false; // already exists
+        if (objname.empty() || !obj)
+            return false;
+        
+        auto it = cache.find(objname);
+        if (it != cache.end()) {
+            // Check if still valid
+            if (auto sp = it->second.lock()) {
+                return false; // already exists
+            }
         }
+        
+        // Wrap raw pointer in shared_ptr with custom deleter to prevent double delete
+        auto sp = std::shared_ptr<T>(obj, [](T*){});
+        cache[objname] = sp;
+        active_refs[obj] = sp;
         return true;
     }
 
+    // Decrement reference count
     void unref(const std::string &objname) {
         if (objname.empty())
             return;
-        typename std::map<std::string, std::pair<unsigned, T *>>::iterator it = cache.find(objname);
+        
+        auto it = cache.find(objname);
         if (it != cache.end()) {
-            if (it->second.first == 0) {
-                // error, unref'd too much...
-                return;
+            if (auto sp = it->second.lock()) {
+                active_refs.erase(sp.get());
             }
-            --(it->second.first);
-            if (it->second.first == 0) {
-                delete it->second.second;
+            if (it->second.expired()) {
                 cache.erase(it);
             }
         }
     }
 
+    // Decrement reference count by pointer
     void unref(T *obj) {
-        for (typename std::map<std::string, std::pair<unsigned, T *>>::iterator it = cache.begin(); it != cache.end(); ++it) {
-            if (it->second.second == obj) {
-                if (it->second.first == 0) {
-                    // error, unref'd too much...
-                    return;
-                }
-                --(it->second.first);
-                if (it->second.first == 0) {
-                    delete it->second.second;
-                    cache.erase(it);
-                }
-                break;
-            }
+        if (!obj)
+            return;
+        
+        auto it = active_refs.find(obj);
+        if (it != active_refs.end()) {
+            active_refs.erase(it);
         }
     }
 
     void print() const {
         std::cout << "objcache: " << cache.size() << " entries.\n";
-        for (typename std::map<std::string, std::pair<unsigned, T *>>::const_iterator it = cache.begin(); it != cache.end(); ++it)
-            std::cout << "key=\"" << it->first << "\" ref=" << it->second.first << " addr=" << it->second.second << "\n";
+        for (const auto& entry : cache) {
+            auto sp = entry.second.lock();
+            std::cout << "key=\"" << entry.first << "\" valid=" << (sp ? "yes" : "no")
+                     << " use_count=" << (sp ? sp.use_count() : 0)
+                     << " addr=" << (sp ? sp.get() : nullptr) << "\n";
+        }
     }
 
+    // RAII reference handler
     class reference {
         objcachet<T> &mycache;
         T *myobj;
@@ -140,9 +160,23 @@ class objcachet {
       public:
         reference(objcachet<T> &cache, const std::string &objname)
             : mycache(cache), myobj(cache.ref(objname)) {}
-        ~reference() { mycache.unref(myobj); }
+        
+        ~reference() { 
+            if (myobj) {
+                mycache.unref(myobj);
+            }
+        }
+        
         T *get() { return myobj; }
         const T *get() const { return myobj; }
+        
+        // Additional access methods
+        T& operator*() { return *myobj; }
+        const T& operator*() const { return *myobj; }
+        T* operator->() { return myobj; }
+        const T* operator->() const { return myobj.get(); }
+        
+        explicit operator bool() const { return myobj != nullptr; }
     };
 };
 

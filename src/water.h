@@ -194,13 +194,13 @@ class water {
     ptrvector<geoclipmap_patch> patches;
     mutable vertexbufferobject vertices;
 
-    class worker : public thread {
+    class worker : public ::thread {
         water &wa;
         ocean_wave_generator<float> owg;
         unsigned ps, pa;
 
       public:
-        worker(water &w, unsigned s, unsigned a) : thread("waterwrk"), wa(w), owg(w.owg), ps(s), pa(a) {}
+        worker(water &w, unsigned s, unsigned a) : ::thread("waterwrk"), wa(w), owg(w.owg), ps(s), pa(a) {}
         void loop() {
             wa.construction_threaded(owg, ps, pa);
             request_abort();

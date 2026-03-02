@@ -24,33 +24,39 @@
 #define CONDVAR_H
 
 #include "mutex.h"
+#include <condition_variable>
 
 /// A classical condition variable.
-///@note Condition variables work toger with class mutex.
+///@note Condition variables work together with class mutex.
 class condvar {
   protected:
-    struct SDL_cond *cdv;
+    std::condition_variable_any cdv;
 
   private:
-    condvar(const condvar &);
-    condvar &operator=(const condvar &);
+    condvar(const condvar &) = delete;
+    condvar &operator=(const condvar &) = delete;
 
   public:
     /// create condition variable
-    condvar();
+    condvar() = default;
 
     /// destroy condition variable
-    ~condvar();
+    ~condvar() = default;
 
     /// wait on condition
     ///@param m - mutex to encapsulate waiting condition
-    void wait(::mutex &m);
+    void wait(::mutex &m) {
+        cdv.wait(m.mtx);
+    }
 
     /// wait on condition with timeout
     ///@param m - mutex to encapsulate waiting condition
     ///@param ms - timeout value in milliseconds
     ///@return true when woken up by signal, false on timeout
-    bool timed_wait(::mutex &m, unsigned ms);
+    bool timed_wait(::mutex &m, unsigned ms) {
+        auto result = cdv.wait_for(m.mtx, std::chrono::milliseconds(ms));
+        return result != std::cv_status::timeout;
+    }
 
     /// send signal to threads that are waiting on the condition.
     ///@note Note that before sending the signal you must make the condition false that would
@@ -58,7 +64,9 @@ class condvar {
     ///	Code that changes the condition must be encapsulated in a mutex-lock with the SAME mutex
     ///	that is used for the wait.\n
     ///	So typically call lock(); cond = false; signal(); unlock();
-    void signal();
+    void signal() {
+        cdv.notify_all();
+    }
 };
 
 #endif

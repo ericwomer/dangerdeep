@@ -23,31 +23,33 @@
 #ifndef MUTEX_H
 #define MUTEX_H
 
+#include <mutex>
+
 /// A classical mutex.
-///@note This implementation is per default recursive, so you can lock the mutex again
+///@note This implementation uses std::recursive_mutex, so you can lock the mutex again
 ///      in the same thread where you already have locked it.
 class mutex {
     friend class condvar;
 
   protected:
-    struct SDL_mutex *mtx;
+    std::recursive_mutex mtx;
 
   private:
-    mutex(const mutex &);
-    mutex &operator=(const mutex &);
+    mutex(const mutex &) = delete;
+    mutex &operator=(const mutex &) = delete;
 
   public:
     /// create a mutex
-    mutex();
+    mutex() = default;
 
     /// destroy mutex
-    ~mutex();
+    ~mutex() = default;
 
     /// lock mutex
-    void lock();
+    void lock() { mtx.lock(); }
 
     /// unlock the mutex
-    void unlock();
+    void unlock() { mtx.unlock(); }
 };
 
 /// A handy helper class for mutexes.
@@ -55,14 +57,15 @@ class mutex {
 ///	in its constructor and automatically unlock it in the destructor.
 ///	That way the unlock() is done automagically when a throw or return is executed anywhere
 ///	inside the block or function that the object is declared in.
+///@note This is essentially std::lock_guard<std::recursive_mutex> with our custom mutex wrapper
 class mutex_locker {
   protected:
     ::mutex &mymutex;
 
   private:
-    mutex_locker();
-    mutex_locker(const mutex_locker &);
-    mutex_locker &operator=(const mutex_locker &);
+    mutex_locker() = delete;
+    mutex_locker(const mutex_locker &) = delete;
+    mutex_locker &operator=(const mutex_locker &) = delete;
 
   public:
     /// create mutex locker

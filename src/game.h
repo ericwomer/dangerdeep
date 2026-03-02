@@ -212,7 +212,7 @@ class game {
     void simulate_objects_mt(double delta_t, unsigned idxoff, unsigned idxmod, bool record,
                              double &nearest_contact);
 
-    class simulate_worker : public thread {
+    class simulate_worker : public ::thread {
         ::mutex mtx;
         condvar cond;
         condvar condfini;
@@ -232,7 +232,7 @@ class game {
         double sync();
     };
 
-    thread::auto_ptr<simulate_worker> myworker;
+    ::thread::auto_ptr<simulate_worker> myworker;
 
     player_info playerinfo;
 

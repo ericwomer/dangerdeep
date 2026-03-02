@@ -21,25 +21,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "mutex.h"
-#include "error.h"
-#include <SDL.h>
 
-mutex::mutex() {
-    mtx = SDL_CreateMutex();
-    if (!mtx)
-        throw sdl_error("mutex creation failed");
-}
-
-mutex::~mutex() {
-    SDL_DestroyMutex(mtx);
-}
-
-void mutex::lock() {
-    if (SDL_mutexP(mtx) < 0)
-        throw sdl_error("mutex lock failed");
-}
-
-void mutex::unlock() {
-    if (SDL_mutexV(mtx) < 0)
-        throw sdl_error("mutex unlock failed");
-}
+// Note: mutex is now header-only with inline implementations
+// This file is kept for compatibility but contains no code

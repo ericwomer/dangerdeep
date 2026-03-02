@@ -20,36 +20,32 @@
 // multithreading primitives: thread
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
+#include <iostream>
+#include <sstream>
 #include <string>
+#include <thread>
 
 #include "error.h"
 #include "log.h"
 #include "system.h"
 #include "thread.h"
-#include <SDL.h>
-#include <SDL_thread.h>
 
-/* fixme: SDL does not allow to set stack size of thread... */
-
-int thread::thread_entry(void *arg) {
-    thread *t = (thread *)arg;
+void thread::thread_entry(thread *arg) {
+    thread *t = arg;
     try {
         t->run();
     } catch (std::exception &e) {
         t->thread_error_message = e.what();
-        return -1;
     } catch (...) {
         t->thread_error_message = "UNKNOWN";
-        return -2;
     }
-    return 0;
 }
 
 thread::thread(const char *name)
-    : thread_id(0),
+    : thread_obj_ptr(nullptr),
       thread_abort_request(false),
       thread_state(THRSTAT_NONE),
-      myname(name) {
+      myname(name ? name : "unnamed") {
     if (name == nullptr) {
         std::cout << "Error name is uninitialized!" << std::endl;
     } else {
@@ -58,30 +54,28 @@ thread::thread(const char *name)
 }
 
 void thread::run() {
-
-    // 'this' pointer is null
     try {
-        log::instance().new_thread(myname); // !!Rake!!: Causing last fail bug
+        log::instance().new_thread(myname.c_str());
         init();
     } catch (std::exception &e) {
         // failed to initialize, report that
         mutex_locker ml(thread_state_mutex);
         thread_error_message = e.what();
-        thread_state = THRSTAT_INIT_FAILED;
+        thread_state.store(THRSTAT_INIT_FAILED);
         thread_start_cond.signal();
         throw;
     } catch (...) {
         // failed to initialize, report that
         mutex_locker ml(thread_state_mutex);
         thread_error_message = "UNKNOWN";
-        thread_state = THRSTAT_INIT_FAILED;
+        thread_state.store(THRSTAT_INIT_FAILED);
         thread_start_cond.signal();
         throw;
     }
     // initialization was successfully, report that
     {
         mutex_locker ml(thread_state_mutex);
-        thread_state = THRSTAT_RUNNING;
+        thread_state.store(THRSTAT_RUNNING);
         thread_start_cond.signal();
     }
     try {
@@ -94,90 +88,104 @@ void thread::run() {
         // thread execution failed
         mutex_locker ml(thread_state_mutex);
         thread_error_message = e.what();
-        thread_state = THRSTAT_ABORTED;
+        thread_state.store(THRSTAT_ABORTED);
         throw;
     } catch (...) {
         // thread execution failed
         mutex_locker ml(thread_state_mutex);
         thread_error_message = "UNKNOWN";
-        thread_state = THRSTAT_ABORTED;
+        thread_state.store(THRSTAT_ABORTED);
         throw;
     }
     // normal execution finished
     mutex_locker ml(thread_state_mutex);
-    thread_state = THRSTAT_FINISHED;
+    thread_state.store(THRSTAT_FINISHED);
 }
 
 thread::~thread() {
+    if (thread_obj_ptr) {
+        delete thread_obj_ptr;
+        thread_obj_ptr = nullptr;
+    }
 }
 
 void thread::request_abort() {
-    thread_abort_request = true;
+    thread_abort_request.store(true);
 }
 
 void thread::start() {
     std::cout << "this->myname " << this->myname << std::endl;
-    if (thread_abort_request)
+    if (thread_abort_request.load())
         throw error("thread abort requested, but start() called");
     mutex_locker ml(thread_state_mutex);
 
-    if (thread_state != THRSTAT_NONE)
+    if (thread_state.load() != THRSTAT_NONE)
         throw error("thread already started, but start() called again");
 
-    thread_id = SDL_CreateThread(thread_entry, this->myname, this);
-    if (thread_id == NULL) {
-        throw sdl_error("thread start failed");
+    thread_obj_ptr = new std::thread(thread_entry, this);
+    if (!thread_obj_ptr->joinable()) {
+        delete thread_obj_ptr;
+        thread_obj_ptr = nullptr;
+        throw error("thread start failed");
     }
     // we could wait with timeout, but how long? init could take any time...
 
     thread_start_cond.wait(thread_state_mutex);
 
     // now check if thread has started
-    if (thread_state == THRSTAT_INIT_FAILED)
+    if (thread_state.load() == THRSTAT_INIT_FAILED)
         throw std::runtime_error(("thread start failed: ") + thread_error_message);
     // very rare, but possible
-    else if (thread_state == THRSTAT_ABORTED)
+    else if (thread_state.load() == THRSTAT_ABORTED)
         throw std::runtime_error(("thread run failed: ") + thread_error_message);
 }
 
 void thread::join() {
-    int result = 0;
-    SDL_WaitThread(thread_id, &result);
+    if (thread_obj_ptr && thread_obj_ptr->joinable()) {
+        thread_obj_ptr->join();
+    }
+    std::string error_msg = thread_error_message; // Copy before delete
     delete this;
-    if (result < 0)
-        throw error(std::string("thread aborted with error: ") + thread_error_message);
+    if (!error_msg.empty())
+        throw error(std::string("thread aborted with error: ") + error_msg);
 }
 
 void thread::destruct() {
-    thread_state_t ts = THRSTAT_NONE;
-    {
-        mutex_locker ml(thread_state_mutex);
-        ts = thread_state;
-    }
+    thread_state_t ts = thread_state.load();
     // request if thread runs, in that case send abort request
     if (ts == THRSTAT_RUNNING)
         request_abort();
     // request if thread has ever run, in that case we need to join
-    if (thread_state != THRSTAT_NONE)
+    if (thread_state.load() != THRSTAT_NONE)
         join();
     else
         delete this;
 }
 
 void thread::sleep(unsigned ms) {
-    SDL_Delay(ms);
+    std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 
 thread::id thread::get_my_id() {
-    return SDL_ThreadID();
+    // Convert std::thread::id to uint64_t
+    std::thread::id tid = std::this_thread::get_id();
+    std::ostringstream oss;
+    oss << tid;
+    return std::stoull(oss.str());
 }
 
 thread::id thread::get_id() const {
-    return SDL_GetThreadID(thread_id);
+    if (thread_obj_ptr) {
+        std::thread::id tid = thread_obj_ptr->get_id();
+        std::ostringstream oss;
+        oss << tid;
+        return std::stoull(oss.str());
+    }
+    return 0;
 }
 
 bool thread::is_running() {
     // only reading is normally safe, but not for multi-core architectures.
     mutex_locker ml(thread_state_mutex);
-    return thread_state == THRSTAT_RUNNING;
+    return thread_state.load() == THRSTAT_RUNNING;
 }

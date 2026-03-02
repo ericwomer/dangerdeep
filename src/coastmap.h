@@ -140,18 +140,18 @@ class coastmap {
     void process_coastline(int x, int y);
     void process_segment(int x, int y);
 
-    class worker : public thread {
+    class worker : public ::thread {
         coastmap &cm;
 
       public:
-        worker(coastmap &c) : thread("coastmap"), cm(c) {}
+        worker(coastmap &c) : ::thread("coastmap"), cm(c) {}
         void loop() {
             cm.construction_threaded();
             request_abort();
         }
     };
 
-    thread::auto_ptr<worker> myworker;
+    ::thread::auto_ptr<worker> myworker;
     void construction_threaded();
 
   public:
