@@ -28,7 +28,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "color.h"
 #include "geoclipmap.h"
 #include "ptrvector.h"
-#include "sea_object.h"
 #include "user_display.h"
 #include "user_popup.h"
 #include <list>
@@ -39,6 +38,7 @@ class game;
 class water;
 class cfg;
 class music;
+class sea_object;
 
 ///\defgroup interfaces In-game user interfaces
 ///\brief Base class for a user interface for playing the game.

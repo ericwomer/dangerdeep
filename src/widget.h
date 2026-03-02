@@ -25,16 +25,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "color.h"
 #include "font.h"
-#include "image.h"
 #include "model.h"
 #include "objcache.h"
-#include "system.h"
-#include "texts.h"
 #include "vector2.h"
 #include "xml.h"
 #include <list>
 #include <string>
 #include <typeinfo>
+
+// Forward declarations
+class image;
+class texture;
 
 // fixme: add image-widget
 

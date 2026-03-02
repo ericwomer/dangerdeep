@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "datadirs.h"
 #include "filehelper.h"
 #include "global_data.h"
+#include "image.h"
 #include "model.h"
 #include "primitives.h"
 #include "system.h"

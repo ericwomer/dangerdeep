@@ -16,14 +16,24 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 
 - **objcache con RAII:** Mejorada la clase `objcachet<T>::reference` para soportar construcción por defecto, move semantics y método `load()` para carga diferida. Migrados casos críticos de uso manual (`ref()`/`unref()`) a RAII: `freeview_display` ahora usa `objcachet<model>::reference` para `conning_tower` y `objcachet<texture>::reference` para `underwater_background` y `splashring`, eliminando llamadas manuales a `unref()` en el destructor. `sub_damage_display` y `sub_torpedo_display` ya usaban el patrón RAII para `notepadsheet`. Beneficios: elimina fugas de memoria si hay excepciones durante construcción, código más seguro y limpio. Archivos: objcache.h (mejorado), freeview_display.h/cpp (migrado). Pendiente: migrar `widget` (patrón complejo con ref_all/unref_all), `sea_object::mymodel` (asignación diferida en constructores), `coastmap::props`. (Completado: 2026-03-02)
 
+- **Reducir includes en headers pesados:** Optimizados `widget.h` (eliminados `system.h`, `texts.h`, `image.h` → forward declarations), `user_interface.h` (eliminado `sea_object.h` → forward declaration). Los `.cpp` que necesitan estas dependencias ahora las incluyen explícitamente (widget.cpp, sub_recogmanual_display.cpp). Beneficios: menor acoplamiento en compilación, tiempos de compilación más rápidos cuando se modifican estos headers. Archivos: widget.h, user_interface.h, widget.cpp, sub_recogmanual_display.cpp. (Completado: 2026-03-02)
+
 ---
 
 ## Prioridad alta (impacto en acoplamiento / compilación)
 
-1. **Reducir includes en headers "pesados"**
-   - **widget.h:** Depende de system, model, image, objcache. Valorar forward declarations para model/system donde solo se usen punteros o referencias.
-   - **sea_object.h:** Muchos includes del proyecto. Introducir forwards donde el tipo solo se use como puntero/ref.
-   - **user_interface.h:** Depende de caustics, coastmap, geoclipmap, sea_object. Valorar interfaz mínima (p. ej. "terrain provider") en lugar de incluir todo el render.
+1. **Migración SDL2 → SDL3**
+   - **Estado**: Pendiente. SDL3 no está instalado en el sistema actualmente (verificado 2026-03-01).
+   - **Alcance**: Migrar todos los subsistemas que usan SDL2: system.h/cpp, music.h/cpp, image.h/cpp, texture.h/cpp, y otros archivos que usan SDL directamente.
+   - **Cambios principales esperados**:
+     - Actualización de nombres de funciones (SDL_CreateWindow → SDL_CreateWindow con nuevos parámetros)
+     - Cambios en sistema de eventos (SDL_PollEvent → SDL_PollEvent con estructura modificada)
+     - Actualización de sistema de audio (SDL_mixer)
+     - Cambios en carga de imágenes (SDL_image)
+     - Modificación de manejo de texturas y rendering
+   - **Prerequisitos**: Instalar SDL3, SDL3_mixer, SDL3_image en el sistema. Actualizar CMakeLists.txt para detectar SDL3.
+   - **Estrategia**: Migración incremental por subsistema (system → audio → graphics → input), compilando y testeando después de cada cambio.
+   - **Referencia**: [SDL3 Migration Guide](https://github.com/libsdl-org/SDL/blob/main/docs/README-migration.md)
 
 ---
 
