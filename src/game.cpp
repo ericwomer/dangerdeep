@@ -1039,71 +1039,35 @@ inline vector<T *> visible_obj(const game *gm, const std::vector<std::unique_ptr
 }
 
 vector<ship *> game::visible_ships(const sea_object *o) const {
-    return visible_obj<ship>(this, ships, o);
+    return myworld->visible_ships(this, o);
 }
 
 vector<submarine *> game::visible_submarines(const sea_object *o) const {
-    return visible_obj<submarine>(this, submarines, o);
+    return myworld->visible_submarines(this, o);
 }
 
 vector<airplane *> game::visible_airplanes(const sea_object *o) const {
-    return visible_obj<airplane>(this, airplanes, o);
+    return myworld->visible_airplanes(this, o);
 }
 
 vector<torpedo *> game::visible_torpedoes(const sea_object *o) const {
-    // testing: draw all torpedoes
-    vector<torpedo *> result;
-    result.reserve(torpedoes.size());
-    // Note!!! all entries of "torpedoes" should be valid pointers here, not
-    // null pointers, but it seems sometimes some are null, leading to
-    // segfault on torpedo impact when not checking for null pointers here!
-    // this is bad, but a check here is cheap...
-    // torpedoes.compress() should remove any null pointers before display
-    // is rendered, but it crashes when drawing trails because of null
-    // pointers...
-    for (unsigned k = 0; k < torpedoes.size(); ++k) {
-        if (torpedoes[k] && torpedoes[k]->is_reference_ok()) {
-            result.push_back(torpedoes[k].get());
-        }
-    }
-    return result;
-    //	return visible_obj<torpedo>(this, torpedoes, o);
+    return myworld->visible_torpedoes(this, o);
 }
 
 vector<depth_charge *> game::visible_depth_charges(const sea_object *o) const {
-    return visible_obj<depth_charge>(this, depth_charges, o);
+    return myworld->visible_depth_charges(this, o);
 }
 
 vector<gun_shell *> game::visible_gun_shells(const sea_object *o) const {
-    return visible_obj<gun_shell>(this, gun_shells, o);
+    return myworld->visible_gun_shells(this, o);
 }
 
 vector<water_splash *> game::visible_water_splashes(const sea_object *o) const {
-    // testing: draw all
-    vector<water_splash *> result(water_splashes.size());
-    for (unsigned k = 0; k < water_splashes.size(); ++k)
-        result[k] = water_splashes[k].get();
-    return result;
-    //	return visible_obj<water_splash>(this, water_splashes, o);
+    return myworld->visible_water_splashes(this, o);
 }
 
 vector<particle *> game::visible_particles(const sea_object *o) const {
-    // fixme: this is called for every particle. VERY costly!!!
-    vector<particle *> result;
-    const sensor *s = o->get_sensor(o->lookout_system);
-    if (!s)
-        return result;
-    const lookout_sensor *ls = dynamic_cast<const lookout_sensor *>(s);
-    if (!ls)
-        return result;
-    result.reserve(particles.size());
-    for (unsigned i = 0; i < particles.size(); ++i) {
-        if (particles[i] == 0) // obsolete test? should be so...
-            throw error("particles[i] is 0!");
-        if (ls->is_detected(this, o, particles[i].get()))
-            result.push_back(particles[i].get());
-    }
-    return result;
+    return myworld->visible_particles(this, o);
 }
 
 vector<sonar_contact> game::sonar_ships(const sea_object *o) const {

@@ -38,6 +38,8 @@ class water_splash;
 class particle;
 class convoy;
 class sea_object;
+class game;
+struct sonar_contact;
 
 ///\brief Container for all game world entities and their interactions
 class world {
@@ -86,6 +88,29 @@ class world {
     size_t get_submarine_count() const { return submarines.size(); }
     size_t get_airplane_count() const { return airplanes.size(); }
     size_t get_torpedo_count() const { return torpedoes.size(); }
+
+    // Visibility and detection functions
+    std::vector<ship*> visible_ships(const game* gm, const sea_object* o) const;
+    std::vector<submarine*> visible_submarines(const game* gm, const sea_object* o) const;
+    std::vector<airplane*> visible_airplanes(const game* gm, const sea_object* o) const;
+    std::vector<torpedo*> visible_torpedoes(const game* gm, const sea_object* o) const;
+    std::vector<depth_charge*> visible_depth_charges(const game* gm, const sea_object* o) const;
+    std::vector<gun_shell*> visible_gun_shells(const game* gm, const sea_object* o) const;
+    std::vector<water_splash*> visible_water_splashes(const game* gm, const sea_object* o) const;
+    std::vector<particle*> visible_particles(const game* gm, const sea_object* o) const;
+    std::vector<sea_object*> visible_surface_objects(const game* gm, const sea_object* o) const;
+    std::vector<sea_object*> visible_sea_objects(const game* gm, const sea_object* o) const;
+
+    // Sonar detection
+    std::vector<sonar_contact> sonar_ships(const game* gm, const sea_object* o) const;
+    std::vector<sonar_contact> sonar_submarines(const game* gm, const sea_object* o) const;
+    std::vector<sonar_contact> sonar_sea_objects(const game* gm, const sea_object* o) const;
+    ship* sonar_acoustical_torpedo_target(const game* gm, const torpedo* o) const;
+
+    // Radar detection
+    std::vector<submarine*> radar_submarines(const game* gm, const sea_object* o) const;
+    std::vector<ship*> radar_ships(const game* gm, const sea_object* o) const;
+    std::vector<sea_object*> radar_sea_objects(const game* gm, const sea_object* o) const;
 
   protected:
     // Entity containers
