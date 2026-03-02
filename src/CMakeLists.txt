@@ -67,6 +67,7 @@ set(DFTDSOURCES
 	tone_reproductor.cpp
 	torpedo.cpp
 	torpedo_camera_display.cpp
+	terrain_manager.cpp
 	triangulate.cpp
 	user_display.cpp
 	user_interface.cpp

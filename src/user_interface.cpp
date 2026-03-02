@@ -42,6 +42,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "user_interface.h"
 #include "vector3.h"
 #include "weather_renderer.h"
+#include "terrain_manager.h"
 #include "widget.h"
 #include <iomanip>
 #include <iostream>
@@ -182,8 +183,8 @@ user_interface::user_interface(game &gm) : mygame(&gm),
 
     add_loading_screen("user interface initialized");
 
-    mygeoclipmap = std::make_unique<geoclipmap>(TERRAIN_NR_LEVELS, TERRAIN_RESOLUTION_N, mygame->get_height_gen());
-    mygeoclipmap->set_viewerpos(gm.get_player()->get_pos());
+    myterrain = std::make_unique<terrain_manager>(TERRAIN_NR_LEVELS, TERRAIN_RESOLUTION_N, mygame->get_height_gen());
+    myterrain->set_viewer_position(gm.get_player()->get_pos());
 
     add_loading_screen("terrain loaded");
 }
@@ -416,8 +417,8 @@ void user_interface::draw_terrain(const vector3 &viewpos, angle dir,
     if (mirrored)
         glScalef(1.0f, 1.0f, -1.0f);
     viewfrustum.translate(viewpos);
-    mygeoclipmap->set_viewerpos(viewpos);
-    mygeoclipmap->display(viewfrustum, -viewpos, mirrored, above_water);
+    myterrain->set_viewer_position(viewpos);
+    myterrain->render(viewfrustum, -viewpos, mirrored, above_water);
     glPopMatrix();
 }
 
@@ -482,6 +483,10 @@ void user_interface::draw_infopanel(bool onlytexts) const {
 
 void user_interface::add_message(const string &s) {
     mymessages->add_message(s, mygame->get_time());
+}
+
+void user_interface::switch_geo_wire() {
+    myterrain->toggle_wireframe();
 }
 
 void user_interface::play_sound_effect(const string &se,

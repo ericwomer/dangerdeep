@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "caustics.h"
 #include "coastmap.h"
 #include "color.h"
-#include "geoclipmap.h"
+#include <memory>
 #include "ptrvector.h"
 #include "user_display.h"
 #include "user_popup.h"
@@ -42,6 +42,7 @@ class music;
 class sea_object;
 class ui_message_queue;
 class weather_renderer;
+class terrain_manager;
 
 ///\defgroup interfaces In-game user interfaces
 ///\brief Base class for a user interface for playing the game.
@@ -109,7 +110,7 @@ class user_interface {
     std::unique_ptr<class sky> mysky;         // the one and only sky
     caustics mycaustics;                      //	caustic map
     coastmap mycoastmap;                      // this may get moved to game.h, yet it is used for display only, that's why it is here
-    std::unique_ptr<geoclipmap> mygeoclipmap; // terrain rendering instance
+    std::unique_ptr<terrain_manager> myterrain; // terrain rendering subsystem
 
     // is display in day mode (or night/redlight mode)?
     bool daymode;
@@ -214,9 +215,7 @@ class user_interface {
     bool abort_requested() const { return abort_request; }
     void request_abort(bool abrt = true) { abort_request = abrt; }
 
-    void switch_geo_wire() {
-        mygeoclipmap->wireframe = !mygeoclipmap->wireframe;
-    }
+    void switch_geo_wire();
 };
 
 #endif

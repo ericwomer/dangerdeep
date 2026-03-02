@@ -26,6 +26,8 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 
 - **Extraer subsistema de clima de user_interface:** Creado subsistema `weather_renderer` para gestionar efectos climáticos (lluvia y nieve). Antes, `user_interface` contenía ~100 líneas de código de inicialización de texturas animadas (#ifdef RAIN/SNOW) y ~30 líneas de renderizado. Ahora, `weather_renderer` encapsula toda la lógica de generación de texturas procedurales (gotas de lluvia, copos de nieve) y renderizado de planos billboarded en el frustum. Archivos nuevos: `weather_renderer.h/cpp`. Modificados: `user_interface.h/cpp` (reemplazados `ptrvector<texture> raintex/snowtex` por `std::unique_ptr<weather_renderer>`). Beneficios: user_interface ~130 líneas más ligero, código de clima autocontenido y testeable, facilita agregar nuevos efectos climáticos (niebla, tormentas). Los efectos están actualmente deshabilitados (#ifdef RAIN/SNOW no definidos) pero el sistema es limpio y fácil de reactivar. (Completado: 2026-03-02)
 
+- **Extraer subsistema de terreno de user_interface:** Creado subsistema `terrain_manager` para encapsular la gestión del rendering de terreno (geoclipmap). Antes, `user_interface` gestionaba directamente `std::unique_ptr<geoclipmap>` con llamadas a `set_viewerpos()` y `display()` esparcidas por el código. Ahora, `terrain_manager` proporciona una interfaz limpia: `set_viewer_position()`, `render()`, `toggle_wireframe()`. Archivos nuevos: `terrain_manager.h/cpp`. Modificados: `user_interface.h/cpp` (reemplazado `mygeoclipmap` por `myterrain`), `map_display.cpp` (agregado include `height_generator.h` que faltaba). Beneficios: responsabilidad bien delimitada, interfaz más clara, facilita futuras mejoras al sistema de terreno (LOD dinámico, streaming). Movida función `switch_geo_wire()` de inline a `.cpp` para evitar dependencias circulares. (Completado: 2026-03-02)
+
 ---
 
 ## Prioridad alta (impacto en acoplamiento / compilación)
@@ -47,11 +49,12 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 ## Prioridad media (responsabilidades y testabilidad)
 
 2. **Extraer responsabilidades de `user_interface` (continuar)**
-   - ✅ **COMPLETADO (parcial)**: Extraídos dos subsistemas importantes:
+   - ✅ **COMPLETADO (parcial)**: Extraídos tres subsistemas importantes:
      - `ui_message_queue`: mensajes temporales (ver sección "Hecho")
      - `weather_renderer`: efectos climáticos lluvia/nieve (ver sección "Hecho")
-   - **Pendiente**: Agrupa más responsabilidades: pantallas, popups, panel, cielo, costa, geoclipmap, pausa.
-   - Opciones para próximos pasos: composición por "subsistemas" adicionales (p. ej. SkyManager, CoastRenderer, GeoclipManager) inyectados o creados en el constructor.
+     - `terrain_manager`: gestión de rendering de terreno/geoclipmap (ver sección "Hecho")
+   - **Pendiente**: Agrupa más responsabilidades: pantallas, popups, panel, cielo, costa, pausa.
+   - Opciones para próximos pasos: composición por "subsistemas" adicionales (p. ej. SkyManager, CoastRenderer, PanelManager) inyectados o creados en el constructor.
 
 3. **Singletons → inyección (continuar)**
    - ✅ **COMPLETADO**: `game`, `user_interface` y displays ahora usan inyección de dependencias para `cfg`, `log` y `music`. Ver sección "Hecho" para detalles.
