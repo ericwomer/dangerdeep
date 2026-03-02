@@ -183,7 +183,7 @@ game::game()
     freezetime = 0;
     freezetime_start = 0;
 
-    mywater = std::make_unique<water>(0.0);
+    mywater = std::make_unique<water>(0.0, cfg::instance());
     // myheightgen.reset(new height_generator_map("default.xml"));
 
     myheightgen = std::make_unique<terrain<Sint16>>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", TERRAIN_NR_LEVELS + 1);
@@ -273,7 +273,7 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &subtype, unsign
     date currentdate((unsigned)time);
     equipment_date = currentdate; // fixme: another crude guess or hack
 
-    mywater = std::make_unique<water>(time);
+    mywater = std::make_unique<water>(time, cfg_ref);
     // myheightgen.reset(new height_generator_map("default.xml"));
 
     myheightgen = std::make_unique<terrain<Sint16>>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", TERRAIN_NR_LEVELS + 1);
@@ -404,7 +404,7 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &filename)
 
     // fixme: save original water creation time and random seed with that water was generated.
     // set the same seed here again, so water is exactly like it was at game start.
-    mywater = std::make_unique<water>(time);
+    mywater = std::make_unique<water>(time, cfg_ref);
 
     // myheightgen.reset(new height_generator_map("default.xml"));
 

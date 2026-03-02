@@ -210,7 +210,7 @@ class water {
     void construction_threaded(ocean_wave_generator<float> &myowg, unsigned phase_start, unsigned phase_add);
 
   public:
-    water(double tm = 0.0); // give day time in seconds
+    water(double tm, cfg &configuration); // give day time in seconds and configuration
 
     /// MUST be called after construction of water and before using it!
     void finish_construction();

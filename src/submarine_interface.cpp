@@ -252,7 +252,7 @@ void submarine_interface::process_input(const SDL_Event &event) {
 
     // check for common keys
     if (event.type == SDL_KEYDOWN) {
-        const cfg &mycfg = cfg::instance();
+        const cfg &mycfg = get_config();
 
         // SCREENS
         if (event.key.keysym.sym == SDLK_b)
@@ -489,7 +489,7 @@ void submarine_interface::process_input(const SDL_Event &event) {
             } else {
                 add_message(texts::get(269));
             }
-        } else if (cfg::instance().getkey(KEY_TAKE_SCREENSHOT).equal(event.key.keysym)) {
+        } else if (get_config().getkey(KEY_TAKE_SCREENSHOT).equal(event.key.keysym)) {
             sys().screenshot();
             log_info("screenshot taken.");
 

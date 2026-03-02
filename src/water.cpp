@@ -137,13 +137,13 @@ static unsigned cmpdtl(int x) {
     return nextgteqpow2(unsigned(x));
 }
 
-water::water(double tm) : mytime(tm),
-                          wave_phases(cfg::instance().geti("wave_phases")),
-                          wavetile_length(cfg::instance().getf("wavetile_length")),
+water::water(double tm, cfg &configuration) : mytime(tm),
+                          wave_phases(configuration.geti("wave_phases")),
+                          wavetile_length(configuration.getf("wavetile_length")),
                           wavetile_length_rcp(1.0f / wavetile_length),
-                          wave_tidecycle_time(cfg::instance().getf("wave_tidecycle_time")),
+                          wave_tidecycle_time(configuration.getf("wave_tidecycle_time")),
                           last_light_color(-1, -1, -1),
-                          wave_resolution(nextgteqpow2(cfg::instance().geti("wave_fft_res"))),
+                          wave_resolution(nextgteqpow2(configuration.geti("wave_fft_res"))),
                           wave_resolution_shift(ulog2(wave_resolution)),
                           wavetile_data(wave_phases),
                           curr_wtp(0),
@@ -156,7 +156,7 @@ water::water(double tm) : mytime(tm),
                           use_hqsfx(false),
                           vattr_aof_index(0),
                           rerender_new_wtp(true),
-                          geoclipmap_resolution(cmpdtl(cfg::instance().geti("water_detail"))), // should be power of two
+                          geoclipmap_resolution(cmpdtl(configuration.geti("water_detail"))), // should be power of two
                           geoclipmap_levels(wave_resolution_shift - 2),
                           patches(1 + (geoclipmap_levels - 1) * 8 * 3 * 3 + 4 /*horizon*/) {
     // generate geoclipmap index data.
@@ -201,7 +201,7 @@ water::water(double tm) : mytime(tm),
 	// 261598 indices with N=64, using 1046392 (<1MB) of video ram with uint32 indices
 #endif
 
-    use_hqsfx = cfg::instance().getb("use_hqsfx");
+    use_hqsfx = configuration.getb("use_hqsfx");
 
     // 2004/04/25 Note! decreasing the size of the reflection map improves performance
     // on a gf4mx! (23fps to 28fps with a 128x128 map to a 512x512 map)

@@ -64,9 +64,13 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
    - **user_interface está significativamente más ligero** tras estas extracciones. Los subsistemas de rendering están bien organizados.
 
 3. **Singletons → inyección (continuar)**
-   - ✅ **COMPLETADO**: `game`, `user_interface` y displays ahora usan inyección de dependencias para `cfg`, `log` y `music`. Ver sección "Hecho" para detalles.
-   - **Displays actualizados**: `sub_bridge_display`, `sub_periscope_display`, `sub_uzo_display` ahora usan `ui.get_config()` en lugar de `cfg::instance()`.
-   - **Pendiente**: Aplicar el mismo patrón a popups y otras clases donde sea beneficioso.
+   - ✅ **COMPLETADO (parcial)**: `game`, `user_interface`, displays, `water`, `submarine_interface`, y `map_display` ahora usan inyección de dependencias para `cfg`, `log` y `music`.
+   - **Archivos actualizados en esta sesión**:
+     - `water`: constructor ahora recibe `cfg &configuration`, eliminados 6 usos de `cfg::instance()`
+     - `submarine_interface`: usa `get_config()` en lugar de `cfg::instance()` (2 ubicaciones)
+     - `map_display`: usa `ui.get_config()` en lugar de `cfg::instance()` (2 ubicaciones)
+     - `game`: actualizado para inyectar `cfg` en constructor de `water` (3 call sites)
+   - **Pendiente**: Aún quedan ~15 usos de `cfg::instance()` en archivos menos críticos (subsim.cpp, tests, etc.)
    - Estrategia: En código nuevo, preferir recibir `cfg&` o `log&` por parámetro/constructor donde sea posible; en código existente, ir sustituyendo acceso a `singleton<T>::instance()` por parámetros en funciones clave (sin cambiar toda la base de una vez).
    - Singletons restantes: `system`, `global_data`, `postprocessor`, `data_file_handler` (estos pueden mantenerse por ahora).
 
