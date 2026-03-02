@@ -189,121 +189,118 @@ void sub_tdc_display::process_input(class game &gm, const SDL_Event &event) {
 void sub_tdc_display::display(class game &gm) const {
     submarine *player = dynamic_cast<submarine *>(gm.get_player());
 
-    sys().prepare_2d_drawing();
+    draw_with_2d_and_panel([&]() {
+        const tdc &TDC = player->get_tdc();
 
-    const tdc &TDC = player->get_tdc();
+        if (show_screen1) {
+            if (!myscheme1.get())
+                throw error("sub_tdc_display::display without scheme!");
+            const scheme_screen1 &s = *myscheme1;
 
-    if (show_screen1) {
-        if (!myscheme1.get())
-            throw error("sub_tdc_display::display without scheme!");
-        const scheme_screen1 &s = *myscheme1;
+            // draw torpedo speed dial (15deg = 0, 5knots = 30deg)
+            // torpedo speed (depends on selected tube!), but TDC is already set accordingly
+            s.torp_speed.draw(sea_object::ms2kts(TDC.get_torpedo_speed()) * 330.0 / 55 + 15);
 
-        // draw torpedo speed dial (15deg = 0, 5knots = 30deg)
-        // torpedo speed (depends on selected tube!), but TDC is already set accordingly
-        s.torp_speed.draw(sea_object::ms2kts(TDC.get_torpedo_speed()) * 330.0 / 55 + 15);
+            // angle on the bow finer value, note use real fmod here...
+            s.aob_inner.draw(fmod(TDC.get_angle_on_the_bow().value_pm180(), 10.0) * -36.0);
 
-        // angle on the bow finer value, note use real fmod here...
-        s.aob_inner.draw(fmod(TDC.get_angle_on_the_bow().value_pm180(), 10.0) * -36.0);
+            // background
+            s.background->draw(0, 0);
 
-        // background
-        s.background->draw(0, 0);
+            // angle on the bow coarse value
+            s.aob_ptr.draw(TDC.get_angle_on_the_bow().value_pm180());
 
-        // angle on the bow coarse value
-        s.aob_ptr.draw(TDC.get_angle_on_the_bow().value_pm180());
+            // spread angle, fixme: add. lead angle is not right...
+            // this means angle of spread when firing multiple torpedoes... this has to be (re)defined
+            // the captain could fake additional lead angle by manipulating bearing etc.
+            // this should be done to compensate ship turning or zig-zagging
+            s.spread_ang_ptr.draw(0.0 /*TDC.get_spread_angle().value()*/ / 20 * 180.0 - 90);
+            s.spread_ang_mkr.draw(15.0 /*TDC.get_user_spread_angle().value()*/ / 20 * 180.0 - 90); // fixme
 
-        // spread angle, fixme: add. lead angle is not right...
-        // this means angle of spread when firing multiple torpedoes... this has to be (re)defined
-        // the captain could fake additional lead angle by manipulating bearing etc.
-        // this should be done to compensate ship turning or zig-zagging
-        s.spread_ang_ptr.draw(0.0 /*TDC.get_spread_angle().value()*/ / 20 * 180.0 - 90);
-        s.spread_ang_mkr.draw(15.0 /*TDC.get_user_spread_angle().value()*/ / 20 * 180.0 - 90); // fixme
+            // fire solution quality
+            double quality = 0.333; // per cent, fixme, request from sub! depends on crew
+            s.firesolution->draw(268 - int(187 * quality + 0.5), 418);
 
-        // fire solution quality
-        double quality = 0.333; // per cent, fixme, request from sub! depends on crew
-        s.firesolution->draw(268 - int(187 * quality + 0.5), 418);
+            // parallax angle (fixme: why should the user set an angle? extra-correction here? is like
+            // additional lead angle...)
+            // 6 pointer degrees for 1 real degree, marker - 90
+            double parang = TDC.get_parallax_angle().value_pm180();
+            // clamp value (maybe tweak value so that pointer shakes when reaching the limit?)
+            if (parang < -26)
+                parang = -26;
+            if (parang > 26)
+                parang = 26;
+            s.parallax_ptr.draw(parang * 6);
+            s.parallax_mkr.draw(TDC.get_additional_parallaxangle().value_pm180() * 6 - 90);
 
-        // parallax angle (fixme: why should the user set an angle? extra-correction here? is like
-        // additional lead angle...)
-        // 6 pointer degrees for 1 real degree, marker - 90
-        double parang = TDC.get_parallax_angle().value_pm180();
-        // clamp value (maybe tweak value so that pointer shakes when reaching the limit?)
-        if (parang < -26)
-            parang = -26;
-        if (parang > 26)
-            parang = 26;
-        s.parallax_ptr.draw(parang * 6);
-        s.parallax_mkr.draw(TDC.get_additional_parallaxangle().value_pm180() * 6 - 90);
+            // torpedo run time
+            double t = TDC.get_torpedo_runtime();
+            s.torptime_sec.draw(myfmod(t, 60) * 6);
+            s.torptime_min.draw(myfmod(t, 3600) * 0.1);
 
-        // torpedo run time
-        double t = TDC.get_torpedo_runtime();
-        s.torptime_sec.draw(myfmod(t, 60) * 6);
-        s.torptime_min.draw(myfmod(t, 3600) * 0.1);
+            // target bearing (influenced by quality!)
+            s.target_pos.draw((TDC.get_bearing() - player->get_heading()).value());
 
-        // target bearing (influenced by quality!)
-        s.target_pos.draw((TDC.get_bearing() - player->get_heading()).value());
+            // target speed
+            s.target_speed.draw(15 + sea_object::ms2kts(TDC.get_target_speed()) * 330.0 / 55);
 
-        // target speed
-        s.target_speed.draw(15 + sea_object::ms2kts(TDC.get_target_speed()) * 330.0 / 55);
+        } else {
+            if (!myscheme2.get())
+                throw error("sub_tdc_display::display without scheme!");
+            const scheme_screen2 &s = *myscheme2;
 
-    } else {
-        if (!myscheme2.get())
-            throw error("sub_tdc_display::display without scheme!");
-        const scheme_screen2 &s = *myscheme2;
+            // background
+            s.background->draw(0, 0);
 
-        // background
-        s.background->draw(0, 0);
+            unsigned selected_tube = dynamic_cast<const submarine_interface &>(ui).get_selected_tube();
 
-        unsigned selected_tube = dynamic_cast<const submarine_interface &>(ui).get_selected_tube();
-
-        // draw tubes if ready
-        const double blink_duration = 3.0;
-        const double blink_period_duration = 0.25;
-        for (unsigned i = 0; i < 6; ++i) {
-            if (player->is_tube_ready(i)) {
-                if (selected_tube != i || gm.get_time() > tubeselected_time + blink_duration ||
-                    (unsigned(floor((gm.get_time() - tubeselected_time) / blink_period_duration)) & 1)) {
-                    s.tubelight[i].draw();
+            // draw tubes if ready
+            const double blink_duration = 3.0;
+            const double blink_period_duration = 0.25;
+            for (unsigned i = 0; i < 6; ++i) {
+                if (player->is_tube_ready(i)) {
+                    if (selected_tube != i || gm.get_time() > tubeselected_time + blink_duration ||
+                        (unsigned(floor((gm.get_time() - tubeselected_time) / blink_period_duration)) & 1)) {
+                        s.tubelight[i].draw();
+                    }
                 }
             }
+
+            // fire button
+            if (player->is_tube_ready(selected_tube) && TDC.solution_valid()) {
+                s.firebutton.draw();
+            }
+
+            // automatic fire solution on / off switch
+            s.automode[TDC.auto_mode_enabled() ? 0 : 1].draw();
+
+            // draw gyro pointers
+            angle leadangle = TDC.get_lead_angle();
+            s.gyro_360.draw(leadangle.value());
+            s.gyro_10.draw(myfmod(leadangle.value(), 10.0) * 36.0);
+
+            // target values (influenced by quality!)
+            double tgtcourse = TDC.get_target_course().value();
+            s.target_course_360.draw(tgtcourse);
+            s.target_course_10.draw(myfmod(tgtcourse, 10.0) * 36.0);
+
+            // target range
+            double tgtrange = TDC.get_target_distance();
+            // clamp displayed value
+            if (tgtrange < 300)
+                tgtrange = 300;
+            if (tgtrange > 11000)
+                tgtrange = 11000;
+            // compute non-linear dial value
+            tgtrange = sqrt(12.61855670103 * tgtrange - 3685.567010309);
+            s.target_range_ptr.draw(tgtrange);
+            // fixme: get tgt range marker also... or store it in this screen class?
+            // hmm no the TDC needs to now user input, so store it there...
+
+            // fixme: show some sensible value
+            s.brightness.draw(45);
         }
-
-        // fire button
-        if (player->is_tube_ready(selected_tube) && TDC.solution_valid()) {
-            s.firebutton.draw();
-        }
-
-        // automatic fire solution on / off switch
-        s.automode[TDC.auto_mode_enabled() ? 0 : 1].draw();
-
-        // draw gyro pointers
-        angle leadangle = TDC.get_lead_angle();
-        s.gyro_360.draw(leadangle.value());
-        s.gyro_10.draw(myfmod(leadangle.value(), 10.0) * 36.0);
-
-        // target values (influenced by quality!)
-        double tgtcourse = TDC.get_target_course().value();
-        s.target_course_360.draw(tgtcourse);
-        s.target_course_10.draw(myfmod(tgtcourse, 10.0) * 36.0);
-
-        // target range
-        double tgtrange = TDC.get_target_distance();
-        // clamp displayed value
-        if (tgtrange < 300)
-            tgtrange = 300;
-        if (tgtrange > 11000)
-            tgtrange = 11000;
-        // compute non-linear dial value
-        tgtrange = sqrt(12.61855670103 * tgtrange - 3685.567010309);
-        s.target_range_ptr.draw(tgtrange);
-        // fixme: get tgt range marker also... or store it in this screen class?
-        // hmm no the TDC needs to now user input, so store it there...
-
-        // fixme: show some sensible value
-        s.brightness.draw(45);
-    }
-
-    ui.draw_infopanel(true);
-    sys().unprepare_2d_drawing();
+    }, true);
 }
 
 void sub_tdc_display::next_sub_screen(bool is_day) {

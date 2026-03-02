@@ -179,94 +179,92 @@ void sub_torpedo_display::display(class game &gm) const {
     double hours = 0.0, minutes = 0.0, seconds = 0.0;
 
     // draw background
-    sys().prepare_2d_drawing();
+    draw_with_2d_and_panel_simple([&]() {
+        background->draw(0, 0);
 
-    background->draw(0, 0);
+        // draw sub model
+        if (subtopsideview.get()) // fixme later do not accept empty data
+            subtopsideview->draw(0, 0);
 
-    // draw sub model
-    if (subtopsideview.get()) // fixme later do not accept empty data
-        subtopsideview->draw(0, 0);
+        // tube handling. compute coordinates for display and mouse use
+        const vector<submarine::stored_torpedo> &torpedoes = sub->get_torpedoes();
+        vector<vector2i> tubecoords = get_tubecoords(sub);
+        pair<unsigned, unsigned> bow_tube_indices = sub->get_bow_tube_indices();
+        pair<unsigned, unsigned> stern_tube_indices = sub->get_stern_tube_indices();
+        pair<unsigned, unsigned> bow_reserve_indices = sub->get_bow_reserve_indices();
+        pair<unsigned, unsigned> stern_reserve_indices = sub->get_stern_reserve_indices();
+        pair<unsigned, unsigned> bow_deckreserve_indices = sub->get_bow_deckreserve_indices();
+        pair<unsigned, unsigned> stern_deckreserve_indices = sub->get_stern_deckreserve_indices();
 
-    // tube handling. compute coordinates for display and mouse use
-    const vector<submarine::stored_torpedo> &torpedoes = sub->get_torpedoes();
-    vector<vector2i> tubecoords = get_tubecoords(sub);
-    pair<unsigned, unsigned> bow_tube_indices = sub->get_bow_tube_indices();
-    pair<unsigned, unsigned> stern_tube_indices = sub->get_stern_tube_indices();
-    pair<unsigned, unsigned> bow_reserve_indices = sub->get_bow_reserve_indices();
-    pair<unsigned, unsigned> stern_reserve_indices = sub->get_stern_reserve_indices();
-    pair<unsigned, unsigned> bow_deckreserve_indices = sub->get_bow_deckreserve_indices();
-    pair<unsigned, unsigned> stern_deckreserve_indices = sub->get_stern_deckreserve_indices();
+        // draw tubes
+        for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i)
+            draw_torpedo(gm, true, tubecoords[i], torpedoes[i]);
+        for (unsigned i = bow_reserve_indices.first; i < bow_reserve_indices.second; ++i)
+            draw_torpedo(gm, true, tubecoords[i], torpedoes[i]);
+        for (unsigned i = bow_deckreserve_indices.first; i < bow_deckreserve_indices.second; ++i)
+            draw_torpedo(gm, true, tubecoords[i], torpedoes[i]);
+        for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i)
+            draw_torpedo(gm, false, tubecoords[i], torpedoes[i]);
+        for (unsigned i = stern_reserve_indices.first; i < stern_reserve_indices.second; ++i)
+            draw_torpedo(gm, false, tubecoords[i], torpedoes[i]);
+        for (unsigned i = stern_deckreserve_indices.first; i < stern_deckreserve_indices.second; ++i)
+            draw_torpedo(gm, false, tubecoords[i], torpedoes[i]);
 
-    // draw tubes
-    for (unsigned i = bow_tube_indices.first; i < bow_tube_indices.second; ++i)
-        draw_torpedo(gm, true, tubecoords[i], torpedoes[i]);
-    for (unsigned i = bow_reserve_indices.first; i < bow_reserve_indices.second; ++i)
-        draw_torpedo(gm, true, tubecoords[i], torpedoes[i]);
-    for (unsigned i = bow_deckreserve_indices.first; i < bow_deckreserve_indices.second; ++i)
-        draw_torpedo(gm, true, tubecoords[i], torpedoes[i]);
-    for (unsigned i = stern_tube_indices.first; i < stern_tube_indices.second; ++i)
-        draw_torpedo(gm, false, tubecoords[i], torpedoes[i]);
-    for (unsigned i = stern_reserve_indices.first; i < stern_reserve_indices.second; ++i)
-        draw_torpedo(gm, false, tubecoords[i], torpedoes[i]);
-    for (unsigned i = stern_deckreserve_indices.first; i < stern_deckreserve_indices.second; ++i)
-        draw_torpedo(gm, false, tubecoords[i], torpedoes[i]);
+        // draw transfer graphics if needed
+        if (torptranssrc != ILLEGAL_TUBE && torpedoes[torptranssrc].status ==
+                                                submarine::stored_torpedo::st_loaded) {
+            torptex(torpedoes[torptranssrc].specfilename).draw(mx - 124 / 2, my - 12 / 2, colorf(1, 1, 1, 0.5));
+            primitives::line(vector2f(tubecoords[torptranssrc].x + 124 / 2,
+                                      tubecoords[torptranssrc].y + 12 / 2),
+                             vector2f(mx, my), color::white())
+                .render();
+        }
 
-    // draw transfer graphics if needed
-    if (torptranssrc != ILLEGAL_TUBE && torpedoes[torptranssrc].status ==
-                                            submarine::stored_torpedo::st_loaded) {
-        torptex(torpedoes[torptranssrc].specfilename).draw(mx - 124 / 2, my - 12 / 2, colorf(1, 1, 1, 0.5));
-        primitives::line(vector2f(tubecoords[torptranssrc].x + 124 / 2,
-                                  tubecoords[torptranssrc].y + 12 / 2),
-                         vector2f(mx, my), color::white())
-            .render();
-    }
-
-    // draw information about torpedo in tube if needed
-    unsigned tb = get_tube_below_mouse(tubecoords);
-    if (tb != ILLEGAL_TUBE) {
-        // display type info.
-        if (torpedoes[tb].status == submarine::stored_torpedo::st_loaded) {
-            desc_text *torpdesctext = 0;
-            string sfn = torpedoes[tb].specfilename;
-            try {
-                torpdesctext = desc_texts.ref(data_file().get_rel_path(sfn) + sfn + "_" + texts::get_language_code() + ".txt");
-            } catch (error &e) {
-                // try again with english text if other text(s) don't exist.
-                torpdesctext = desc_texts.ref(data_file().get_rel_path(sfn) + sfn + "_en.txt");
+        // draw information about torpedo in tube if needed
+        unsigned tb = get_tube_below_mouse(tubecoords);
+        if (tb != ILLEGAL_TUBE) {
+            // display type info.
+            if (torpedoes[tb].status == submarine::stored_torpedo::st_loaded) {
+                desc_text *torpdesctext = 0;
+                string sfn = torpedoes[tb].specfilename;
+                try {
+                    torpdesctext = desc_texts.ref(data_file().get_rel_path(sfn) + sfn + "_" + texts::get_language_code() + ".txt");
+                } catch (error &e) {
+                    // try again with english text if other text(s) don't exist.
+                    torpdesctext = desc_texts.ref(data_file().get_rel_path(sfn) + sfn + "_en.txt");
+                }
+                // fixme: implement scrolling here!
+                // torpedo description text, for notepad
+                if (torp_desc_line > torpdesctext->nr_of_lines())
+                    torp_desc_line = torpdesctext->nr_of_lines();
+                font_vtremington12->print_wrapped(100, 550, 570, 0, torpdesctext->str(torp_desc_line, 10), color(0, 0, 0));
             }
-            // fixme: implement scrolling here!
-            // torpedo description text, for notepad
-            if (torp_desc_line > torpdesctext->nr_of_lines())
-                torp_desc_line = torpdesctext->nr_of_lines();
-            font_vtremington12->print_wrapped(100, 550, 570, 0, torpdesctext->str(torp_desc_line, 10), color(0, 0, 0));
-        }
-        if (torpedoes[tb].status == submarine::stored_torpedo::st_reloading || torpedoes[tb].status == submarine::stored_torpedo::st_unloading) {
-            hours = torpedoes[tb].remaining_time / 3600;
-            minutes = (torpedoes[tb].remaining_time - floor(hours) * 3600) / 60;
-            seconds = torpedoes[tb].remaining_time - floor(hours) * 3600 - floor(minutes) * 60;
-        }
-        if (mb & SDL_BUTTON_LMASK) {
-            // display remaining time if possible
-            // torpedo reload remaning time
-            if (torpedoes[tb].status == submarine::stored_torpedo::st_reloading ||
-                torpedoes[tb].status == submarine::stored_torpedo::st_unloading) {
-                notepadsheet.get()->draw(mx, my);
-                font_vtremington12->print(mx + 32, my + 50, texts::get(211) + get_time_string(torpedoes[tb].remaining_time), color(32, 0, 0));
+            if (torpedoes[tb].status == submarine::stored_torpedo::st_reloading || torpedoes[tb].status == submarine::stored_torpedo::st_unloading) {
+                hours = torpedoes[tb].remaining_time / 3600;
+                minutes = (torpedoes[tb].remaining_time - floor(hours) * 3600) / 60;
+                seconds = torpedoes[tb].remaining_time - floor(hours) * 3600 - floor(minutes) * 60;
+            }
+            if (mb & SDL_BUTTON_LMASK) {
+                // display remaining time if possible
+                // torpedo reload remaning time
+                if (torpedoes[tb].status == submarine::stored_torpedo::st_reloading ||
+                    torpedoes[tb].status == submarine::stored_torpedo::st_unloading) {
+                    notepadsheet.get()->draw(mx, my);
+                    font_vtremington12->print(mx + 32, my + 50, texts::get(211) + get_time_string(torpedoes[tb].remaining_time), color(32, 0, 0));
+                }
             }
         }
-    }
-    pointer_seconds.draw(floor(seconds) * 6);
-    pointer_minutes.draw(minutes * 6);
-    pointer_hours.draw(hours * 30);
+        pointer_seconds.draw(floor(seconds) * 6);
+        pointer_minutes.draw(minutes * 6);
+        pointer_hours.draw(hours * 30);
 
-    // draw deck gun ammo remaining
-    if (true == sub->has_deck_gun()) {
-        char a[10];
-        sprintf(a, "%ld", sub->num_shells_remaining());
-        font_vtremington12->print(400, 85, a, color(0, 0, 0));
-    }
-
-    ui.draw_infopanel();
+        // draw deck gun ammo remaining
+        if (true == sub->has_deck_gun()) {
+            char a[10];
+            sprintf(a, "%ld", sub->num_shells_remaining());
+            font_vtremington12->print(400, 85, a, color(0, 0, 0));
+        }
+    });
     sys().unprepare_2d_drawing();
 }
 

@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef USER_INTERFACE_H
 #define USER_INTERFACE_H
 
+#include "angle.h"
 #include "caustics.h"
 #include "coastmap.h"
 #include "color.h"

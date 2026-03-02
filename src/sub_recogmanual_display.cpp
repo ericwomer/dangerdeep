@@ -64,28 +64,26 @@ void sub_recogmanual_display::display(class game &gm) const {
     int step_x = 450;
 
     // draw background
-    sys().prepare_2d_drawing();
+    draw_with_2d_and_panel_simple([&]() {
+        background->draw(0, 0);
 
-    background->draw(0, 0);
+        for (int i = page * 3; (i < page * 3 + 6) && (i < (int)silhouettes.size()); i++) {
+            if (i == page * 3 + 3) {
+                off_x += step_x;
+                off_text_x += step_x;
+            }
+            silhouettes[i]->draw(off_x, off_y + step_y * (i % 3), colorf(1.0, 1.0, 1.0, 0.75));
 
-    for (int i = page * 3; (i < page * 3 + 6) && (i < (int)silhouettes.size()); i++) {
-        if (i == page * 3 + 3) {
-            off_x += step_x;
-            off_text_x += step_x;
+            // fixme: change this after the authentic overlay is implemented
+            font_vtremington12->print(off_text_x, off_text_y + step_y * (i % 3), classes[i]->c_str(), color(0, 0, 0));
+            font_vtremington12->print(off_text_x, off_text_y + 15 + step_y * (i % 3), string("Length: ") + lengths[i]->c_str() + string("   Displacement:") + displacements[i]->c_str(), color(0, 0, 0));
+            font_vtremington12->print(off_text_x, off_text_y + 30 + step_y * (i % 3), string("Countries: ") + countries[i]->c_str(), color(0, 0, 0));
+            font_vtremington12->print(off_text_x, off_text_y + 45 + step_y * (i % 3), string("Weapons: ") + weapons[i]->c_str(), color(0, 0, 0));
         }
-        silhouettes[i]->draw(off_x, off_y + step_y * (i % 3), colorf(1.0, 1.0, 1.0, 0.75));
 
-        // fixme: change this after the authentic overlay is implemented
-        font_vtremington12->print(off_text_x, off_text_y + step_y * (i % 3), classes[i]->c_str(), color(0, 0, 0));
-        font_vtremington12->print(off_text_x, off_text_y + 15 + step_y * (i % 3), string("Length: ") + lengths[i]->c_str() + string("   Displacement:") + displacements[i]->c_str(), color(0, 0, 0));
-        font_vtremington12->print(off_text_x, off_text_y + 30 + step_y * (i % 3), string("Countries: ") + countries[i]->c_str(), color(0, 0, 0));
-        font_vtremington12->print(off_text_x, off_text_y + 45 + step_y * (i % 3), string("Weapons: ") + weapons[i]->c_str(), color(0, 0, 0));
-    }
-
-    btn_left.draw();
-    btn_right.draw();
-    ui.draw_infopanel();
-    sys().unprepare_2d_drawing();
+        btn_left.draw();
+        btn_right.draw();
+    });
 }
 
 void sub_recogmanual_display::process_input(class game &gm, const SDL_Event &event) {

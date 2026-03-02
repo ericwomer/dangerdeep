@@ -68,6 +68,7 @@ set(DFTDSOURCES
 	torpedo.cpp
 	torpedo_camera_display.cpp
 	triangulate.cpp
+	user_display.cpp
 	user_interface.cpp
 	water.cpp
 	water_splash.cpp

@@ -24,12 +24,9 @@ sub_valves_display::sub_valves_display(class user_interface &ui_)
 }
 
 void sub_valves_display::display(class game &gm) const {
-
-    sys().prepare_2d_drawing();
-    background->draw(0, 0);
-
-    ui.draw_infopanel();
-    sys().unprepare_2d_drawing();
+    draw_with_2d_and_panel_simple([this]() {
+        background->draw(0, 0);
+    });
 }
 
 void sub_valves_display::process_input(class game &gm, const SDL_Event &event) {

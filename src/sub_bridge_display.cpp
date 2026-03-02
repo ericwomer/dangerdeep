@@ -47,12 +47,11 @@ freeview_display::projection_data sub_bridge_display::get_projection_data(game &
 }
 
 void sub_bridge_display::post_display(game &gm) const {
-    sys().prepare_2d_drawing();
-    if (glasses_in_use) {
-        glasses_tex->draw(0, 0, 1024, 768);
-    }
-    ui.draw_infopanel(true);
-    sys().unprepare_2d_drawing();
+    draw_with_2d_and_panel([this]() {
+        if (glasses_in_use) {
+            glasses_tex->draw(0, 0, 1024, 768);
+        }
+    }, true);
 }
 
 sub_bridge_display::sub_bridge_display(user_interface &ui_) : freeview_display(ui_), glasses_in_use(false) {

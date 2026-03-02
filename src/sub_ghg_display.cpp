@@ -105,29 +105,23 @@ void sub_ghg_display::process_input(class game &gm, const SDL_Event &event) {
 }
 
 void sub_ghg_display::display(class game &gm) const {
-    sys().prepare_2d_drawing();
+    draw_with_2d_and_panel_simple([&]() {
+        if (!myscheme.get())
+            throw error("sub_ghg_display::display without scheme!");
+        const scheme &s = *myscheme;
 
-    // get hearing device angle from submarine, if it has one
+        s.volume_dial.draw(-turnknobang[TK_VOLUME] - 18.0f);
+        s.background->draw(0, 0);
+        s.volume_knob.draw();
+        s.direction_ptr.draw(turnknobang[TK_DIRECTION] * 0.5 /* fixme: get angle from player*/);
+        s.direction_knob.draw(turnknobang[TK_DIRECTION]);
 
-    if (!myscheme.get())
-        throw error("sub_ghg_display::display without scheme!");
-    const scheme &s = *myscheme;
-
-    s.volume_dial.draw(-turnknobang[TK_VOLUME] - 18.0f);
-    s.background->draw(0, 0);
-    s.volume_knob.draw();
-    s.direction_ptr.draw(turnknobang[TK_DIRECTION] * 0.5 /* fixme: get angle from player*/);
-    s.direction_knob.draw(turnknobang[TK_DIRECTION]);
-
-    // test hack: test signal strengths
-    // 	angle sonar_ang = angle(turnknobang[TK_DIRECTION]*0.5) + player->get_heading();
-    // 	vector<double> noise_strengths = gm.sonar_listen_ships(player, sonar_ang);
-    // 	printf("noise strengths, global ang=%f, L=%f M=%f H=%f U=%f\n",
-    // 	       sonar_ang.value(), noise_strengths[0], noise_strengths[1], noise_strengths[2], noise_strengths[3]);
-
-    ui.draw_infopanel();
-
-    sys().unprepare_2d_drawing();
+        // test hack: test signal strengths
+        // 	angle sonar_ang = angle(turnknobang[TK_DIRECTION]*0.5) + player->get_heading();
+        // 	vector<double> noise_strengths = gm.sonar_listen_ships(player, sonar_ang);
+        // 	printf("noise strengths, global ang=%f, L=%f M=%f H=%f U=%f\n",
+        // 	       sonar_ang.value(), noise_strengths[0], noise_strengths[1], noise_strengths[2], noise_strengths[3]);
+    });
 }
 
 void sub_ghg_display::enter(bool is_day) {

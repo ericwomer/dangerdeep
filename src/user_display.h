@@ -24,9 +24,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define USER_DISPLAY_H
 
 #include "datadirs.h"
+#include "system.h"
 #include "texture.h"
 #include <SDL.h>
+#include <functional>
 #include <list>
+
+class user_interface;
 
 ///\defgroup displays In-game user interface screens
 ///\brief Base class for a single screen of the ingame user interface.
@@ -103,6 +107,13 @@ class user_display {
   public:
     // needed for correct destruction of heirs.
     virtual ~user_display() {}
+    
+    // Helper to draw with 2D mode and optional info panel (common pattern)
+    void draw_with_2d_and_panel(std::function<void()> draw_func, bool draw_panel = false) const;
+    
+    // Helper variant that calls draw_infopanel() without arguments
+    void draw_with_2d_and_panel_simple(std::function<void()> draw_func) const;
+    
     // very basic. Just draw display and handle input.
     virtual void display(class game &gm) const = 0;
     virtual void process_input(class game &gm, const SDL_Event &event) = 0;

@@ -117,7 +117,7 @@ void sub_kdb_display::process_input(class game &gm, const SDL_Event &event) {
    He takes his time to search the whole compass around, say, 1 minute.
    While doing that he listens for signals, and if he detects one, he tries to localize it
    as good as he can, then reports the signal (angle, strength (?) = distance, type)
-   "Escort detected in 30ù (off bow), weak signal" -> far away destroyer etc
+   "Escort detected in 30? (off bow), weak signal" -> far away destroyer etc
    Problems: when a signal is very close (a hunting escort), you don't want the sonarman
    to listen/detect signals all around the clock, but to track that signal. When should
    he start tracking one specific signal? when to stop that? should the captain ask
@@ -176,7 +176,7 @@ pair<angle, double> find_peak_noise(angle startangle, double step, double maxste
 void sub_kdb_display::display(game &gm) const {
     submarine *player = dynamic_cast<submarine *>(gm.get_player());
 
-    sys().prepare_2d_drawing();
+    draw_with_2d_and_panel_simple([&]() {
 
     // get hearing device angle from submarine, if it has one
 
@@ -220,38 +220,35 @@ void sub_kdb_display::display(game &gm) const {
     // distance, but with opposite direction. If that direction gives weaker signal on
     // second try, reverse direction (same as global search, but with less step length).
     // If we found two angles where the signal gets weaker in between, try from the strongest
-    // and reverse direction with 1ù steps iterativly.
-    // Example: strongest signal at 33ù, initial angle at 50ù, initial direction right/
-    // clockwise. Operator turns at 60ù and hears that signal is weaker, so he uses
-    // 50ù as initial angle and left/counter-clockwise as initial direction.
-    // He turns left 10ù to 40ù, signal gets stronger.
-    // He turns left 10ù to 30ù, signal gets stronger.
-    // He turns left 10ù to 20ù, signal gets weaker. So he changes direction, back at 30ù. Stepping down to 5ù.
-    // He turns right 5ù to 35ù, signal gets stronger.
-    // He turns right 5ù to 40ù, signal gets weaker. So he changes direction, back at 35ù. Stepping down to 1ù.
-    // He turns left 1ù to 34ù, signal gets stronger.
-    // He turns left 1ù to 33ù, signal gets stronger.
-    // He turns left 1ù to 32ù, signal gets weaker. So he turns back to strongest signal and stops. -> 33ù
-    // Example2: strongest signal at 29ù, initial angle at 50ù, initial direction right/
-    // clockwise. Operator turns at 60ù and hears that signal is weaker, so he uses
-    // 50ù as initial angle and left/counter-clockwise as initial direction.
-    // He turns left 10ù to 40ù, signal gets stronger.
-    // He turns left 10ù to 30ù, signal gets stronger.
-    // He turns left 10ù to 20ù, signal gets weaker. So he changes direction, back at 30ù. Stepping down to 5ù.
-    // He turns right 5ù to 35ù, signal gets weaker. So initial direction wrong, turn left.
-    // He turns left 5ù to 25ù, signal gets weaker. So he changes direction, back at 30ù. Stepping down to 1ù.
-    // He turns right 1ù to 31ù, signal gets weaker. So initial direction wrong, turn left.
-    // He turns left 1ù to 29ù, signal gets stronger.
-    // He turns left 1ù to 28ù, signal gets weaker. So he turns back to strongest signal and stops. -> 29ù
-    // We could simulate four steps. 30ù, 10ù, 5ù, 1ù.
+    // and reverse direction with 1? steps iterativly.
+    // Example: strongest signal at 33?, initial angle at 50?, initial direction right/
+    // clockwise. Operator turns at 60? and hears that signal is weaker, so he uses
+    // 50? as initial angle and left/counter-clockwise as initial direction.
+    // He turns left 10? to 40?, signal gets stronger.
+    // He turns left 10? to 30?, signal gets stronger.
+    // He turns left 10? to 20?, signal gets weaker. So he changes direction, back at 30?. Stepping down to 5?.
+    // He turns right 5? to 35?, signal gets stronger.
+    // He turns right 5? to 40?, signal gets weaker. So he changes direction, back at 35?. Stepping down to 1?.
+    // He turns left 1? to 34?, signal gets stronger.
+    // He turns left 1? to 33?, signal gets stronger.
+    // He turns left 1? to 32?, signal gets weaker. So he turns back to strongest signal and stops. -> 33?
+    // Example2: strongest signal at 29?, initial angle at 50?, initial direction right/
+    // clockwise. Operator turns at 60? and hears that signal is weaker, so he uses
+    // 50? as initial angle and left/counter-clockwise as initial direction.
+    // He turns left 10? to 40?, signal gets stronger.
+    // He turns left 10? to 30?, signal gets stronger.
+    // He turns left 10? to 20?, signal gets weaker. So he changes direction, back at 30?. Stepping down to 5?.
+    // He turns right 5? to 35?, signal gets weaker. So initial direction wrong, turn left.
+    // He turns left 5? to 25?, signal gets weaker. So he changes direction, back at 30?. Stepping down to 1?.
+    // He turns right 1? to 31?, signal gets weaker. So initial direction wrong, turn left.
+    // He turns left 1? to 29?, signal gets stronger.
+    // He turns left 1? to 28?, signal gets weaker. So he turns back to strongest signal and stops. -> 29?
+    // We could simulate four steps. 30?, 10?, 5?, 1?.
     // fixme 2:
-    // but user would turn sonar in rather small steps (1ù ?)
-    // so simulation is simpler: turn apparatus in 1-3ù steps and recognize peak, localize
-    // peak afterwards in smaller steps (1ù).
-
-    ui.draw_infopanel();
-
-    sys().unprepare_2d_drawing();
+    // but user would turn sonar in rather small steps (1? ?)
+    // so simulation is simpler: turn apparatus in 1-3? steps and recognize peak, localize
+    // peak afterwards in smaller steps (1?).
+    });
 }
 
 void sub_kdb_display::enter(bool is_day) {

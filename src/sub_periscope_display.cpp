@@ -114,39 +114,36 @@ void sub_periscope_display::post_display(game &gm) const {
         ui.show_target(pd.x, pd.y, pd.w, pd.h, get_viewpos(gm));
     }
 
-    sys().prepare_2d_drawing();
-
-    // draw compass bar. at most 230 pixel can be seen (of 1878 total width), center is at x=667 on screen
-    // so 360*230/1878 = 44.1 degrees can be seen
-    // visible area on screen is centerpos +- 115
-    // as first translate bearing to pixel pos
-    int w = int(compassbar_tex->get_width());
-    unsigned h = compassbar_tex->get_height();
-    int centerpixelpos = int((ui.get_relative_bearing().value() * w + 0.5) / 360);
-    // now draw the bar once or twice. center at x=667. visible area is 667+-115
-    if (centerpixelpos <= 115) {
-        int xi = 667 - w - centerpixelpos;
+    draw_with_2d_and_panel([&]() {
+        // draw compass bar. at most 230 pixel can be seen (of 1878 total width), center is at x=667 on screen
+        // so 360*230/1878 = 44.1 degrees can be seen
+        // visible area on screen is centerpos +- 115
+        // as first translate bearing to pixel pos
+        int w = int(compassbar_tex->get_width());
+        unsigned h = compassbar_tex->get_height();
+        int centerpixelpos = int((ui.get_relative_bearing().value() * w + 0.5) / 360);
+        // now draw the bar once or twice. center at x=667. visible area is 667+-115
+        if (centerpixelpos <= 115) {
+            int xi = 667 - w - centerpixelpos;
+            compassbar_tex->draw_subimage(xi, 586, w, h, 0, 0, w, h);
+        }
+        int xi = 667 - centerpixelpos;
         compassbar_tex->draw_subimage(xi, 586, w, h, 0, 0, w, h);
-    }
-    int xi = 667 - centerpixelpos;
-    compassbar_tex->draw_subimage(xi, 586, w, h, 0, 0, w, h);
-    if (centerpixelpos > w - 115) {
-        int xi = 667 + w - centerpixelpos;
-        compassbar_tex->draw_subimage(xi, 586, w, h, 0, 0, w, h);
-    }
+        if (centerpixelpos > w - 115) {
+            int xi = 667 + w - centerpixelpos;
+            compassbar_tex->draw_subimage(xi, 586, w, h, 0, 0, w, h);
+        }
 
-    // draw background
-    background->draw(0, 0);
+        // draw background
+        background->draw(0, 0);
 
-    // draw clock pointers
-    double t = gm.get_time();
-    double hourang = 360.0 * myfrac(t / (86400 / 2));
-    double minuteang = 360 * myfrac(t / 3600);
-    clock_hours_pointer->draw_rot(946, 294, hourang);
-    clock_minutes_pointer->draw_rot(946, 294, minuteang);
-
-    ui.draw_infopanel(true);
-    sys().unprepare_2d_drawing();
+        // draw clock pointers
+        double t = gm.get_time();
+        double hourang = 360.0 * myfrac(t / (86400 / 2));
+        double minuteang = 360 * myfrac(t / 3600);
+        clock_hours_pointer->draw_rot(946, 294, hourang);
+        clock_minutes_pointer->draw_rot(946, 294, minuteang);
+    }, true);
 }
 
 sub_periscope_display::sub_periscope_display(user_interface &ui_)

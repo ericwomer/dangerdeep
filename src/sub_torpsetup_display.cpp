@@ -247,72 +247,69 @@ void sub_torpsetup_display::process_input(class game &gm, const SDL_Event &event
 void sub_torpsetup_display::display(class game &gm) const {
     submarine *sub = dynamic_cast<submarine *>(gm.get_player());
 
-    sys().prepare_2d_drawing();
-
+    draw_with_2d_and_panel([&]() {
 #if 0
 	bool is_day = gm.is_day_mode();
 	int* tubelightx = (is_day) ? tubelightdx : tubelightnx;
 	int* tubelighty = (is_day) ? tubelightdy : tubelightny;
 #endif
 
-    if (!myscheme.get())
-        throw error("sub_torpsetup_display::display without scheme!");
-    const scheme &s = *myscheme;
+        if (!myscheme.get())
+            throw error("sub_torpsetup_display::display without scheme!");
+        const scheme &s = *myscheme;
 
-    // testing:
-    double ctr = gm.get_time();
+        // testing:
+        double ctr = gm.get_time();
 
-    // as first draw lowest layer: sliding temperature scale
-    double temperature = myfmod(ctr, 35); // 22.5;	// degrees, fixme
-    int tempscalex = 549 - int(36 + 435 * temperature / 35.0f);
-    s.temperaturescale->draw(tempscalex, 364);
+        // as first draw lowest layer: sliding temperature scale
+        double temperature = myfmod(ctr, 35); // 22.5;	// degrees, fixme
+        int tempscalex = 549 - int(36 + 435 * temperature / 35.0f);
+        s.temperaturescale->draw(tempscalex, 364);
 
-    // as next draw lower layer: dials
-    double torpspeed = myfmod(ctr, 55);              // 44.0; // knots
-    s.torpspeeddial.draw(-(torpspeed * 330 / 55.0)); // 55kts = 0deg+x*330deg
+        // as next draw lower layer: dials
+        double torpspeed = myfmod(ctr, 55);              // 44.0; // knots
+        s.torpspeeddial.draw(-(torpspeed * 330 / 55.0)); // 55kts = 0deg+x*330deg
 
-    // get tube settings
-    const torpedo::setup &tbsetup = sub->get_torp_in_tube(dynamic_cast<submarine_interface &>(ui).get_selected_tube()).setup;
+        // get tube settings
+        const torpedo::setup &tbsetup = sub->get_torp_in_tube(dynamic_cast<submarine_interface &>(ui).get_selected_tube()).setup;
 
-    unsigned primaryrangedial = tbsetup.primaryrange - 1600;
-    s.primaryrangedial.draw(primaryrangedial / -5.0f); // 1 degree = 5meters
+        unsigned primaryrangedial = tbsetup.primaryrange - 1600;
+        s.primaryrangedial.draw(primaryrangedial / -5.0f); // 1 degree = 5meters
 
-    float firstturnangle = tbsetup.turnangle.value();
-    s.turnangledial.draw(firstturnangle * -1.8f); // 18 degrees = 10 turn degrees
+        float firstturnangle = tbsetup.turnangle.value();
+        s.turnangledial.draw(firstturnangle * -1.8f); // 18 degrees = 10 turn degrees
 
-    // draw background
-    s.background->draw(0, 0);
+        // draw background
+        s.background->draw(0, 0);
 
-    // draw objects from upper layer: knobs/switches/pointers
-    unsigned torpspeedidx = tbsetup.torpspeed;
-    s.torpspeed[torpspeedidx]->draw(torpspeed_pos.x, torpspeed_pos.y);
+        // draw objects from upper layer: knobs/switches/pointers
+        unsigned torpspeedidx = tbsetup.torpspeed;
+        s.torpspeed[torpspeedidx]->draw(torpspeed_pos.x, torpspeed_pos.y);
 
-    unsigned ftidx = tbsetup.initialturn_left ? 0 : 1;
-    s.firstturn[ftidx]->draw(firstturn_pos.x, firstturn_pos.y);
+        unsigned ftidx = tbsetup.initialturn_left ? 0 : 1;
+        s.firstturn[ftidx]->draw(firstturn_pos.x, firstturn_pos.y);
 
-    unsigned sridx = tbsetup.short_secondary_run ? 0 : 1;
-    s.secondaryrange[sridx]->draw(secrange_pos.x, secrange_pos.y);
+        unsigned sridx = tbsetup.short_secondary_run ? 0 : 1;
+        s.secondaryrange[sridx]->draw(secrange_pos.x, secrange_pos.y);
 
-    unsigned preheatingidx = tbsetup.preheating ? 1 : 0;
-    s.preheating[preheatingidx]->draw(preheat_pos.x, preheat_pos.y);
+        unsigned preheatingidx = tbsetup.preheating ? 1 : 0;
+        s.preheating[preheatingidx]->draw(preheat_pos.x, preheat_pos.y);
 
-    s.primaryrangeknob[unsigned(myfmod(turnknobang[TK_PRIMARYRANGE], 360.0f) / (45.0 / TK_PHASES) + 0.5) % TK_PHASES].draw(0);
+        s.primaryrangeknob[unsigned(myfmod(turnknobang[TK_PRIMARYRANGE], 360.0f) / (45.0 / TK_PHASES) + 0.5) % TK_PHASES].draw(0);
 
-    s.turnangleknob[unsigned(myfmod(turnknobang[TK_TURNANGLE], 360.0f) / (45.0 / TK_PHASES) + 0.5) % TK_PHASES].draw(0);
+        s.turnangleknob[unsigned(myfmod(turnknobang[TK_TURNANGLE], 360.0f) / (45.0 / TK_PHASES) + 0.5) % TK_PHASES].draw(0);
 
-    s.rundepthknob[unsigned(myfmod(turnknobang[TK_RUNDEPTH], 360.0f) / (45.0 / TK_PHASES) + 0.5) % TK_PHASES].draw(0);
+        s.rundepthknob[unsigned(myfmod(turnknobang[TK_RUNDEPTH], 360.0f) / (45.0 / TK_PHASES) + 0.5) % TK_PHASES].draw(0);
 
-    double rundepth = tbsetup.rundepth;             // meters
-    s.rundepthptr.draw(rundepth * 300 / 25.0 + 30); // 25m = 30deg+x*300deg
+        double rundepth = tbsetup.rundepth;             // meters
+        s.rundepthptr.draw(rundepth * 300 / 25.0 + 30); // 25m = 30deg+x*300deg
 
-    double secondaryrange = myfmod(ctr, 32) * 50;                   // 800.0; // meters
-    s.secondaryrangeptr.draw(secondaryrange * 320 / 1600.0 + 20.0); // 1600m = 20deg+x*320deg
+        double secondaryrange = myfmod(ctr, 32) * 50;                   // 800.0; // meters
+        s.secondaryrangeptr.draw(secondaryrange * 320 / 1600.0 + 20.0); // 1600m = 20deg+x*320deg
 
-    double primaryrange = myfmod(ctr, 32) * 500;                 // 2300.0; // meters
-    s.primaryrangeptr.draw(primaryrange * 320 / 16000.0 + 20.0); // 16000m = 20deg+x*320deg
-
-    ui.draw_infopanel(true);
-    sys().unprepare_2d_drawing();
+        double primaryrange = myfmod(ctr, 32) * 500;                 // 2300.0; // meters
+        s.primaryrangeptr.draw(primaryrange * 320 / 16000.0 + 20.0); // 16000m = 20deg+x*320deg
+    }, true);
 }
 
 void sub_torpsetup_display::enter(bool is_day) {
