@@ -23,17 +23,12 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 ## Prioridad alta (impacto en acoplamiento / compilación)
 
 1. **Migración SDL2 → SDL3**
-   - **Estado**: Pendiente. SDL3 no está instalado en el sistema actualmente (verificado 2026-03-01).
-   - **Alcance**: Migrar todos los subsistemas que usan SDL2: system.h/cpp, music.h/cpp, image.h/cpp, texture.h/cpp, y otros archivos que usan SDL directamente.
-   - **Cambios principales esperados**:
-     - Actualización de nombres de funciones (SDL_CreateWindow → SDL_CreateWindow con nuevos parámetros)
-     - Cambios en sistema de eventos (SDL_PollEvent → SDL_PollEvent con estructura modificada)
-     - Actualización de sistema de audio (SDL_mixer)
-     - Cambios en carga de imágenes (SDL_image)
-     - Modificación de manejo de texturas y rendering
-   - **Prerequisitos**: Instalar SDL3, SDL3_mixer, SDL3_image en el sistema. Actualizar CMakeLists.txt para detectar SDL3.
-   - **Estrategia**: Migración incremental por subsistema (system → audio → graphics → input), compilando y testeando después de cada cambio.
-   - **Referencia**: [SDL3 Migration Guide](https://github.com/libsdl-org/SDL/blob/main/docs/README-migration.md)
+   - **Estado**: ⚠️ **Trabajo en progreso** en branch `feature/sdl3-migration` (2026-03-02).
+   - **Progreso**: ~60% completado. CMakeLists.txt actualizado, includes migrados, constantes y eventos actualizados. Ver `docs/SDL3_MIGRATION.md` en el branch para detalles.
+   - **Bloqueantes**: widget.h (dependencia SDL_Keysym), music.h (SDL3_mixer includes), constantes de teclas minúsculas.
+   - **Decisión**: Migración pausada por complejidad. SDL3 aún está en desarrollo y requiere cambios extensivos en la lógica de eventos. **Recomendación actual**: Mantener SDL2 hasta que SDL3 madure y el ecosistema esté más estable.
+   - **Branch**: `feature/sdl3-migration` disponible para continuar cuando SDL3 esté más maduro.
+   - **Referencia**: Ver `docs/SDL3_MIGRATION.md` para progreso detallado y pasos siguientes.
 
 ---
 
