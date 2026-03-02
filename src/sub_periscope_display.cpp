@@ -156,7 +156,7 @@ sub_periscope_display::sub_periscope_display(user_interface &ui_)
     withunderwaterweapons = false; // they can be seen when scope is partly below water surface, fixme
     drawbridge = false;
 
-    use_hqsfx = cfg::instance().getb("use_hqsfx");
+    use_hqsfx = ui.get_config().getb("use_hqsfx");
     viewtex = std::make_unique<texture>(512, 512, GL_RGB, texture::LINEAR, texture::CLAMP);
     glsl_blurview = std::make_unique<glsl_shader_setup>(get_shader_dir() + "blurview.vshader",
                                                         get_shader_dir() + "blurview.fshader");
@@ -188,7 +188,7 @@ sub_periscope_display::~sub_periscope_display() {
 void sub_periscope_display::process_input(class game &gm, const SDL_Event &event) {
     switch (event.type) {
     case SDL_KEYDOWN:
-        if (cfg::instance().getkey(KEY_TOGGLE_ZOOM_OF_VIEW).equal(event.key.keysym)) {
+        if (ui.get_config().getkey(KEY_TOGGLE_ZOOM_OF_VIEW).equal(event.key.keysym)) {
             zoomed = !zoomed;
         }
         break;

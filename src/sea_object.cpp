@@ -254,7 +254,6 @@ void sea_object::set_skin_layout(const std::string &layout) {
 sea_object::sea_object(game &gm_, const string &modelname_)
     : gm(gm_),
       modelname(modelname_),
-      mymodel(0),
       skin_country(UNKNOWNCOUNTRY),
       mass(1.0), // fixme
       mass_inv(1.0 / mass),
@@ -267,7 +266,7 @@ sea_object::sea_object(game &gm_, const string &modelname_)
       invulnerable(false), country(UNKNOWNCOUNTRY), party(UNKNOWNPARTY),
       redetect_time(0) {
     // no specfile, so specfilename is empty, do not call get_rel_path with empty string!
-    mymodel = modelcache().ref(/*data_file().get_rel_path(specfilename) + */ modelname);
+    mymodel.load(modelcache(), /*data_file().get_rel_path(specfilename) + */ modelname);
     if (!mymodel->get_base_mesh().has_bv_tree()) {
         mymodel->get_base_mesh().compute_bv_tree();
     }
@@ -291,7 +290,6 @@ sea_object::sea_object(game &gm_, const string &modelname_)
 
 sea_object::sea_object(game &gm_, const xml_elem &parent)
     : gm(gm_),
-      mymodel(0),
       skin_country(UNKNOWNCOUNTRY),
       mass(1.0), // fixme
       mass_inv(1.0 / mass),
@@ -335,7 +333,7 @@ sea_object::sea_object(game &gm_, const xml_elem &parent)
         // 		     << "\n";
     }
 
-    mymodel = modelcache().ref(data_file().get_rel_path(specfilename) + modelname);
+    mymodel.load(modelcache(), data_file().get_rel_path(specfilename) + modelname);
     if (!mymodel->get_base_mesh().has_bv_tree()) {
         mymodel->get_base_mesh().compute_bv_tree();
     }
@@ -422,7 +420,7 @@ sea_object::~sea_object() {
     // 	cout << "d'tor: unregistered layout " << skin_name << "\n";
     if (skin_name.length() > 0)
         mymodel->unregister_layout(skin_name);
-    modelcache().unref(mymodel);
+    // mymodel RAII wrapper will automatically unref on destruction
 }
 
 void sea_object::load(const xml_elem &parent) {

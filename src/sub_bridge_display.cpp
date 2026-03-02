@@ -67,7 +67,7 @@ sub_bridge_display::sub_bridge_display(user_interface &ui_) : freeview_display(u
 void sub_bridge_display::process_input(class game &gm, const SDL_Event &event) {
     switch (event.type) {
     case SDL_KEYDOWN:
-        if (cfg::instance().getkey(KEY_TOGGLE_ZOOM_OF_VIEW).equal(event.key.keysym)) {
+        if (ui.get_config().getkey(KEY_TOGGLE_ZOOM_OF_VIEW).equal(event.key.keysym)) {
             glasses_in_use = !glasses_in_use;
         } else {
             switch (event.key.keysym.sym) {

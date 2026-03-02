@@ -165,6 +165,12 @@ class user_interface {
     const caustics &get_caustics() const { return mycaustics; }
     const water &get_water() const;
     const coastmap &get_coastmap() const { return mycoastmap; }
+    
+    // Getters for injected dependencies
+    class cfg& get_config() { return config; }
+    const class cfg& get_config() const { return config; }
+    class music& get_audio() { return audio; }
+    const class music& get_audio() const { return audio; }
 
     // helper functions
 
