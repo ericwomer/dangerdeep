@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define COASTMAP_H
 
 #include "bspline.h"
+#include "objcache.h"
 #include "texture.h"
 #include "thread.h"
 #include "vector2.h"
@@ -32,6 +33,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <list>
 #include <string>
 #include <vector>
+
+class model;  // Forward declaration for objcache<model>::reference
 
 ///\brief Handles a segment of the map represented by class coastmap.
 class coastsegment {
@@ -111,10 +114,10 @@ class coastmap {
 
     // special 3d objects on map (rather a hack)
     struct prop {
-        std::string modelname;
+        objcachet<model>::reference mymodel; // RAII wrapper for model from cache
         vector2 pos;
         double dir;
-        prop(const std::string &s, const vector2 &p, double d) : modelname(s), pos(p), dir(d) {}
+        prop(const std::string &modelname, const vector2 &p, double d);
     };
     std::list<prop> props;
 

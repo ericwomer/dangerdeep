@@ -85,6 +85,11 @@ the following patterns are possible when searching coastlines (0,15 illegal)
 const int coastmap::runlandleft[16] = {-1, 3, 0, 3, 1, -1, 0, 3, 2, 2, -1, 2, 1, 1, 0, -1};
 const int coastmap::runlandright[16] = {-1, 0, 1, 1, 2, -1, 2, 2, 3, 0, -1, 1, 3, 0, 3, -1};
 
+coastmap::prop::prop(const std::string &modelname, const vector2 &p, double d) 
+    : mymodel(), pos(p), dir(d) {
+    mymodel.load(modelcache(), modelname);
+}
+
 /*
 fixme: 2005/05/05
 remaining bugs:
@@ -964,13 +969,15 @@ coastmap::coastmap(const string &filename) {
     if (er.has_child("props")) {
         for (xml_elem::iterator it = er.child("props").iterate("prop"); !it.end(); it.next()) {
             std::string mdlname = it.elem().attr("model");
-            std::string path = data_file().get_rel_path(mdlname) + mdlname + ".xml"; // fixme: later ddxml!
-            model *m = modelcache().ref(path);
-            m->register_layout();
-            m->set_layout();
+            std::string path = data_file().get_rel_path(mdlname) + mdlname + ".xml";
             props.push_back(prop(path,
                                  vector2(it.elem().attrf("posx"), it.elem().attrf("posy")),
                                  it.elem().attrf("angle")));
+            // Model registration happens after construction
+            if (props.back().mymodel) {
+                props.back().mymodel->register_layout();
+                props.back().mymodel->set_layout();
+            }
         }
     }
 
@@ -1019,8 +1026,8 @@ coastmap::coastmap(const string &filename) {
 }
 
 coastmap::~coastmap() {
-    for (list<prop>::iterator it = props.begin(); it != props.end(); ++it)
-        modelcache().unref(it->modelname);
+    // Model references are now managed by RAII (objcachet<model>::reference)
+    // No manual unref needed
 }
 
 void coastmap::construction_threaded() {
@@ -1116,14 +1123,14 @@ void coastmap::render(const vector2 &p, double vr, bool mirrored, int detail, bo
         if (it->pos.square_distance(p) < vr * vr) {
             // potentially visible
             glPushMatrix();
-            glTranslatef(it->pos.x - p.x, it->pos.y - p.y, 0); //- p.z
+            glTranslatef(it->pos.x - p.x, it->pos.y - p.y, 0);
             glRotatef(-it->dir, 0, 0, 1);
-            if (mirrored)
-                // fixme: display_mirror_clip must be called with
-                // certain conditions, that are not used here yet...
-                modelcache().find(it->modelname)->display_mirror_clip();
-            else
-                modelcache().find(it->modelname)->display();
+            if (it->mymodel) {
+                if (mirrored)
+                    it->mymodel->display_mirror_clip();
+                else
+                    it->mymodel->display();
+            }
             glPopMatrix();
         }
     }
