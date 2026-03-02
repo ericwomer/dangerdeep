@@ -27,13 +27,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
         This class contains map for underwater caustic
 */
 
-#include "ptrvector.h"
 #include "texture.h"
+#include <memory>
+#include <vector>
 
 class caustics {
   protected:
     double mytime;
-    ptrvector<texture> texture_pointers;
+    std::vector<std::unique_ptr<texture>> texture_pointers;
     unsigned int current_texture;
 
   public:

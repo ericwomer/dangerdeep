@@ -38,8 +38,8 @@ image::image(const string &s) : name(s), width(0), height(0), gltx(0), glty(0) {
     if (texture::size_non_power_two()) {
         gltx = glty = 1;
         textures.resize(1);
-        textures.reset(0, new texture(img, 0, 0, width, height,
-                                      texture::NEAREST, texture::CLAMP));
+        textures[0] = std::make_unique<texture>(img, 0, 0, width, height,
+                                                texture::NEAREST, texture::CLAMP);
     } else {
         std::vector<unsigned> widths, heights;
         unsigned maxs = texture::get_max_size();
@@ -67,9 +67,9 @@ image::image(const string &s) : name(s), width(0), height(0), gltx(0), glty(0) {
         for (unsigned y = 0; y < glty; ++y) {
             unsigned cw = 0;
             for (unsigned x = 0; x < gltx; ++x) {
-                textures.reset(y * gltx + x, new texture(img, cw, ch,
-                                                         widths[x], heights[y],
-                                                         texture::NEAREST, texture::CLAMP));
+                textures[y * gltx + x] = std::make_unique<texture>(img, cw, ch,
+                                                                   widths[x], heights[y],
+                                                                   texture::NEAREST, texture::CLAMP);
                 cw += widths[x];
             }
             ch += heights[y];

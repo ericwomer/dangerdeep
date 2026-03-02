@@ -23,10 +23,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#include "ptrvector.h"
 #include "texture.h" // needed at least for correct "delete" usage in ptrvector
 #include <SDL.h>
 #include <list>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -36,7 +36,7 @@ class image {
     std::string name; // filename
     unsigned width, height;
     unsigned gltx, glty; // no. of textures in x and y direction
-    ptrvector<texture> textures;
+    std::vector<std::unique_ptr<texture>> textures;
 
   private:
     image();
