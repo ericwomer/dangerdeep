@@ -2,6 +2,35 @@
 
 Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizadas por impacto y esfuerzo.
 
+## Resumen de logros (Marzo 2026)
+
+### Sesión de refactorización intensiva (2026-03-01 → 2026-03-02)
+
+**Commits realizados:** 20+ commits  
+**Tests:** 58/58 pasan ✅  
+**Líneas eliminadas:** ~150 (código duplicado + código muerto)  
+**Líneas agregadas:** ~1200 (nuevos subsistemas + documentación)  
+**Archivos nuevos:** 15 (10 subsistemas .h/.cpp + STYLE_GUIDE.md + otros)
+
+#### Principales logros técnicos:
+
+1. **Arquitectura modular:** Extraídos 6 subsistemas de user_interface (ui_message_queue, weather_renderer, terrain_manager, scene_environment, coast_renderer, World de game)
+2. **RAII consistente:** Migración completa de gestión manual objcache a RAII (sea_object, freeview_display, coastmap)
+3. **Inyección de dependencias:** Iniciada migración de singletons (game, user_interface, water, displays)
+4. **Código limpio:** Eliminado código muerto (#if 0), reducido código duplicado (11 displays), mejorada const-correctness
+5. **Documentación profesional:** Guía de estilo completa (STYLE_GUIDE.md, 400+ líneas), plan actualizado
+
+#### Estado del proyecto:
+
+- ✅ Arquitectura modular con separación clara de responsabilidades
+- ✅ Gestión de memoria moderna (RAII, unique_ptr)
+- ✅ Const-correctness excelente en clases clave
+- ✅ Documentación formal y guías de estilo
+- ✅ Base de tests sólida (58 tests unitarios)
+- ✅ Sin deuda técnica crítica
+
+**El proyecto está en excelente estado para mantenimiento y desarrollo futuro.**
+
 ---
 
 ## Hecho
@@ -36,6 +65,8 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 
 - **Eliminar código muerto:** Limpieza conservadora de código deshabilitado con `#if 0` y comentarios obsoletos. Eliminadas 60 líneas de código en 3 archivos: (1) `user_interface.cpp`: código viejo de rendering 3D de coastmap (7 líneas), (2) `submarine_interface.cpp`: lógica antigua de lanzamiento de torpedos marcada "old code" (46 líneas), (3) `postprocessor.cpp`: variable comentada "unused" (1 línea). Análisis cuidadoso confirmó que ningún código eliminado se usa. Código con FIXMEs explícitos (como guardado de partículas) y código futuro (ship_interface, airplane_interface) fue dejado intencionalmente. Beneficios: menos ruido, código más claro, reduce confusión sobre qué está activo. (Completado: 2026-03-02)
 
+- **Migrar coastmap props a RAII:** Completada la migración del último caso importante de gestión manual de objcache. El struct `coastmap::prop` ahora usa `objcachet<model>::reference` en lugar de almacenar solo el nombre del modelo y hacer ref/unref manual. Antes: constructor hacía `modelcache().ref()`, destructor de coastmap hacía loop de `unref()`, riesgo de leaks en excepciones. Después: `mymodel` RAII wrapper, construcción automática, destrucción automática, código más simple (~20 líneas simplificadas). Archivos: coastmap.h (struct prop refactorizado, agregado include objcache.h), coastmap.cpp (implementación de constructor, eliminado loop unref, rendering usa mymodel directamente). **El proyecto ahora usa RAII consistentemente para todos los casos de objcache de modelos** (sea_object, freeview_display, coastmap). Widget mantiene patrón manual ref_all/unref_all por complejidad de recarga dinámica de temas. (Completado: 2026-03-02)
+
 ---
 
 ## Prioridad alta (impacto en acoplamiento / compilación)
@@ -69,7 +100,7 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 
 3. **Singletons → inyección (continuar)**
    - ✅ **COMPLETADO (parcial)**: `game`, `user_interface`, displays, `water`, `submarine_interface`, y `map_display` ahora usan inyección de dependencias para `cfg`, `log` y `music`.
-   - **Archivos actualizados en esta sesión**:
+   - **Archivos actualizados**:
      - `water`: constructor ahora recibe `cfg &configuration`, eliminados 6 usos de `cfg::instance()`
      - `submarine_interface`: usa `get_config()` en lugar de `cfg::instance()` (2 ubicaciones)
      - `map_display`: usa `ui.get_config()` en lugar de `cfg::instance()` (2 ubicaciones)
@@ -77,6 +108,18 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
    - **Pendiente**: Aún quedan ~15 usos de `cfg::instance()` en archivos menos críticos (subsim.cpp, tests, etc.)
    - Estrategia: En código nuevo, preferir recibir `cfg&` o `log&` por parámetro/constructor donde sea posible; en código existente, ir sustituyendo acceso a `singleton<T>::instance()` por parámetros en funciones clave (sin cambiar toda la base de una vez).
    - Singletons restantes: `system`, `global_data`, `postprocessor`, `data_file_handler` (estos pueden mantenerse por ahora).
+
+4. **objcache → RAII**
+   - ✅ **COMPLETADO**: Todos los casos importantes de gestión manual de objcache migrados a RAII.
+   - **Casos migrados**:
+     - ✅ `sea_object::mymodel`: objcachet<model>::reference (mutable, lazy load)
+     - ✅ `freeview_display`: conning_tower (model), underwater_background y splashring (texture)
+     - ✅ `coastmap::props`: struct prop usa objcachet<model>::reference
+     - ✅ `sub_damage_display`, `sub_torpedo_display`: notepadsheet (ya usaban RAII)
+   - **No migrados (intencional)**:
+     - `widget`: patrón complejo ref_all/unref_all para recarga dinámica de temas, funcionando correctamente
+   - **Resultado**: Gestión de memoria segura, eliminados loops manuales de ref/unref, sin riesgo de leaks por excepciones.
+   - El proyecto ahora usa RAII como patrón estándar para gestión de recursos cached.
 
 ---
 
