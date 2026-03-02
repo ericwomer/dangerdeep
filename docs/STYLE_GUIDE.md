@@ -6,7 +6,7 @@ Este documento define las convenciones de estilo para el código del proyecto Da
 
 1. **Consistencia**: Seguir el estilo existente en el archivo que estás modificando
 2. **Claridad**: El código debe ser autoexplicativo; evitar comentarios obvios
-3. **Moderno C++**: Usar características de C++17 donde sea apropiado
+3. **Moderno C++**: Usar características de C++20 donde sea apropiado
 4. **RAII**: Gestión automática de recursos siempre que sea posible
 
 ## Convenciones de Naming
@@ -191,7 +191,7 @@ class weather_renderer {
 // NOTE: This assumes single-threaded context
 ```
 
-## C++ Moderno (C++17)
+## C++ Moderno (C++20)
 
 ### Smart Pointers
 ```cpp
@@ -360,12 +360,66 @@ class weather_renderer {
    int texture_height;
    ```
 
+## Características de C++20 Recomendadas
+
+El proyecto usa **C++20** (CMAKE_CXX_STANDARD 20). Características recomendadas:
+
+### Ya en uso:
+- `std::unique_ptr`, `std::shared_ptr`
+- `std::vector`, `std::list`, `std::map`
+- `auto` con deducción de tipos
+- Range-based for loops
+- Lambda expressions
+- Move semantics
+- `constexpr`
+
+### Disponibles para usar:
+- **Concepts**: Restricciones de templates más claras
+- **Ranges**: Operaciones más expresivas en contenedores
+- **Coroutines**: Para programación asíncrona (si aplica)
+- **std::span**: Vistas no-propietarias de arrays
+- **std::format**: Formateo de strings type-safe (cuando esté disponible)
+- **Designated initializers**: Inicialización explícita de structs
+- **Spaceship operator (<=>)**: Comparaciones simplificadas
+
+```cpp
+// Ejemplo de designated initializers (C++20)
+struct config_data {
+    int width;
+    int height;
+    bool fullscreen;
+};
+
+config_data cfg {
+    .width = 1920,
+    .height = 1080,
+    .fullscreen = true
+};
+
+// Ejemplo de ranges (C++20)
+#include <ranges>
+std::vector<int> numbers = {1, 2, 3, 4, 5};
+auto evens = numbers | std::views::filter([](int n) { return n % 2 == 0; });
+
+// Ejemplo de concepts (C++20)
+template<typename T>
+concept Numeric = std::is_arithmetic_v<T>;
+
+template<Numeric T>
+T add(T a, T b) { return a + b; }
+```
+
+**Nota**: Algunas características de C++20 requieren compilador y biblioteca estándar actualizados.
+Verificar disponibilidad antes de usar características avanzadas.
+
 ## Referencias
 
 - [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines)
+- [C++20 Features](https://en.cppreference.com/w/cpp/20)
 - [Modern C++ Features](https://github.com/AnthonyCalandra/modern-cpp-features)
 - Proyecto Danger from the Deep: `docs/REFACTORING.md`
 
 ## Changelog
 
 - 2026-03-02: Guía inicial basada en convenciones existentes del proyecto
+- 2026-03-02: Corregido estándar C++17 → C++20, agregadas características recomendadas
