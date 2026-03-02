@@ -44,6 +44,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "weather_renderer.h"
 #include "terrain_manager.h"
 #include "scene_environment.h"
+#include "coast_renderer.h"
 #include "widget.h"
 #include <iomanip>
 #include <iostream>
@@ -95,10 +96,10 @@ user_interface::user_interface(game &gm) : mygame(&gm),
                                            bearing_is_relative(true),
                                            current_display(0),
                                            current_popup(0),
-                                           mycoastmap(get_map_dir() + "default.xml"),
+                                           myenvironment(std::make_unique<scene_environment>()),
+                                           mycoast(std::make_unique<coast_renderer>(get_map_dir() + "default.xml")),
                                            daymode(gm.is_day_mode()),
-                                           myweather(std::make_unique<weather_renderer>()),
-                                           myenvironment(std::make_unique<scene_environment>()) {
+                                           myweather(std::make_unique<weather_renderer>()) {
     add_loading_screen("coast map initialized");
     panel = std::make_unique<widget>(0, 768 - 32, 1024, 32, "", nullptr);
     panel->set_background(0);
@@ -191,7 +192,7 @@ user_interface::user_interface(game &gm) : mygame(&gm),
 }
 
 void user_interface::finish_construction() {
-    mycoastmap.finish_construction();
+    mycoast->finish_construction();
 }
 
 user_interface *user_interface::create(game &gm) {
@@ -407,7 +408,7 @@ void user_interface::draw_terrain(const vector3 &viewpos, angle dir,
 	glPushMatrix();
 	glTranslated(0, 0, -viewpos.z);
 	// still needed to render the props.
-	mycoastmap.render(viewpos.xy(), max_view_dist, mirrored);
+	mycoast->render(viewpos.xy(), max_view_dist, mirrored);
 	glPopMatrix();
 #endif
 
@@ -495,6 +496,10 @@ const sky &user_interface::get_sky() const {
 
 const caustics &user_interface::get_caustics() const {
     return myenvironment->get_caustics();
+}
+
+const coastmap &user_interface::get_coastmap() const {
+    return mycoast->get_coastmap();
 }
 
 void user_interface::play_sound_effect(const string &se,

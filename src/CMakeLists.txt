@@ -8,6 +8,7 @@ set(DFTDSOURCES
 	bzip.cpp
 	caustics.cpp
 	cfg.cpp
+	coast_renderer.cpp
 	coastmap.cpp
 	convoy.cpp
 	countrycodes.cpp

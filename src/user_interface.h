@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define USER_INTERFACE_H
 
 #include "angle.h"
-#include "coastmap.h"
 #include "color.h"
 #include <memory>
 #include "ptrvector.h"
@@ -43,8 +42,10 @@ class ui_message_queue;
 class weather_renderer;
 class terrain_manager;
 class scene_environment;
+class coast_renderer;
 class sky;
 class caustics;
+class coastmap;
 
 ///\defgroup interfaces In-game user interfaces
 ///\brief Base class for a user interface for playing the game.
@@ -110,7 +111,7 @@ class user_interface {
 
     // environmental data
     std::unique_ptr<scene_environment> myenvironment; // sky and caustics subsystem
-    coastmap mycoastmap;                              // this may get moved to game.h, yet it is used for display only, that's why it is here
+    std::unique_ptr<coast_renderer> mycoast;          // coastline rendering subsystem
     std::unique_ptr<terrain_manager> myterrain;       // terrain rendering subsystem
 
     // is display in day mode (or night/redlight mode)?
@@ -168,7 +169,7 @@ class user_interface {
     const sky &get_sky() const;
     const caustics &get_caustics() const;
     const water &get_water() const;
-    const coastmap &get_coastmap() const { return mycoastmap; }
+    const coastmap &get_coastmap() const;
     
     // Getters for injected dependencies
     class cfg& get_config() { return config; }
