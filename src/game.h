@@ -55,6 +55,8 @@ class particle;
 class convoy;
 class water;
 class height_generator;
+class cfg;
+class log;
 
 #include "angle.h"
 #include "color.h"
@@ -168,6 +170,10 @@ class game {
     std::vector<std::unique_ptr<convoy>>& convoys;
     std::vector<std::unique_ptr<particle>>& particles;
     
+    // Injected dependencies (references to avoid coupling)
+    class cfg& config;
+    class log& logger;
+    
     run_state my_run_state;
 
     std::list<std::unique_ptr<event>> events;
@@ -253,11 +259,11 @@ class game {
     // create new custom mission
     // expects: size small,medium,large, escort size none,small,medium,large,
     // time of day [0,4) night,dawn,day,dusk
-    game(const std::string &subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
+    game(class cfg& cfg_ref, class log& log_ref, const std::string &subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
          const date &timeperioddate, const player_info &pi = player_info() /*fixme - must be always given*/, unsigned nr_of_players = 1);
 
     // create from mission file or savegame (xml file)
-    game(const std::string &filename);
+    game(class cfg& cfg_ref, class log& log_ref, const std::string &filename);
 
     virtual ~game();
 

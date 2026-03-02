@@ -176,7 +176,9 @@ game::game()
       gun_shells(myworld->get_gun_shells_mut()),
       water_splashes(myworld->get_water_splashes_mut()),
       convoys(myworld->get_convoys_mut()),
-      particles(myworld->get_particles_mut()) {
+      particles(myworld->get_particles_mut()),
+      config(cfg::instance()),
+      logger(log::instance()) {
     // empty, so that heirs can construct a game object. Needed for editor
     freezetime = 0;
     freezetime_start = 0;
@@ -187,7 +189,7 @@ game::game()
     myheightgen = std::make_unique<terrain<Sint16>>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", TERRAIN_NR_LEVELS + 1);
 
 #if 0
-	if (cfg::instance().geti("cpucores") > 1) {
+	if (config.geti("cpucores") > 1) {
 		log_info("game: Using extra worker for multicore acceleration.");
 		myworker = std::make_unique<simulate_worker>(*this);
 		myworker->start();
@@ -195,7 +197,7 @@ game::game()
 #endif
 }
 
-game::game(const string &subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
+game::game(class cfg& cfg_ref, class log& log_ref, const string &subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
            const date &timeperioddate, const player_info &pi, unsigned nr_of_players)
     : myworld(std::make_unique<world>()),
       ships(myworld->get_ships_mut()),
@@ -207,6 +209,8 @@ game::game(const string &subtype, unsigned cvsize, unsigned cvesc, unsigned time
       water_splashes(myworld->get_water_splashes_mut()),
       convoys(myworld->get_convoys_mut()),
       particles(myworld->get_particles_mut()),
+      config(cfg_ref),
+      logger(log_ref),
       playerinfo(pi) {
     /****************************************************************
             custom mission generation:
@@ -238,7 +242,7 @@ game::game(const string &subtype, unsigned cvsize, unsigned cvesc, unsigned time
     servercon = 0;
 
 #if 0
-	if (cfg::instance().geti("cpucores") > 1) {
+	if (config.geti("cpucores") > 1) {
 		myworker = std::make_unique<simulate_worker>(*this);
 		myworker->start();
 	}
@@ -357,7 +361,7 @@ game::game(const string &subtype, unsigned cvsize, unsigned cvesc, unsigned time
 // --------------------------------------------------------------------------------
 //                        LOAD GAME (SAVEGAME OR MISSION)
 // --------------------------------------------------------------------------------
-game::game(const string &filename)
+game::game(class cfg& cfg_ref, class log& log_ref, const string &filename)
     : myworld(std::make_unique<world>()),
       ships(myworld->get_ships_mut()),
       submarines(myworld->get_submarines_mut()),
@@ -368,6 +372,8 @@ game::game(const string &filename)
       water_splashes(myworld->get_water_splashes_mut()),
       convoys(myworld->get_convoys_mut()),
       particles(myworld->get_particles_mut()),
+      config(cfg_ref),
+      logger(log_ref),
       my_run_state(running), player(0),
       time(0), last_trail_time(0), max_view_dist(0), networktype(0), servercon(0),
       freezetime(0), freezetime_start(0) {
@@ -382,7 +388,7 @@ game::game(const string &filename)
     //		throw error("invalid game version");
 
 #if 0
-	if (cfg::instance().geti("cpucores") > 1) {
+	if (config.geti("cpucores") > 1) {
 		myworker = std::make_unique<simulate_worker>(*this);
 		myworker->start();
 	}

@@ -34,10 +34,10 @@ class game_editor : public game {
 
   public:
     /// create new editor instance. subtype can be changed later.
-    game_editor(const date &start_date /*const std::string& subtype*/);
+    game_editor(class cfg& cfg_ref, class log& log_ref, const date &start_date /*const std::string& subtype*/);
 
     // create from mission file or savegame (xml file)
-    game_editor(const std::string &filename);
+    game_editor(class cfg& cfg_ref, class log& log_ref, const std::string &filename);
 
     const std::vector<std::unique_ptr<convoy>> &get_convoy_list() const { return convoys; }
 

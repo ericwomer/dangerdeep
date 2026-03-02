@@ -80,6 +80,8 @@ const double message_fadeout_time = 2;
 */
 
 user_interface::user_interface(game &gm) : mygame(&gm),
+                                           config(cfg::instance()),
+                                           audio(music::instance()),
                                            pause(false),
                                            time_scale(1),
                                            panel_visible(true),
@@ -117,19 +119,20 @@ user_interface::user_interface(game &gm) : mygame(&gm),
     music_playlist = std::make_unique<widget>(0, 0, 384, 512, texts::get(262), nullptr);
     music_playlist->set_background(0);
     struct musiclist : public widget_list {
+        music& music_ref;
         bool active;
         void on_sel_change() {
             if (!active)
                 return;
             int s = get_selected();
             if (s >= 0)
-                music::instance().play_track(unsigned(s), 500);
+                music_ref.play_track(unsigned(s), 500);
         }
-        musiclist(int x, int y, int w, int h) : widget_list(x, y, w, h), active(false) {}
+        musiclist(music& m, int x, int y, int w, int h) : widget_list(x, y, w, h), music_ref(m), active(false) {}
     };
-    musiclist *playlist = new musiclist(0, 0, 384, 512);
+    musiclist *playlist = new musiclist(audio, 0, 0, 384, 512);
     music_playlist->add_child_near_last_child(playlist);
-    music &m = music::instance();
+    music &m = audio;
     vector<string> mpl = m.get_playlist();
     for (vector<string>::const_iterator it = mpl.begin();
          it != mpl.end(); ++it) {
@@ -454,11 +457,11 @@ void user_interface::process_input(const SDL_Event &event) {
     }
 
     if (event.type == SDL_KEYDOWN) {
-        if (cfg::instance().getkey(KEY_TOGGLE_RELATIVE_BEARING).equal(event.key.keysym)) {
+        if (config.getkey(KEY_TOGGLE_RELATIVE_BEARING).equal(event.key.keysym)) {
             bearing_is_relative = !bearing_is_relative;
             add_message(texts::get(bearing_is_relative ? 220 : 221));
             return;
-        } else if (cfg::instance().getkey(KEY_TOGGLE_POPUP).equal(event.key.keysym)) {
+        } else if (config.getkey(KEY_TOGGLE_POPUP).equal(event.key.keysym)) {
             toggle_popup();
             return;
         }
@@ -638,7 +641,7 @@ void user_interface::add_message(const string &s) {
 
 void user_interface::play_sound_effect(const string &se,
                                        const vector3 &noise_source /*, bool loop*/) const {
-    music::instance().play_sfx(se, mygame->get_player()->get_pos(),
+    audio.play_sfx(se, mygame->get_player()->get_pos(),
                                mygame->get_player()->get_heading(),
                                noise_source);
 }
@@ -693,19 +696,19 @@ void user_interface::set_current_display(unsigned curdis) {
 
 void user_interface::playlist_mode_changed() {
     if (playlist_repeat_checkbox->is_checked()) {
-        music::instance().set_playback_mode(music::PBM_LOOP_TRACK);
+        audio.set_playback_mode(music::PBM_LOOP_TRACK);
     } else if (playlist_shuffle_checkbox->is_checked()) {
-        music::instance().set_playback_mode(music::PBM_SHUFFLE_TRACK);
+        audio.set_playback_mode(music::PBM_SHUFFLE_TRACK);
     } else {
-        music::instance().set_playback_mode(music::PBM_LOOP_LIST);
+        audio.set_playback_mode(music::PBM_LOOP_LIST);
     }
 }
 
 void user_interface::playlist_mute() {
     if (playlist_mute_checkbox->is_checked())
-        music::instance().stop();
+        audio.stop();
     else
-        music::instance().play();
+        audio.play();
 }
 
 void user_interface::show_screen_selector() {
@@ -727,9 +730,9 @@ void user_interface::show_playlist() {
 }
 
 void user_interface::pause_all_sound() const {
-    music::instance().pause_sfx(true);
+    audio.pause_sfx(true);
 }
 
 void user_interface::resume_all_sound() const {
-    music::instance().pause_sfx(false);
+    audio.pause_sfx(false);
 }

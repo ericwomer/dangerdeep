@@ -64,7 +64,8 @@ const unsigned GAMETYPE = 0; // fixme, 0-mission , 1-patrol etc.
 
 /***************************************************************************/
 
-game_editor::game_editor(const date &start_date) {
+game_editor::game_editor(class cfg& cfg_ref, class log& log_ref, const date &start_date)
+    : game() {
     networktype = 0;
     servercon = 0;
     time = start_date.get_time() + 86400 / 2; // 12.00 o'clock
@@ -98,8 +99,8 @@ game_editor::game_editor(const date &start_date) {
 // --------------------------------------------------------------------------------
 //                        LOAD GAME (SAVEGAME OR MISSION)
 // --------------------------------------------------------------------------------
-game_editor::game_editor(const string &filename)
-    : game(filename) {
+game_editor::game_editor(class cfg& cfg_ref, class log& log_ref, const string &filename)
+    : game(cfg_ref, log_ref, filename) {
     // nothing special for now
 }
 

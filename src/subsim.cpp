@@ -480,7 +480,7 @@ void run_game(std::unique_ptr<game> gm) {
                 // of player (and thus same type of ui)
                 gm.reset();
                 ui.reset();
-                gm = std::make_unique<game>(dlg.get_gamefilename_to_load());
+                gm = std::make_unique<game>(cfg::instance(), log::instance(), dlg.get_gamefilename_to_load());
                 // embrace user interface generation with right theme set!
                 tmp = widget::replace_theme(std::move(gametheme));
                 ui.reset(user_interface::create(*gm));
@@ -538,7 +538,7 @@ void run_game_editor(std::unique_ptr<game> gm) {
             // won't work.
             gm.reset();
             ui.reset();
-            gm = std::make_unique<game_editor>(dlg.get_gamefilename_to_load());
+            gm = std::make_unique<game_editor>(cfg::instance(), log::instance(), dlg.get_gamefilename_to_load());
             // embrace user interface generation with right theme set!
             tmp = widget::replace_theme(std::move(gametheme));
             ui.reset(user_interface::create(*gm));
@@ -991,7 +991,7 @@ void create_convoy_mission() {
             // reset loading screen here to show user we are doing something
             // fixme: give data to game! player data. maybe combine that to a struct!
             reset_loading_screen();
-            run_game(std::make_unique<game>(st,
+            run_game(std::make_unique<game>(cfg::instance(), log::instance(), st,
                                             wcvsize->get_selected(),
                                             wescortsize->get_selected(),
                                             wtimeofday->get_selected(),
@@ -1088,7 +1088,7 @@ void choose_historical_mission() {
     if (result == 2) { // start game
         std::unique_ptr<game> gm;
         try {
-            gm = std::make_unique<game>(get_mission_dir() + missions[wmission->get_selected()]);
+            gm = std::make_unique<game>(cfg::instance(), log::instance(), get_mission_dir() + missions[wmission->get_selected()]);
         } catch (error &e) {
             log_warning("error loading game: " << e.what());
             // fixme: show dialogue!
@@ -1111,7 +1111,7 @@ void choose_saved_game() {
     if (q == 2) {
         // reset loading screen here to show user we are doing something
         reset_loading_screen();
-        run_game(std::make_unique<game>(dlg.get_gamefilename_to_load()));
+        run_game(std::make_unique<game>(cfg::instance(), log::instance(), dlg.get_gamefilename_to_load()));
     }
 }
 
@@ -1158,7 +1158,7 @@ void menu_mission_editor() {
                        */
         // reset loading screen here to show user we are doing something
         reset_loading_screen();
-        run_game_editor(std::make_unique<game_editor>(date(1939, 9, 1) /*st*/));
+        run_game_editor(std::make_unique<game_editor>(cfg::instance(), log::instance(), date(1939, 9, 1) /*st*/));
     }
 }
 
@@ -2069,13 +2069,13 @@ int mymain(list<string> &args) {
     if (runeditor) {
         // reset loading screen here to show user we are doing something
         reset_loading_screen();
-        run_game_editor(std::make_unique<game_editor>(editor_start_date));
+        run_game_editor(std::make_unique<game_editor>(cfg::instance(), log::instance(), editor_start_date));
     } else if (cmdmissionfilename.length() > 0) {
         // fixme: check here that the file exists or tinyxml faults with a embarassing error message
         std::unique_ptr<game> gm;
         bool ok = true;
         try {
-            gm = std::make_unique<game>(get_mission_dir() + cmdmissionfilename);
+            gm = std::make_unique<game>(cfg::instance(), log::instance(), get_mission_dir() + cmdmissionfilename);
         } catch (error &e) {
             log_warning("error loading mission: " << e.what());
             // fixme: show dialogue!

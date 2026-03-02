@@ -37,6 +37,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 class game;
 class water;
+class cfg;
+class music;
 
 ///\defgroup interfaces In-game user interfaces
 ///\brief Base class for a user interface for playing the game.
@@ -50,6 +52,10 @@ class user_interface {
 
   protected:
     game *mygame; // pointer to game object that is displayed
+    
+    // Injected dependencies
+    class cfg& config;
+    class music& audio;
 
     bool pause;
     bool abort_request; // by user (back to game menu)

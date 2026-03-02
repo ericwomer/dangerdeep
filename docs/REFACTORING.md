@@ -12,6 +12,8 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 
 - **Extraer World de game:** Creada clase `world` que encapsula todas las entidades del juego (ships, submarines, airplanes, torpedoes, etc.) y las funciones de consulta espacial (visible_*, sonar_*, radar_*). La clase `game` ahora delega la gestión de entidades a `world`, reduciendo significativamente el acoplamiento y mejorando la separación de responsabilidades. Archivos: world.h (147 líneas), world.cpp (300+ líneas). Beneficios: mejor testabilidad, código más organizado, facilita futuras mejoras como sistemas de consulta espacial optimizados (quad-trees, spatial hashing). (Completado: 2026-03-01)
 
+- **Inyección de dependencias gradual (game, user_interface):** Iniciada la migración de singletons a inyección de dependencias por constructor. Las clases `game` y `user_interface` ahora reciben referencias a `cfg&`, `log&` y `music&` por parámetro en lugar de usar `::instance()`. Los constructores públicos de `game` ahora requieren `cfg&` y `log&` explícitamente. El constructor privado (usado por `game_editor`) sigue usando `::instance()` para mantener compatibilidad. `user_interface` recibe `cfg&` y `music&` para evitar acoplamiento directo. Beneficios: mejor testabilidad (permite inyectar mocks), desacoplamiento explícito, facilita razonamiento sobre dependencias. Archivos modificados: game.h/cpp, game_editor.h/cpp, user_interface.h/cpp, subsim.cpp (4 call sites). (Completado: 2026-03-02)
+
 ---
 
 ## Prioridad alta (impacto en acoplamiento / compilación)
@@ -41,8 +43,10 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
    - Opciones: composición por “subsistemas” (p. ej. SkyManager, CoastRenderer, MessageQueue) inyectados o creados en el constructor, en lugar de una clase que hace todo.
 
 5. **Singletons → inyección (gradual)**
-   - Singletons actuales: `system`, `global_data`, `cfg`, `log`, `postprocessor`, `music`, `data_file_handler`.
-   - Para mejorar testabilidad: en código nuevo, preferir recibir `cfg&` o `log&` por parámetro/constructor donde sea posible; en código existente, ir sustituyendo acceso a `singleton<T>::instance()` por parámetros en funciones clave (sin cambiar toda la base de una vez).
+   - ✅ **INICIADO**: `game` y `user_interface` ahora usan inyección de dependencias para `cfg`, `log` y `music`. Ver sección "Hecho" para detalles.
+   - **Pendiente**: Aplicar el mismo patrón a otras clases donde sea beneficioso (displays, popups, sea_object y subclases).
+   - Estrategia: En código nuevo, preferir recibir `cfg&` o `log&` por parámetro/constructor donde sea posible; en código existente, ir sustituyendo acceso a `singleton<T>::instance()` por parámetros en funciones clave (sin cambiar toda la base de una vez).
+   - Singletons restantes: `system`, `global_data`, `postprocessor`, `data_file_handler` (estos pueden mantenerse por ahora).
 
 ---
 
