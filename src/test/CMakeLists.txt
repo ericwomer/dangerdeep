@@ -277,5 +277,6 @@ add_test(NAME tone_reproductor_test COMMAND tone_reproductor_test WORKING_DIRECT
 # Tests que requieren juego/OpenGL completo: sensors, coastmap, image, model, texture,
 # font, primitives, shader, music, height_generator_map, geoclipmap, caustics, water_splash,
 # particle, stars, moon, sky, daysky, water, sonar, gun_shell, depth_charge, torpedo,
-# convoy, sea_object, ship, airplane, submarine, ai - tienen .cpp en src/test/ pero no se
-# enlazan aquí (dependencias pesadas). tree_generator, logbook, countrycodes, message_queue, cfg, idem.
+# convoy, sea_object, ship, airplane, submarine, ai, scene_environment, coast_renderer,
+# terrain_manager, weather_renderer - tienen .cpp en src/test/ pero no se enlazan aquí 
+# (dependencias pesadas). tree_generator, logbook, countrycodes, message_queue, cfg, idem.

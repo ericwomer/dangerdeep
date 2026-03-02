@@ -27,6 +27,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector2.h"
 
 ///\brief Manages coastline rendering
+///
+/// This subsystem encapsulates coastline visualization logic, extracted from
+/// user_interface. It acts as a facade over coastmap, providing a clean
+/// interface for rendering coastal geography with proper view-dependent culling.
+///
+/// The renderer handles initialization from map files and provides optimized
+/// rendering based on viewer position and viewing distance.
 class coast_renderer {
   public:
     /// Constructor

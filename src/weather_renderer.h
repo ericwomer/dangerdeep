@@ -29,6 +29,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class texture;
 
 ///\brief Renders weather effects like rain and snow
+///
+/// This subsystem was extracted from user_interface to isolate weather
+/// rendering responsibilities. It manages the procedural generation and
+/// display of animated weather effects using OpenGL textures.
+///
+/// Weather effects are compile-time optional via RAIN/SNOW preprocessor flags.
 class weather_renderer {
   public:
     weather_renderer();

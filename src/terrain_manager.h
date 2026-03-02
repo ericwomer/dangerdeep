@@ -30,6 +30,14 @@ class frustum;
 class height_generator;
 
 ///\brief Manages terrain rendering using geoclipmap
+///
+/// This subsystem encapsulates all terrain rendering logic using the geoclipmap
+/// algorithm for efficient level-of-detail (LOD) management. Extracted from
+/// user_interface to separate terrain responsibilities.
+///
+/// The geoclipmap technique provides continuous LOD for large terrain datasets,
+/// dynamically updating geometry based on viewer position. This manager provides
+/// a clean interface for positioning, rendering, and debug visualization.
 class terrain_manager {
   public:
     /// Constructor

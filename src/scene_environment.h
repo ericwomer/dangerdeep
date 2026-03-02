@@ -28,6 +28,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <memory>
 
 ///\brief Manages environmental scene elements (sky, caustics)
+///
+/// This subsystem consolidates sky and caustics management, previously
+/// scattered in user_interface. It provides unified time synchronization
+/// for atmospheric effects like sky rendering and underwater caustics.
+///
+/// Responsibilities:
+/// - Owns and manages sky (stars, sun, moon, atmospheric scattering)
+/// - Owns and manages caustics (underwater light patterns)
+/// - Synchronizes time updates to both components
 class scene_environment {
   public:
     scene_environment();
