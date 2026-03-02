@@ -45,6 +45,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "terrain_manager.h"
 #include "scene_environment.h"
 #include "coast_renderer.h"
+#include "panel_manager.h"
 #include "widget.h"
 #include <iomanip>
 #include <iostream>
@@ -97,23 +98,14 @@ user_interface::user_interface(game &gm) : mygame(&gm),
                                            current_display(0),
                                            current_popup(0),
                                            myenvironment(std::make_unique<scene_environment>()),
-                                           mycoast(std::make_unique<coast_renderer>(get_map_dir() + "default.xml")),
-                                           daymode(gm.is_day_mode()),
-                                           myweather(std::make_unique<weather_renderer>()) {
+                                          mycoast(std::make_unique<coast_renderer>(get_map_dir() + "default.xml")),
+                                          daymode(gm.is_day_mode()),
+                                          myweather(std::make_unique<weather_renderer>()) {
     add_loading_screen("coast map initialized");
-    panel = std::make_unique<widget>(0, 768 - 32, 1024, 32, "", nullptr);
-    panel->set_background(0);
-    // ca. 1024-2*8 for 6 texts => 168 pix. for each text
-    int paneltextnrs[6] = {1, 4, 5, 2, 98, 61};
-    const char *paneltexts[6] = {"000", "000", "000", "000", "000", "00:00:00"};
-    for (int i = 0; i < 6; ++i) {
-        int off = 8 + i * (1024 - 2 * 8) / 6;
-        string tx = texts::get(paneltextnrs[i]);
-        vector2i sz = widget::get_theme()->myfont->get_size(tx);
-        panel->add_child(new widget_text(off, 4, 0, 0, tx));
-        panel_valuetexts[i] = new widget_text(off + 8 + sz.x, 4, 0, 0, paneltexts[i]);
-        panel->add_child(panel_valuetexts[i]);
-    }
+    
+    // Create panel manager
+    mypanel = std::make_unique<panel_manager>(0, 768 - 32, 1024, 32);
+    mypanel->set_visible(panel_visible);
 
     // create screen selector widget
     screen_selector = std::make_unique<widget>(0, 0, 256, 32, "", nullptr);
@@ -293,7 +285,7 @@ void user_interface::set_time(double tm) {
 
 void user_interface::process_input(const SDL_Event &event) {
     if (panel_visible) {
-        if (panel->check_for_mouse_event(event))
+        if (mypanel->check_mouse_event(event))
             return;
     }
 
@@ -448,29 +440,19 @@ bool user_interface::time_scale_down() {
 
 void user_interface::draw_infopanel(bool onlytexts) const {
     if (!onlytexts && panel_visible) {
-        ostringstream os0;
-        os0 << setw(3) << left << mygame->get_player()->get_heading().ui_value();
-        panel_valuetexts[0]->set_text(os0.str());
-        ostringstream os1;
-        os1 << setw(3) << left << unsigned(fabs(round(sea_object::ms2kts(mygame->get_player()->get_speed()))));
-        panel_valuetexts[1]->set_text(os1.str());
-        ostringstream os2;
-        os2 << setw(3) << left << unsigned(round(std::max(0.0, -mygame->get_player()->get_pos().z)));
-        panel_valuetexts[2]->set_text(os2.str());
-        ostringstream os3;
-        os3 << setw(3) << left << get_absolute_bearing().ui_value();
-        panel_valuetexts[3]->set_text(os3.str());
-        ostringstream os4;
-        os4 << setw(3) << left << time_scale;
-        panel_valuetexts[4]->set_text(os4.str());
-        // compute time string
-        panel_valuetexts[5]->set_text(get_time_string(mygame->get_time()));
-
-        panel->draw();
+        // Prepare values for panel
+        double heading = mygame->get_player()->get_heading().ui_value();
+        double speed = sea_object::ms2kts(mygame->get_player()->get_speed());
+        double depth = -mygame->get_player()->get_pos().z;
+        double bearing = get_absolute_bearing().ui_value();
+        std::string time_str = get_time_string(mygame->get_time());
+        
+        // Draw panel with current values
+        mypanel->draw(heading, speed, depth, bearing, time_scale, time_str);
     }
 
     // draw messages using message queue subsystem
-    int y = (onlytexts ? sys().get_res_y_2d() : panel->get_pos().y);
+    int y = (onlytexts ? sys().get_res_y_2d() : mypanel->get_y_position());
     mymessages->draw(mygame->get_time(), y, font_vtremington12);
 }
 

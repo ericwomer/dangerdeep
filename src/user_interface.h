@@ -43,6 +43,7 @@ class weather_renderer;
 class terrain_manager;
 class scene_environment;
 class coast_renderer;
+class panel_manager;
 class sky;
 class caustics;
 class coastmap;
@@ -68,11 +69,9 @@ class user_interface {
     bool abort_request; // by user (back to game menu)
     unsigned time_scale;
 
-    // command panel, to submarine_interface!
-    // display texts above panel, fading out, no widget! fixme
+    // command panel
     bool panel_visible;
-    std::unique_ptr<class widget> panel;
-    class widget_text *panel_valuetexts[6];
+    std::unique_ptr<class panel_manager> mypanel;
 
     // screen selector menu
     std::unique_ptr<class widget> screen_selector;

@@ -33,6 +33,7 @@ set(DFTDSOURCES
 	music.cpp
 	parser.cpp
 	particle.cpp
+	panel_manager.cpp
 	sea_object.cpp
 	sensors.cpp
 	scene_environment.cpp
