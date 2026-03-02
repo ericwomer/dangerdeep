@@ -79,7 +79,56 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 ## Prioridad baja (limpieza y consistencia)
 
 4. **Naming**
-   - El proyecto mezcla estilos (snake_case en nombres de clase). No cambiar todo de golpe; en código nuevo seguir un estilo coherente (p. ej. el ya usado en `sub_*_display`, `user_display`).
+   - ✅ **COMPLETADO (parcial)**: Guía de estilo documentada (ver abajo).
+   - El proyecto mezcla algunos estilos, pero la convención dominante es clara. **En código nuevo seguir estas reglas**:
+
+### Guía de estilo de código (Danger from the Deep)
+
+**Nombres de clases y estructuras:**
+- `snake_case` (minúsculas con guiones bajos)
+- Ejemplos: `user_interface`, `sea_object`, `weather_renderer`, `terrain_manager`
+- Excepción: bibliotecas externas (TinyXML usa `PascalCase`)
+
+**Variables miembro:**
+- Prefijo `my` para subsistemas/objetos complejos propios: `myenvironment`, `mycoast`, `myterrain`, `myweather`
+- Sin prefijo para datos simples: `bearing`, `elevation`, `daymode`, `current_display`
+- Evitar prefijos como `m_` o `_` (no son el estilo del proyecto)
+
+**Funciones y métodos:**
+- `snake_case`: `get_throttle()`, `set_time()`, `draw_infopanel()`, `toggle_wireframe()`
+- Getters: `get_X()` donde X es el nombre del dato
+- Setters: `set_X(...)` donde X es el nombre del dato
+- Booleanos: preferir `is_X()` o `has_X()` para mayor claridad
+
+**Constantes y enums:**
+- `UPPER_CASE` con guiones bajos: `MAX_TORPEDOES`, `CONVOY_MAX_SIZE`
+
+**Namespaces:**
+- Actualmente no se usan. Si se agregan en el futuro, usar `snake_case`.
+
+**Archivos:**
+- Headers: `.h` (no `.hpp`)
+- Implementación: `.cpp`
+- Nombre del archivo = nombre de la clase principal: `weather_renderer.h`, `scene_environment.cpp`
+
+**Formato:**
+- Indentación: 4 espacios (no tabs)
+- Llaves: estilo K&R (llave de apertura en misma línea para funciones cortas, nueva línea para clases)
+- Líneas: preferir < 100 caracteres cuando sea razonable
+
+**Comentarios:**
+- Usar `///` para documentación Doxygen en headers
+- Evitar comentarios obvios; el código debe ser autoexplicativo
+- Comentar el "por qué", no el "qué"
+
+**Moderno C++:**
+- Preferir `std::unique_ptr` sobre raw pointers
+- Usar `const` siempre que sea posible
+- RAII para gestión de recursos
+- `auto` para tipos complejos evidentes
+- Range-based for loops cuando sea apropiado
+
+   - **Pendiente**: Aplicar consistentemente en nuevas contribuciones. No refactorizar masivamente código existente solo por naming.
 
 ---
 
