@@ -103,15 +103,17 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
    - **user_interface ahora está significativamente más ligero y enfocado**. Los subsistemas de rendering y UI están bien organizados y encapsulados.
 
 3. **Singletons → inyección (continuar)**
-   - ✅ **COMPLETADO (parcial)**: `game`, `user_interface`, displays, `water`, `submarine_interface`, `map_display`, y `postprocessor` ahora usan inyección de dependencias para `cfg`, `log` y `music`.
+   - ✅ **COMPLETADO (mayor parte)**: `game`, `user_interface`, displays, `water`, `submarine_interface`, `map_display`, `postprocessor`, y **funciones de menú en `subsim.cpp`** ahora usan inyección de dependencias o referencias locales para `cfg`, `log` y `music`.
    - **Archivos actualizados**:
      - `water`: constructor ahora recibe `cfg &configuration`, eliminados 6 usos de `cfg::instance()`
      - `submarine_interface`: usa `get_config()` en lugar de `cfg::instance()` (2 ubicaciones)
      - `map_display`: usa `ui.get_config()` en lugar de `cfg::instance()` (2 ubicaciones)
      - `game`: actualizado para inyectar `cfg` en constructor de `water` (3 call sites)
      - `postprocessor`: constructor ahora acepta `cfg*` opcional (2 usos eliminados), fallback a `cfg::instance()` para retrocompatibilidad
-   - **Pendiente**: Aún quedan ~13 usos de `cfg::instance()` en archivos menos críticos (subsim.cpp, tests, etc.)
-   - Estrategia: En código nuevo, preferir recibir `cfg&` o `log&` por parámetro/constructor donde sea posible; en código existente, ir sustituyendo acceso a `singleton<T>::instance()` por parámetros en funciones clave (sin cambiar toda la base de una vez).
+     - **`subsim.cpp`**: 5 funciones de menú refactorizadas con referencias locales `cfg &config = cfg::instance()` al inicio (22 usos eliminados)
+       - Funciones actualizadas: `menu_opt_video`, `menu_configure_keys`, `configure_key`, `apply_mode`, `menu_select_language`
+   - **Resultado**: De ~40 usos en el proyecto, quedan ~18 (reducción del 55%). Los restantes son principalmente en creación de objetos `game` (ya correcto con DI) y tests.
+   - Estrategia: En código nuevo, preferir recibir `cfg&` o `log&` por parámetro/constructor donde sea posible; en funciones de menú, usar referencia local al inicio de la función.
    - Singletons restantes: `system`, `global_data`, `data_file_handler` (estos pueden mantenerse por ahora).
 
 4. **objcache → RAII**
