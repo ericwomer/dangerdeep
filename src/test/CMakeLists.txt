@@ -28,25 +28,17 @@ add_executable(ptrvector_test ${TEST_DIR}/ptrvector_test.cpp)
 target_link_libraries(ptrvector_test ${LIBS})
 add_test(NAME ptrvector_test COMMAND ptrvector_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-# angle_test: angle.h + vector2.h (header-only)
-add_executable(angle_test ${TEST_DIR}/angle_test.cpp)
-target_link_libraries(angle_test ${LIBS})
-add_test(NAME angle_test COMMAND angle_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# angle_test: angle.h + vector2.h (header-only) - MIGRADO A CATCH2
+add_catch2_test(angle_test)
 
-# vector2_test: vector2.h (header-only)
-add_executable(vector2_test ${TEST_DIR}/vector2_test.cpp)
-target_link_libraries(vector2_test ${LIBS})
-add_test(NAME vector2_test COMMAND vector2_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# vector2_test: vector2.h (header-only) - MIGRADO A CATCH2
+add_catch2_test(vector2_test)
 
-# vector3_test: vector3.h + vector2.h
-add_executable(vector3_test ${TEST_DIR}/vector3_test.cpp)
-target_link_libraries(vector3_test ${LIBS})
-add_test(NAME vector3_test COMMAND vector3_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# vector3_test: vector3.h + vector2.h - MIGRADO A CATCH2
+add_catch2_test(vector3_test)
 
-# color_test: color.h (SDL_types)
-add_executable(color_test ${TEST_DIR}/color_test.cpp)
-target_link_libraries(color_test ${LIBS})
-add_test(NAME color_test COMMAND color_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# color_test: color.h (SDL_types) - MIGRADO A CATCH2
+add_catch2_test(color_test)
 
 # fixed_test: fixed.h (fixed32)
 add_executable(fixed_test ${TEST_DIR}/fixed_test.cpp)
@@ -96,10 +88,8 @@ add_executable(matrix3_test ${TEST_DIR}/matrix3_test.cpp)
 target_link_libraries(matrix3_test ${LIBS})
 add_test(NAME matrix3_test COMMAND matrix3_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-# quaternion_test: quaternion.h (matrix4, vector3)
-add_executable(quaternion_test ${TEST_DIR}/quaternion_test.cpp)
-target_link_libraries(quaternion_test ${LIBS})
-add_test(NAME quaternion_test COMMAND quaternion_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# quaternion_test: quaternion.h (matrix4, vector3) - MIGRADO A CATCH2
+add_catch2_test(quaternion_test)
 
 # triangle_intersection_test: triangle_intersection.h
 add_executable(triangle_intersection_test ${TEST_DIR}/triangle_intersection_test.cpp)
@@ -178,10 +168,8 @@ add_executable(polygon_test ${TEST_DIR}/polygon_test.cpp)
 target_link_libraries(polygon_test ${LIBS})
 add_test(NAME polygon_test COMMAND polygon_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-# matrix_test: matrix.h (matrix_invert, matrix_swap_rows, matrixt)
-add_executable(matrix_test ${TEST_DIR}/matrix_test.cpp)
-target_link_libraries(matrix_test ${LIBS})
-add_test(NAME matrix_test COMMAND matrix_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# matrix_test: matrix.h (matrix_invert, matrix_swap_rows, matrixt) - MIGRADO A CATCH2
+add_catch2_test(matrix_test)
 
 # global_constants_test: global_constants.h
 add_executable(global_constants_test ${TEST_DIR}/global_constants_test.cpp)
@@ -245,9 +233,8 @@ add_executable(thread_test ${TEST_DIR}/thread_test.cpp ${SRC_PARENT}/thread.cpp 
 target_link_libraries(thread_test ${LIBS})
 add_test(NAME thread_test COMMAND thread_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(xml_doc_test ${TEST_DIR}/xml_doc_test.cpp)
-target_link_libraries(xml_doc_test ${LIBS})
-add_test(NAME xml_doc_test COMMAND xml_doc_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# xml_doc_test: eliminado (test stub sin valor)
+# tone_reproductor_test: eliminado (test stub sin valor)
 
 add_executable(bv_tree_test ${TEST_DIR}/bv_tree_test.cpp ${SRC_PARENT}/bv_tree.cpp)
 target_link_libraries(bv_tree_test ${LIBS})
@@ -280,10 +267,6 @@ add_test(NAME ocean_wave_generator_test COMMAND ocean_wave_generator_test WORKIN
 add_executable(global_data_test ${TEST_DIR}/global_data_test.cpp)
 target_link_libraries(global_data_test ${LIBS})
 add_test(NAME global_data_test COMMAND global_data_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
-add_executable(tone_reproductor_test ${TEST_DIR}/tone_reproductor_test.cpp ${SRC_PARENT}/tone_reproductor.cpp)
-target_link_libraries(tone_reproductor_test ${LIBS})
-add_test(NAME tone_reproductor_test COMMAND tone_reproductor_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 # Tests para subsistemas extraídos (refactoring de game) - MIGRADOS A CATCH2
 add_catch2_test(trail_manager_test)

@@ -1,34 +1,51 @@
 /*
- * Test for quaternion (3D rotations).
+ * Test para quaternion (rotaciones 3D).
  */
+#include "catch_amalgamated.hpp"
 #include "../quaternion.h"
-#include <cassert>
 #include <cmath>
-#include <cstdio>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
-static bool near(double a, double b, double eps = 1e-6) {
+
+inline bool near(double a, double b, double eps = 1e-6) {
     return std::fabs(a - b) <= eps;
 }
 
-int main() {
+TEST_CASE("quaternion - Constructor por defecto", "[quaternion]") {
     quaternionf q;
-    assert(near(q.s, 1.0f) && q.v.x == 0 && q.v.y == 0 && q.v.z == 0);
-    assert(near(q.length(), 1.0f));
+    
+    REQUIRE(near(q.s, 1.0f));
+    REQUIRE(q.v.x == 0);
+    REQUIRE(q.v.y == 0);
+    REQUIRE(q.v.z == 0);
+    REQUIRE(near(q.length(), 1.0f));
+}
 
+TEST_CASE("quaternion - Constructor desde vector", "[quaternion]") {
     quaternionf qv = quaternionf::vec(1, 0, 0);
-    assert(qv.s == 0 && qv.v.x == 1 && qv.v.y == 0 && qv.v.z == 0);
+    
+    REQUIRE(qv.s == 0);
+    REQUIRE(qv.v.x == 1);
+    REQUIRE(qv.v.y == 0);
+    REQUIRE(qv.v.z == 0);
+}
 
+TEST_CASE("quaternion - Rotación y conjugado", "[quaternion]") {
     quaternionf qr = quaternionf::rot(90.0f, 0, 1, 0);
-    assert(near(qr.length(), 1.0f));
+    REQUIRE(near(qr.length(), 1.0f));
+    
     quaternionf qc = qr.conj();
-    assert(near(qc.s, qr.s) && near(qc.v.x, -qr.v.x));
+    REQUIRE(near(qc.s, qr.s));
+    REQUIRE(near(qc.v.x, -qr.v.x));
+}
 
+TEST_CASE("quaternion - Quaternion cero", "[quaternion]") {
     quaternionf qz = quaternionf::zero();
-    assert(qz.s == 0 && qz.v.x == 0 && qz.v.y == 0 && qz.v.z == 0);
-
-    printf("quaternion_test ok\n");
-    return 0;
+    
+    REQUIRE(qz.s == 0);
+    REQUIRE(qz.v.x == 0);
+    REQUIRE(qz.v.y == 0);
+    REQUIRE(qz.v.z == 0);
 }
