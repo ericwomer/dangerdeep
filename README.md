@@ -131,7 +131,7 @@ El ejecutable se genera en `build/src/dangerdeep` (en algunas configuraciones pu
 | `BUILD_ASAN`               | `ON`/`OFF` | AddressSanitizer + LeakSanitizer (detección fugas) |
 | `BUILD_VALGRIND_FRIENDLY`  | `ON`/`OFF` | Binario compatible con Valgrind (sin `-march=native`) |
 | `BUILD_UNIT_TESTS`         | `ON`/`OFF` | Compilar tests unitarios (ptrlist_test, mutex_test, parser_test) |
-| `BUILD_COVERAGE`           | `ON`/`OFF` | Cobertura de código (gcov; para reporte usar `./run_tests.sh --coverage`) |
+| `BUILD_COVERAGE`           | `ON`/`OFF` | Cobertura de código (gcov; para reporte usar `./check.sh --coverage`) |
 
 ---
 
@@ -155,22 +155,22 @@ Para una instalación en el sistema, configurar con: `cmake .. -Ddatadir=/usr/lo
 
 ## Tests y calidad de código
 
-El script `run_tests.sh` aplica por defecto **formato** (clang-format) y **lint** (cppcheck). La compilación solo se ejecuta si se pasa `--build` o `-b`. Requiere **Bash** (si se invoca con `sh`, se reejecuta con `bash`).
+El script `check.sh` aplica por defecto **formato** (clang-format) y **lint** (cppcheck). La compilación solo se ejecuta si se pasa `--build` o `-b`. Requiere **Bash** (si se invoca con `sh`, se reejecuta con `bash`).
 
 | Comando | Descripción |
 | ------- | ----------- |
-| `./run_tests.sh` | Formato + lint (por defecto) |
-| `./run_tests.sh --build` | Solo compilar (sin formato ni lint) |
-| `./run_tests.sh --format` | Verificar formato (falla si hay diferencias) |
-| `./run_tests.sh --lint` | Lint rápido |
-| `./run_tests.sh --lint-full` | Lint completo (warning, style, performance) |
-| `./run_tests.sh --asan -b` | Compilar con ASan+LSan y ejecutar tests unitarios (detecta fugas/errores de memoria) |
-| `./run_tests.sh --valgrind -b` | Compilar compatible con Valgrind y ejecutar bajo Valgrind |
-| `./run_tests.sh --valgrind` | Ejecutar bajo Valgrind (compilar antes con `--valgrind -b` si aparece «Instrucción ilegal») |
-| `./run_tests.sh --unit` | Compilar y ejecutar **tests unitarios** (ptrlist_test, mutex_test, parser_test) |
-| `./run_tests.sh --coverage` | Compilar con cobertura, ejecutar tests y generar **reporte de cobertura** (líneas + branches) en `build/coverage/html/` |
-| `./run_tests.sh --opengl` | Test de capacidades OpenGL (dftdtester) |
-| `./run_tests.sh --help` | Ver todas las opciones |
+| `./check.sh` | Formato + lint (por defecto) |
+| `./check.sh --build` | Solo compilar (sin formato ni lint) |
+| `./check.sh --format` | Verificar formato (falla si hay diferencias) |
+| `./check.sh --lint` | Lint rápido |
+| `./check.sh --lint-full` | Lint completo (warning, style, performance) |
+| `./check.sh --asan -b` | Compilar con ASan+LSan y ejecutar tests unitarios (detecta fugas/errores de memoria) |
+| `./check.sh --valgrind -b` | Compilar compatible con Valgrind y ejecutar bajo Valgrind |
+| `./check.sh --valgrind` | Ejecutar bajo Valgrind (compilar antes con `--valgrind -b` si aparece «Instrucción ilegal») |
+| `./check.sh --unit` | Compilar y ejecutar **tests unitarios** (ptrlist_test, mutex_test, parser_test) |
+| `./check.sh --coverage` | Compilar con cobertura, ejecutar tests y generar **reporte de cobertura** (líneas + branches) en `build/coverage/html/` |
+| `./check.sh --opengl` | Test de capacidades OpenGL (dftdtester) |
+| `./check.sh --help` | Ver todas las opciones |
 
 Los tests unitarios usan **CTest**; `parser_test` necesita el directorio `data/` (variable de entorno `DFTD_DATA` o argumento con la ruta a `data`).  
 Para el reporte de cobertura se usa **lcov** con *branch coverage*; instalación: `sudo apt install lcov`.

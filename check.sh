@@ -4,12 +4,12 @@
 # La compilación solo se ejecuta con --build.
 #
 # Uso:
-#   ./run_tests.sh              # formato + lint rápido (por defecto)
-#   ./run_tests.sh --build, -b  # solo compilación (sin formato ni lint)
-#   ./run_tests.sh --asan -b    # compilar con AddressSanitizer+LeakSanitizer y compilar
-#   ./run_tests.sh --valgrind   # ejecutar el juego bajo Valgrind (fugas de memoria)
-#   ./run_tests.sh --lint-full  # lint completo
-#   ./run_tests.sh --gl         # test OpenGL (requiere haber compilado antes)
+#   ./check.sh              # formato + lint rápido (por defecto)
+#   ./check.sh --build, -b  # solo compilación (sin formato ni lint)
+#   ./check.sh --asan -b    # compilar con AddressSanitizer+LeakSanitizer y compilar
+#   ./check.sh --valgrind   # ejecutar el juego bajo Valgrind (fugas de memoria)
+#   ./check.sh --lint-full  # lint completo
+#   ./check.sh --gl         # test OpenGL (requiere haber compilado antes)
 #
 # Requiere Bash (arrays, [[ ]], etc.). Si se invoca con sh, se reejecuta con bash.
 [[ -n "$BASH_VERSION" ]] || exec bash "$0" "$@"
@@ -63,7 +63,7 @@ run_format_check() {
 	out=$(echo "$files" | xargs -r clang-format --dry-run --Werror 2>&1) || true
 	if [[ $? -ne 0 ]]; then
 		echo "$out" | head -50
-		log_fail "Algunos archivos no cumplen el formato. Ejecuta: ./run_tests.sh --format-apply"
+		log_fail "Algunos archivos no cumplen el formato. Ejecuta: ./check.sh --format-apply"
 		return 1
 	fi
 	log_ok "Formato correcto."
