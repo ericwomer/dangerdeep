@@ -236,7 +236,13 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 - ✅ `logbook_test` (mejorado): 10 tests de gestión de bitácora (agregado, iteración, caracteres especiales, secuencias realistas)
 - ❌ `lighting_system_test`: Cancelado (requiere OpenGL/shaders, ~50+ dependencias)
 
-**Casos de test totales: 85 tests** distribuidos en 8 subsistemas
+**Casos de test totales: 113 tests** distribuidos en 11 archivos (8 subsistemas nuevos + 3 existentes mejorados)
+
+**Mejoras en commit a1a70a62 (tests existentes):**
+- `bv_tree_leaf_test`: 1 → 7 casos (+600%)
+- `frustum_test`: 2 → 8 casos (+300%)
+- `sphere_test`: 4 → 13 casos (+225%)
+- **Total: +28 casos de test adicionales (+33% de cobertura total)**
 
 **Técnicas de resolución de dependencias:**
 1. **XML**: Agregar `xml.cpp` como dependencia para `scoring_manager_test` y `ping_manager_test`
