@@ -46,6 +46,7 @@ double log2(double n) {
 #include "game.h"
 #include "global_data.h"
 #include "gun_shell.h"
+#include "job_scheduler.h"
 #include "log.h"
 #include "matrix4.h"
 #include "model.h"
@@ -183,6 +184,7 @@ game::game()
       config(cfg::instance()),
       logger(log::instance()),
       myevents(std::make_unique<event_manager>()),
+      myjobs(std::make_unique<job_scheduler>()),
       mynetwork(std::make_unique<network_manager>()),
       myphysics(std::make_unique<physics_system>()) {
     // empty, so that heirs can construct a game object. Needed for editor
@@ -218,6 +220,7 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &subtype, unsign
       config(cfg_ref),
       logger(log_ref),
       myevents(std::make_unique<event_manager>()),
+      myjobs(std::make_unique<job_scheduler>()),
       mynetwork(std::make_unique<network_manager>()),
       playerinfo(pi),
       myphysics(std::make_unique<physics_system>()) {
@@ -381,7 +384,7 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &filename)
       particles(myworld->get_particles_mut()),
       config(cfg_ref),
       logger(log_ref),
-      my_run_state(running), myevents(std::make_unique<event_manager>()), mynetwork(std::make_unique<network_manager>()), player(0),
+      my_run_state(running), myevents(std::make_unique<event_manager>()), myjobs(std::make_unique<job_scheduler>()), mynetwork(std::make_unique<network_manager>()), player(0),
       time(0), last_trail_time(0), max_view_dist(0),
       freezetime(0), freezetime_start(0), myphysics(std::make_unique<physics_system>()) {
     xml_doc doc(filename);
@@ -575,8 +578,7 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &filename)
 }
 
 game::~game() {
-    for (list<pair<double, job *>>::iterator it = jobs.begin(); it != jobs.end(); ++it)
-        delete it->second;
+    // Job scheduler destructor handles cleanup
 }
 
 // --------------------------------------------------------------------------------
@@ -763,13 +765,7 @@ void game::simulate(double delta_t) {
     myevents->clear_events();
 
     // check if jobs are to be run
-    for (list<pair<double, job *>>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
-        it->first += delta_t;
-        if (it->first >= it->second->get_period()) {
-            it->first -= it->second->get_period();
-            it->second->run();
-        }
-    }
+    myjobs->update(delta_t);
 
     if (!is_editor()) {
         // this could be done in jobs, fixme
@@ -1462,18 +1458,11 @@ void game::ping_ASDIC(list<vector3> &contacts, sea_object *d,
 }
 
 void game::register_job(job *j) {
-    jobs.push_back(make_pair(0.0, j));
+    myjobs->register_job(j);
 }
 
 void game::unregister_job(job *j) {
-    for (list<pair<double, job *>>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
-        if (it->second == j) {
-            delete it->second;
-            jobs.erase(it);
-            return;
-        }
-    }
-    throw error("[game::unregister_job] job not found in list");
+    myjobs->unregister_job(j);
 }
 
 template <class C>

@@ -25,6 +25,7 @@ set(DFTDSOURCES
 	gun_shell.cpp
 	height_generator_map.cpp
 	highscorelist.cpp
+	job_scheduler.cpp
 	keys.cpp
 	logbook.cpp
 	logbook_display.cpp
