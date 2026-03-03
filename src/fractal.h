@@ -43,7 +43,7 @@ class fractal_noise {
         }
     }
 
-    double get_value_hybrid(vector3 point, int octave) {
+    double get_value_hybrid(vector3 point, int octave) const {
 
         int i;
         double weight, result = 0.0, signal;
@@ -82,7 +82,7 @@ class fractal_noise {
         return result;
     }
 
-    double get_value_ridged(vector3 point, int octave) {
+    double get_value_ridged(vector3 point, int octave) const {
 
         int i;
         double weight, result = 0.0, signal;
@@ -127,7 +127,7 @@ class fractal_noise {
         return result;
     }
 
-    double get_value_fbm(vector2 point, int octave) {
+    double get_value_fbm(vector2 point, int octave) const {
 
         int i;
         double result = 0.0;
@@ -146,7 +146,7 @@ class fractal_noise {
         return result;
     }
 
-    double get_value_fbm(vector3 point, int octave) {
+    double get_value_fbm(vector3 point, int octave) const {
 
         int i;
         double result = 0.0;

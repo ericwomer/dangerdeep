@@ -525,7 +525,7 @@ class model {
 
     /// get voxel closest to a real world position
     ///@returns voxel index of closest voxel
-    unsigned get_voxel_closest_to(const vector3f &pos);
+    unsigned get_voxel_closest_to(const vector3f &pos) const;
 
     /// get voxels within a sphere around a real world position
     ///@returns list of voxels which center is inside the sphere

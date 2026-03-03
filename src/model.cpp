@@ -2438,7 +2438,7 @@ matrix4f model::get_base_mesh_transformation() const {
     return scene.children.front().get_transformation();
 }
 
-unsigned model::get_voxel_closest_to(const vector3f &pos) {
+unsigned model::get_voxel_closest_to(const vector3f &pos) const {
     matrix4f transmat = get_base_mesh_transformation() * matrix4f::diagonal(voxel_size);
     unsigned closestvoxel = 0;
     double dist = 1e30;

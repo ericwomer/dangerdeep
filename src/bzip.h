@@ -67,7 +67,7 @@ class bzip_failure : public std::ios_base::failure {
             return ("BZ_UNKNOWN_ERROR");
         }
     };
-    int get_error() { return error_code; }
+    int get_error() const { return error_code; }
 };
 
 class bzip_streambuf : public std::streambuf {
