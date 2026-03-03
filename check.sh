@@ -35,9 +35,17 @@ run_build_test() {
 	cd "$BUILD_DIR"
 	local cmake_opts=(-DCMAKE_BUILD_TYPE=RelWithDebInfo)
 	[[ -n "$EXTRA_CMAKE_ARGS" ]] && cmake_opts+=($EXTRA_CMAKE_ARGS)
-	if ! cmake .. "${cmake_opts[@]}" -q 2>/dev/null; then
+	
+	# Si DO_RECONFIGURE=1, forzar regeneración de CMake
+	if [[ ${DO_RECONFIGURE:-0} -eq 1 ]]; then
+		log_info "Forzando reconfiguración de CMake..."
 		cmake .. "${cmake_opts[@]}"
+	else
+		if ! cmake .. "${cmake_opts[@]}" -q 2>/dev/null; then
+			cmake .. "${cmake_opts[@]}"
+		fi
 	fi
+	
 	# Si DO_FORCE=1, ejecutar make clean antes de compilar
 	if [[ ${DO_FORCE:-0} -eq 1 ]]; then
 		log_info "Limpiando objetos compilados (make clean)..."
@@ -282,6 +290,7 @@ if [[ $# -eq 0 ]]; then
 	echo "Opciones disponibles:"
 	echo "  --build, -b        Compilar el proyecto"
 	echo "  --force            Forzar recompilación (make clean + make)"
+	echo "  --reconfigure      Forzar reconfiguración de CMake (regenera makefiles)"
 	echo "  --clean, --rebuild Borrar build/ y recompilar desde cero"
 	echo "  --unit, --tests    Compilar y ejecutar tests unitarios"
 	echo "  --coverage         Generar reporte de cobertura de código"
@@ -295,12 +304,12 @@ if [[ $# -eq 0 ]]; then
 	echo "  -h, --help         Mostrar esta ayuda"
 	echo ""
 	echo "Ejemplos:"
-	echo "  $0 --build         # Compilar"
-	echo "  $0 --force         # Recompilar todo desde cero (sin borrar build/)"
-	echo "  $0 --clean         # Borrar build/ y recompilar"
-	echo "  $0 --unit          # Compilar y ejecutar tests"
-	echo "  $0 --clean --unit  # Limpiar, compilar y ejecutar tests"
-	echo "  $0 --format --lint # Verificar formato y ejecutar lint"
+	echo "  $0 --build            # Compilar"
+	echo "  $0 --force            # Recompilar todo (make clean + make)"
+	echo "  $0 --reconfigure      # Regenerar makefiles de CMake + compilar"
+	echo "  $0 --clean            # Borrar build/ y recompilar"
+	echo "  $0 --unit             # Compilar y ejecutar tests"
+	echo "  $0 --reconfigure --unit  # Reconfigurar, compilar y ejecutar tests"
 	exit 0
 fi
 
@@ -308,6 +317,7 @@ FAIL=0
 DO_BUILD=0
 DO_CLEAN=0
 DO_FORCE=0
+DO_RECONFIGURE=0
 DO_FORMAT_CHECK=0
 DO_FORMAT_APPLY=0
 DO_LINT=0
@@ -323,6 +333,7 @@ for arg in "$@"; do
 		--build|-b)        DO_BUILD=1 ;;
 		--clean|--rebuild) DO_CLEAN=1; DO_BUILD=1 ;;
 		--force)           DO_FORCE=1; DO_BUILD=1 ;;
+		--reconfigure)     DO_RECONFIGURE=1; DO_BUILD=1 ;;
 		--asan)            EXTRA_CMAKE_ARGS="-DBUILD_ASAN=ON -DBUILD_COVERAGE=OFF -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1; DO_UNIT_TESTS=1 ;;
 		--valgrind)        DO_VALGRIND=1; EXTRA_CMAKE_ARGS="-DBUILD_VALGRIND_FRIENDLY=ON" ;;
 		--unit|--tests)    DO_UNIT_TESTS=1; EXTRA_CMAKE_ARGS="${EXTRA_CMAKE_ARGS} -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1 ;;
@@ -340,6 +351,7 @@ for arg in "$@"; do
 			echo "Opciones disponibles:"
 			echo "  --build, -b        Compilar el proyecto"
 			echo "  --force            Forzar recompilación (make clean + make)"
+			echo "  --reconfigure      Forzar reconfiguración de CMake (regenera makefiles)"
 			echo "  --clean, --rebuild Borrar build/ y recompilar desde cero"
 			echo "  --unit, --tests    Compilar y ejecutar tests unitarios"
 			echo "  --coverage         Generar reporte de cobertura de código"
@@ -353,12 +365,12 @@ for arg in "$@"; do
 			echo "  -h, --help         Mostrar esta ayuda"
 			echo ""
 			echo "Ejemplos:"
-			echo "  $0 --build         # Compilar"
-			echo "  $0 --force         # Recompilar todo desde cero (sin borrar build/)"
-			echo "  $0 --clean         # Borrar build/ y recompilar"
-			echo "  $0 --unit          # Compilar y ejecutar tests"
-			echo "  $0 --clean --unit  # Limpiar, compilar y ejecutar tests"
-			echo "  $0 --format --lint # Verificar formato y ejecutar lint"
+			echo "  $0 --build            # Compilar"
+			echo "  $0 --force            # Recompilar todo (make clean + make)"
+			echo "  $0 --reconfigure      # Regenerar makefiles de CMake + compilar"
+			echo "  $0 --clean            # Borrar build/ y recompilar"
+			echo "  $0 --unit             # Compilar y ejecutar tests"
+			echo "  $0 --reconfigure --unit  # Reconfigurar, compilar y ejecutar tests"
 			exit 0
 			;;
 	esac

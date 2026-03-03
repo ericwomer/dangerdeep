@@ -162,6 +162,7 @@ El script `check.sh` centraliza operaciones de QA (formato, lint, compilación, 
 | `./check.sh` | Mostrar ayuda con todas las opciones |
 | `./check.sh --build` | Compilar el proyecto |
 | `./check.sh --force` | Forzar recompilación completa (make clean + make) |
+| `./check.sh --reconfigure` | Regenerar makefiles de CMake + compilar |
 | `./check.sh --clean` | Borrar `build/` y recompilar desde cero |
 | `./check.sh --unit` | Compilar y ejecutar tests unitarios |
 | `./check.sh --coverage` | Generar reporte de cobertura (líneas + branches) en `build/coverage/html/` |
