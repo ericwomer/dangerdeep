@@ -281,6 +281,24 @@ if(USE_UNITY STREQUAL "ON")
 endif(USE_UNITY STREQUAL "ON")
 
 add_executable(dangerdeep ${MAIN_SRC} ${INC})
+
+# Precompiled Headers: acelera compilación pre-compilando headers pesados usados frecuentemente
+# Requiere CMake 3.16+
+# NOTA: Solo incluir headers con declaraciones puras (sin definiciones inline conflictivas)
+target_precompile_headers(dangerdeep PRIVATE
+	<vector>
+	<string>
+	<sstream>
+	<iostream>
+	<fstream>
+	<SDL.h>
+	"system.h"
+	"log.h"
+	"cfg.h"
+	"texture.h"
+	"model.h"
+)
+
 target_link_libraries(dangerdeep ${LIBS})
 
 if(BUILD_UNIT_TESTS)
