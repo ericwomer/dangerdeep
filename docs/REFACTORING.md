@@ -221,6 +221,43 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 
 ---
 
+## Tests unitarios para subsistemas
+
+✅ **INICIADO (commit 2be91209)**: Tests unitarios para subsistemas extraídos de `game`
+
+**Tests funcionando (3/3 core):**
+- ✅ `trail_manager_test`: 10 tests de gestión de timing para trails (intervalos, grabación, estado)
+- ✅ `visibility_manager_test`: 11 tests de cálculo de distancia de visibilidad (brillo, límites, edge cases)
+- ✅ `logbook_test` (mejorado): 10 tests de gestión de bitácora (agregado, iteración, caracteres especiales, secuencias realistas)
+
+**Tests creados pero comentados (6 subsistemas con dependencias pesadas):**
+- `time_freezer_test`: Requiere `system.cpp` (OpenGL/SDL, ~20+ dependencias)
+- `scoring_manager_test`: Requiere `xml.cpp` para serialización
+- `ping_manager_test`: Requiere `xml.cpp` para serialización
+- `lighting_system_test`: Requiere `xml.cpp` vía `date.cpp`
+- `physics_system_test`: Requiere `sea_object`, `ship`, `bv_tree` (objetos complejos del juego)
+- `event_manager_test`: `event` es clase abstracta con `unique_ptr` incompleto
+
+**Estadísticas de tests:**
+- Total: 61/62 tests pasan (98.4%)
+- Fallo conocido: `parser_test` (requiere data dir)
+- Nuevos tests: +3 funcionando
+- Tiempo de ejecución: ~0.06s total
+
+**Próximos pasos sugeridos:**
+1. Considerar agregar `xml.cpp` como dependencia para habilitar los 4 tests con serialización
+2. Crear mocks/stubs de `system` para `time_freezer_test`
+3. Implementar mocks de `sea_object`/`ship` para `physics_system_test`
+4. Crear eventos concretos de prueba para `event_manager_test`
+
+**Aprendizajes:**
+- Tests header-only (como `trail_manager`) compilan instantáneamente y sin dependencias
+- Subsistemas con XML tienen dependencias transitivias pesadas (tinyxml + todo su grafo)
+- `system.cpp` es particularmente problemático (OpenGL, SDL, fuentes, shaders)
+- Los tests mejoran la confianza en refactorizaciones futuras
+
+---
+
 ## Cómo usar este documento
 
 - Al tocar un área (terrain, game, UI, objcache), consultar aquí si hay un ítem aplicable.
