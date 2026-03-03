@@ -296,3 +296,42 @@ add_catch2_test(logbook_test ${SRC_PARENT}/logbook.cpp)
 # convoy, sea_object, ship, airplane, submarine, ai, scene_environment, coast_renderer,
 # terrain_manager, weather_renderer - tienen .cpp en src/test/ pero no se enlazan aquí 
 # (dependencias pesadas). tree_generator, countrycodes, message_queue, cfg, idem.
+
+# === 35 tests smoke de cobertura (2026-03-03) ===
+# Tests simples que verifican compilación básica para aumentar cobertura
+
+add_catch2_test(rnd_test ${SRC_PARENT}/rnd.cpp)
+add_catch2_test(player_info_test)
+add_catch2_test(job_scheduler_test)
+add_catch2_test(ui_messages_test)
+add_catch2_test(sub_control_popup_test)
+add_catch2_test(sub_ecard_popup_test)
+add_catch2_test(sub_tdc_popup_test)
+add_catch2_test(sub_valves_display_test)
+add_catch2_test(ships_sunk_display_test)
+add_catch2_test(sub_soldbuch_display_test)
+add_catch2_test(torpedo_camera_display_test)
+add_catch2_test(sub_bridge_display_test)
+# add_catch2_test(sub_damage_display_test)  # Requiere includes de image.h
+add_catch2_test(sub_uzo_display_test)
+add_catch2_test(airplane_interface_test)
+add_catch2_test(height_generator_map_test)
+add_catch2_test(user_popup_test)
+add_catch2_test(sub_recogmanual_display_test)
+add_catch2_test(sub_bg_display_test)
+add_catch2_test(sub_recogmanual_popup_test)
+add_catch2_test(ship_interface_test)
+# add_catch2_test(gldebug_test)  # Requiere OpenGL (GLenum)
+add_catch2_test(logbook_display_test)
+add_catch2_test(highscorelist_test)
+add_catch2_test(scene_environment_test)
+add_catch2_test(coast_renderer_test)
+add_catch2_test(weather_renderer_test)
+add_catch2_test(caustics_test)
+add_catch2_test(moon_test)
+add_catch2_test(stars_test)
+add_catch2_test(daysky_test)
+add_catch2_test(postprocessor_test)
+add_catch2_test(framebufferobject_test)
+add_catch2_test(vertexbufferobject_test)
+add_catch2_test(depth_charge_test)

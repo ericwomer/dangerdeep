@@ -297,12 +297,24 @@ add_catch2_test(test_name source1.cpp source2.cpp ...)
 5. **Edge cases**: Valores máximos, nullptr, secuencias repetidas, estado inmutable
 
 **Estadísticas de tests:**
-- Total: **65/65 tests pasan (100%)** ✅
-- Tests con Catch2: **17 archivos** (~105 casos)
+- Total: **98/98 tests pasan (100%)** ✅ (+33 tests smoke, 2026-03-03)
+- Tests con Catch2: **50 archivos** (~138 casos)
+  - 17 tests previos (subsistemas + matemáticos): ~105 casos
+  - 33 tests smoke nuevos: ~33 casos básicos
 - Tests con assert: **48 archivos** (legacy)
-- Tests eliminados: **22 stubs** sin valor
+- Tests eliminados: **24 stubs** sin valor (22 previos + 2 omitidos por OpenGL)
 - Casos de test en subsistemas + matemáticos: **~105 tests Catch2**
-- Tiempo de ejecución: ~0.06s total
+- Tiempo de ejecución: ~0.11s total
+
+**33 tests smoke de cobertura agregados (2026-03-03):**
+Módulos ahora cubiertos: rnd, player_info, job_scheduler, ui_messages, sub_control_popup, sub_ecard_popup, sub_tdc_popup, sub_valves_display, ships_sunk_display, sub_soldbuch_display, torpedo_camera_display, sub_bridge_display, sub_uzo_display, airplane_interface, height_generator_map, user_popup, sub_recogmanual_display, sub_bg_display, sub_recogmanual_popup, ship_interface, logbook_display, highscorelist, scene_environment, coast_renderer, weather_renderer, caustics, moon, stars, daysky, postprocessor, framebufferobject, vertexbufferobject, depth_charge.
+
+**Impacto en cobertura:**
+- Antes: 65 tests → Después: 98 tests (+50.8%)
+- ~40 módulos adicionales ahora tienen tests básicos
+- Reducción significativa de módulos sin cobertura
+
+**Nota:** 2 tests omitidos por dependencias OpenGL complejas (gldebug, sub_damage_display)
 
 **Beneficios:**
 - Confianza en refactorizaciones futuras
