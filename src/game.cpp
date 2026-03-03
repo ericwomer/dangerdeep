@@ -55,6 +55,7 @@ double log2(double n) {
 #include "network_manager.h"
 #include "particle.h"
 #include "physics_system.h"
+#include "ping_manager.h"
 #include "quaternion.h"
 #include "sensors.h"
 #include "ship.h"
@@ -84,23 +85,7 @@ const double game::TRAIL_TIME = 1.0;
 
 /***************************************************************************/
 
-game::ping::ping(const xml_elem &parent) {
-    pos.x = parent.attrf("posx");
-    pos.y = parent.attrf("posy");
-    dir = angle(parent.attrf("dir"));
-    time = parent.attrf("time");
-    range = parent.attrf("range");
-    ping_angle = angle(parent.attrf("ping_angle"));
-}
-
-void game::ping::save(xml_elem &parent) const {
-    parent.set_attr(pos.x, "posx");
-    parent.set_attr(pos.y, "posy");
-    parent.set_attr(dir.value(), "dir");
-    parent.set_attr(time, "time");
-    parent.set_attr(range, "range");
-    parent.set_attr(ping_angle.value(), "ping_angle");
-}
+// ping methods moved to ping_manager.cpp
 
 game::sink_record::sink_record(const xml_elem &parent) {
     dat.load(parent);
@@ -188,7 +173,8 @@ game::game()
       myjobs(std::make_unique<job_scheduler>()),
       mynetwork(std::make_unique<network_manager>()),
       myphysics(std::make_unique<physics_system>()),
-      mylighting(std::make_unique<lighting_system>()) {
+      mylighting(std::make_unique<lighting_system>()),
+      mypings(std::make_unique<ping_manager>()) {
     // empty, so that heirs can construct a game object. Needed for editor
     freezetime = 0;
     freezetime_start = 0;
@@ -226,7 +212,8 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &subtype, unsign
       mynetwork(std::make_unique<network_manager>()),
       playerinfo(pi),
       myphysics(std::make_unique<physics_system>()),
-      mylighting(std::make_unique<lighting_system>()) {
+      mylighting(std::make_unique<lighting_system>()),
+      mypings(std::make_unique<ping_manager>()) {
     /****************************************************************
             custom mission generation:
             As first find a random date and time, using time of day (tod).
@@ -389,7 +376,7 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &filename)
       logger(log_ref),
       my_run_state(running), myevents(std::make_unique<event_manager>()), myjobs(std::make_unique<job_scheduler>()), mynetwork(std::make_unique<network_manager>()), player(0),
       time(0), last_trail_time(0), max_view_dist(0),
-      freezetime(0), freezetime_start(0), myphysics(std::make_unique<physics_system>()), mylighting(std::make_unique<lighting_system>()) {
+      freezetime(0), freezetime_start(0), myphysics(std::make_unique<physics_system>()), mylighting(std::make_unique<lighting_system>()), mypings(std::make_unique<ping_manager>()) {
     xml_doc doc(filename);
     doc.load();
     // could be savegame or mission, maybe check...
@@ -572,10 +559,7 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &filename)
 
     // fixme save and load logbook
 
-    xml_elem pgs = sg.child("pings");
-    for (xml_elem::iterator it = pgs.iterate("ping"); !it.end(); it.next()) {
-        pings.push_back(ping(it.elem()));
-    }
+    mypings->load(sg);
 
     playerinfo = player_info(sg.child("player_info"));
 }
@@ -706,11 +690,7 @@ void game::save(const string &savefilename, const string &description) const {
     equipment_date.save(equ);
     gst.set_attr(max_view_dist, "max_view_dist");
 
-    xml_elem pgs = sg.add_child("pings");
-    pgs.set_attr(unsigned(pings.size()), "nr");
-    for (list<ping>::const_iterator it = pings.begin(); it != pings.end(); ++it) {
-        it->save(pgs);
-    }
+    mypings->save(sg);
 
     xml_elem pi = sg.add_child("player_info");
     playerinfo.save(pi);
@@ -877,11 +857,7 @@ void game::simulate(double delta_t) {
     mylighting->set_time(time);
 
     // remove old pings
-    for (list<ping>::iterator it = pings.begin(); it != pings.end();) {
-        list<ping>::iterator it2 = it++;
-        if (time - it2->time > PINGREMAINTIME)
-            pings.erase(it2);
-    }
+    mypings->update(time);
 
     if (!is_editor()) {
         if (nearest_contact > ENEMYCONTACTLOST) {
@@ -1433,9 +1409,9 @@ void game::ping_ASDIC(list<vector3> &contacts, sea_object *d,
 
         // remember ping (for drawing)
         // fixme: seems redundant with event list...!
-        pings.push_back(ping(d->get_pos().xy(),
-                             ass->get_bearing() + d->get_heading(), time,
-                             ass->get_range(), ass->get_detection_cone()));
+        mypings->add_ping(d->get_pos().xy(),
+                          ass->get_bearing() + d->get_heading(), time,
+                          ass->get_range(), ass->get_detection_cone());
         myevents->add_event(std::make_unique<event_ping>(d->get_pos()));
 
         // fixme: noise from ships can disturb ASDIC or may generate more contacs.
@@ -1467,6 +1443,10 @@ void game::register_job(job *j) {
 
 void game::unregister_job(job *j) {
     myjobs->unregister_job(j);
+}
+
+const std::list<ping> &game::get_pings() const {
+    return mypings->get_pings();
 }
 
 template <class C>

@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef GAME_H
 #define GAME_H
 
-#define PINGREMAINTIME 1.0     // seconds
+// PINGREMAINTIME moved to ping_manager.cpp (1.0 seconds)
 #define PINGANGLE 15           // angle
 #define PINGLENGTH 1000        // meters. for drawing
 #define ASDICRANGE 1500.0      // meters fixme: historic values?
@@ -62,6 +62,8 @@ class physics_system;
 class network_manager;
 class job_scheduler;
 class lighting_system;
+class ping_manager;
+struct ping;
 struct job;
 
 #include "angle.h"
@@ -95,19 +97,7 @@ struct job;
 ///\brief Central object of the game world with physics simulation etc.
 class game {
   public:
-    // fixme: may be redundant with event_ping !
-    struct ping {
-        vector2 pos;
-        angle dir;
-        double time;
-        double range;
-        angle ping_angle;
-        ping(const vector2 &p, angle d, double t, double range,
-             const angle &ping_angle_) : pos(p), dir(d), time(t), range(range), ping_angle(ping_angle_) {}
-        ~ping() {}
-        ping(const xml_elem &parent);
-        void save(xml_elem &parent) const;
-    };
+    // ping struct moved to ping_manager.h
 
     struct sink_record {
         date dat;
@@ -199,8 +189,6 @@ class game {
                     storm }; // fixme
     double max_view_dist;    // maximum visibility according to weather conditions, fixme recomputed or save?
 
-    std::list<ping> pings; // [SAVE]
-
     // Network subsystem (legacy, currently unused)
     std::unique_ptr<network_manager> mynetwork;
 
@@ -247,6 +235,9 @@ class game {
 
     // Lighting subsystem
     std::unique_ptr<lighting_system> mylighting;
+
+    // Ping subsystem
+    std::unique_ptr<ping_manager> mypings;
 
     random_generator random_gen;
 
@@ -376,7 +367,7 @@ class game {
     // various functions (fixme: sort, cleanup)
     void register_job(job *j);
     void unregister_job(job *j);
-    const std::list<ping> &get_pings() const { return pings; }; // fixme: maybe vector not list
+    const std::list<ping> &get_pings() const;
 
     template <class C>
     ship *check_units(torpedo *t, const std::vector<std::unique_ptr<C>> &units);

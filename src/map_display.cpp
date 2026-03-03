@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "height_generator.h"
 #include "image.h"
 #include "keys.h"
+#include "ping_manager.h"
 #include "ship.h"
 #include "submarine.h"
 #include "system.h"
@@ -116,9 +117,9 @@ void map_display::draw_trail(sea_object *so, const vector2 &offset) const {
 void map_display::draw_pings(class game &gm, const vector2 &offset) const {
     // draw pings (just an experiment, you can hear pings, locate their direction
     //	a bit fuzzy but not their origin or exact shape).
-    const list<game::ping> &pings = gm.get_pings();
-    for (list<game::ping>::const_iterator it = pings.begin(); it != pings.end(); ++it) {
-        const game::ping &p = *it;
+    const list<ping> &pings = gm.get_pings();
+    for (list<ping>::const_iterator it = pings.begin(); it != pings.end(); ++it) {
+        const ping &p = *it;
         // vector2 r = player->get_pos ().xy () - p.pos;
         vector2 p1 = (p.pos + offset) * mapzoom;
         vector2 p2 = p1 + (p.dir + p.ping_angle).direction() * p.range * mapzoom;

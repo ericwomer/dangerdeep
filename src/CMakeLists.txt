@@ -43,6 +43,7 @@ set(DFTDSOURCES
 	scene_environment.cpp
 	network_manager.cpp
 	ship.cpp
+	ping_manager.cpp
 	ships_sunk_display.cpp
 	simplex_noise.cpp
 	sky.cpp
