@@ -223,38 +223,44 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 
 ## Tests unitarios para subsistemas
 
-✅ **INICIADO (commit 2be91209)**: Tests unitarios para subsistemas extraídos de `game`
+✅ **COMPLETADO (commit 2be91209, 3073514e)**: Tests unitarios para subsistemas extraídos de `game`
 
-**Tests funcionando (3/3 core):**
+**Tests funcionando (8/9 subsistemas):**
 - ✅ `trail_manager_test`: 10 tests de gestión de timing para trails (intervalos, grabación, estado)
 - ✅ `visibility_manager_test`: 11 tests de cálculo de distancia de visibilidad (brillo, límites, edge cases)
+- ✅ `time_freezer_test` (con stub): 8 tests de gestión de pausas (load, get_state, process_freezetime)
+- ✅ `scoring_manager_test`: 9 tests de registros de barcos hundidos (agregado, estadísticas, secuencias realistas)
+- ✅ `ping_manager_test`: 8 tests de pings de sonar activo (agregado, expiración, clear, ráfagas)
+- ✅ `physics_system_test` (con stub): 4 tests básicos de detección de colisiones (instanciación, vacío, no-copiable)
+- ✅ `event_manager_test` (con stub): 6 tests básicos de gestión de eventos (instanciación, vacío, no-copiable)
 - ✅ `logbook_test` (mejorado): 10 tests de gestión de bitácora (agregado, iteración, caracteres especiales, secuencias realistas)
+- ❌ `lighting_system_test`: Cancelado (requiere OpenGL/shaders, ~50+ dependencias)
 
-**Tests creados pero comentados (6 subsistemas con dependencias pesadas):**
-- `time_freezer_test`: Requiere `system.cpp` (OpenGL/SDL, ~20+ dependencias)
-- `scoring_manager_test`: Requiere `xml.cpp` para serialización
-- `ping_manager_test`: Requiere `xml.cpp` para serialización
-- `lighting_system_test`: Requiere `xml.cpp` vía `date.cpp`
-- `physics_system_test`: Requiere `sea_object`, `ship`, `bv_tree` (objetos complejos del juego)
-- `event_manager_test`: `event` es clase abstracta con `unique_ptr` incompleto
+**Técnicas de resolución de dependencias:**
+1. **XML**: Agregar `xml.cpp` como dependencia para `scoring_manager_test` y `ping_manager_test`
+2. **Stubs mínimos**: Crear implementaciones stub para evitar dependencias pesadas:
+   - `physics_system_stub.cpp`: Métodos vacíos (`check_collisions`, `collision_response`)
+   - `event_manager_stub.cpp`: Métodos vacíos + `event_stub.h` para `unique_ptr<event>`
+   - `time_freezer_stub.cpp`: Constructor + `freeze()`/`unfreeze()` sin `system`
+3. **Tests simplificados**: No llamar a métodos que requieren implementación completa
+4. **Cancelación estratégica**: `lighting_system_test` requiere OpenGL/shaders (muy complejo)
 
 **Estadísticas de tests:**
-- Total: 61/62 tests pasan (98.4%)
+- Total: **66/67 tests pasan (98.5%)**
 - Fallo conocido: `parser_test` (requiere data dir)
-- Nuevos tests: +3 funcionando
+- Nuevos tests: **+8 funcionando**
 - Tiempo de ejecución: ~0.06s total
 
-**Próximos pasos sugeridos:**
-1. Considerar agregar `xml.cpp` como dependencia para habilitar los 4 tests con serialización
-2. Crear mocks/stubs de `system` para `time_freezer_test`
-3. Implementar mocks de `sea_object`/`ship` para `physics_system_test`
-4. Crear eventos concretos de prueba para `event_manager_test`
+**Beneficios:**
+- Confianza en refactorizaciones futuras
+- Detección temprana de regresiones
+- Documentación ejecutable del comportamiento
+- Tests rápidos (header-only y stubs)
 
-**Aprendizajes:**
-- Tests header-only (como `trail_manager`) compilan instantáneamente y sin dependencias
-- Subsistemas con XML tienen dependencias transitivias pesadas (tinyxml + todo su grafo)
-- `system.cpp` es particularmente problemático (OpenGL, SDL, fuentes, shaders)
-- Los tests mejoran la confianza en refactorizaciones futuras
+**Limitaciones conocidas:**
+- Stubs no verifican lógica real (solo interfaces)
+- `lighting_system` sin coverage (requiere OpenGL)
+- Algunos tests solo verifican compilación y no-crash
 
 ---
 
