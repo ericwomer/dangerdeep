@@ -27,6 +27,7 @@ set(DFTDSOURCES
 	highscorelist.cpp
 	job_scheduler.cpp
 	keys.cpp
+	lighting_system.cpp
 	logbook.cpp
 	logbook_display.cpp
 	map_display.cpp

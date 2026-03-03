@@ -61,6 +61,7 @@ class event_manager;
 class physics_system;
 class network_manager;
 class job_scheduler;
+class lighting_system;
 struct job;
 
 #include "angle.h"
@@ -243,6 +244,9 @@ class game {
 
     // Physics subsystem
     std::unique_ptr<physics_system> myphysics;
+
+    // Lighting subsystem
+    std::unique_ptr<lighting_system> mylighting;
 
     random_generator random_gen;
 
