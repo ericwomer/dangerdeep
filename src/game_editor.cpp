@@ -92,7 +92,7 @@ game_editor::game_editor(class cfg& cfg_ref, class log& log_ref, const date &sta
     player = psub;
 
     my_run_state = running;
-    last_trail_time = time - TRAIL_TIME;
+    // Trail manager initialized with proper time in constructor
 }
 
 // --------------------------------------------------------------------------------

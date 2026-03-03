@@ -77,8 +77,10 @@ struct job;
 #include "player_info.h"
 #include "sensors.h"
 #include "sonar.h"
+#include "trail_manager.h"
 #include "vector2.h"
 #include "vector3.h"
+#include "visibility_manager.h"
 #include "world.h"
 #include "xml.h"
 
@@ -108,12 +110,9 @@ class game {
     // in which state is the game
     // normal mode (running), or stop on next cycle (reason given by value)
     enum run_state { running,
-                     player_killed,
-                     mission_complete,
-                     contact_lost };
-
-    // time between records of trail positions
-    static const double TRAIL_TIME;
+                    player_killed,
+                    mission_complete,
+                    contact_lost };
 
   protected:
     // World contains all game entities
@@ -151,7 +150,9 @@ class game {
     logbook players_logbook; // [SAVE]
 
     double time;            // global time (in seconds since 1.1.1939, 0:0 hrs) (universal time!) [SAVE]
-    double last_trail_time; // for position trail recording	[SAVE]
+
+    // Trail recording subsystem
+    std::unique_ptr<trail_manager> mytrails;
 
     date equipment_date; // date that equipment was created. used for torpedo loading
 
@@ -159,7 +160,9 @@ class game {
                     clouded,
                     raining,
                     storm }; // fixme
-    double max_view_dist;    // maximum visibility according to weather conditions, fixme recomputed or save?
+
+    // Visibility subsystem
+    std::unique_ptr<visibility_manager> myvisibility;
 
     // Network subsystem (legacy, currently unused)
     std::unique_ptr<network_manager> mynetwork;
@@ -240,7 +243,7 @@ class game {
     double get_time() const { return time; };
     date get_date() const { return date(unsigned(time)); };
     date get_equipment_date() const { return equipment_date; }
-    double get_max_view_distance() const { return max_view_dist; }
+    double get_max_view_distance() const;
     /**
             This method is needed to verify for day and night mode for the
             display methods within the user interfaces.
@@ -262,7 +265,7 @@ class game {
     world& get_world() { return *myworld; }
     const world& get_world() const { return *myworld; }
 
-    double get_last_trail_record_time() const { return last_trail_time; }
+    double get_last_trail_record_time() const;
 
     // compute visibility data
     // fixme: remove the single functions, they're always called together

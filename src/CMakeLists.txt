@@ -107,6 +107,7 @@ set(DFTDMEDIASOURCES
 	texture.cpp
 	time_freezer.cpp
 	vertexbufferobject.cpp
+	visibility_manager.cpp
 	xml.cpp)
 
 set(FILEHELPER_OBJ

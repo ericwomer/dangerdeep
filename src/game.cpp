@@ -83,8 +83,6 @@ const unsigned GAMETYPE = 0; // fixme, 0-mission , 1-patrol etc.
 
 #define ENEMYCONTACTLOST 50000.0 // meters
 
-const double game::TRAIL_TIME = 1.0;
-
 /***************************************************************************/
 
 // ping methods moved to ping_manager.cpp
@@ -111,7 +109,9 @@ game::game()
       mylighting(std::make_unique<lighting_system>()),
       mypings(std::make_unique<ping_manager>()),
       myfreezer(std::make_unique<time_freezer>()),
-      myscoring(std::make_unique<scoring_manager>()) {
+      myscoring(std::make_unique<scoring_manager>()),
+      mytrails(std::make_unique<trail_manager>()),
+      myvisibility(std::make_unique<visibility_manager>()) {
     // empty, so that heirs can construct a game object. Needed for editor
 
     mywater = std::make_unique<water>(0.0, config);
@@ -150,7 +150,9 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &subtype, unsign
       mylighting(std::make_unique<lighting_system>()),
       mypings(std::make_unique<ping_manager>()),
       myfreezer(std::make_unique<time_freezer>()),
-      myscoring(std::make_unique<scoring_manager>()) {
+      myscoring(std::make_unique<scoring_manager>()),
+      mytrails(std::make_unique<trail_manager>(time)),
+      myvisibility(std::make_unique<visibility_manager>()) {
     /****************************************************************
             custom mission generation:
             As first find a random date and time, using time of day (tod).
@@ -289,7 +291,6 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &subtype, unsign
     player = psub;
 
     my_run_state = running;
-    last_trail_time = time - TRAIL_TIME;
 }
 
 // --------------------------------------------------------------------------------
@@ -309,8 +310,8 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &filename)
       config(cfg_ref),
       logger(log_ref),
       my_run_state(running), myevents(std::make_unique<event_manager>()), myjobs(std::make_unique<job_scheduler>()), mynetwork(std::make_unique<network_manager>()), player(0),
-      time(0), last_trail_time(0), max_view_dist(0),
-      myphysics(std::make_unique<physics_system>()), mylighting(std::make_unique<lighting_system>()), mypings(std::make_unique<ping_manager>()), myfreezer(std::make_unique<time_freezer>()), myscoring(std::make_unique<scoring_manager>()) {
+      time(0),
+      myphysics(std::make_unique<physics_system>()), mylighting(std::make_unique<lighting_system>()), mypings(std::make_unique<ping_manager>()), myfreezer(std::make_unique<time_freezer>()), myscoring(std::make_unique<scoring_manager>()), mytrails(std::make_unique<trail_manager>()), myvisibility(std::make_unique<visibility_manager>()) {
     xml_doc doc(filename);
     doc.load();
     // could be savegame or mission, maybe check...
@@ -332,9 +333,9 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &filename)
     // while loading the rest.
     xml_elem gst = sg.child("state");
     time = gst.attrf("time");
-    last_trail_time = gst.attrf("last_trail_time");
+    mytrails->set_last_trail_time(gst.attrf("last_trail_time"));
     equipment_date.load(gst.child("equipment_date"));
-    max_view_dist = gst.attrf("max_view_dist");
+    myvisibility->set_max_distance(gst.attrf("max_view_dist"));
 
     // fixme: save original water creation time and random seed with that water was generated.
     // set the same seed here again, so water is exactly like it was at game start.
@@ -612,10 +613,10 @@ void game::save(const string &savefilename, const string &description) const {
     gst.set_attr(time, "time");
     // save current date as reference for human readers.
     date(unsigned(time)).save(gst);
-    gst.set_attr(last_trail_time, "last_trail_time");
+    gst.set_attr(mytrails->get_last_trail_time(), "last_trail_time");
     xml_elem equ = gst.add_child("equipment_date");
     equipment_date.save(equ);
-    gst.set_attr(max_view_dist, "max_view_dist");
+    gst.set_attr(myvisibility->get_max_distance(), "max_view_dist");
 
     mypings->save(sg);
 
@@ -646,7 +647,16 @@ void game::compute_max_view_dist() {
     // a bit unprecise here, since the viewpos is not always the same as the playerpos
     // this must depend also on weather, fog, rain etc.
     vector3 sundir;
-    max_view_dist = 5000.0 + compute_light_brightness(player->get_pos(), sundir) * 25000;
+    double light_brightness = compute_light_brightness(player->get_pos(), sundir);
+    myvisibility->compute(light_brightness);
+}
+
+double game::get_max_view_distance() const {
+    return myvisibility->get_max_distance();
+}
+
+double game::get_last_trail_record_time() const {
+    return mytrails->get_last_trail_time();
 }
 
 void game::simulate(double delta_t) {
@@ -700,8 +710,8 @@ void game::simulate(double delta_t) {
     compute_max_view_dist();
 
     bool record = false;
-    if (get_time() >= last_trail_time + TRAIL_TIME) {
-        last_trail_time = get_time();
+    if (mytrails->should_record(get_time())) {
+        mytrails->record_trail(get_time());
         record = true;
     }
 
