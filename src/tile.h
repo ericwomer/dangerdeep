@@ -35,7 +35,7 @@ class tile {
   public:
     tile(const char *filename, vector2i &_bottom_left, unsigned size);
     tile(const tile<T> &);
-    tile() : data(1) {};
+    tile() : data(1), last_access(0) {};
 
     void load(const char *filename, vector2i &_bottom_left, unsigned size);
     T get_value(vector2i coord);

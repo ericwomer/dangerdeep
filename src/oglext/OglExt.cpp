@@ -19,9 +19,13 @@
 // This file was automatically generated on January 10, 2006, 6:46 pm
 
 #if defined(_WIN32)
+#ifndef GLAPI
 #define GLAPI __declspec(dllexport)
+#endif
 #else
+#ifndef GLAPI
 #define GLAPI
+#endif
 #endif
 
 #include "OglExt.h"
