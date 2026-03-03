@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "oglext/OglExt.h"
 
 #include "binstream.h"
+#include "bspline.h"
 #include "coastmap.h"
 #include "datadirs.h"
 #include "global_data.h"

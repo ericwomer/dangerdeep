@@ -34,13 +34,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ocean_wave_generator.h"
 #include "ptrvector.h"
 #include "shader.h"
-#include "ship.h"
 #include "texture.h"
 #include "thread.h"
 #include "vector3.h"
 #include "vertexbufferobject.h"
 #include <memory>
 #include <vector>
+
+class ship;
+class game;
 
 ///\brief Rendering of ocean water surfaces.
 class water {
