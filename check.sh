@@ -271,6 +271,7 @@ run_valgrind() {
 cd "$SCRIPT_DIR"
 FAIL=0
 DO_BUILD=0
+DO_CLEAN=0
 DO_FORMAT_CHECK=0
 DO_FORMAT_APPLY=1
 DO_LINT=1
@@ -284,6 +285,7 @@ EXTRA_CMAKE_ARGS=""
 for arg in "$@"; do
 	case "$arg" in
 		--build|-b)        DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
+		--clean|--rebuild) DO_CLEAN=1; DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
 		--asan)            EXTRA_CMAKE_ARGS="-DBUILD_ASAN=ON -DBUILD_COVERAGE=OFF -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1; DO_UNIT_TESTS=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
 		--valgrind)        DO_VALGRIND=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0; EXTRA_CMAKE_ARGS="-DBUILD_VALGRIND_FRIENDLY=ON" ;;
 		--unit|--tests)    DO_UNIT_TESTS=1; EXTRA_CMAKE_ARGS="${EXTRA_CMAKE_ARGS} -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
@@ -298,23 +300,25 @@ for arg in "$@"; do
 		-h|--help)
 			echo "Uso: $0 [opciones]"
 			echo "  Por defecto: aplicar formato y lint rápido."
-			echo "  --build, -b     Solo compilación (sin formato ni lint)"
-			echo "  --asan -b      Compilar con ASan+LSan y ejecutar tests unitarios (detecta fugas/errores de memoria)"
-			echo "  --valgrind     Ejecutar bajo Valgrind. Primera vez: $0 --valgrind -b"
-			echo "  --format, -f   Solo verificar formato (no aplicar)"
-			echo "  --format-apply Aplicar formato (por defecto)"
-			echo "  --no-format    No aplicar ni verificar formato"
-			echo "  --lint, -l     Lint rápido: solo warning, excl. test/tools (por defecto)"
-			echo "  --lint-full    Lint completo: warning+style+performance, todo el código"
-			echo "  --no-lint     No ejecutar lint"
-			echo "  --gl, --opengl Test OpenGL (dftdtester)"
-			echo "  --unit, --tests Compilar y ejecutar tests unitarios (ptrlist, mutex, parser)"
-			echo "  --coverage     Compilar con cobertura, ejecutar tests y generar reporte (líneas + branches)"
+			echo "  --build, -b        Solo compilación (sin formato ni lint)"
+			echo "  --clean, --rebuild Borrar build/ y recompilar desde cero"
+			echo "  --asan -b         Compilar con ASan+LSan y ejecutar tests unitarios (detecta fugas/errores de memoria)"
+			echo "  --valgrind        Ejecutar bajo Valgrind. Primera vez: $0 --valgrind -b"
+			echo "  --format, -f      Solo verificar formato (no aplicar)"
+			echo "  --format-apply    Aplicar formato (por defecto)"
+			echo "  --no-format       No aplicar ni verificar formato"
+			echo "  --lint, -l        Lint rápido: solo warning, excl. test/tools (por defecto)"
+			echo "  --lint-full       Lint completo: warning+style+performance, todo el código"
+			echo "  --no-lint         No ejecutar lint"
+			echo "  --gl, --opengl    Test OpenGL (dftdtester)"
+			echo "  --unit, --tests   Compilar y ejecutar tests unitarios (ptrlist, mutex, parser)"
+			echo "  --coverage        Compilar con cobertura, ejecutar tests y generar reporte (líneas + branches)"
 			exit 0
 			;;
 	esac
 done
 
+[[ $DO_CLEAN -eq 1 ]] && { log_info "Limpiando build/..."; rm -rf "$BUILD_DIR"; log_ok "Build limpiado."; } || :
 [[ $DO_BUILD -eq 1 ]] && { run_build_test || FAIL=1; } || :
 [[ $DO_UNIT_TESTS -eq 1 ]] && { run_unit_tests || FAIL=1; } || :
 [[ $DO_COVERAGE -eq 1 ]] && { run_coverage || FAIL=1; } || :

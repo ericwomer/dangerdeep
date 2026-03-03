@@ -161,6 +161,7 @@ El script `check.sh` aplica por defecto **formato** (clang-format) y **lint** (c
 | ------- | ----------- |
 | `./check.sh` | Formato + lint (por defecto) |
 | `./check.sh --build` | Solo compilar (sin formato ni lint) |
+| `./check.sh --clean` | Borrar `build/` y recompilar desde cero |
 | `./check.sh --format` | Verificar formato (falla si hay diferencias) |
 | `./check.sh --lint` | Lint rápido |
 | `./check.sh --lint-full` | Lint completo (warning, style, performance) |
