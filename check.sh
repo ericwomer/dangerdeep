@@ -38,6 +38,11 @@ run_build_test() {
 	if ! cmake .. "${cmake_opts[@]}" -q 2>/dev/null; then
 		cmake .. "${cmake_opts[@]}"
 	fi
+	# Si DO_FORCE=1, ejecutar make clean antes de compilar
+	if [[ ${DO_FORCE:-0} -eq 1 ]]; then
+		log_info "Limpiando objetos compilados (make clean)..."
+		make clean
+	fi
 	if make -j$(nproc 2>/dev/null || echo 2); then
 		log_ok "Compilación del proyecto correcta."
 		return 0
@@ -276,6 +281,7 @@ if [[ $# -eq 0 ]]; then
 	echo ""
 	echo "Opciones disponibles:"
 	echo "  --build, -b        Compilar el proyecto"
+	echo "  --force            Forzar recompilación (make clean + make)"
 	echo "  --clean, --rebuild Borrar build/ y recompilar desde cero"
 	echo "  --unit, --tests    Compilar y ejecutar tests unitarios"
 	echo "  --coverage         Generar reporte de cobertura de código"
@@ -290,6 +296,8 @@ if [[ $# -eq 0 ]]; then
 	echo ""
 	echo "Ejemplos:"
 	echo "  $0 --build         # Compilar"
+	echo "  $0 --force         # Recompilar todo desde cero (sin borrar build/)"
+	echo "  $0 --clean         # Borrar build/ y recompilar"
 	echo "  $0 --unit          # Compilar y ejecutar tests"
 	echo "  $0 --clean --unit  # Limpiar, compilar y ejecutar tests"
 	echo "  $0 --format --lint # Verificar formato y ejecutar lint"
@@ -299,6 +307,7 @@ fi
 FAIL=0
 DO_BUILD=0
 DO_CLEAN=0
+DO_FORCE=0
 DO_FORMAT_CHECK=0
 DO_FORMAT_APPLY=0
 DO_LINT=0
@@ -313,6 +322,7 @@ for arg in "$@"; do
 	case "$arg" in
 		--build|-b)        DO_BUILD=1 ;;
 		--clean|--rebuild) DO_CLEAN=1; DO_BUILD=1 ;;
+		--force)           DO_FORCE=1; DO_BUILD=1 ;;
 		--asan)            EXTRA_CMAKE_ARGS="-DBUILD_ASAN=ON -DBUILD_COVERAGE=OFF -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1; DO_UNIT_TESTS=1 ;;
 		--valgrind)        DO_VALGRIND=1; EXTRA_CMAKE_ARGS="-DBUILD_VALGRIND_FRIENDLY=ON" ;;
 		--unit|--tests)    DO_UNIT_TESTS=1; EXTRA_CMAKE_ARGS="${EXTRA_CMAKE_ARGS} -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1 ;;
@@ -329,6 +339,7 @@ for arg in "$@"; do
 			echo ""
 			echo "Opciones disponibles:"
 			echo "  --build, -b        Compilar el proyecto"
+			echo "  --force            Forzar recompilación (make clean + make)"
 			echo "  --clean, --rebuild Borrar build/ y recompilar desde cero"
 			echo "  --unit, --tests    Compilar y ejecutar tests unitarios"
 			echo "  --coverage         Generar reporte de cobertura de código"
@@ -343,6 +354,8 @@ for arg in "$@"; do
 			echo ""
 			echo "Ejemplos:"
 			echo "  $0 --build         # Compilar"
+			echo "  $0 --force         # Recompilar todo desde cero (sin borrar build/)"
+			echo "  $0 --clean         # Borrar build/ y recompilar"
 			echo "  $0 --unit          # Compilar y ejecutar tests"
 			echo "  $0 --clean --unit  # Limpiar, compilar y ejecutar tests"
 			echo "  $0 --format --lint # Verificar formato y ejecutar lint"
