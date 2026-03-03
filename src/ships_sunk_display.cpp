@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "log.h"
 #include "model.h"
 #include "primitives.h"
+#include "scoring_manager.h"
 #include "system.h"
 #include "texts.h"
 #include "user_interface.h"
@@ -57,8 +58,8 @@ void ships_sunk_display::display(class game &gm) const {
     cloudsbackgr->draw_tiles(0, 0, 1024, 768);
 
     unsigned j = first_displayed_object;
-    const list<game::sink_record> &sunken_ships = gm.get_sunken_ships();
-    list<game::sink_record>::const_iterator it = sunken_ships.begin();
+    const list<sink_record> &sunken_ships = gm.get_sunken_ships();
+    list<sink_record>::const_iterator it = sunken_ships.begin();
     while (j > 0 && it != sunken_ships.end()) {
         --j;
         ++it;

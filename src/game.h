@@ -64,7 +64,9 @@ class job_scheduler;
 class lighting_system;
 class ping_manager;
 class time_freezer;
+class scoring_manager;
 struct ping;
+struct sink_record;
 struct job;
 
 #include "angle.h"
@@ -99,20 +101,7 @@ struct job;
 class game {
   public:
     // ping struct moved to ping_manager.h
-
-    struct sink_record {
-        date dat;
-        std::string descr;        // fixme: store type, use a static ship function to retrieve a matching description, via specfilename!
-        std::string mdlname;      // model file name string
-        std::string specfilename; // spec file name (base model name)
-        std::string layoutname;   // model skin
-        unsigned tons;
-        sink_record(date d, const std::string &s, const std::string &m,
-                    const std::string &sn, const std::string &ln, unsigned t)
-            : dat(d), descr(s), mdlname(m), specfilename(sn), layoutname(ln), tons(t) {}
-        sink_record(const xml_elem &parent);
-        void save(xml_elem &parent) const;
-    };
+    // sink_record struct moved to scoring_manager.h
 
     struct player_info {
         std::string name;
@@ -175,7 +164,8 @@ class game {
     // the player (note that playing is not limited to submarines!)
     sea_object *player; // [SAVE]
 
-    std::list<sink_record> sunken_ships; // [SAVE]
+    // Scoring subsystem
+    std::unique_ptr<scoring_manager> myscoring;
 
     logbook players_logbook; // [SAVE]
 
@@ -263,7 +253,7 @@ class game {
     void compute_max_view_dist(); // fixme - public?
     virtual void simulate(double delta_t);
 
-    const std::list<sink_record> &get_sunken_ships() const { return sunken_ships; };
+    const std::list<sink_record> &get_sunken_ships() const;
     const logbook &get_players_logbook() const { return players_logbook; }
     void add_logbook_entry(const std::string &s);
     double get_time() const { return time; };

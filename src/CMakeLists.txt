@@ -42,6 +42,7 @@ set(DFTDSOURCES
 	sensors.cpp
 	scene_environment.cpp
 	network_manager.cpp
+	scoring_manager.cpp
 	ship.cpp
 	ping_manager.cpp
 	ships_sunk_display.cpp

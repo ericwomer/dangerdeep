@@ -57,6 +57,7 @@ double log2(double n) {
 #include "physics_system.h"
 #include "ping_manager.h"
 #include "quaternion.h"
+#include "scoring_manager.h"
 #include "sensors.h"
 #include "ship.h"
 #include "ship_interface.h"
@@ -87,24 +88,7 @@ const double game::TRAIL_TIME = 1.0;
 /***************************************************************************/
 
 // ping methods moved to ping_manager.cpp
-
-game::sink_record::sink_record(const xml_elem &parent) {
-    dat.load(parent);
-    descr = parent.attr("descr");
-    mdlname = parent.attr("mdlname");
-    tons = parent.attru("tons");
-    specfilename = parent.attr("specfilename");
-    layoutname = parent.attr("layoutname");
-}
-
-void game::sink_record::save(xml_elem &parent) const {
-    dat.save(parent);
-    parent.set_attr(descr, "descr");
-    parent.set_attr(mdlname, "mdlname");
-    parent.set_attr(tons, "tons");
-    parent.set_attr(specfilename, "specfilename");
-    parent.set_attr(layoutname, "layoutname");
-}
+// sink_record methods moved to scoring_manager.cpp
 
 game::player_info::player_info()
     : name("Heinz Mustermann"), flotilla(1), submarineid("U 999"), photo("1") {
@@ -176,7 +160,8 @@ game::game()
       myphysics(std::make_unique<physics_system>()),
       mylighting(std::make_unique<lighting_system>()),
       mypings(std::make_unique<ping_manager>()),
-      myfreezer(std::make_unique<time_freezer>()) {
+      myfreezer(std::make_unique<time_freezer>()),
+      myscoring(std::make_unique<scoring_manager>()) {
     // empty, so that heirs can construct a game object. Needed for editor
 
     mywater = std::make_unique<water>(0.0, config);
@@ -214,7 +199,8 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &subtype, unsign
       myphysics(std::make_unique<physics_system>()),
       mylighting(std::make_unique<lighting_system>()),
       mypings(std::make_unique<ping_manager>()),
-      myfreezer(std::make_unique<time_freezer>()) {
+      myfreezer(std::make_unique<time_freezer>()),
+      myscoring(std::make_unique<scoring_manager>()) {
     /****************************************************************
             custom mission generation:
             As first find a random date and time, using time of day (tod).
@@ -374,7 +360,7 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &filename)
       logger(log_ref),
       my_run_state(running), myevents(std::make_unique<event_manager>()), myjobs(std::make_unique<job_scheduler>()), mynetwork(std::make_unique<network_manager>()), player(0),
       time(0), last_trail_time(0), max_view_dist(0),
-      myphysics(std::make_unique<physics_system>()), mylighting(std::make_unique<lighting_system>()), mypings(std::make_unique<ping_manager>()), myfreezer(std::make_unique<time_freezer>()) {
+      myphysics(std::make_unique<physics_system>()), mylighting(std::make_unique<lighting_system>()), mypings(std::make_unique<ping_manager>()), myfreezer(std::make_unique<time_freezer>()), myscoring(std::make_unique<scoring_manager>()) {
     xml_doc doc(filename);
     doc.load();
     // could be savegame or mission, maybe check...
@@ -550,10 +536,7 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &filename)
 
     // ui is created from client of game!
 
-    xml_elem sks = sg.child("sunken_ships");
-    for (xml_elem::iterator it = sks.iterate("sink_record"); !it.end(); it.next()) {
-        sunken_ships.push_back(sink_record(it.elem()));
-    }
+    myscoring->load(sg);
 
     // fixme save and load logbook
 
@@ -671,11 +654,7 @@ void game::save(const string &savefilename, const string &description) const {
 
     // user interface is generated according to player object by dftd
 
-    xml_elem sks = sg.add_child("sunken_ships");
-    sks.set_attr(unsigned(sunken_ships.size()), "nr");
-    for (list<sink_record>::const_iterator it = sunken_ships.begin(); it != sunken_ships.end(); ++it) {
-        it->save(sks);
-    }
+    myscoring->save(sg);
 
     // fixme save and load logbook
 
@@ -1381,7 +1360,11 @@ void game::ship_sunk(const ship *s) {
     ostringstream oss;
     oss << texts::get(83) << " " << s->get_description(2);
     date d((unsigned)time);
-    sunken_ships.push_back(sink_record(d, s->get_description(2), s->get_modelname(), s->get_specfilename(), s->get_skin_layout(), s->get_tonnage()));
+    myscoring->record_sunk_ship(d, s->get_description(2), s->get_modelname(), s->get_specfilename(), s->get_skin_layout(), s->get_tonnage());
+}
+
+const std::list<sink_record> &game::get_sunken_ships() const {
+    return myscoring->get_sunken_ships();
 }
 
 /*
