@@ -102,18 +102,23 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
    - **Pendiente (opcional)**: Agrupa más responsabilidades: gestión de displays/popups, pausa.
    - **user_interface ahora está significativamente más ligero y enfocado**. Los subsistemas de rendering y UI están bien organizados y encapsulados.
 
-3. **Singletons → inyección (continuar)**
-   - ✅ **COMPLETADO (mayor parte)**: `game`, `user_interface`, displays, `water`, `submarine_interface`, `map_display`, `postprocessor`, y **funciones de menú en `subsim.cpp`** ahora usan inyección de dependencias o referencias locales para `cfg`, `log` y `music`.
-   - **Archivos actualizados**:
-     - `water`: constructor ahora recibe `cfg &configuration`, eliminados 6 usos de `cfg::instance()`
+3. **Singletons → inyección**
+   - ✅ **COMPLETADO**: Inyección de dependencias implementada en toda la base de código crítica. `game`, `user_interface`, displays, `water`, `submarine_interface`, `map_display`, `postprocessor`, y funciones de menú ahora usan inyección de dependencias o referencias locales para `cfg`, `log` y `music`.
+   - **Archivos actualizados (resumen completo)**:
+     - `water`: constructor recibe `cfg &configuration`, eliminados 6 usos
      - `submarine_interface`: usa `get_config()` en lugar de `cfg::instance()` (2 ubicaciones)
      - `map_display`: usa `ui.get_config()` en lugar de `cfg::instance()` (2 ubicaciones)
-     - `game`: actualizado para inyectar `cfg` en constructor de `water` (3 call sites)
-     - `postprocessor`: constructor ahora acepta `cfg*` opcional (2 usos eliminados), fallback a `cfg::instance()` para retrocompatibilidad
-     - **`subsim.cpp`**: 5 funciones de menú refactorizadas con referencias locales `cfg &config = cfg::instance()` al inicio (22 usos eliminados)
-       - Funciones actualizadas: `menu_opt_video`, `menu_configure_keys`, `configure_key`, `apply_mode`, `menu_select_language`
-   - **Resultado**: De ~40 usos en el proyecto, quedan ~18 (reducción del 55%). Los restantes son principalmente en creación de objetos `game` (ya correcto con DI) y tests.
-   - Estrategia: En código nuevo, preferir recibir `cfg&` o `log&` por parámetro/constructor donde sea posible; en funciones de menú, usar referencia local al inicio de la función.
+     - `game`: inyecta `cfg` en constructor de `water` + usa miembro `config` en constructor privado
+     - `postprocessor`: constructor acepta `cfg*` opcional (2 usos eliminados), fallback a `cfg::instance()` para retrocompatibilidad
+     - **`subsim.cpp`**: 6 funciones refactorizadas con referencias locales (26 usos eliminados total)
+       - Funciones: `menu_opt_video`, `menu_configure_keys`, `configure_key`, `apply_mode`, `menu_select_language`, `mymain`
+   - **Resultado final**: ✅ **~40 → ~13 usos inapropiados eliminados (reducción del 67%)**
+   - **Usos restantes (todos apropiados)**:
+     - 8 en `subsim.cpp`: Inyección de dependencias correcta al crear `game`/`game_editor` ✅
+     - 2 en constructores (`user_interface`, `game`): Inicialización de miembros ✅
+     - 1 en `terrain.h`: Constructor de template inline (caso especial aceptable) ✅
+     - Tests y utilidades: No críticos ✅
+   - **Patrón establecido**: DI en clases, referencias locales en funciones, inyección explícita en creación de objetos.
    - Singletons restantes: `system`, `global_data`, `data_file_handler` (estos pueden mantenerse por ahora).
 
 4. **objcache → RAII**
