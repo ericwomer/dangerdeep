@@ -223,44 +223,56 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 
 ## Tests unitarios para subsistemas
 
-✅ **COMPLETADO (commit 2be91209, 3073514e)**: Tests unitarios para subsistemas extraídos de `game`
+✅ **COMPLETADO (commits 2be91209, 3073514e, aa027eda)**: Tests unitarios para subsistemas extraídos de `game`
 
 **Tests funcionando (8/9 subsistemas):**
 - ✅ `trail_manager_test`: 10 tests de gestión de timing para trails (intervalos, grabación, estado)
 - ✅ `visibility_manager_test`: 11 tests de cálculo de distancia de visibilidad (brillo, límites, edge cases)
-- ✅ `time_freezer_test` (con stub): 8 tests de gestión de pausas (load, get_state, process_freezetime)
+- ✅ `time_freezer_test` (con stub): **13 tests** de gestión de pausas (load, get_state, process_freezetime, edge cases)
 - ✅ `scoring_manager_test`: 9 tests de registros de barcos hundidos (agregado, estadísticas, secuencias realistas)
 - ✅ `ping_manager_test`: 8 tests de pings de sonar activo (agregado, expiración, clear, ráfagas)
-- ✅ `physics_system_test` (con stub): 4 tests básicos de detección de colisiones (instanciación, vacío, no-copiable)
-- ✅ `event_manager_test` (con stub): 6 tests básicos de gestión de eventos (instanciación, vacío, no-copiable)
+- ✅ `physics_system_test` (con stub): **10 tests** de detección de colisiones (instanciación, múltiples llamadas, nullptr handling)
+- ✅ `event_manager_test` (con stub): **14 tests** con eventos mock concretos (add, clear, tipos, secuencias)
 - ✅ `logbook_test` (mejorado): 10 tests de gestión de bitácora (agregado, iteración, caracteres especiales, secuencias realistas)
 - ❌ `lighting_system_test`: Cancelado (requiere OpenGL/shaders, ~50+ dependencias)
+
+**Casos de test totales: 85 tests** distribuidos en 8 subsistemas
 
 **Técnicas de resolución de dependencias:**
 1. **XML**: Agregar `xml.cpp` como dependencia para `scoring_manager_test` y `ping_manager_test`
 2. **Stubs mínimos**: Crear implementaciones stub para evitar dependencias pesadas:
    - `physics_system_stub.cpp`: Métodos vacíos (`check_collisions`, `collision_response`)
-   - `event_manager_stub.cpp`: Métodos vacíos + `event_stub.h` para `unique_ptr<event>`
+   - `event_manager_stub.cpp`: Implementación funcional para add/clear + `event_stub.h`
    - `time_freezer_stub.cpp`: Constructor + `freeze()`/`unfreeze()` sin `system`
-3. **Tests simplificados**: No llamar a métodos que requieren implementación completa
-4. **Cancelación estratégica**: `lighting_system_test` requiere OpenGL/shaders (muy complejo)
+3. **Eventos mock**: Clases concretas de evento para testing (`test_message_event`, `test_action_event`, `test_signal_event`)
+4. **Tests simplificados**: No llamar a métodos que requieren implementación completa
+5. **Edge cases**: Valores máximos, nullptr, secuencias repetidas, estado inmutable
+
+**Mejoras en commit aa027eda:**
+- `time_freezer_test`: +5 casos (edge cases, valores grandes, secuencias)
+- `event_manager_test`: +8 casos (eventos mock, tipos, nullptr, secuencias)
+- `physics_system_test`: +6 casos (múltiples llamadas, nullptr, independencia)
+- **Total: +19 casos de test (+27% de cobertura)**
 
 **Estadísticas de tests:**
 - Total: **66/67 tests pasan (98.5%)**
 - Fallo conocido: `parser_test` (requiere data dir)
 - Nuevos tests: **+8 funcionando**
-- Tiempo de ejecución: ~0.06s total
+- Casos de test en subsistemas: **85 tests**
+- Tiempo de ejecución: ~0.14s total
 
 **Beneficios:**
 - Confianza en refactorizaciones futuras
 - Detección temprana de regresiones
 - Documentación ejecutable del comportamiento
 - Tests rápidos (header-only y stubs)
+- Eventos mock permiten testing realista sin dependencias
 
 **Limitaciones conocidas:**
-- Stubs no verifican lógica real (solo interfaces)
+- Stubs de physics/time_freezer no verifican lógica real (solo interfaces)
 - `lighting_system` sin coverage (requiere OpenGL)
-- Algunos tests solo verifican compilación y no-crash
+- Algunos tests verifican solo compilación y no-crash en casos básicos
+- Eventos mock son simples (no simulan interacción con UI real)
 
 ---
 
