@@ -125,6 +125,8 @@ add_test(NAME mutex_test COMMAND mutex_test WORKING_DIRECTORY ${CMAKE_CURRENT_BI
 add_executable(parser_test ${TEST_DIR}/parser_test.cpp ${SRC_PARENT}/parser.cpp ${SRC_PARENT}/error.cpp)
 target_link_libraries(parser_test ${LIBS})
 add_test(NAME parser_test COMMAND parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# Configurar variable de entorno para que el test encuentre los datos
+set_tests_properties(parser_test PROPERTIES ENVIRONMENT "DFTD_DATA=${CMAKE_SOURCE_DIR}/data")
 
 # error_test: error.h (excepciones error, file_read_error)
 add_executable(error_test ${TEST_DIR}/error_test.cpp)
