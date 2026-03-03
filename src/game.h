@@ -141,18 +141,15 @@ class game {
     // Job scheduler subsystem
     std::unique_ptr<job_scheduler> myjobs;
 
+    // Network subsystem (legacy, currently unused)
+    std::unique_ptr<network_manager> mynetwork;
+
     // the player (note that playing is not limited to submarines!)
     sea_object *player; // [SAVE]
-
-    // Scoring subsystem
-    std::unique_ptr<scoring_manager> myscoring;
 
     logbook players_logbook; // [SAVE]
 
     double time;            // global time (in seconds since 1.1.1939, 0:0 hrs) (universal time!) [SAVE]
-
-    // Trail recording subsystem
-    std::unique_ptr<trail_manager> mytrails;
 
     date equipment_date; // date that equipment was created. used for torpedo loading
 
@@ -160,15 +157,6 @@ class game {
                     clouded,
                     raining,
                     storm }; // fixme
-
-    // Visibility subsystem
-    std::unique_ptr<visibility_manager> myvisibility;
-
-    // Network subsystem (legacy, currently unused)
-    std::unique_ptr<network_manager> mynetwork;
-
-    // Time freezing subsystem
-    std::unique_ptr<time_freezer> myfreezer;
 
     // water height data, and everything around it.
     std::unique_ptr<water> mywater;
@@ -212,6 +200,18 @@ class game {
 
     // Ping subsystem
     std::unique_ptr<ping_manager> mypings;
+
+    // Time freezing subsystem
+    std::unique_ptr<time_freezer> myfreezer;
+
+    // Scoring subsystem
+    std::unique_ptr<scoring_manager> myscoring;
+
+    // Trail recording subsystem
+    std::unique_ptr<trail_manager> mytrails;
+
+    // Visibility subsystem
+    std::unique_ptr<visibility_manager> myvisibility;
 
     random_generator random_gen;
 
