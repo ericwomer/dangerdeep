@@ -59,6 +59,7 @@ class cfg;
 class log;
 class event_manager;
 class physics_system;
+class network_manager;
 
 #include "angle.h"
 #include "color.h"
@@ -203,12 +204,8 @@ class game {
 
     std::list<ping> pings; // [SAVE]
 
-    // network game type (0 = single player, 1 = server, 2 = client)
-    unsigned networktype; // [SAVE] later!
-    // the connection to the server (zero if this is the server)
-    network_connection *servercon; // [SAVE] later!
-    // the connections to the clients (at least one if this is the server, else empty)
-    std::vector<network_connection *> clientcons; // [SAVE] later!
+    // Network subsystem (legacy, currently unused)
+    std::unique_ptr<network_manager> mynetwork;
 
     // time in milliseconds that game is paused between simulation steps.
     // for small pauses to compensate long image loading times

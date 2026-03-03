@@ -50,6 +50,7 @@ double log2(double n) {
 #include "matrix4.h"
 #include "model.h"
 #include "network.h"
+#include "network_manager.h"
 #include "particle.h"
 #include "physics_system.h"
 #include "quaternion.h"
@@ -182,6 +183,7 @@ game::game()
       config(cfg::instance()),
       logger(log::instance()),
       myevents(std::make_unique<event_manager>()),
+      mynetwork(std::make_unique<network_manager>()),
       myphysics(std::make_unique<physics_system>()) {
     // empty, so that heirs can construct a game object. Needed for editor
     freezetime = 0;
@@ -216,6 +218,7 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &subtype, unsign
       config(cfg_ref),
       logger(log_ref),
       myevents(std::make_unique<event_manager>()),
+      mynetwork(std::make_unique<network_manager>()),
       playerinfo(pi),
       myphysics(std::make_unique<physics_system>()) {
     /****************************************************************
@@ -244,8 +247,6 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &subtype, unsign
             This technique ignores the fact that convoys could be heared earlier than seen
             (below surface, passive sonar) or even detected by their smell (smoke)!
     ***********************************************************************/
-    networktype = 0;
-    servercon = 0;
 
 #if 0
 	if (config.geti("cpucores") > 1) {
@@ -380,8 +381,8 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &filename)
       particles(myworld->get_particles_mut()),
       config(cfg_ref),
       logger(log_ref),
-      my_run_state(running), myevents(std::make_unique<event_manager>()), player(0),
-      time(0), last_trail_time(0), max_view_dist(0), networktype(0), servercon(0),
+      my_run_state(running), myevents(std::make_unique<event_manager>()), mynetwork(std::make_unique<network_manager>()), player(0),
+      time(0), last_trail_time(0), max_view_dist(0),
       freezetime(0), freezetime_start(0), myphysics(std::make_unique<physics_system>()) {
     xml_doc doc(filename);
     doc.load();

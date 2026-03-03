@@ -66,8 +66,7 @@ const unsigned GAMETYPE = 0; // fixme, 0-mission , 1-patrol etc.
 
 game_editor::game_editor(class cfg& cfg_ref, class log& log_ref, const date &start_date)
     : game() {
-    networktype = 0;
-    servercon = 0;
+    // Note: Network variables moved to network_manager subsystem (legacy/unused)
     time = start_date.get_time() + 86400 / 2; // 12.00 o'clock
     equipment_date = start_date;
 
