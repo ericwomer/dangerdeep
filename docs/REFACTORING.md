@@ -223,31 +223,46 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 
 ## Tests unitarios para subsistemas
 
-✅ **COMPLETADO (commits 2be91209, 3073514e, aa027eda, CATCH2-2026-03-03)**: Tests unitarios para subsistemas extraídos de `game`
+✅ **COMPLETADO (commits 2be91209, 3073514e, aa027eda, CATCH2-2026-03-03, 54c84654)**: Tests unitarios mejorados
 
-**Tests funcionando (8/9 subsistemas):**
-- ✅ `trail_manager_test`: 8 tests de gestión de timing para trails (intervalos, grabación, estado)
-- ✅ `visibility_manager_test`: 6 tests de cálculo de distancia de visibilidad (brillo, límites, edge cases)
-- ✅ `time_freezer_test` (con stub): 10 tests de gestión de pausas (load, get_state, process_freezetime, edge cases)
-- ✅ `scoring_manager_test`: 8 tests de registros de barcos hundidos (agregado, estadísticas, secuencias realistas)
-- ✅ `ping_manager_test`: 7 tests de pings de sonar activo (agregado, expiración, clear, ráfagas)
-- ✅ `physics_system_test` (con stub): 7 tests de detección de colisiones (instanciación, múltiples llamadas, nullptr handling)
-- ✅ `event_manager_test` (con stub): 13 tests con eventos mock concretos (add, clear, tipos, secuencias)
-- ✅ `logbook_test` (mejorado): 9 tests de gestión de bitácora (agregado, iteración, caracteres especiales, secuencias realistas)
-- ❌ `lighting_system_test`: Cancelado (requiere OpenGL/shaders, ~50+ dependencias)
+**Tests con Catch2 (17 archivos):**
 
-**Tests matemáticos mejorados con Catch2:**
-- ✅ `bv_tree_leaf_test`: 7 casos de test (centros de triángulos, 3D, colineal, negativos)
-- ✅ `frustum_test`: 6 casos de test (diferentes znear, polígonos variados, viewpoints)
-- ✅ `sphere_test`: 11 casos de test (intersecciones, bounds, AABB, radios extremos)
+**Subsistemas (8):**
+- ✅ `trail_manager_test`: 8 tests de gestión de timing para trails
+- ✅ `visibility_manager_test`: 6 tests de cálculo de distancia de visibilidad
+- ✅ `time_freezer_test` (con stub): 10 tests de gestión de pausas
+- ✅ `scoring_manager_test`: 8 tests de registros de barcos hundidos
+- ✅ `ping_manager_test`: 7 tests de pings de sonar activo
+- ✅ `physics_system_test` (con stub): 7 tests de detección de colisiones
+- ✅ `event_manager_test` (con stub): 13 tests con eventos mock
+- ✅ `logbook_test` (mejorado): 9 tests de gestión de bitácora
 
-**Casos de test totales: 68 tests** en subsistemas distribuidos en 11 archivos (8 subsistemas nuevos + 3 existentes mejorados)
+**Matemáticos (9):**
+- ✅ `bv_tree_leaf_test`: 7 casos (centros de triángulos, 3D, colineal)
+- ✅ `frustum_test`: 6 casos (znear, polígonos variados, viewpoints)
+- ✅ `sphere_test`: 11 casos (intersecciones, bounds, AABB, radios extremos)
+- ✅ `angle_test`: 8 casos (constructores, operadores, dirección)
+- ✅ `vector2_test`: 7 casos (longitud, normalización, operaciones)
+- ✅ `vector3_test`: 8 casos (producto cruz/punto, min/max)
+- ✅ `color_test`: 8 casos (brillo, mezcla, conversión)
+- ✅ `matrix_test`: 7 casos (inversión, transpuesta, operadores)
+- ✅ `quaternion_test`: 4 casos (rotación, conjugado)
+
+**Tests legacy con assert (48 archivos):**
+- Tests funcionales que permanecen sin migrar
+- Incluyen tests de estructuras de datos, algoritmos, y utilidades
+
+**Limpieza realizada (commit 54c84654):**
+- ❌ **Eliminados 22 tests stub** sin valor (solo `printf("X_test ok")`)
+- Archivos eliminados: ai_test, airplane_test, caustics_test, convoy_test, daysky_test, depth_charge_test, geoclipmap_test, gun_shell_test, height_generator_map_test, moon_test, particle_test, sea_object_test, ship_test, sky_test, sonar_test, stars_test, submarine_test, tone_reproductor_test, torpedo_test, water_splash_test, water_test, xml_doc_test
+
+**Total de casos de test con Catch2: ~105 casos** distribuidos en 17 archivos
 
 **🎉 MIGRACIÓN COMPLETA A CATCH2 (2026-03-03):**
 - **Framework**: Catch2 v3.5.2 (header-only amalgamated)
-- **Archivos migrados**: 11 tests (8 subsistemas + 3 matemáticos)
-- **Tests totales en proyecto**: 66/67 pasan (98.5%)
-- **Fallo conocido**: `parser_test` (requiere data dir, no relacionado con migración)
+- **Archivos migrados**: 17 tests (8 subsistemas + 9 matemáticos)
+- **Tests totales en proyecto**: 65/65 pasan (100%) ✅
+- **Tests eliminados**: 22 stubs sin valor (limpieza agresiva)
 
 **Beneficios de Catch2:**
 - ✅ **Sintaxis expresiva**: `REQUIRE`, `REQUIRE_FALSE`, `SECTION` para mejor legibilidad
@@ -282,11 +297,12 @@ add_catch2_test(test_name source1.cpp source2.cpp ...)
 5. **Edge cases**: Valores máximos, nullptr, secuencias repetidas, estado inmutable
 
 **Estadísticas de tests:**
-- Total: **67/67 tests pasan (100%)** ✅
-- Tests con Catch2: **11 archivos**
-- Tests con assert: **56 archivos**
-- Casos de test en subsistemas: **68 tests Catch2**
-- Tiempo de ejecución: ~0.02s para tests Catch2
+- Total: **65/65 tests pasan (100%)** ✅
+- Tests con Catch2: **17 archivos** (~105 casos)
+- Tests con assert: **48 archivos** (legacy)
+- Tests eliminados: **22 stubs** sin valor
+- Casos de test en subsistemas + matemáticos: **~105 tests Catch2**
+- Tiempo de ejecución: ~0.06s total
 
 **Beneficios:**
 - Confianza en refactorizaciones futuras
