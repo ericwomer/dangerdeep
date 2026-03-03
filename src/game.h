@@ -63,6 +63,7 @@ class network_manager;
 class job_scheduler;
 class lighting_system;
 class ping_manager;
+class time_freezer;
 struct ping;
 struct job;
 
@@ -192,9 +193,8 @@ class game {
     // Network subsystem (legacy, currently unused)
     std::unique_ptr<network_manager> mynetwork;
 
-    // time in milliseconds that game is paused between simulation steps.
-    // for small pauses to compensate long image loading times
-    unsigned freezetime, freezetime_start;
+    // Time freezing subsystem
+    std::unique_ptr<time_freezer> myfreezer;
 
     // water height data, and everything around it.
     std::unique_ptr<water> mywater;
@@ -413,13 +413,9 @@ class game {
     const event_manager &get_event_manager() const { return *myevents; }
     
     run_state get_run_state() const { return my_run_state; }
-    unsigned get_freezetime() const { return freezetime; }
-    unsigned get_freezetime_start() const { return freezetime_start; }
-    unsigned process_freezetime() {
-        unsigned f = freezetime;
-        freezetime = 0;
-        return f;
-    }
+    unsigned get_freezetime() const;
+    unsigned get_freezetime_start() const;
+    unsigned process_freezetime();
 
     water &get_water() { return *mywater.get(); }
     const water &get_water() const { return *mywater.get(); }

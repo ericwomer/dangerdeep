@@ -103,6 +103,7 @@ set(DFTDMEDIASOURCES
 	shader.cpp
 	system.cpp
 	texture.cpp
+	time_freezer.cpp
 	vertexbufferobject.cpp
 	xml.cpp)
 

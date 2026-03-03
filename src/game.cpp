@@ -65,6 +65,7 @@ double log2(double n) {
 #include "submarine_interface.h"
 #include "terrain.h"
 #include "texts.h"
+#include "time_freezer.h"
 #include "torpedo.h"
 #include "user_interface.h"
 #include "water.h"
@@ -174,10 +175,9 @@ game::game()
       mynetwork(std::make_unique<network_manager>()),
       myphysics(std::make_unique<physics_system>()),
       mylighting(std::make_unique<lighting_system>()),
-      mypings(std::make_unique<ping_manager>()) {
+      mypings(std::make_unique<ping_manager>()),
+      myfreezer(std::make_unique<time_freezer>()) {
     // empty, so that heirs can construct a game object. Needed for editor
-    freezetime = 0;
-    freezetime_start = 0;
 
     mywater = std::make_unique<water>(0.0, config);
     // myheightgen.reset(new height_generator_map("default.xml"));
@@ -213,7 +213,8 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &subtype, unsign
       playerinfo(pi),
       myphysics(std::make_unique<physics_system>()),
       mylighting(std::make_unique<lighting_system>()),
-      mypings(std::make_unique<ping_manager>()) {
+      mypings(std::make_unique<ping_manager>()),
+      myfreezer(std::make_unique<time_freezer>()) {
     /****************************************************************
             custom mission generation:
             As first find a random date and time, using time of day (tod).
@@ -353,9 +354,6 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &subtype, unsign
 
     my_run_state = running;
     last_trail_time = time - TRAIL_TIME;
-
-    freezetime = 0;
-    freezetime_start = 0;
 }
 
 // --------------------------------------------------------------------------------
@@ -376,7 +374,7 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &filename)
       logger(log_ref),
       my_run_state(running), myevents(std::make_unique<event_manager>()), myjobs(std::make_unique<job_scheduler>()), mynetwork(std::make_unique<network_manager>()), player(0),
       time(0), last_trail_time(0), max_view_dist(0),
-      freezetime(0), freezetime_start(0), myphysics(std::make_unique<physics_system>()), mylighting(std::make_unique<lighting_system>()), mypings(std::make_unique<ping_manager>()) {
+      myphysics(std::make_unique<physics_system>()), mylighting(std::make_unique<lighting_system>()), mypings(std::make_unique<ping_manager>()), myfreezer(std::make_unique<time_freezer>()) {
     xml_doc doc(filename);
     doc.load();
     // could be savegame or mission, maybe check...
@@ -1919,17 +1917,23 @@ bool is_in_ellipse(const vector2 &p, double xl, double yl, angle &head) {
 }
 
 void game::freeze_time() {
-    if (freezetime_start > 0)
-        throw error("freeze_time() called twice!");
-    freezetime_start = sys().millisec();
-    //	printf("time frozen at: %u\n", freezetime_start);
+    myfreezer->freeze();
 }
 
 void game::unfreeze_time() {
-    unsigned freezetime_end = sys().millisec();
-    //	printf("time UNfrozen at: %u (%u)\n", freezetime_end, freezetime_end - freezetime_start);
-    freezetime += freezetime_end - freezetime_start;
-    freezetime_start = 0;
+    myfreezer->unfreeze();
+}
+
+unsigned game::get_freezetime() const {
+    return myfreezer->get_freezetime();
+}
+
+unsigned game::get_freezetime_start() const {
+    return myfreezer->get_freezetime_start();
+}
+
+unsigned game::process_freezetime() {
+    return myfreezer->process_freezetime();
 }
 
 game::simulate_worker::simulate_worker(game &gm_)
