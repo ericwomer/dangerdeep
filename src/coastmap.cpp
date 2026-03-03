@@ -86,7 +86,7 @@ the following patterns are possible when searching coastlines (0,15 illegal)
 const int coastmap::runlandleft[16] = {-1, 3, 0, 3, 1, -1, 0, 3, 2, 2, -1, 2, 1, 1, 0, -1};
 const int coastmap::runlandright[16] = {-1, 0, 1, 1, 2, -1, 2, 2, 3, 0, -1, 1, 3, 0, 3, -1};
 
-coastmap::prop::prop(const std::string &modelname, const vector2 &p, double d) 
+coastmap::prop::prop(const std::string &modelname, const vector2 &p, double d)
     : mymodel(), pos(p), dir(d) {
     mymodel.load(modelcache(), modelname);
 }

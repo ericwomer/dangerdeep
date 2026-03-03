@@ -143,7 +143,8 @@ void sub_periscope_display::post_display(game &gm) const {
         double minuteang = 360 * myfrac(t / 3600);
         clock_hours_pointer->draw_rot(946, 294, hourang);
         clock_minutes_pointer->draw_rot(946, 294, minuteang);
-    }, true);
+    },
+                           true);
 }
 
 sub_periscope_display::sub_periscope_display(user_interface &ui_)

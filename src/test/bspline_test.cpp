@@ -43,7 +43,7 @@ int main() {
         std::vector<double> bad;
         bad.push_back(1.0);
         bsplinet<double> bad_spl(2, bad);
-    } catch (const std::runtime_error&) {
+    } catch (const std::runtime_error &) {
         threw = true;
     }
     assert(threw);

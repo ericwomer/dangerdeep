@@ -300,7 +300,8 @@ void sub_tdc_display::display(class game &gm) const {
             // fixme: show some sensible value
             s.brightness.draw(45);
         }
-    }, true);
+    },
+                           true);
 }
 
 void sub_tdc_display::next_sub_screen(bool is_day) {

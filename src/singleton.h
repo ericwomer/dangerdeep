@@ -30,8 +30,8 @@ template <typename D>
 class singleton {
   private:
     // Use atomic pointer for thread-safe lazy initialization
-    static std::atomic<D*>& instance_ptr() {
-        static std::atomic<D*> myinstanceptr{nullptr};
+    static std::atomic<D *> &instance_ptr() {
+        static std::atomic<D *> myinstanceptr{nullptr};
         return myinstanceptr;
     }
 
@@ -39,15 +39,15 @@ class singleton {
     // Thread-safe lazy initialization using atomic operations
     // This is an improvement over the old version which wasn't thread-safe
     static D &instance() {
-        std::atomic<D*>& p = instance_ptr();
-        D* inst = p.load(std::memory_order_acquire);
-        
+        std::atomic<D *> &p = instance_ptr();
+        D *inst = p.load(std::memory_order_acquire);
+
         if (!inst) {
             // Double-checked locking pattern for thread safety
             // Note: In C++11+, static local variables are guaranteed thread-safe
             // but we keep this pattern for compatibility with the existing API
-            D* new_inst = new D();
-            D* expected = nullptr;
+            D *new_inst = new D();
+            D *expected = nullptr;
             if (p.compare_exchange_strong(expected, new_inst, std::memory_order_release)) {
                 inst = new_inst;
             } else {
@@ -60,19 +60,19 @@ class singleton {
     }
 
     static void create_instance(D *ptr) {
-        std::atomic<D*>& p = instance_ptr();
-        D* old = p.exchange(ptr, std::memory_order_acq_rel);
+        std::atomic<D *> &p = instance_ptr();
+        D *old = p.exchange(ptr, std::memory_order_acq_rel);
         delete old;
     }
 
     static void destroy_instance() {
-        std::atomic<D*>& p = instance_ptr();
-        D* old = p.exchange(nullptr, std::memory_order_acq_rel);
+        std::atomic<D *> &p = instance_ptr();
+        D *old = p.exchange(nullptr, std::memory_order_acq_rel);
         delete old;
     }
 
     static D *release_instance() {
-        std::atomic<D*>& p = instance_ptr();
+        std::atomic<D *> &p = instance_ptr();
         return p.exchange(nullptr, std::memory_order_acq_rel);
     }
 

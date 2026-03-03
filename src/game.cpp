@@ -128,7 +128,7 @@ game::game()
 #endif
 }
 
-game::game(class cfg& cfg_ref, class log& log_ref, const string &subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
+game::game(class cfg &cfg_ref, class log &log_ref, const string &subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
            const date &timeperioddate, const player_info &pi, unsigned nr_of_players)
     : myworld(std::make_unique<world>()),
       ships(myworld->get_ships_mut()),
@@ -296,7 +296,7 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &subtype, unsign
 // --------------------------------------------------------------------------------
 //                        LOAD GAME (SAVEGAME OR MISSION)
 // --------------------------------------------------------------------------------
-game::game(class cfg& cfg_ref, class log& log_ref, const string &filename)
+game::game(class cfg &cfg_ref, class log &log_ref, const string &filename)
     : myworld(std::make_unique<world>()),
       ships(myworld->get_ships_mut()),
       submarines(myworld->get_submarines_mut()),
@@ -768,7 +768,7 @@ void game::simulate(double delta_t) {
         simulate_objects_mt(delta_t, 0, 1, record, nearest_contact);
     }
     // must not be done multithreaded.
-    // Note: No need to compact convoys/particles anymore as std::vector 
+    // Note: No need to compact convoys/particles anymore as std::vector
     // doesn't have nullptr gaps like ptrvector did.
 
     // Now check for collisions. As a result objects could be set to dead state.

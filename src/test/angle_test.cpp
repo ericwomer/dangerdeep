@@ -1,9 +1,9 @@
 /*
  * Test para angle (ángulo náutico, 0..360, clockwise).
  */
-#include "catch_amalgamated.hpp"
 #include "../angle.h"
 #include "../vector2.h"
+#include "catch_amalgamated.hpp"
 #include <cmath>
 
 #ifndef M_PI
@@ -43,7 +43,7 @@ TEST_CASE("angle - Operadores aritméticos", "[angle]") {
         angle sum = angle(90.0) + angle(10.0);
         REQUIRE(near(sum.value(), 100.0));
     }
-    
+
     SECTION("Resta") {
         angle diff = angle(30.0) - angle(10.0);
         REQUIRE(near(diff.value(), 20.0));
@@ -66,7 +66,7 @@ TEST_CASE("angle - Vector dirección", "[angle]") {
         REQUIRE(near(d.x, 0.0));
         REQUIRE(near(d.y, 1.0));
     }
-    
+
     SECTION("90 grados") {
         vector2 d90 = angle(90.0).direction();
         REQUIRE(near(d90.x, 1.0));

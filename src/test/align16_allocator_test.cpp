@@ -3,11 +3,11 @@
  * Nota: allocate/deallocate asumen 4 bytes de encabezado (diseño 32-bit);
  * en 64-bit puede fallar, por eso no probamos vector con este allocator.
  */
-#include <cstddef>
-#include <new>
 #include "../align16_allocator.h"
 #include <cassert>
+#include <cstddef>
 #include <cstdio>
+#include <new>
 
 int main() {
     align16_allocator<char> a1, a2;

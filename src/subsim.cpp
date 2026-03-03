@@ -1165,13 +1165,13 @@ void menu_mission_editor() {
 
 void menu_select_language() {
     cfg &config = cfg::instance();
-    
+
     widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
     widget_menu *wm = new widget_menu(0, 0, 400, 40, texts::get(26));
 
     struct lgclist : public widget_list {
         cfg &config_ref;
-        
+
         void on_sel_change() {
             texts::set_language(get_selected());
             config_ref.set("language", get_selected());
@@ -1213,7 +1213,7 @@ void menu_select_language() {
 
 void apply_mode(widget_list *wlg) {
     cfg &config = cfg::instance();
-    
+
     unsigned width, height;
 
     string wks = wlg->get_selected_entry();
@@ -1268,12 +1268,12 @@ void menu_resolution() {
 
 void configure_key(widget_list *wkeys) {
     cfg &config = cfg::instance();
-    
+
     struct confkey_widget : public widget {
         widget_text *keyname;
         unsigned keynr;
         cfg &config_ref;
-        
+
         void on_char(const SDL_Keysym &ks) {
             if (ks.sym == SDLK_ESCAPE) {
                 close(0);
@@ -1287,7 +1287,7 @@ void configure_key(widget_list *wkeys) {
             redraw();
         }
         confkey_widget(int x, int y, int w, int h, const string &text_, widget *parent_,
-                       const std::string &backgrimg, unsigned sel, cfg &cfg_ref) 
+                       const std::string &backgrimg, unsigned sel, cfg &cfg_ref)
             : widget(x, y, w, h, text_, parent_, backgrimg), keynr(sel), config_ref(cfg_ref) {
             keyname = new widget_text(40, 80, 432, 40, config_ref.getkey(keynr).get_name());
             add_child(keyname);
@@ -1306,7 +1306,7 @@ void configure_key(widget_list *wkeys) {
 
 void menu_configure_keys() {
     cfg &config = cfg::instance();
-    
+
     widget w(0, 0, 1024, 768, texts::get(214), 0, "titlebackgr.jpg");
     widget_list *wkeys = new widget_list(40, 50, 944, 640);
     wkeys->set_column_width(700);
@@ -1343,7 +1343,7 @@ void menu_opt_audio() {
 }
 void menu_opt_video() {
     cfg &config = cfg::instance();
-    
+
     unsigned wd = 400;
     unsigned gap = 112;
     unsigned x = 56;

@@ -31,11 +31,11 @@ class xml_elem;
 
 /// Represents an active sonar ping
 struct ping {
-    vector2 pos;         ///< Position where ping was emitted
-    angle dir;           ///< Direction of ping
-    double time;         ///< Game time when ping was emitted
-    double range;        ///< Maximum range of ping
-    angle ping_angle;    ///< Angular spread of ping cone
+    vector2 pos;      ///< Position where ping was emitted
+    angle dir;        ///< Direction of ping
+    double time;      ///< Game time when ping was emitted
+    double range;     ///< Maximum range of ping
+    angle ping_angle; ///< Angular spread of ping cone
 
     ping(const vector2 &p, angle d, double t, double range_val, const angle &ping_angle_val)
         : pos(p), dir(d), time(t), range(range_val), ping_angle(ping_angle_val) {}

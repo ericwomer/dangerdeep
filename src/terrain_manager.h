@@ -45,7 +45,7 @@ class terrain_manager {
     /// @param resolution_n - resolution parameter (N in 2^N grid size)
     /// @param height_gen - height generator for terrain data
     terrain_manager(unsigned nr_levels, unsigned resolution_n, height_generator &height_gen);
-    
+
     ~terrain_manager();
 
     /// Update viewer position for terrain LOD

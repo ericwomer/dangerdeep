@@ -41,9 +41,9 @@ bool postprocessor::hdr_enabled = false;
 bool postprocessor::use_hqsfx = false;
 
 postprocessor::postprocessor(cfg *configuration) : filter(get_shader_dir() + "postp_null.vshader", get_shader_dir() + "postp_filter.fshader"),
-                                 combine(get_shader_dir() + "postp_null.vshader", get_shader_dir() + "postp_combine.fshader"),
-                                 combine2(get_shader_dir() + "postp_null.vshader", get_shader_dir() + "postp_combine2.fshader"),
-                                 hipass(get_shader_dir() + "postp_null.vshader", get_shader_dir() + "postp_highpass.fshader")
+                                                   combine(get_shader_dir() + "postp_null.vshader", get_shader_dir() + "postp_combine.fshader"),
+                                                   combine2(get_shader_dir() + "postp_null.vshader", get_shader_dir() + "postp_combine2.fshader"),
+                                                   hipass(get_shader_dir() + "postp_null.vshader", get_shader_dir() + "postp_highpass.fshader")
 
 {
     unsigned w = sys().get_res_x();

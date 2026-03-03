@@ -51,7 +51,8 @@ void sub_bridge_display::post_display(game &gm) const {
         if (glasses_in_use) {
             glasses_tex->draw(0, 0, 1024, 768);
         }
-    }, true);
+    },
+                           true);
 }
 
 sub_bridge_display::sub_bridge_display(user_interface &ui_) : freeview_display(ui_), glasses_in_use(false) {

@@ -31,11 +31,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "cfg.h"
 #include "datadirs.h"
-#include "global_data.h"
 #include "faulthandler.h"
 #include "font.h"
 #include "fpsmeasure.h"
 #include "frustum.h"
+#include "global_data.h"
 #include "image.h"
 #include "log.h"
 #include "model.h"

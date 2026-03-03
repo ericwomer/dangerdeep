@@ -106,7 +106,8 @@ void sub_uzo_display::post_display(game &gm) const {
         }
 
         uzotex->draw(0, 0, 1024, 768);
-    }, true);
+    },
+                           true);
 }
 
 sub_uzo_display::sub_uzo_display(user_interface &ui_) : freeview_display(ui_), zoomed(false) {

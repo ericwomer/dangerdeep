@@ -23,9 +23,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef PANEL_MANAGER_H
 #define PANEL_MANAGER_H
 
+#include <SDL_events.h>
 #include <memory>
 #include <string>
-#include <SDL_events.h>
 
 class widget;
 class widget_text;
@@ -39,11 +39,11 @@ class panel_manager {
   public:
     /// Constructor
     /// @param x - panel X position
-    /// @param y - panel Y position  
+    /// @param y - panel Y position
     /// @param width - panel width
     /// @param height - panel height
     panel_manager(int x, int y, int width, int height);
-    
+
     ~panel_manager();
 
     /// Draw the info panel with current values
@@ -53,7 +53,7 @@ class panel_manager {
     /// @param bearing - absolute bearing in degrees
     /// @param time_scale - current time compression factor
     /// @param game_time - current game time for display
-    void draw(double heading, double speed, double depth, double bearing, 
+    void draw(double heading, double speed, double depth, double bearing,
               unsigned time_scale, const std::string &game_time);
 
     /// Check if panel should process mouse event

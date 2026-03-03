@@ -177,77 +177,76 @@ void sub_kdb_display::display(game &gm) const {
     submarine *player = dynamic_cast<submarine *>(gm.get_player());
 
     draw_with_2d_and_panel_simple([&]() {
+        // get hearing device angle from submarine, if it has one
 
-    // get hearing device angle from submarine, if it has one
+        if (!myscheme.get())
+            throw error("sub_kdb_display::display without scheme!");
+        const scheme &s = *myscheme;
 
-    if (!myscheme.get())
-        throw error("sub_kdb_display::display without scheme!");
-    const scheme &s = *myscheme;
+        s.background->draw(0, 0);
+        s.volume_knob[unsigned(myfmod(-turnknobang[TK_VOLUME] * 0.5f, 90.0f)) * TK_PHASES / 90].draw();
+        s.turn_wheel[unsigned(myfmod(-turnknobang[TK_DIRECTION] * 2.0f, 90.0f)) * TK_PHASES / 90].draw();
+        s.direction_ptr.draw(turnknobang[TK_DIRECTION] * 0.5f /* fixme: get angle from player*/);
 
-    s.background->draw(0, 0);
-    s.volume_knob[unsigned(myfmod(-turnknobang[TK_VOLUME] * 0.5f, 90.0f)) * TK_PHASES / 90].draw();
-    s.turn_wheel[unsigned(myfmod(-turnknobang[TK_DIRECTION] * 2.0f, 90.0f)) * TK_PHASES / 90].draw();
-    s.direction_ptr.draw(turnknobang[TK_DIRECTION] * 0.5f /* fixme: get angle from player*/);
+        // fixme: some/most of this code should be moved to sonar.cpp
 
-    // fixme: some/most of this code should be moved to sonar.cpp
+        // test hack: test signal strengths
+        angle app_ang = angle(turnknobang[TK_DIRECTION] * 0.5);
+        pair<double, noise> nstr = gm.sonar_listen_ships(player, app_ang);
+        (void)nstr;
+        // 	printf("noise strengths, rel ang=%f, L=%f M=%f H=%f U=%f TTL=%f\n",
+        // 	       app_ang.value(), nstr.second.frequencies[0], nstr.second.frequencies[1], nstr.second.frequencies[2], nstr.second.frequencies[3],
+        // 	       nstr.first);
+        // shipclass cls = noise_signature::determine_shipclass_by_signal(noise_strengths);
+        // printf("ship class is %i\n", cls);
 
-    // test hack: test signal strengths
-    angle app_ang = angle(turnknobang[TK_DIRECTION] * 0.5);
-    pair<double, noise> nstr = gm.sonar_listen_ships(player, app_ang);
-    (void)nstr;
-    // 	printf("noise strengths, rel ang=%f, L=%f M=%f H=%f U=%f TTL=%f\n",
-    // 	       app_ang.value(), nstr.second.frequencies[0], nstr.second.frequencies[1], nstr.second.frequencies[2], nstr.second.frequencies[3],
-    // 	       nstr.first);
-    // shipclass cls = noise_signature::determine_shipclass_by_signal(noise_strengths);
-    // printf("ship class is %i\n", cls);
+        // find peak value.
+        pair<angle, double> pkc = find_peak_noise(angle(0), 3.0, 360.0, gm);
+        // 	printf("peak found (%f) somewhere near %f\n", pkc.second, pkc.first.value());
+        pkc = find_peak_noise(pkc.first, 1.0, 6.0, gm);
+        // 	printf("peak found (%f) closer, somewhere near %f\n", pkc.second, pkc.first.value());
 
-    // find peak value.
-    pair<angle, double> pkc = find_peak_noise(angle(0), 3.0, 360.0, gm);
-    // 	printf("peak found (%f) somewhere near %f\n", pkc.second, pkc.first.value());
-    pkc = find_peak_noise(pkc.first, 1.0, 6.0, gm);
-    // 	printf("peak found (%f) closer, somewhere near %f\n", pkc.second, pkc.first.value());
+        // simulate sonarman
+        // sonarman.simulate(gm, 0.016666);	// 60fps, fixme ugly hack
 
-    // simulate sonarman
-    // sonarman.simulate(gm, 0.016666);	// 60fps, fixme ugly hack
-
-    // fixme: add test here
-    // Simulate sonar man.
-    // From current apparatus angle turn some degrees left or right, until the operator
-    // can tell wether the signal gets stronger or weaker.
-    // If it gets weaker, choose the other direction as initial direction.
-    // Then turn the apparatus by larger steps (10-30 degrees), as long as signal gets
-    // stronger. If it gets weaker, try again from strongest direction with half the
-    // distance, but with opposite direction. If that direction gives weaker signal on
-    // second try, reverse direction (same as global search, but with less step length).
-    // If we found two angles where the signal gets weaker in between, try from the strongest
-    // and reverse direction with 1? steps iterativly.
-    // Example: strongest signal at 33?, initial angle at 50?, initial direction right/
-    // clockwise. Operator turns at 60? and hears that signal is weaker, so he uses
-    // 50? as initial angle and left/counter-clockwise as initial direction.
-    // He turns left 10? to 40?, signal gets stronger.
-    // He turns left 10? to 30?, signal gets stronger.
-    // He turns left 10? to 20?, signal gets weaker. So he changes direction, back at 30?. Stepping down to 5?.
-    // He turns right 5? to 35?, signal gets stronger.
-    // He turns right 5? to 40?, signal gets weaker. So he changes direction, back at 35?. Stepping down to 1?.
-    // He turns left 1? to 34?, signal gets stronger.
-    // He turns left 1? to 33?, signal gets stronger.
-    // He turns left 1? to 32?, signal gets weaker. So he turns back to strongest signal and stops. -> 33?
-    // Example2: strongest signal at 29?, initial angle at 50?, initial direction right/
-    // clockwise. Operator turns at 60? and hears that signal is weaker, so he uses
-    // 50? as initial angle and left/counter-clockwise as initial direction.
-    // He turns left 10? to 40?, signal gets stronger.
-    // He turns left 10? to 30?, signal gets stronger.
-    // He turns left 10? to 20?, signal gets weaker. So he changes direction, back at 30?. Stepping down to 5?.
-    // He turns right 5? to 35?, signal gets weaker. So initial direction wrong, turn left.
-    // He turns left 5? to 25?, signal gets weaker. So he changes direction, back at 30?. Stepping down to 1?.
-    // He turns right 1? to 31?, signal gets weaker. So initial direction wrong, turn left.
-    // He turns left 1? to 29?, signal gets stronger.
-    // He turns left 1? to 28?, signal gets weaker. So he turns back to strongest signal and stops. -> 29?
-    // We could simulate four steps. 30?, 10?, 5?, 1?.
-    // fixme 2:
-    // but user would turn sonar in rather small steps (1? ?)
-    // so simulation is simpler: turn apparatus in 1-3? steps and recognize peak, localize
-    // peak afterwards in smaller steps (1?).
+        // fixme: add test here
+        // Simulate sonar man.
+        // From current apparatus angle turn some degrees left or right, until the operator
+        // can tell wether the signal gets stronger or weaker.
+        // If it gets weaker, choose the other direction as initial direction.
+        // Then turn the apparatus by larger steps (10-30 degrees), as long as signal gets
+        // stronger. If it gets weaker, try again from strongest direction with half the
+        // distance, but with opposite direction. If that direction gives weaker signal on
+        // second try, reverse direction (same as global search, but with less step length).
+        // If we found two angles where the signal gets weaker in between, try from the strongest
+        // and reverse direction with 1? steps iterativly.
+        // Example: strongest signal at 33?, initial angle at 50?, initial direction right/
+        // clockwise. Operator turns at 60? and hears that signal is weaker, so he uses
+        // 50? as initial angle and left/counter-clockwise as initial direction.
+        // He turns left 10? to 40?, signal gets stronger.
+        // He turns left 10? to 30?, signal gets stronger.
+        // He turns left 10? to 20?, signal gets weaker. So he changes direction, back at 30?. Stepping down to 5?.
+        // He turns right 5? to 35?, signal gets stronger.
+        // He turns right 5? to 40?, signal gets weaker. So he changes direction, back at 35?. Stepping down to 1?.
+        // He turns left 1? to 34?, signal gets stronger.
+        // He turns left 1? to 33?, signal gets stronger.
+        // He turns left 1? to 32?, signal gets weaker. So he turns back to strongest signal and stops. -> 33?
+        // Example2: strongest signal at 29?, initial angle at 50?, initial direction right/
+        // clockwise. Operator turns at 60? and hears that signal is weaker, so he uses
+        // 50? as initial angle and left/counter-clockwise as initial direction.
+        // He turns left 10? to 40?, signal gets stronger.
+        // He turns left 10? to 30?, signal gets stronger.
+        // He turns left 10? to 20?, signal gets weaker. So he changes direction, back at 30?. Stepping down to 5?.
+        // He turns right 5? to 35?, signal gets weaker. So initial direction wrong, turn left.
+        // He turns left 5? to 25?, signal gets weaker. So he changes direction, back at 30?. Stepping down to 1?.
+        // He turns right 1? to 31?, signal gets weaker. So initial direction wrong, turn left.
+        // He turns left 1? to 29?, signal gets stronger.
+        // He turns left 1? to 28?, signal gets weaker. So he turns back to strongest signal and stops. -> 29?
+        // We could simulate four steps. 30?, 10?, 5?, 1?.
+        // fixme 2:
+        // but user would turn sonar in rather small steps (1? ?)
+        // so simulation is simpler: turn apparatus in 1-3? steps and recognize peak, localize
+        // peak afterwards in smaller steps (1?).
     });
 }
 

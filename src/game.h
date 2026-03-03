@@ -110,29 +110,29 @@ class game {
     // in which state is the game
     // normal mode (running), or stop on next cycle (reason given by value)
     enum run_state { running,
-                    player_killed,
-                    mission_complete,
-                    contact_lost };
+                     player_killed,
+                     mission_complete,
+                     contact_lost };
 
   protected:
     // World contains all game entities
     std::unique_ptr<world> myworld;
-    
+
     // Convenience references to world's entity containers (for backward compatibility during refactoring)
-    std::vector<std::unique_ptr<ship>>& ships;
-    std::vector<std::unique_ptr<submarine>>& submarines;
-    std::vector<std::unique_ptr<airplane>>& airplanes;
-    std::vector<std::unique_ptr<torpedo>>& torpedoes;
-    std::vector<std::unique_ptr<depth_charge>>& depth_charges;
-    std::vector<std::unique_ptr<gun_shell>>& gun_shells;
-    std::vector<std::unique_ptr<water_splash>>& water_splashes;
-    std::vector<std::unique_ptr<convoy>>& convoys;
-    std::vector<std::unique_ptr<particle>>& particles;
-    
+    std::vector<std::unique_ptr<ship>> &ships;
+    std::vector<std::unique_ptr<submarine>> &submarines;
+    std::vector<std::unique_ptr<airplane>> &airplanes;
+    std::vector<std::unique_ptr<torpedo>> &torpedoes;
+    std::vector<std::unique_ptr<depth_charge>> &depth_charges;
+    std::vector<std::unique_ptr<gun_shell>> &gun_shells;
+    std::vector<std::unique_ptr<water_splash>> &water_splashes;
+    std::vector<std::unique_ptr<convoy>> &convoys;
+    std::vector<std::unique_ptr<particle>> &particles;
+
     // Injected dependencies (references to avoid coupling)
-    class cfg& config;
-    class log& logger;
-    
+    class cfg &config;
+    class log &logger;
+
     run_state my_run_state;
 
     // Event management subsystem
@@ -149,7 +149,7 @@ class game {
 
     logbook players_logbook; // [SAVE]
 
-    double time;            // global time (in seconds since 1.1.1939, 0:0 hrs) (universal time!) [SAVE]
+    double time; // global time (in seconds since 1.1.1939, 0:0 hrs) (universal time!) [SAVE]
 
     date equipment_date; // date that equipment was created. used for torpedo loading
 
@@ -223,11 +223,11 @@ class game {
     // create new custom mission
     // expects: size small,medium,large, escort size none,small,medium,large,
     // time of day [0,4) night,dawn,day,dusk
-    game(class cfg& cfg_ref, class log& log_ref, const std::string &subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
+    game(class cfg &cfg_ref, class log &log_ref, const std::string &subtype, unsigned cvsize, unsigned cvesc, unsigned timeofday,
          const date &timeperioddate, const player_info &pi = player_info() /*fixme - must be always given*/, unsigned nr_of_players = 1);
 
     // create from mission file or savegame (xml file)
-    game(class cfg& cfg_ref, class log& log_ref, const std::string &filename);
+    game(class cfg &cfg_ref, class log &log_ref, const std::string &filename);
 
     virtual ~game();
 
@@ -260,10 +260,10 @@ class game {
     virtual double get_depth_factor(const vector3 &sub) const;
 
     sea_object *get_player() const { return player; }
-    
+
     // Access to world
-    world& get_world() { return *myworld; }
-    const world& get_world() const { return *myworld; }
+    world &get_world() { return *myworld; }
+    const world &get_world() const { return *myworld; }
 
     double get_last_trail_record_time() const;
 
@@ -385,7 +385,7 @@ class game {
     const std::list<std::unique_ptr<event>> &get_events() const;
     event_manager &get_event_manager() { return *myevents; }
     const event_manager &get_event_manager() const { return *myevents; }
-    
+
     run_state get_run_state() const { return my_run_state; }
     unsigned get_freezetime() const;
     unsigned get_freezetime_start() const;

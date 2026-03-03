@@ -29,16 +29,16 @@ class network_connection;
 
 /// Network game types
 enum class NetworkType {
-    SinglePlayer = 0,  ///< Local single player game
-    Server = 1,        ///< Multiplayer server
-    Client = 2         ///< Multiplayer client
+    SinglePlayer = 0, ///< Local single player game
+    Server = 1,       ///< Multiplayer server
+    Client = 2        ///< Multiplayer client
 };
 
 /// Manages multiplayer network connections and message passing (legacy code, currently unused)
 class network_manager {
   private:
-    NetworkType type;                                  ///< Type of network game
-    network_connection *server_connection;             ///< Connection to server (if client)
+    NetworkType type;                                     ///< Type of network game
+    network_connection *server_connection;                ///< Connection to server (if client)
     std::vector<network_connection *> client_connections; ///< Connections to clients (if server)
 
   public:
@@ -51,19 +51,19 @@ class network_manager {
 
     /// Get network type
     NetworkType get_type() const { return type; }
-    
+
     /// Check if this is a multiplayer game
     bool is_multiplayer() const { return type != NetworkType::SinglePlayer; }
-    
+
     /// Check if this is the server
     bool is_server() const { return type == NetworkType::Server && server_connection == nullptr; }
-    
+
     /// Check if this is a client
     bool is_client() const { return type == NetworkType::Client && server_connection != nullptr; }
 
     /// Get server connection (nullptr if this is server)
     network_connection *get_server_connection() const { return server_connection; }
-    
+
     /// Get client connections (empty if this is client)
     const std::vector<network_connection *> &get_client_connections() const { return client_connections; }
 

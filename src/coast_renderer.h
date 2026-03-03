@@ -39,7 +39,7 @@ class coast_renderer {
     /// Constructor
     /// @param map_filename - path to coastmap XML file
     explicit coast_renderer(const std::string &map_filename);
-    
+
     ~coast_renderer();
 
     /// Complete initialization (deferred loading)

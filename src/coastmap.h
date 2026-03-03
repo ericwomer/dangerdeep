@@ -33,7 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 #include <vector>
 
-class model;  // Forward declaration for objcache<model>::reference
+class model; // Forward declaration for objcache<model>::reference
 
 ///\brief Handles a segment of the map represented by class coastmap.
 class coastsegment {

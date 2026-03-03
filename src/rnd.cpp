@@ -12,18 +12,19 @@ the Free Software Foundation; either version 2 of the License, or
 #include <random>
 
 namespace {
-std::mt19937& global_rng() {
+std::mt19937 &global_rng() {
     static std::mt19937 rng(0u);
     return rng;
 }
-}
+} // namespace
 
 double rnd() {
     return std::generate_canonical<double, 32>(global_rng());
 }
 
 unsigned rnd(unsigned b) {
-    if (b == 0) return 0;
+    if (b == 0)
+        return 0;
     return static_cast<unsigned>(b * rnd());
 }
 

@@ -253,7 +253,6 @@ void sub_torpsetup_display::display(class game &gm) const {
 	int* tubelightx = (is_day) ? tubelightdx : tubelightnx;
 	int* tubelighty = (is_day) ? tubelightdy : tubelightny;
 #endif
-
         if (!myscheme.get())
             throw error("sub_torpsetup_display::display without scheme!");
         const scheme &s = *myscheme;
@@ -309,7 +308,8 @@ void sub_torpsetup_display::display(class game &gm) const {
 
         double primaryrange = myfmod(ctr, 32) * 500;                 // 2300.0; // meters
         s.primaryrangeptr.draw(primaryrange * 320 / 16000.0 + 20.0); // 16000m = 20deg+x*320deg
-    }, true);
+    },
+                           true);
 }
 
 void sub_torpsetup_display::enter(bool is_day) {

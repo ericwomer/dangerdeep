@@ -9,13 +9,14 @@
 int main() {
     try {
         throw bzip_failure(BZ_PARAM_ERROR);
-    } catch (const bzip_failure& e) {
+    } catch (const bzip_failure &e) {
         std::string w(e.what());
         assert(w.find("PARAM") != std::string::npos || w.find("BZ_") != std::string::npos);
     }
     try {
         throw bzip_failure(BZ_DATA_ERROR);
-    } catch (const std::ios_base::failure&) {}
+    } catch (const std::ios_base::failure &) {
+    }
     printf("bzip_test ok\n");
     return 0;
 }

@@ -33,7 +33,7 @@ void physics_system::check_collisions(const std::vector<ship *> &allships) {
     // torpedoes are special... check collision only for impact fuse?
     // Torpedoes are at the beginning of allships vector, determined by m
     unsigned m = 0; // Note: torpedoes count would need to be passed in or determined differently
-    
+
     // now check for collisions for all ships idx i with partner index > max(m,i)
     // so we have N^2/2 tests and not N^2.
     // we don't check for torpedo<->torpedo collisions.

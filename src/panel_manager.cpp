@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 panel_manager::panel_manager(int x, int y, int width, int height)
     : is_visible(true), panel_widget(nullptr) {
-    
+
     // Create main panel widget
     panel_widget = std::make_unique<widget>(x, y, width, height, "", nullptr);
     panel_widget->set_background(0);
@@ -42,12 +42,12 @@ panel_manager::panel_manager(int x, int y, int width, int height)
     // Create label and value text widgets
     for (int i = 0; i < 6; ++i) {
         int offset_x = 8 + i * (width - 2 * 8) / 6;
-        
+
         // Add label
         std::string label_text = texts::get(label_ids[i]);
         vector2i label_size = widget::get_theme()->myfont->get_size(label_text);
         panel_widget->add_child(new widget_text(offset_x, 4, 0, 0, label_text));
-        
+
         // Add value text (stored for later updates)
         value_texts[i] = new widget_text(offset_x + 8 + label_size.x, 4, 0, 0, initial_values[i]);
         panel_widget->add_child(value_texts[i]);
@@ -65,31 +65,31 @@ void panel_manager::draw(double heading, double speed, double depth,
 
     // Update value texts
     std::ostringstream oss;
-    
+
     // Heading (0)
     oss << std::setw(3) << std::left << static_cast<unsigned>(heading);
     value_texts[0]->set_text(oss.str());
     oss.str("");
-    
+
     // Speed (1)
     oss << std::setw(3) << std::left << static_cast<unsigned>(std::fabs(std::round(speed)));
     value_texts[1]->set_text(oss.str());
     oss.str("");
-    
+
     // Depth (2)
     oss << std::setw(3) << std::left << static_cast<unsigned>(std::round(std::max(0.0, depth)));
     value_texts[2]->set_text(oss.str());
     oss.str("");
-    
+
     // Bearing (3)
     oss << std::setw(3) << std::left << static_cast<unsigned>(bearing);
     value_texts[3]->set_text(oss.str());
     oss.str("");
-    
+
     // Time scale (4)
     oss << std::setw(3) << std::left << time_scale;
     value_texts[4]->set_text(oss.str());
-    
+
     // Game time (5)
     value_texts[5]->set_text(game_time);
 
