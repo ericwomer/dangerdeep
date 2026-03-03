@@ -74,6 +74,7 @@ struct job;
 #include "date.h"
 #include "event.h"
 #include "logbook.h"
+#include "player_info.h"
 #include "sensors.h"
 #include "sonar.h"
 #include "vector2.h"
@@ -102,27 +103,7 @@ class game {
   public:
     // ping struct moved to ping_manager.h
     // sink_record struct moved to scoring_manager.h
-
-    struct player_info {
-        std::string name;
-        unsigned flotilla;
-        std::string submarineid;
-        std::string photo;
-
-        std::string soldbuch_nr;
-        std::string gasmask_size;
-        std::string bloodgroup;
-        std::string marine_roll;
-        std::string marine_group;
-        /* 'cause the career list is linear we do not need to store
-         * ranks or paygroups. a list of the dates should be enough
-         */
-        std::list<std::string> career;
-
-        player_info();
-        player_info(const xml_elem &parent);
-        void save(xml_elem &parent) const;
-    };
+    // player_info struct moved to player_info.h
 
     // in which state is the game
     // normal mode (running), or stop on next cycle (reason given by value)

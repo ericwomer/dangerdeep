@@ -99,6 +99,7 @@ set(DFTDMEDIASOURCES
 	make_mesh.cpp
 	model.cpp
 	perlinnoise.cpp
+	player_info.cpp
 	postprocessor.cpp
 	primitives.cpp
 	shader.cpp

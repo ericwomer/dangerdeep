@@ -46,7 +46,7 @@ void sub_soldbuch_display::display(class game &gm) const {
         background->draw(0, 0);
 
         // render player info here..
-        const game::player_info &pi = gm.get_player_info();
+        const player_info &pi = gm.get_player_info();
         player_photo->draw(250, 200);
 
         // specify the primary ovberlay's coords

@@ -678,7 +678,7 @@ void show_flotilla_description(const std::string &infopopupdescr) {
     w->run();
 }
 
-bool choose_player_info(game::player_info &pi, const std::string &subtype, const date &gamedate) {
+bool choose_player_info(player_info &pi, const std::string &subtype, const date &gamedate) {
     widget w(0, 0, 1024, 768, "", 0, "playerselection_background.jpg");
     widget *w2 = new widget(40, 40, 500, 640, "");
     w.add_child(w2);
@@ -984,7 +984,7 @@ void create_convoy_mission() {
 
             // show player gui screen
             // use strings for all data, more extendable
-            game::player_info pi;
+            player_info pi;
             bool ok = choose_player_info(pi, st, gamedate);
             if (!ok)
                 continue;
