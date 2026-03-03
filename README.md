@@ -155,23 +155,22 @@ Para una instalación en el sistema, configurar con: `cmake .. -Ddatadir=/usr/lo
 
 ## Tests y calidad de código
 
-El script `check.sh` aplica por defecto **formato** (clang-format) y **lint** (cppcheck). La compilación solo se ejecuta si se pasa `--build` o `-b`. Requiere **Bash** (si se invoca con `sh`, se reejecuta con `bash`).
+El script `check.sh` centraliza operaciones de QA (formato, lint, compilación, tests). Sin argumentos muestra el menú de ayuda.
 
 | Comando | Descripción |
 | ------- | ----------- |
-| `./check.sh` | Formato + lint (por defecto) |
-| `./check.sh --build` | Solo compilar (sin formato ni lint) |
+| `./check.sh` | Mostrar ayuda con todas las opciones |
+| `./check.sh --build` | Compilar el proyecto |
 | `./check.sh --clean` | Borrar `build/` y recompilar desde cero |
-| `./check.sh --format` | Verificar formato (falla si hay diferencias) |
-| `./check.sh --lint` | Lint rápido |
-| `./check.sh --lint-full` | Lint completo (warning, style, performance) |
-| `./check.sh --asan -b` | Compilar con ASan+LSan y ejecutar tests unitarios (detecta fugas/errores de memoria) |
-| `./check.sh --valgrind -b` | Compilar compatible con Valgrind y ejecutar bajo Valgrind |
-| `./check.sh --valgrind` | Ejecutar bajo Valgrind (compilar antes con `--valgrind -b` si aparece «Instrucción ilegal») |
-| `./check.sh --unit` | Compilar y ejecutar **tests unitarios** (ptrlist_test, mutex_test, parser_test) |
-| `./check.sh --coverage` | Compilar con cobertura, ejecutar tests y generar **reporte de cobertura** (líneas + branches) en `build/coverage/html/` |
+| `./check.sh --unit` | Compilar y ejecutar tests unitarios |
+| `./check.sh --coverage` | Generar reporte de cobertura (líneas + branches) en `build/coverage/html/` |
+| `./check.sh --format` | Verificar formato de código (clang-format) |
+| `./check.sh --format-apply` | Aplicar formato automáticamente |
+| `./check.sh --lint` | Análisis estático rápido (cppcheck) |
+| `./check.sh --lint-full` | Análisis estático completo (warning, style, performance) |
+| `./check.sh --asan` | Compilar con AddressSanitizer/LeakSanitizer y ejecutar tests |
+| `./check.sh --valgrind` | Ejecutar bajo Valgrind (detección de memory leaks) |
 | `./check.sh --opengl` | Test de capacidades OpenGL (dftdtester) |
-| `./check.sh --help` | Ver todas las opciones |
 
 Los tests unitarios usan **CTest**; `parser_test` necesita el directorio `data/` (variable de entorno `DFTD_DATA` o argumento con la ruta a `data`).  
 Para el reporte de cobertura se usa **lcov** con *branch coverage*; instalación: `sudo apt install lcov`.

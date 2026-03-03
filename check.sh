@@ -269,12 +269,39 @@ run_valgrind() {
 
 # --- main ---
 cd "$SCRIPT_DIR"
+
+# Si no hay argumentos, mostrar help
+if [[ $# -eq 0 ]]; then
+	echo "Uso: $0 [opciones]"
+	echo ""
+	echo "Opciones disponibles:"
+	echo "  --build, -b        Compilar el proyecto"
+	echo "  --clean, --rebuild Borrar build/ y recompilar desde cero"
+	echo "  --unit, --tests    Compilar y ejecutar tests unitarios"
+	echo "  --coverage         Generar reporte de cobertura de código"
+	echo "  --asan -b          Compilar con AddressSanitizer y ejecutar tests"
+	echo "  --valgrind         Ejecutar bajo Valgrind (detección de memory leaks)"
+	echo "  --format, -f       Verificar formato de código (clang-format)"
+	echo "  --format-apply     Aplicar formato automáticamente"
+	echo "  --lint, -l         Ejecutar análisis estático rápido (cppcheck)"
+	echo "  --lint-full        Análisis estático completo"
+	echo "  --gl, --opengl     Test de capacidades OpenGL"
+	echo "  -h, --help         Mostrar esta ayuda"
+	echo ""
+	echo "Ejemplos:"
+	echo "  $0 --build         # Compilar"
+	echo "  $0 --unit          # Compilar y ejecutar tests"
+	echo "  $0 --clean --unit  # Limpiar, compilar y ejecutar tests"
+	echo "  $0 --format --lint # Verificar formato y ejecutar lint"
+	exit 0
+fi
+
 FAIL=0
 DO_BUILD=0
 DO_CLEAN=0
 DO_FORMAT_CHECK=0
-DO_FORMAT_APPLY=1
-DO_LINT=1
+DO_FORMAT_APPLY=0
+DO_LINT=0
 DO_LINT_FULL=0
 DO_GL=0
 DO_VALGRIND=0
@@ -284,35 +311,41 @@ EXTRA_CMAKE_ARGS=""
 
 for arg in "$@"; do
 	case "$arg" in
-		--build|-b)        DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
-		--clean|--rebuild) DO_CLEAN=1; DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
-		--asan)            EXTRA_CMAKE_ARGS="-DBUILD_ASAN=ON -DBUILD_COVERAGE=OFF -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1; DO_UNIT_TESTS=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
-		--valgrind)        DO_VALGRIND=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0; EXTRA_CMAKE_ARGS="-DBUILD_VALGRIND_FRIENDLY=ON" ;;
-		--unit|--tests)    DO_UNIT_TESTS=1; EXTRA_CMAKE_ARGS="${EXTRA_CMAKE_ARGS} -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
-		--coverage)        DO_COVERAGE=1; EXTRA_CMAKE_ARGS="${EXTRA_CMAKE_ARGS} -DBUILD_COVERAGE=ON -DBUILD_ASAN=OFF -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1; DO_FORMAT_APPLY=0; DO_LINT=0; DO_LINT_FULL=0 ;;
-		--format|-f)      DO_FORMAT_CHECK=1; DO_FORMAT_APPLY=0 ;;
-		--format-apply)   DO_FORMAT_APPLY=1 ;;
-		--no-format)      DO_FORMAT_APPLY=0 ;;
-		--lint|-l)        DO_LINT=1; DO_LINT_FULL=0 ;;
-		--lint-full)      DO_LINT=0; DO_LINT_FULL=1 ;;
-		--no-lint)        DO_LINT=0; DO_LINT_FULL=0 ;;
-		--gl|--opengl)    DO_GL=1 ;;
+		--build|-b)        DO_BUILD=1 ;;
+		--clean|--rebuild) DO_CLEAN=1; DO_BUILD=1 ;;
+		--asan)            EXTRA_CMAKE_ARGS="-DBUILD_ASAN=ON -DBUILD_COVERAGE=OFF -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1; DO_UNIT_TESTS=1 ;;
+		--valgrind)        DO_VALGRIND=1; EXTRA_CMAKE_ARGS="-DBUILD_VALGRIND_FRIENDLY=ON" ;;
+		--unit|--tests)    DO_UNIT_TESTS=1; EXTRA_CMAKE_ARGS="${EXTRA_CMAKE_ARGS} -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1 ;;
+		--coverage)        DO_COVERAGE=1; EXTRA_CMAKE_ARGS="${EXTRA_CMAKE_ARGS} -DBUILD_COVERAGE=ON -DBUILD_ASAN=OFF -DBUILD_UNIT_TESTS=ON"; DO_BUILD=1 ;;
+		--format|-f)       DO_FORMAT_CHECK=1 ;;
+		--format-apply)    DO_FORMAT_APPLY=1 ;;
+		--no-format)       DO_FORMAT_APPLY=0 ;;
+		--lint|-l)         DO_LINT=1; DO_LINT_FULL=0 ;;
+		--lint-full)       DO_LINT_FULL=1; DO_LINT=0 ;;
+		--no-lint)         DO_LINT=0; DO_LINT_FULL=0 ;;
+		--gl|--opengl)     DO_GL=1 ;;
 		-h|--help)
 			echo "Uso: $0 [opciones]"
-			echo "  Por defecto: aplicar formato y lint rápido."
-			echo "  --build, -b        Solo compilación (sin formato ni lint)"
+			echo ""
+			echo "Opciones disponibles:"
+			echo "  --build, -b        Compilar el proyecto"
 			echo "  --clean, --rebuild Borrar build/ y recompilar desde cero"
-			echo "  --asan -b         Compilar con ASan+LSan y ejecutar tests unitarios (detecta fugas/errores de memoria)"
-			echo "  --valgrind        Ejecutar bajo Valgrind. Primera vez: $0 --valgrind -b"
-			echo "  --format, -f      Solo verificar formato (no aplicar)"
-			echo "  --format-apply    Aplicar formato (por defecto)"
-			echo "  --no-format       No aplicar ni verificar formato"
-			echo "  --lint, -l        Lint rápido: solo warning, excl. test/tools (por defecto)"
-			echo "  --lint-full       Lint completo: warning+style+performance, todo el código"
-			echo "  --no-lint         No ejecutar lint"
-			echo "  --gl, --opengl    Test OpenGL (dftdtester)"
-			echo "  --unit, --tests   Compilar y ejecutar tests unitarios (ptrlist, mutex, parser)"
-			echo "  --coverage        Compilar con cobertura, ejecutar tests y generar reporte (líneas + branches)"
+			echo "  --unit, --tests    Compilar y ejecutar tests unitarios"
+			echo "  --coverage         Generar reporte de cobertura de código"
+			echo "  --asan -b          Compilar con AddressSanitizer y ejecutar tests"
+			echo "  --valgrind         Ejecutar bajo Valgrind (detección de memory leaks)"
+			echo "  --format, -f       Verificar formato de código (clang-format)"
+			echo "  --format-apply     Aplicar formato automáticamente"
+			echo "  --lint, -l         Ejecutar análisis estático rápido (cppcheck)"
+			echo "  --lint-full        Análisis estático completo"
+			echo "  --gl, --opengl     Test de capacidades OpenGL"
+			echo "  -h, --help         Mostrar esta ayuda"
+			echo ""
+			echo "Ejemplos:"
+			echo "  $0 --build         # Compilar"
+			echo "  $0 --unit          # Compilar y ejecutar tests"
+			echo "  $0 --clean --unit  # Limpiar, compilar y ejecutar tests"
+			echo "  $0 --format --lint # Verificar formato y ejecutar lint"
 			exit 0
 			;;
 	esac
