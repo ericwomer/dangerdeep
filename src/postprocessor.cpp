@@ -40,7 +40,7 @@ bool postprocessor::bloom_enabled = false;
 bool postprocessor::hdr_enabled = false;
 bool postprocessor::use_hqsfx = false;
 
-postprocessor::postprocessor() : filter(get_shader_dir() + "postp_null.vshader", get_shader_dir() + "postp_filter.fshader"),
+postprocessor::postprocessor(cfg *configuration) : filter(get_shader_dir() + "postp_null.vshader", get_shader_dir() + "postp_filter.fshader"),
                                  combine(get_shader_dir() + "postp_null.vshader", get_shader_dir() + "postp_combine.fshader"),
                                  combine2(get_shader_dir() + "postp_null.vshader", get_shader_dir() + "postp_combine2.fshader"),
                                  hipass(get_shader_dir() + "postp_null.vshader", get_shader_dir() + "postp_highpass.fshader")
@@ -49,7 +49,10 @@ postprocessor::postprocessor() : filter(get_shader_dir() + "postp_null.vshader",
     unsigned w = sys().get_res_x();
     unsigned h = sys().get_res_y();
 
-    switch (cfg::instance().geti("postprocessing")) {
+    // Use provided configuration or fall back to singleton for backward compatibility
+    cfg &config = configuration ? *configuration : cfg::instance();
+
+    switch (config.geti("postprocessing")) {
     case 1:
         bloom_enabled = true;
         break;
@@ -64,7 +67,7 @@ postprocessor::postprocessor() : filter(get_shader_dir() + "postp_null.vshader",
         hdr_enabled = false;
     }
 
-    use_hqsfx = (cfg::instance().geti("sfx_quality") >= 1);
+    use_hqsfx = (config.geti("sfx_quality") >= 1);
 
     // only alloc buffers if needed
     if (bloom_enabled || hdr_enabled) {

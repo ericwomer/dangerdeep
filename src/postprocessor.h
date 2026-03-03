@@ -30,11 +30,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define PP_BUFFER_WIDTH 128
 #define PP_BUFFER_HEIGHT PP_BUFFER_WIDTH
 
+class cfg;
+
 class postprocessor : public singleton<class postprocessor> {
     friend class singleton<postprocessor>;
 
   public:
-    postprocessor();
+    postprocessor(cfg *configuration = nullptr);
     ~postprocessor();
 
     static bool bloom_enabled;
