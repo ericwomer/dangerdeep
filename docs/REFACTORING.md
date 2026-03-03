@@ -223,26 +223,53 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 
 ## Tests unitarios para subsistemas
 
-✅ **COMPLETADO (commits 2be91209, 3073514e, aa027eda)**: Tests unitarios para subsistemas extraídos de `game`
+✅ **COMPLETADO (commits 2be91209, 3073514e, aa027eda, CATCH2-2026-03-03)**: Tests unitarios para subsistemas extraídos de `game`
 
 **Tests funcionando (8/9 subsistemas):**
-- ✅ `trail_manager_test`: 10 tests de gestión de timing para trails (intervalos, grabación, estado)
-- ✅ `visibility_manager_test`: 11 tests de cálculo de distancia de visibilidad (brillo, límites, edge cases)
-- ✅ `time_freezer_test` (con stub): **13 tests** de gestión de pausas (load, get_state, process_freezetime, edge cases)
-- ✅ `scoring_manager_test`: 9 tests de registros de barcos hundidos (agregado, estadísticas, secuencias realistas)
-- ✅ `ping_manager_test`: 8 tests de pings de sonar activo (agregado, expiración, clear, ráfagas)
-- ✅ `physics_system_test` (con stub): **10 tests** de detección de colisiones (instanciación, múltiples llamadas, nullptr handling)
-- ✅ `event_manager_test` (con stub): **14 tests** con eventos mock concretos (add, clear, tipos, secuencias)
-- ✅ `logbook_test` (mejorado): 10 tests de gestión de bitácora (agregado, iteración, caracteres especiales, secuencias realistas)
+- ✅ `trail_manager_test`: 8 tests de gestión de timing para trails (intervalos, grabación, estado)
+- ✅ `visibility_manager_test`: 6 tests de cálculo de distancia de visibilidad (brillo, límites, edge cases)
+- ✅ `time_freezer_test` (con stub): 10 tests de gestión de pausas (load, get_state, process_freezetime, edge cases)
+- ✅ `scoring_manager_test`: 8 tests de registros de barcos hundidos (agregado, estadísticas, secuencias realistas)
+- ✅ `ping_manager_test`: 7 tests de pings de sonar activo (agregado, expiración, clear, ráfagas)
+- ✅ `physics_system_test` (con stub): 7 tests de detección de colisiones (instanciación, múltiples llamadas, nullptr handling)
+- ✅ `event_manager_test` (con stub): 13 tests con eventos mock concretos (add, clear, tipos, secuencias)
+- ✅ `logbook_test` (mejorado): 9 tests de gestión de bitácora (agregado, iteración, caracteres especiales, secuencias realistas)
 - ❌ `lighting_system_test`: Cancelado (requiere OpenGL/shaders, ~50+ dependencias)
 
-**Casos de test totales: 113 tests** distribuidos en 11 archivos (8 subsistemas nuevos + 3 existentes mejorados)
+**Tests matemáticos mejorados con Catch2:**
+- ✅ `bv_tree_leaf_test`: 7 casos de test (centros de triángulos, 3D, colineal, negativos)
+- ✅ `frustum_test`: 6 casos de test (diferentes znear, polígonos variados, viewpoints)
+- ✅ `sphere_test`: 11 casos de test (intersecciones, bounds, AABB, radios extremos)
 
-**Mejoras en commit a1a70a62 (tests existentes):**
-- `bv_tree_leaf_test`: 1 → 7 casos (+600%)
-- `frustum_test`: 2 → 8 casos (+300%)
-- `sphere_test`: 4 → 13 casos (+225%)
-- **Total: +28 casos de test adicionales (+33% de cobertura total)**
+**Casos de test totales: 68 tests** en subsistemas distribuidos en 11 archivos (8 subsistemas nuevos + 3 existentes mejorados)
+
+**🎉 MIGRACIÓN COMPLETA A CATCH2 (2026-03-03):**
+- **Framework**: Catch2 v3.5.2 (header-only amalgamated)
+- **Archivos migrados**: 11 tests (8 subsistemas + 3 matemáticos)
+- **Tests totales en proyecto**: 66/67 pasan (98.5%)
+- **Fallo conocido**: `parser_test` (requiere data dir, no relacionado con migración)
+
+**Beneficios de Catch2:**
+- ✅ **Sintaxis expresiva**: `REQUIRE`, `REQUIRE_FALSE`, `SECTION` para mejor legibilidad
+- ✅ **Mensajes de error superiores**: Muestra valores esperados vs actuales automáticamente
+- ✅ **Organización con SECTION**: Tests con setup común y variaciones
+- ✅ **Tags para filtrado**: `[integration]`, `[sphere]`, etc.
+- ✅ **BDD style disponible**: `SCENARIO`, `GIVEN`, `WHEN`, `THEN` (no usado aún)
+- ✅ **Generadores**: `GENERATE` para tests parametrizados (no usado aún)
+- ✅ **Header-only**: Sin dependencias externas
+- ✅ **Compilación rápida**: Precompilado en `libcatch2_main.a` (shared por todos los tests)
+
+**Macro helper en CMake:**
+```cmake
+add_catch2_test(test_name source1.cpp source2.cpp ...)
+```
+
+**Documentación**: `src/test/CATCH2_README.md`
+
+**Sistema híbrido (opcional):**
+- Tests existentes con `assert` permanecen sin cambios (56 tests)
+- Nuevos tests se recomienda usar Catch2 para mejor experiencia
+- Ambos sistemas coexisten sin conflicto
 
 **Técnicas de resolución de dependencias:**
 1. **XML**: Agregar `xml.cpp` como dependencia para `scoring_manager_test` y `ping_manager_test`
@@ -254,18 +281,13 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 4. **Tests simplificados**: No llamar a métodos que requieren implementación completa
 5. **Edge cases**: Valores máximos, nullptr, secuencias repetidas, estado inmutable
 
-**Mejoras en commit aa027eda:**
-- `time_freezer_test`: +5 casos (edge cases, valores grandes, secuencias)
-- `event_manager_test`: +8 casos (eventos mock, tipos, nullptr, secuencias)
-- `physics_system_test`: +6 casos (múltiples llamadas, nullptr, independencia)
-- **Total: +19 casos de test (+27% de cobertura)**
-
 **Estadísticas de tests:**
 - Total: **66/67 tests pasan (98.5%)**
 - Fallo conocido: `parser_test` (requiere data dir)
-- Nuevos tests: **+8 funcionando**
-- Casos de test en subsistemas: **85 tests**
-- Tiempo de ejecución: ~0.14s total
+- Tests con Catch2: **11 archivos**
+- Tests con assert: **56 archivos**
+- Casos de test en subsistemas: **68 tests Catch2**
+- Tiempo de ejecución: ~0.02s para tests Catch2
 
 **Beneficios:**
 - Confianza en refactorizaciones futuras
@@ -273,6 +295,8 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 - Documentación ejecutable del comportamiento
 - Tests rápidos (header-only y stubs)
 - Eventos mock permiten testing realista sin dependencias
+- Mensajes de error muy superiores a `assert`
+- Organización clara con `SECTION`
 
 **Limitaciones conocidas:**
 - Stubs de physics/time_freezer no verifican lógica real (solo interfaces)

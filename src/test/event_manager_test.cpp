@@ -2,138 +2,156 @@
  * Test para event_manager: gestión de eventos del juego.
  * Usa eventos mock concretos para verificar el comportamiento.
  */
-#include "event_stub.h"  // Stub de event ANTES de event_manager.h
+#include "catch_amalgamated.hpp"
+#include "event_stub.h"
 #include "../event_manager.h"
-#include <cassert>
-#include <cstdio>
 #include <memory>
 
-// Forward declaration
-class user_interface;
-
-int main() {
-    // Test 1: Constructor inicializa vacío
+TEST_CASE("event_manager - Constructor inicializa vacío", "[event_manager]") {
     event_manager em;
-    assert(em.event_count() == 0);
-    assert(!em.has_events());
-    assert(em.get_events().empty());
-    
-    // Test 2: clear_events en manager vacío no falla
+    REQUIRE(em.event_count() == 0);
+    REQUIRE_FALSE(em.has_events());
+    REQUIRE(em.get_events().empty());
+}
+
+TEST_CASE("event_manager - clear_events en manager vacío", "[event_manager]") {
+    event_manager em;
     em.clear_events();
-    assert(em.event_count() == 0);
-    
-    // Test 3: Sistema es no-copiable (compile-time check)
-    // event_manager em2(em); // No debe compilar
-    // event_manager em3 = em; // No debe compilar
-    
-    // Test 4: Puede crear múltiples instancias independientes
+    REQUIRE(em.event_count() == 0);
+}
+
+TEST_CASE("event_manager - Múltiples instancias independientes", "[event_manager]") {
+    event_manager em1;
     event_manager em2;
     event_manager em3;
     
-    assert(em2.event_count() == 0);
-    assert(em3.event_count() == 0);
+    REQUIRE(em1.event_count() == 0);
+    REQUIRE(em2.event_count() == 0);
+    REQUIRE(em3.event_count() == 0);
     
+    em1.clear_events();
     em2.clear_events();
     em3.clear_events();
-    
-    // Test 5: has_events es consistente con event_count
-    assert(!em.has_events() == (em.event_count() == 0));
-    
-    // Test 6: get_events retorna referencia constante
+}
+
+TEST_CASE("event_manager - has_events es consistente con event_count", "[event_manager]") {
+    event_manager em;
+    REQUIRE(!em.has_events() == (em.event_count() == 0));
+}
+
+TEST_CASE("event_manager - get_events retorna referencia constante", "[event_manager]") {
+    event_manager em;
     const std::list<std::unique_ptr<event>> &events = em.get_events();
-    assert(events.empty());
-    assert(events.size() == 0);
-    
-    // Test 7: add_event con unique_ptr agrega evento
+    REQUIRE(events.empty());
+    REQUIRE(events.size() == 0);
+}
+
+TEST_CASE("event_manager - add_event con unique_ptr", "[event_manager]") {
+    event_manager em;
     em.add_event(std::make_unique<test_message_event>("Hello"));
-    assert(em.event_count() == 1);
-    assert(em.has_events());
-    assert(em.get_events().size() == 1);
     
-    // Test 8: add_event con raw pointer agrega evento
+    REQUIRE(em.event_count() == 1);
+    REQUIRE(em.has_events());
+    REQUIRE(em.get_events().size() == 1);
+}
+
+TEST_CASE("event_manager - add_event con raw pointer", "[event_manager]") {
+    event_manager em;
     em.add_event(new test_signal_event());
-    assert(em.event_count() == 2);
     
-    // Test 9: add_event múltiples veces
+    REQUIRE(em.event_count() == 1);
+}
+
+TEST_CASE("event_manager - add_event múltiples veces", "[event_manager]") {
+    event_manager em;
+    
+    em.add_event(std::make_unique<test_message_event>("Hello"));
+    em.add_event(new test_signal_event());
     em.add_event(std::make_unique<test_action_event>(1, 3.14));
     em.add_event(std::make_unique<test_action_event>(2, 2.71));
     em.add_event(std::make_unique<test_message_event>("World"));
     
-    assert(em.event_count() == 5);
-    assert(em.get_events().size() == 5);
+    REQUIRE(em.event_count() == 5);
+    REQUIRE(em.get_events().size() == 5);
+}
+
+TEST_CASE("event_manager - clear_events elimina todos", "[event_manager]") {
+    event_manager em;
     
-    // Test 10: clear_events elimina todos
-    em.clear_events();
-    assert(em.event_count() == 0);
-    assert(!em.has_events());
-    assert(em.get_events().empty());
-    
-    // Test 11: add_event después de clear
+    em.add_event(std::make_unique<test_message_event>("Test"));
     em.add_event(std::make_unique<test_signal_event>());
-    assert(em.event_count() == 1);
+    REQUIRE(em.event_count() == 2);
     
-    // Test 12: Verificar tipos de eventos en la lista
-    event_manager em4;
-    em4.add_event(std::make_unique<test_message_event>("Test1"));
-    em4.add_event(std::make_unique<test_action_event>(42, 9.99));
-    em4.add_event(std::make_unique<test_signal_event>());
+    em.clear_events();
+    REQUIRE(em.event_count() == 0);
+    REQUIRE_FALSE(em.has_events());
+    REQUIRE(em.get_events().empty());
+}
+
+TEST_CASE("event_manager - add_event después de clear", "[event_manager]") {
+    event_manager em;
     
-    const auto &events4 = em4.get_events();
-    auto it = events4.begin();
+    em.add_event(std::make_unique<test_signal_event>());
+    em.clear_events();
+    em.add_event(std::make_unique<test_signal_event>());
     
-    // Primer evento: message
-    assert(it != events4.end());
-    assert((*it)->get_type() == "message");
+    REQUIRE(em.event_count() == 1);
+}
+
+TEST_CASE("event_manager - Verificar tipos de eventos en la lista", "[event_manager]") {
+    event_manager em;
+    em.add_event(std::make_unique<test_message_event>("Test1"));
+    em.add_event(std::make_unique<test_action_event>(42, 9.99));
+    em.add_event(std::make_unique<test_signal_event>());
+    
+    const auto &events = em.get_events();
+    auto it = events.begin();
+    
+    REQUIRE(it != events.end());
+    REQUIRE((*it)->get_type() == "message");
     ++it;
     
-    // Segundo evento: action
-    assert(it != events4.end());
-    assert((*it)->get_type() == "action");
+    REQUIRE(it != events.end());
+    REQUIRE((*it)->get_type() == "action");
     ++it;
     
-    // Tercer evento: signal
-    assert(it != events4.end());
-    assert((*it)->get_type() == "signal");
+    REQUIRE(it != events.end());
+    REQUIRE((*it)->get_type() == "signal");
     ++it;
     
-    assert(it == events4.end());
+    REQUIRE(it == events.end());
+}
+
+TEST_CASE("event_manager - add_event con nullptr no debe causar problemas", "[event_manager]") {
+    event_manager em;
+    em.add_event(std::make_unique<test_message_event>("Valid"));
+    em.add_event(std::make_unique<test_action_event>(1, 1.0));
+    em.add_event(std::make_unique<test_signal_event>());
     
-    // Test 13: add_event con nullptr no debe causar problemas
-    em4.add_event(std::unique_ptr<event>(nullptr));
-    assert(em4.event_count() == 3);  // No debe incrementar
+    REQUIRE(em.event_count() == 3);
     
-    em4.add_event(static_cast<event*>(nullptr));
-    assert(em4.event_count() == 3);  // No debe incrementar
+    em.add_event(std::unique_ptr<event>(nullptr));
+    REQUIRE(em.event_count() == 3);  // No debe incrementar
     
-    // Test 14: Secuencia realista de uso
-    event_manager em5;
+    em.add_event(static_cast<event*>(nullptr));
+    REQUIRE(em.event_count() == 3);  // No debe incrementar
+}
+
+TEST_CASE("event_manager - Secuencia realista de uso", "[event_manager][integration]") {
+    event_manager em;
     
-    // Frame 1: varios eventos
-    em5.add_event(std::make_unique<test_message_event>("Start"));
-    em5.add_event(std::make_unique<test_action_event>(1, 1.0));
-    assert(em5.event_count() == 2);
+    SECTION("Frame 1: varios eventos") {
+        em.add_event(std::make_unique<test_message_event>("Start"));
+        em.add_event(std::make_unique<test_action_event>(1, 1.0));
+        REQUIRE(em.event_count() == 2);
+        
+        // Limpiar después de procesar
+        em.clear_events();
+        REQUIRE(em.event_count() == 0);
+    }
     
-    // Procesar eventos (stub vacío, pero no crashea)
-    // user_interface *ui = nullptr;
-    // em5.evaluate_events(*ui);  // Requeriría UI válido
-    
-    // Limpiar después de procesar
-    em5.clear_events();
-    assert(em5.event_count() == 0);
-    
-    // Frame 2: más eventos
-    em5.add_event(std::make_unique<test_signal_event>());
-    assert(em5.event_count() == 1);
-    
-    // Este test verifica:
-    // - add_event() incrementa event_count() correctamente
-    // - add_event() con unique_ptr y raw pointer funcionan
-    // - clear_events() elimina todos los eventos y libera memoria
-    // - get_events() retorna referencia válida a la lista
-    // - Tipos de eventos se preservan correctamente
-    // - nullptr no causa crashes ni cuenta como evento
-    // - Secuencias realistas de uso funcionan correctamente
-    
-    printf("event_manager_test ok (14 tests)\n");
-    return 0;
+    SECTION("Frame 2: más eventos") {
+        em.add_event(std::make_unique<test_signal_event>());
+        REQUIRE(em.event_count() == 1);
+    }
 }

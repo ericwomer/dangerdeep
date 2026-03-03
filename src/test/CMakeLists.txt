@@ -3,6 +3,21 @@ set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(SRC_PARENT ${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories(${SRC_PARENT} ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
 
+# Catch2 testing framework
+add_library(catch2_main STATIC ${TEST_DIR}/catch_amalgamated.cpp)
+target_include_directories(catch2_main PUBLIC ${TEST_DIR})
+# Compilar Catch2 sin warnings
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(catch2_main PRIVATE -w)
+endif()
+
+# Helper macro para tests con Catch2
+macro(add_catch2_test test_name)
+    add_executable(${test_name} ${TEST_DIR}/${test_name}.cpp ${ARGN})
+    target_link_libraries(${test_name} catch2_main ${LIBS})
+    add_test(NAME ${test_name} COMMAND ${test_name} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+endmacro()
+
 # ptrlist_test: solo ptrlist.h (header-only)
 add_executable(ptrlist_test ${TEST_DIR}/ptrlist_test.cpp)
 target_link_libraries(ptrlist_test ${LIBS})
@@ -73,10 +88,8 @@ add_executable(plane_test ${TEST_DIR}/plane_test.cpp)
 target_link_libraries(plane_test ${LIBS})
 add_test(NAME plane_test COMMAND plane_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-# sphere_test: sphere.h
-add_executable(sphere_test ${TEST_DIR}/sphere_test.cpp)
-target_link_libraries(sphere_test ${LIBS})
-add_test(NAME sphere_test COMMAND sphere_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# sphere_test: sphere.h - MIGRADO A CATCH2
+add_catch2_test(sphere_test)
 
 # matrix3_test: matrix3.h + matrix.h
 add_executable(matrix3_test ${TEST_DIR}/matrix3_test.cpp)
@@ -194,9 +207,7 @@ add_executable(cfg_key_test ${TEST_DIR}/cfg_key_test.cpp)
 target_link_libraries(cfg_key_test ${LIBS})
 add_test(NAME cfg_key_test COMMAND cfg_key_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(bv_tree_leaf_test ${TEST_DIR}/bv_tree_leaf_test.cpp)
-target_link_libraries(bv_tree_leaf_test ${LIBS})
-add_test(NAME bv_tree_leaf_test COMMAND bv_tree_leaf_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(bv_tree_leaf_test)
 
 add_executable(datadirs_test ${TEST_DIR}/datadirs_test.cpp ${SRC_PARENT}/datadirs.cpp ${SRC_PARENT}/filehelper.cpp ${SRC_PARENT}/log.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp)
 target_link_libraries(datadirs_test ${LIBS})
@@ -222,9 +233,7 @@ add_executable(simplex_noise_test ${TEST_DIR}/simplex_noise_test.cpp ${SRC_PAREN
 target_link_libraries(simplex_noise_test ${LIBS})
 add_test(NAME simplex_noise_test COMMAND simplex_noise_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(frustum_test ${TEST_DIR}/frustum_test.cpp ${SRC_PARENT}/frustum.cpp)
-target_link_libraries(frustum_test ${LIBS})
-add_test(NAME frustum_test COMMAND frustum_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(frustum_test ${SRC_PARENT}/frustum.cpp)
 
 add_executable(fractal_test ${TEST_DIR}/fractal_test.cpp ${SRC_PARENT}/simplex_noise.cpp)
 target_link_libraries(fractal_test ${LIBS})
@@ -274,44 +283,27 @@ add_executable(tone_reproductor_test ${TEST_DIR}/tone_reproductor_test.cpp ${SRC
 target_link_libraries(tone_reproductor_test ${LIBS})
 add_test(NAME tone_reproductor_test COMMAND tone_reproductor_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-# Tests para subsistemas extraídos (refactoring de game)
-# Tests para subsistemas extraídos (refactoring de game)
-add_executable(trail_manager_test ${TEST_DIR}/trail_manager_test.cpp)
-target_link_libraries(trail_manager_test ${LIBS})
-add_test(NAME trail_manager_test COMMAND trail_manager_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# Tests para subsistemas extraídos (refactoring de game) - MIGRADOS A CATCH2
+add_catch2_test(trail_manager_test)
 
-add_executable(visibility_manager_test ${TEST_DIR}/visibility_manager_test.cpp ${SRC_PARENT}/visibility_manager.cpp)
-target_link_libraries(visibility_manager_test ${LIBS})
-add_test(NAME visibility_manager_test COMMAND visibility_manager_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(visibility_manager_test ${SRC_PARENT}/visibility_manager.cpp)
 
-add_executable(time_freezer_test ${TEST_DIR}/time_freezer_test.cpp ${TEST_DIR}/time_freezer_stub.cpp)
-target_link_libraries(time_freezer_test ${LIBS})
-add_test(NAME time_freezer_test COMMAND time_freezer_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(time_freezer_test ${TEST_DIR}/time_freezer_stub.cpp)
 
-add_executable(scoring_manager_test ${TEST_DIR}/scoring_manager_test.cpp ${SRC_PARENT}/scoring_manager.cpp ${SRC_PARENT}/date.cpp ${SRC_PARENT}/xml.cpp)
-target_link_libraries(scoring_manager_test ${LIBS})
-add_test(NAME scoring_manager_test COMMAND scoring_manager_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(scoring_manager_test ${SRC_PARENT}/scoring_manager.cpp ${SRC_PARENT}/date.cpp ${SRC_PARENT}/xml.cpp)
 
-add_executable(ping_manager_test ${TEST_DIR}/ping_manager_test.cpp ${SRC_PARENT}/ping_manager.cpp ${SRC_PARENT}/xml.cpp)
-target_link_libraries(ping_manager_test ${LIBS})
-add_test(NAME ping_manager_test COMMAND ping_manager_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(ping_manager_test ${SRC_PARENT}/ping_manager.cpp ${SRC_PARENT}/xml.cpp)
 
 # lighting_system_test: requiere shader.cpp, glsl_program, texture (OpenGL/dependencias muy pesadas)
 # add_executable(lighting_system_test ${TEST_DIR}/lighting_system_test.cpp ${SRC_PARENT}/lighting_system.cpp ${SRC_PARENT}/moon.cpp ${SRC_PARENT}/stars.cpp ${SRC_PARENT}/date.cpp ${SRC_PARENT}/xml.cpp)
 # target_link_libraries(lighting_system_test ${LIBS})
 # add_test(NAME lighting_system_test COMMAND lighting_system_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(physics_system_test ${TEST_DIR}/physics_system_test.cpp ${TEST_DIR}/physics_system_stub.cpp)
-target_link_libraries(physics_system_test ${LIBS})
-add_test(NAME physics_system_test COMMAND physics_system_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(physics_system_test ${TEST_DIR}/physics_system_stub.cpp)
 
-add_executable(event_manager_test ${TEST_DIR}/event_manager_test.cpp ${TEST_DIR}/event_manager_stub.cpp)
-target_link_libraries(event_manager_test ${LIBS})
-add_test(NAME event_manager_test COMMAND event_manager_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(event_manager_test ${TEST_DIR}/event_manager_stub.cpp)
 
-add_executable(logbook_test ${TEST_DIR}/logbook_test.cpp ${SRC_PARENT}/logbook.cpp)
-target_link_libraries(logbook_test ${LIBS})
-add_test(NAME logbook_test COMMAND logbook_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(logbook_test ${SRC_PARENT}/logbook.cpp)
 
 # Tests que requieren juego/OpenGL completo: sensors, coastmap, image, model, texture,
 # font, primitives, shader, music, height_generator_map, geoclipmap, caustics, water_splash,
