@@ -1163,18 +1163,22 @@ void menu_mission_editor() {
 }
 
 void menu_select_language() {
+    cfg &config = cfg::instance();
+    
     widget w(0, 0, 1024, 768, "", 0, "titlebackgr.jpg");
     widget_menu *wm = new widget_menu(0, 0, 400, 40, texts::get(26));
 
     struct lgclist : public widget_list {
+        cfg &config_ref;
+        
         void on_sel_change() {
             texts::set_language(get_selected());
-            cfg::instance().set("language", get_selected());
+            config_ref.set("language", get_selected());
         }
-        lgclist(int x, int y, int w, int h) : widget_list(x, y, w, h) {}
+        lgclist(int x, int y, int w, int h, cfg &cfg_ref) : widget_list(x, y, w, h), config_ref(cfg_ref) {}
     };
 
-    widget_list *wlg = new lgclist(0, 0, 400, 400);
+    widget_list *wlg = new lgclist(0, 0, 400, 400, config);
     unsigned nl = texts::get_nr_of_available_languages();
     for (unsigned i = 0; i < nl; ++i) {
         wlg->append_entry(texts::get(i, texts::languages));
@@ -1207,6 +1211,8 @@ void menu_select_language() {
 //
 
 void apply_mode(widget_list *wlg) {
+    cfg &config = cfg::instance();
+    
     unsigned width, height;
 
     string wks = wlg->get_selected_entry();
@@ -1218,8 +1224,8 @@ void apply_mode(widget_list *wlg) {
     // is broken, user is not forced to same mode again on restart
     try {
         sys().set_video_mode(width, height, sys().is_fullscreen_mode(), true);
-        cfg::instance().set("screen_res_y", int(height));
-        cfg::instance().set("screen_res_x", int(width));
+        config.set("screen_res_y", int(height));
+        config.set("screen_res_x", int(width));
         glClearColor(0, 0, 0, 0);
     } catch (exception &e) {
         log_warning("Video mode setup failed: " << e.what());
@@ -1260,9 +1266,13 @@ void menu_resolution() {
 }
 
 void configure_key(widget_list *wkeys) {
+    cfg &config = cfg::instance();
+    
     struct confkey_widget : public widget {
         widget_text *keyname;
         unsigned keynr;
+        cfg &config_ref;
+        
         void on_char(const SDL_Keysym &ks) {
             if (ks.sym == SDLK_ESCAPE) {
                 close(0);
@@ -1271,35 +1281,38 @@ void configure_key(widget_list *wkeys) {
             bool ctrl = (ks.mod & (KMOD_LCTRL | KMOD_RCTRL)) != 0;
             bool alt = (ks.mod & (KMOD_LALT | KMOD_RALT | KMOD_MODE /* Alt Gr */)) != 0;
             bool shift = (ks.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) != 0;
-            cfg::instance().set_key(keynr, ks.sym, ctrl, alt, shift);
-            keyname->set_text(cfg::instance().getkey(keynr).get_name());
+            config_ref.set_key(keynr, ks.sym, ctrl, alt, shift);
+            keyname->set_text(config_ref.getkey(keynr).get_name());
             redraw();
         }
         confkey_widget(int x, int y, int w, int h, const string &text_, widget *parent_,
-                       const std::string &backgrimg, unsigned sel) : widget(x, y, w, h, text_, parent_, backgrimg), keynr(sel) {
-            keyname = new widget_text(40, 80, 432, 40, cfg::instance().getkey(keynr).get_name());
+                       const std::string &backgrimg, unsigned sel, cfg &cfg_ref) 
+            : widget(x, y, w, h, text_, parent_, backgrimg), keynr(sel), config_ref(cfg_ref) {
+            keyname = new widget_text(40, 80, 432, 40, config_ref.getkey(keynr).get_name());
             add_child(keyname);
             add_child(new widget_text(40, 120, 432, 40, texts::get(217)));
         }
         ~confkey_widget() {}
     };
     unsigned sel = wkeys->get_selected();
-    confkey_widget w(256, 256, 512, 256, texts::get(216), 0, "", sel);
+    confkey_widget w(256, 256, 512, 256, texts::get(216), 0, "", sel, config);
     string wks = wkeys->get_selected_entry();
     wks = wks.substr(0, wks.find("\t"));
     w.add_child(new widget_text(40, 40, 432, 32, wks));
     w.run(0, true);
-    wkeys->set_entry(sel, texts::get(sel + 600) + string("\t") + cfg::instance().getkey(sel).get_name());
+    wkeys->set_entry(sel, texts::get(sel + 600) + string("\t") + config.getkey(sel).get_name());
 }
 
 void menu_configure_keys() {
+    cfg &config = cfg::instance();
+    
     widget w(0, 0, 1024, 768, texts::get(214), 0, "titlebackgr.jpg");
     widget_list *wkeys = new widget_list(40, 50, 944, 640);
     wkeys->set_column_width(700);
     w.add_child(wkeys);
 
     for (unsigned i = 600; i < 600 + NR_OF_KEY_IDS; ++i) {
-        cfg::key k = cfg::instance().getkey(i - 600);
+        cfg::key k = config.getkey(i - 600);
         wkeys->append_entry(texts::get(i) + string("\t") + k.get_name());
     }
 
@@ -1328,6 +1341,8 @@ void menu_opt_audio() {
     menu_notimplemented(); // TODO
 }
 void menu_opt_video() {
+    cfg &config = cfg::instance();
+    
     unsigned wd = 400;
     unsigned gap = 112;
     unsigned x = 56;
@@ -1339,10 +1354,10 @@ void menu_opt_video() {
     widget_menu *wm = new widget_menu(x, y, wd, 40, texts::get(707));
 
     widget_button *resolution = new widget_func_button<void (*)()>(&menu_resolution, x, y + 60, wd, 40, texts::get(106));
-    widget_checkbox *vsync = new widget_checkbox(right, y + 60, wd, 40, cfg::instance().getb("vsync"), texts::get(720));
+    widget_checkbox *vsync = new widget_checkbox(right, y + 60, wd, 40, config.getb("vsync"), texts::get(720));
 
-    widget_slider *terrain_lod = new widget_slider(x, y + 120, wd, 80, texts::get(112), 3, 9, cfg::instance().geti("terrain_detail"), 3);
-    widget_checkbox *tex_compress = new widget_checkbox(right, y + 120, wd, 40, cfg::instance().getb("use_compressed_textures"), texts::get(721));
+    widget_slider *terrain_lod = new widget_slider(x, y + 120, wd, 80, texts::get(112), 3, 9, config.geti("terrain_detail"), 3);
+    widget_checkbox *tex_compress = new widget_checkbox(right, y + 120, wd, 40, config.getb("use_compressed_textures"), texts::get(721));
 
     widget_list *wfx_quality = new widget_list(x + (wd / 2), y + 220, wd / 2, 80);
     widget_text *wfx_quality_txt = new widget_text(x, y + 220, wd / 2, 20, texts::get(713));
@@ -1360,12 +1375,12 @@ void menu_opt_video() {
     wfx_quality->append_entry(texts::get(710));
     wfx_quality->append_entry(texts::get(711));
     wfx_quality->append_entry(texts::get(712));
-    wfx_quality->set_selected(cfg::instance().geti("sfx_quality"));
+    wfx_quality->set_selected(config.geti("sfx_quality"));
 
     w_postprocessing->append_entry(texts::get(715));
     w_postprocessing->append_entry(texts::get(716));
     w_postprocessing->append_entry(texts::get(717));
-    w_postprocessing->set_selected(cfg::instance().geti("postprocessing"));
+    w_postprocessing->set_selected(config.geti("postprocessing"));
 
     float max_ani = 1.0;
     glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_ani);
@@ -1381,7 +1396,7 @@ void menu_opt_video() {
 
             anisotropic_level->append_entry(str(base));
 
-            if (cfg::instance().getf("anisotropic_level") == base)
+            if (config.getf("anisotropic_level") == base)
                 anisotropic_level->set_selected(count);
         }
     }
@@ -1413,20 +1428,20 @@ void menu_opt_video() {
     w.run(0, false);
 
     // save settings
-    cfg::instance().set("vsync", vsync->is_checked());
+    config.set("vsync", vsync->is_checked());
 
-    cfg::instance().set("terrain_detail", terrain_lod->get_curr_value());
-    cfg::instance().set("use_compressed_textures", tex_compress->is_checked());
+    config.set("terrain_detail", terrain_lod->get_curr_value());
+    config.set("use_compressed_textures", tex_compress->is_checked());
 
-    cfg::instance().set("sfx_quality", wfx_quality->get_selected());
-    cfg::instance().set("postprocessing", w_postprocessing->get_selected());
+    config.set("sfx_quality", wfx_quality->get_selected());
+    config.set("postprocessing", w_postprocessing->get_selected());
     // TODO: need to update postproc. code to use this int instead of the previous two booleans.
 
     if (0 == anisotropic_level->get_selected()) {
-        cfg::instance().set("use_ani_filtering", false);
-        cfg::instance().set("anisotropic_level", 1.0f);
+        config.set("use_ani_filtering", false);
+        config.set("anisotropic_level", 1.0f);
     } else {
-        cfg::instance().set("use_ani_filtering", true);
+        config.set("use_ani_filtering", true);
 
         glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_ani);
         unsigned max_list = anisotropic_level->get_listsize() - 1;
@@ -1435,19 +1450,19 @@ void menu_opt_video() {
         for (unsigned ix = max_list; ix > selected; ix--)
             max_ani /= 2.0f;
 
-        cfg::instance().set("anisotropic_level", max_ani);
+        config.set("anisotropic_level", max_ani);
     }
 
     if (0 == anti_aliasing_level->get_selected()) {
-        cfg::instance().set("use_multisampling", false);
+        config.set("use_multisampling", false);
     } else {
-        cfg::instance().set("use_multisampling", true);
+        config.set("use_multisampling", true);
         // TODO - implement this, kind of held back by the lack of easy of detecting suitable/MAX values.
-        // cfg::instance().set("multisampling_level", ??? );
+        // config.set("multisampling_level", ??? );
     }
 
     // TODO: something about this ? we need to convert or update existing code that uses the boolean use_hqsfx
-    //	cfg::instance().set("use_hqsfx", whqsfx->is_checked());
+    //	config.set("use_hqsfx", whqsfx->is_checked());
     //	glsl_shader::enable_hqsfx = whqsfx->is_checked();
 }
 
