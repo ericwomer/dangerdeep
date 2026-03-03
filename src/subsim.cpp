@@ -1908,17 +1908,17 @@ int mymain(list<string> &args) {
 
     //	mycfg.save("./testconf");
 
-    glsl_shader::enable_hqsfx = cfg::instance().getb("use_hqsfx");
+    glsl_shader::enable_hqsfx = mycfg.getb("use_hqsfx");
 
     // read screen resolution from config file if no override has been set by command line parameters
     if (res_x == 0) {
-        res_x = cfg::instance().geti("screen_res_x");
-        res_y = cfg::instance().geti("screen_res_y");
+        res_x = mycfg.geti("screen_res_x");
+        res_y = mycfg.geti("screen_res_y");
     }
 
     // Read language from options-file
     if (!override_lang)
-        texts::set_language(cfg::instance().geti("language"));
+        texts::set_language(mycfg.geti("language"));
 
     // fixme: also allow 1280x1024, set up gl viewport for 4:3 display
     // with black borders at top/bottom (height 2*32pixels)

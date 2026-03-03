@@ -183,7 +183,7 @@ game::game()
     freezetime = 0;
     freezetime_start = 0;
 
-    mywater = std::make_unique<water>(0.0, cfg::instance());
+    mywater = std::make_unique<water>(0.0, config);
     // myheightgen.reset(new height_generator_map("default.xml"));
 
     myheightgen = std::make_unique<terrain<Sint16>>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", TERRAIN_NR_LEVELS + 1);
