@@ -58,6 +58,7 @@ class height_generator;
 class cfg;
 class log;
 class event_manager;
+class physics_system;
 
 #include "angle.h"
 #include "color.h"
@@ -247,9 +248,8 @@ class game {
 
     player_info playerinfo;
 
-    /// check objects collide with any other object
-    void check_collisions();
-    void collision_response(sea_object &a, sea_object &b, const vector3 &collision_pos);
+    // Physics subsystem
+    std::unique_ptr<physics_system> myphysics;
 
     random_generator random_gen;
 
