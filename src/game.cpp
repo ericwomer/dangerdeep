@@ -42,6 +42,7 @@ double log2(double n) {
 #include "cfg.h"
 #include "convoy.h"
 #include "depth_charge.h"
+#include "event_manager.h"
 #include "game.h"
 #include "global_data.h"
 #include "gun_shell.h"
@@ -178,7 +179,8 @@ game::game()
       convoys(myworld->get_convoys_mut()),
       particles(myworld->get_particles_mut()),
       config(cfg::instance()),
-      logger(log::instance()) {
+      logger(log::instance()),
+      myevents(std::make_unique<event_manager>()) {
     // empty, so that heirs can construct a game object. Needed for editor
     freezetime = 0;
     freezetime_start = 0;
@@ -211,6 +213,7 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &subtype, unsign
       particles(myworld->get_particles_mut()),
       config(cfg_ref),
       logger(log_ref),
+      myevents(std::make_unique<event_manager>()),
       playerinfo(pi) {
     /****************************************************************
             custom mission generation:
@@ -374,7 +377,7 @@ game::game(class cfg& cfg_ref, class log& log_ref, const string &filename)
       particles(myworld->get_particles_mut()),
       config(cfg_ref),
       logger(log_ref),
-      my_run_state(running), player(0),
+      my_run_state(running), myevents(std::make_unique<event_manager>()), player(0),
       time(0), last_trail_time(0), max_view_dist(0), networktype(0), servercon(0),
       freezetime(0), freezetime_start(0) {
     xml_doc doc(filename);
@@ -753,7 +756,7 @@ void game::simulate(double delta_t) {
     }
 
     // kill events left over from last run
-    events.clear();
+    myevents->clear_events();
 
     // check if jobs are to be run
     for (list<pair<double, job *>>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
@@ -1349,11 +1352,11 @@ void game::spawn_gun_shell(std::unique_ptr<gun_shell> s, const double &calibre) 
     myworld->spawn_gun_shell(std::move(s));
     // vary the sound effect based on the gun size
     if (calibre <= 120.0)
-        events.push_back(std::make_unique<event_gunfire_light>(pos));
+        myevents->add_event(std::make_unique<event_gunfire_light>(pos));
     else if (calibre <= 200.0)
-        events.push_back(std::make_unique<event_gunfire_medium>(pos));
+        myevents->add_event(std::make_unique<event_gunfire_medium>(pos));
     else
-        events.push_back(std::make_unique<event_gunfire_heavy>(pos));
+        myevents->add_event(std::make_unique<event_gunfire_heavy>(pos));
 }
 
 void game::spawn_water_splash(std::unique_ptr<water_splash> s) {
@@ -1363,7 +1366,7 @@ void game::spawn_water_splash(std::unique_ptr<water_splash> s) {
 void game::spawn_depth_charge(std::unique_ptr<depth_charge> dc) {
     vector3 pos = dc->get_pos();
     myworld->spawn_depth_charge(std::move(dc));
-    events.push_back(std::make_unique<event_depth_charge_in_water>(pos));
+    myevents->add_event(std::make_unique<event_depth_charge_in_water>(pos));
 }
 
 void game::spawn_convoy(std::unique_ptr<convoy> cv) {
@@ -1377,7 +1380,7 @@ void game::spawn_particle(std::unique_ptr<particle> pt) {
 void game::dc_explosion(const depth_charge &dc) {
     // Create water splash.
     spawn_water_splash(std::make_unique<depth_charge_water_splash>(*this, dc.get_pos().xy().xy0()));
-    events.push_back(std::make_unique<event_depth_charge_exploding>(dc.get_pos()));
+    myevents->add_event(std::make_unique<event_depth_charge_exploding>(dc.get_pos()));
 
     // are subs affected?
     // fixme: ships can be damaged by DCs also...
@@ -1392,11 +1395,11 @@ void game::torp_explode(const torpedo *t) {
     // each torpedo seems to explode twice, if it's only drawn twice or adds twice the damage is unknown.
     // fixme!
     spawn_water_splash(std::make_unique<torpedo_water_splash>(*this, t->get_pos().xy().xy0()));
-    events.push_back(std::make_unique<event_torpedo_explosion>(t->get_pos()));
+    myevents->add_event(std::make_unique<event_torpedo_explosion>(t->get_pos()));
 }
 
 void game::ship_sunk(const ship *s) {
-    events.push_back(std::make_unique<event_ship_sunk>());
+    myevents->add_event(std::make_unique<event_ship_sunk>());
     ostringstream oss;
     oss << texts::get(83) << " " << s->get_description(2);
     date d((unsigned)time);
@@ -1429,7 +1432,7 @@ void game::ping_ASDIC(list<vector3> &contacts, sea_object *d,
         pings.push_back(ping(d->get_pos().xy(),
                              ass->get_bearing() + d->get_heading(), time,
                              ass->get_range(), ass->get_detection_cone()));
-        events.push_back(std::make_unique<event_ping>(d->get_pos()));
+        myevents->add_event(std::make_unique<event_ping>(d->get_pos()));
 
         // fixme: noise from ships can disturb ASDIC or may generate more contacs.
         // ocean floor echoes ASDIC etc...
@@ -1499,7 +1502,7 @@ bool game::check_torpedo_hit(torpedo *t, bool runlengthfailure) {
 
     if (s) {
         if (runlengthfailure) {
-            events.push_back(std::make_unique<event_torpedo_dud_shortrange>());
+            myevents->add_event(std::make_unique<event_torpedo_dud_shortrange>());
         } else {
             // Only ships that are alive can be sunk. Already sinking
             // or destroyed ships cannot be destroyed again.
@@ -1508,7 +1511,7 @@ bool game::check_torpedo_hit(torpedo *t, bool runlengthfailure) {
 
             // now check if torpedo fuse works
             if (!t->test_contact_fuse()) {
-                events.push_back(std::make_unique<event_torpedo_dud>());
+                myevents->add_event(std::make_unique<event_torpedo_dud>());
                 return true;
             }
 
@@ -2188,4 +2191,12 @@ double game::simulate_worker::sync() {
         condfini.wait(mtx);
     }
     return nearest_contact;
+}
+
+void game::add_event(event *e) {
+    myevents->add_event(e);
+}
+
+const std::list<std::unique_ptr<event>> &game::get_events() const {
+    return myevents->get_events();
 }

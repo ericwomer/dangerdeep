@@ -18,6 +18,7 @@ set(DFTDSOURCES
 	depth_charge.cpp
 	dftdtester/tests.cpp
 	event.cpp
+	event_manager.cpp
 	freeview_display.cpp
 	game.cpp
 	game_editor.cpp
