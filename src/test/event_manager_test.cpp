@@ -1,14 +1,15 @@
 /*
  * Test para event_manager: gestión de eventos del juego.
  * Nota: Este test es limitado porque event es una clase abstracta compleja.
+ * Usamos stubs para evitar las dependencias pesadas.
  */
+#include "event_stub.h"  // Stub de event ANTES de event_manager.h
 #include "../event_manager.h"
 #include <cassert>
 #include <cstdio>
 #include <memory>
 
-// Forward declarations
-class event;
+// Forward declaration
 class user_interface;
 
 int main() {
@@ -44,7 +45,8 @@ int main() {
     assert(events.empty());
     assert(events.size() == 0);
     
-    // Nota: Para tests más completos de event_manager, se necesitarían:
+    // Nota: No podemos testear add_event() o evaluate_events() sin crear eventos concretos.
+    // Para tests más completos de event_manager, se necesitarían:
     // 1. Clases derivadas concretas de event para testing
     // 2. Mock de user_interface para evaluate_events
     // 3. Verificación de ownership y lifecycle de eventos

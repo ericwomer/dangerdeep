@@ -284,35 +284,30 @@ add_executable(visibility_manager_test ${TEST_DIR}/visibility_manager_test.cpp $
 target_link_libraries(visibility_manager_test ${LIBS})
 add_test(NAME visibility_manager_test COMMAND visibility_manager_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-# time_freezer_test: requiere system.cpp (dependencias pesadas de OpenGL/SDL)
-# add_executable(time_freezer_test ${TEST_DIR}/time_freezer_test.cpp ${SRC_PARENT}/time_freezer.cpp)
-# target_link_libraries(time_freezer_test ${LIBS})
-# add_test(NAME time_freezer_test COMMAND time_freezer_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_executable(time_freezer_test ${TEST_DIR}/time_freezer_test.cpp ${TEST_DIR}/time_freezer_stub.cpp)
+target_link_libraries(time_freezer_test ${LIBS})
+add_test(NAME time_freezer_test COMMAND time_freezer_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-# scoring_manager_test: requiere xml.cpp y tiene dependencias pesadas
-# add_executable(scoring_manager_test ${TEST_DIR}/scoring_manager_test.cpp ${SRC_PARENT}/scoring_manager.cpp ${SRC_PARENT}/date.cpp ${SRC_PARENT}/xml.cpp)
-# target_link_libraries(scoring_manager_test ${LIBS})
-# add_test(NAME scoring_manager_test COMMAND scoring_manager_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_executable(scoring_manager_test ${TEST_DIR}/scoring_manager_test.cpp ${SRC_PARENT}/scoring_manager.cpp ${SRC_PARENT}/date.cpp ${SRC_PARENT}/xml.cpp)
+target_link_libraries(scoring_manager_test ${LIBS})
+add_test(NAME scoring_manager_test COMMAND scoring_manager_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-# ping_manager_test: requiere xml.cpp (dependencias pesadas)
-# add_executable(ping_manager_test ${TEST_DIR}/ping_manager_test.cpp ${SRC_PARENT}/ping_manager.cpp)
-# target_link_libraries(ping_manager_test ${LIBS})
-# add_test(NAME ping_manager_test COMMAND ping_manager_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_executable(ping_manager_test ${TEST_DIR}/ping_manager_test.cpp ${SRC_PARENT}/ping_manager.cpp ${SRC_PARENT}/xml.cpp)
+target_link_libraries(ping_manager_test ${LIBS})
+add_test(NAME ping_manager_test COMMAND ping_manager_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-# lighting_system_test: requiere xml.cpp vía date.cpp (dependencias pesadas)
-# add_executable(lighting_system_test ${TEST_DIR}/lighting_system_test.cpp ${SRC_PARENT}/lighting_system.cpp ${SRC_PARENT}/moon.cpp ${SRC_PARENT}/stars.cpp ${SRC_PARENT}/date.cpp)
+# lighting_system_test: requiere shader.cpp, glsl_program, texture (OpenGL/dependencias muy pesadas)
+# add_executable(lighting_system_test ${TEST_DIR}/lighting_system_test.cpp ${SRC_PARENT}/lighting_system.cpp ${SRC_PARENT}/moon.cpp ${SRC_PARENT}/stars.cpp ${SRC_PARENT}/date.cpp ${SRC_PARENT}/xml.cpp)
 # target_link_libraries(lighting_system_test ${LIBS})
 # add_test(NAME lighting_system_test COMMAND lighting_system_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-# physics_system_test: requiere sea_object, ship, bv_tree (dependencias pesadas)
-# add_executable(physics_system_test ${TEST_DIR}/physics_system_test.cpp ${SRC_PARENT}/physics_system.cpp)
-# target_link_libraries(physics_system_test ${LIBS})
-# add_test(NAME physics_system_test COMMAND physics_system_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_executable(physics_system_test ${TEST_DIR}/physics_system_test.cpp ${TEST_DIR}/physics_system_stub.cpp)
+target_link_libraries(physics_system_test ${LIBS})
+add_test(NAME physics_system_test COMMAND physics_system_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-# event_manager_test: event es una clase abstracta con dependencias pesadas
-# add_executable(event_manager_test ${TEST_DIR}/event_manager_test.cpp ${SRC_PARENT}/event_manager.cpp)
-# target_link_libraries(event_manager_test ${LIBS})
-# add_test(NAME event_manager_test COMMAND event_manager_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_executable(event_manager_test ${TEST_DIR}/event_manager_test.cpp ${TEST_DIR}/event_manager_stub.cpp)
+target_link_libraries(event_manager_test ${LIBS})
+add_test(NAME event_manager_test COMMAND event_manager_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(logbook_test ${TEST_DIR}/logbook_test.cpp ${SRC_PARENT}/logbook.cpp)
 target_link_libraries(logbook_test ${LIBS})
