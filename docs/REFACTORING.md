@@ -282,8 +282,7 @@ add_catch2_test(test_name source1.cpp source2.cpp ...)
 5. **Edge cases**: Valores máximos, nullptr, secuencias repetidas, estado inmutable
 
 **Estadísticas de tests:**
-- Total: **66/67 tests pasan (98.5%)**
-- Fallo conocido: `parser_test` (requiere data dir)
+- Total: **67/67 tests pasan (100%)** ✅
 - Tests con Catch2: **11 archivos**
 - Tests con assert: **56 archivos**
 - Casos de test en subsistemas: **68 tests Catch2**
