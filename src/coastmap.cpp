@@ -509,7 +509,6 @@ vector2i coastmap::compute_segment(const vector2i &p0, const vector2i &p1) const
     // p0 can be on a corner, on an edge or really inside the segment. handle the three cases
     if (segoff0.x > 0 && segoff0.y > 0) {
         // truly inside
-        return segnum0;
     } else if (segoff0.x == 0 && segoff0.y == 0) {
         // on a corner
         // direction to p1 determines segment of p0. Land is left of line p0->p1
@@ -530,9 +529,6 @@ vector2i coastmap::compute_segment(const vector2i &p0, const vector2i &p1) const
             break;
             // in other cases (1, 2) segment is the same
         }
-        ASSERT(segnum0.x < segsx, "segnum0.x out of bounds");
-        ASSERT(segnum0.y < segsy, "segnum0.y out of bounds");
-        return segnum0;
     } else {
         // on an edge, it can be the left or bottom edge
         unsigned q = quadrant(p1 - p0);
@@ -550,10 +546,14 @@ vector2i coastmap::compute_segment(const vector2i &p0, const vector2i &p1) const
                 --segnum0.y;
             }
         }
-        ASSERT(segnum0.x < segsx, "segnum0.x out of bounds");
-        ASSERT(segnum0.y < segsy, "segnum0.y out of bounds");
-        return segnum0;
     }
+    // Clamp to valid segment range. Bspline can produce points slightly outside the map,
+    // leading to negative segment indices and OOB coastsegments[] access -> SIGSEGV.
+    int smx = int(segsx);
+    int smy = int(segsy);
+    segnum0.x = clamp_value(::clamp_zero(segnum0.x), smx - 1);
+    segnum0.y = clamp_value(::clamp_zero(segnum0.y), smy - 1);
+    return segnum0;
 }
 
 void coastmap::divide_and_distribute_cl(const vector<vector2i> &cl, bool clcyclic) {

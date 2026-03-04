@@ -308,6 +308,16 @@ void system::set_video_mode(unsigned &res_x_, unsigned &res_y_, bool fullscreen,
     } else { // must be window resize
         SDL_SetWindowSize(screen, res_x_, res_y_);
     }
+
+    // SDL_WINDOW_FULLSCREEN_DESKTOP can resize the window to desktop resolution.
+    // We must use the actual window size so mouse coordinates match the viewport.
+    int actual_w = 0, actual_h = 0;
+    SDL_GetWindowSize(screen, &actual_w, &actual_h);
+    if (actual_w > 0 && actual_h > 0) {
+        res_x_ = unsigned(actual_w);
+        res_y_ = unsigned(actual_h);
+    }
+
     // enable VSync, but doesn't work on Linux/Nvidia/SDL 1.2.11 (?!)
     // works with Linux/Nvidia/SDL 1.2.12
     if (SDL_GL_SetSwapInterval(params.vertical_sync) < 0) {

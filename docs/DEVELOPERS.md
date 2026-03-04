@@ -203,6 +203,28 @@ gdb ./build/src/dangerdeep
 ./check.sh --asan
 ```
 
+### SIGSEGV en coastmap
+
+Si el juego crashea con SIGSEGV tras cargar el mapa de costas (mensajes de carga: music → water → coastmap):
+
+1. **Compilar con símbolos de depuración** para obtener un stack trace útil:
+   ```bash
+   cmake .. -DCMAKE_BUILD_TYPE=Debug
+   make -j$(nproc)
+   gdb ./build/src/dangerdeep
+   (gdb) run --datadir /ruta/absoluta/a/data/
+   (gdb) bt
+   ```
+
+2. **Usar AddressSanitizer** para detectar accesos OOB y fugas:
+   ```bash
+   cmake .. -DBUILD_ASAN=ON
+   make -j$(nproc)
+   ./build/src/dangerdeep --datadir ...
+   ```
+
+3. **Verificar `--datadir`**: usa una ruta absoluta o asegúrate de ejecutar desde el directorio del proyecto cuando uses rutas relativas.
+
 ## 📦 Dependencias
 
 ### Build Essentials
