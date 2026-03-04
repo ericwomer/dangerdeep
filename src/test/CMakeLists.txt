@@ -106,13 +106,13 @@ add_executable(bitstream_test ${TEST_DIR}/bitstream_test.cpp ${SRC_PARENT}/bitst
 target_link_libraries(bitstream_test ${LIBS})
 add_test(NAME bitstream_test COMMAND bitstream_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-# mutex_test: mutex + error (requieren SDL2)
-add_executable(mutex_test ${TEST_DIR}/mutex_test.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp)
+# mutex_test: mutex + error (stub display_get_error para tests)
+add_executable(mutex_test ${TEST_DIR}/mutex_test.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
 target_link_libraries(mutex_test ${LIBS})
 add_test(NAME mutex_test COMMAND mutex_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 # parser_test: parser + error; ruta CSV por argv[1] o env DFTD_DATA
-add_executable(parser_test ${TEST_DIR}/parser_test.cpp ${SRC_PARENT}/parser.cpp ${SRC_PARENT}/error.cpp)
+add_executable(parser_test ${TEST_DIR}/parser_test.cpp ${SRC_PARENT}/parser.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
 target_link_libraries(parser_test ${LIBS})
 add_test(NAME parser_test COMMAND parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 # Configurar variable de entorno para que el test encuentre los datos
@@ -143,8 +143,8 @@ add_executable(matrix4_test ${TEST_DIR}/matrix4_test.cpp)
 target_link_libraries(matrix4_test ${LIBS})
 add_test(NAME matrix4_test COMMAND matrix4_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-# condvar_test: condvar + mutex + error (SDL2)
-add_executable(condvar_test ${TEST_DIR}/condvar_test.cpp ${SRC_PARENT}/condvar.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp)
+# condvar_test: condvar + mutex + error (stub display_get_error)
+add_executable(condvar_test ${TEST_DIR}/condvar_test.cpp ${SRC_PARENT}/condvar.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
 target_link_libraries(condvar_test ${LIBS})
 add_test(NAME condvar_test COMMAND condvar_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -199,15 +199,15 @@ add_test(NAME cfg_key_test COMMAND cfg_key_test WORKING_DIRECTORY ${CMAKE_CURREN
 
 add_catch2_test(bv_tree_leaf_test)
 
-add_executable(datadirs_test ${TEST_DIR}/datadirs_test.cpp ${SRC_PARENT}/datadirs.cpp ${SRC_PARENT}/filehelper.cpp ${SRC_PARENT}/log.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp)
+add_executable(datadirs_test ${TEST_DIR}/datadirs_test.cpp ${SRC_PARENT}/datadirs.cpp ${SRC_PARENT}/filehelper.cpp ${SRC_PARENT}/log.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
 target_link_libraries(datadirs_test ${LIBS})
 add_test(NAME datadirs_test COMMAND datadirs_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(filehelper_test ${TEST_DIR}/filehelper_test.cpp ${SRC_PARENT}/filehelper.cpp ${SRC_PARENT}/error.cpp)
+add_executable(filehelper_test ${TEST_DIR}/filehelper_test.cpp ${SRC_PARENT}/filehelper.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
 target_link_libraries(filehelper_test ${LIBS})
 add_test(NAME filehelper_test COMMAND filehelper_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(log_test ${TEST_DIR}/log_test.cpp ${SRC_PARENT}/log.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp)
+add_executable(log_test ${TEST_DIR}/log_test.cpp ${SRC_PARENT}/log.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
 target_link_libraries(log_test ${LIBS})
 add_test(NAME log_test COMMAND log_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -229,7 +229,7 @@ add_executable(fractal_test ${TEST_DIR}/fractal_test.cpp ${SRC_PARENT}/simplex_n
 target_link_libraries(fractal_test ${LIBS})
 add_test(NAME fractal_test COMMAND fractal_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(thread_test ${TEST_DIR}/thread_test.cpp ${SRC_PARENT}/thread.cpp ${SRC_PARENT}/condvar.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${SRC_PARENT}/log.cpp)
+add_executable(thread_test ${TEST_DIR}/thread_test.cpp ${SRC_PARENT}/thread.cpp ${SRC_PARENT}/condvar.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${SRC_PARENT}/log.cpp ${TEST_DIR}/display_backend_stub.cpp)
 target_link_libraries(thread_test ${LIBS})
 add_test(NAME thread_test COMMAND thread_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 

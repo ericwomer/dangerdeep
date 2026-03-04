@@ -7,74 +7,117 @@ on:
     branches: [ master, main, develop ]
 
 jobs:
-  build-and-test:
-    name: Build and Test
+  build-sdl2:
+    name: Build SDL2
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
-    
-    - name: Cache apt packages
-      uses: actions/cache@v4
+
+    - uses: actions/cache@v4
       with:
         path: |
           /var/cache/apt/archives/partial
           /var/cache/apt/archives
-        key: ${{ runner.os }}-apt-${{ hashFiles('CMakeLists.txt') }}
-        restore-keys: ${{ runner.os }}-apt-
-    
-    - name: Install dependencies
+        key: ${{ runner.os }}-apt-sdl2-${{ hashFiles('CMakeLists.txt') }}
+        restore-keys: ${{ runner.os }}-apt-sdl2-
+
+    - name: Install dependencies (SDL2)
       run: |
         sudo apt-get update -qq
         sudo apt-get install -y \
-          build-essential \
-          cmake \
-          libbz2-dev \
-          libfftw3-dev \
-          libsdl2-dev \
-          libsdl2-image-dev \
-          libsdl2-mixer-dev \
-          libsdl2-net-dev \
-          libopenal-dev \
-          libgl1-mesa-dev \
-          libglu1-mesa-dev \
-          libtinyxml-dev \
-          ccache
-    
-    - name: Setup ccache
-      uses: hendrikmuhs/ccache-action@v1.2
+          build-essential cmake ccache \
+          libbz2-dev libfftw3-dev libtinyxml-dev \
+          libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-net-dev \
+          libopenal-dev libgl1-mesa-dev libglu1-mesa-dev
+
+    - uses: hendrikmuhs/ccache-action@v1.2
       with:
-        key: ${{ runner.os }}-ccache-${{ hashFiles('CMakeLists.txt', 'src/CMakeLists.txt', 'src/test/CMakeLists.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-ccache-
-    
-    - name: Configure CMake
+        key: ${{ runner.os }}-ccache-sdl2-${{ hashFiles('CMakeLists.txt', 'src/CMakeLists.txt', 'src/test/CMakeLists.txt') }}
+        restore-keys: ${{ runner.os }}-ccache-sdl2-
+
+    - name: Configure CMake (SDL2)
       run: |
         mkdir -p build
         cd build
-        cmake .. \
-          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-          -DBUILD_UNIT_TESTS=ON \
-          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-    
+        cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_UNIT_TESTS=ON \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
     - name: Build
-      run: |
-        cd build
-        make -j$(nproc)
-    
+      run: cd build && make -j$(nproc)
+
     - name: Run Tests
       run: |
         cd build
         export DFTD_DATA=${{ github.workspace }}/data
         ctest --output-on-failure --timeout 30
-    
+
     - name: Upload test results
       if: failure()
       uses: actions/upload-artifact@v4
       with:
-        name: test-results
+        name: test-results-sdl2
         path: build/Testing/Temporary/LastTest.log
+
+  build-sdl3:
+    name: Build SDL3
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - uses: libsdl-org/setup-sdl@main
+      id: sdl
+      with:
+        install-linux-dependencies: true
+        add-to-environment: true
+        version: 3-latest
+        version-sdl-image: 3-latest
+        version-sdl-mixer: 3-latest
+
+    - uses: actions/cache@v4
+      with:
+        path: |
+          /var/cache/apt/archives/partial
+          /var/cache/apt/archives
+        key: ${{ runner.os }}-apt-sdl3-${{ hashFiles('CMakeLists.txt') }}
+        restore-keys: ${{ runner.os }}-apt-sdl3-
+
+    - name: Install other dependencies
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y \
+          build-essential cmake ccache \
+          libbz2-dev libfftw3-dev libtinyxml-dev \
+          libopenal-dev libgl1-mesa-dev libglu1-mesa-dev
+
+    - uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ runner.os }}-ccache-sdl3-${{ hashFiles('CMakeLists.txt', 'src/CMakeLists.txt', 'src/test/CMakeLists.txt') }}
+        restore-keys: ${{ runner.os }}-ccache-sdl3-
+
+    - name: Configure CMake (SDL3)
+      run: |
+        mkdir -p build-sdl3
+        cd build-sdl3
+        cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_UNIT_TESTS=ON -DUSE_SDL3=ON \
+          -DCMAKE_PREFIX_PATH=${{ steps.sdl.outputs.prefix }} \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+    - name: Build
+      run: cd build-sdl3 && make -j$(nproc)
+
+    - name: Run Tests
+      run: |
+        cd build-sdl3
+        export DFTD_DATA=${{ github.workspace }}/data
+        ctest --output-on-failure --timeout 30
+
+    - name: Upload test results
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-sdl3
+        path: build-sdl3/Testing/Temporary/LastTest.log
