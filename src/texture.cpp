@@ -166,9 +166,10 @@ std::vector<uint8_t> sdl_image::get_plain_data(unsigned &w, unsigned &h, unsigne
 #ifdef USE_SDL3
 void texture::sdl_init(SDL_Surface *teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
                        bool makenormalmap, float detailh, bool rgb2grey) {
-    // SDL3: convertir a formato estándar y usar image_data_init
+    /* SDL3: igual que image_loader - ABGR8888/RGB24 para byte order correcto
+     * (R,G,B,A en memoria para OpenGL). */
     bool has_alpha = SDL_ISPIXELFORMAT_ALPHA(teximage->format);
-    SDL_PixelFormat dst_fmt = has_alpha ? SDL_PIXELFORMAT_RGBA8888 : SDL_PIXELFORMAT_XRGB8888;
+    SDL_PixelFormat dst_fmt = has_alpha ? SDL_PIXELFORMAT_ABGR8888 : SDL_PIXELFORMAT_RGB24;
     SDL_Surface *conv = SDL_ConvertSurface(teximage, dst_fmt);
     if (!conv)
         throw texerror(get_name(), std::string("SDL surface conversion failed: ") + SDL_GetError());
@@ -181,15 +182,7 @@ void texture::sdl_init(SDL_Surface *teximage, unsigned sx, unsigned sy, unsigned
     img.pixels.resize(img.width * img.height * img.bytes_per_pixel);
     const unsigned char *src = static_cast<const unsigned char *>(conv->pixels);
     for (int y = 0; y < conv->h; ++y) {
-        if (has_alpha) {
-            memcpy(img.pixels.data() + y * img.pitch, src + y * conv->pitch, img.pitch);
-        } else {
-            for (int x = 0; x < conv->w; ++x) {
-                img.pixels[y * img.pitch + x * 3 + 0] = src[y * conv->pitch + x * 4 + 0];
-                img.pixels[y * img.pitch + x * 3 + 1] = src[y * conv->pitch + x * 4 + 1];
-                img.pixels[y * img.pitch + x * 3 + 2] = src[y * conv->pitch + x * 4 + 2];
-            }
-        }
+        memcpy(img.pixels.data() + y * img.pitch, src + y * conv->pitch, img.pitch);
     }
     SDL_DestroySurface(conv);
     image_data_init(img, sx, sy, sw, sh, makenormalmap, detailh, rgb2grey);

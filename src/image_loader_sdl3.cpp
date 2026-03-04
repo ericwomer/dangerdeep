@@ -36,13 +36,15 @@ class image_loader_sdl3 : public image_loader_backend {
 
         bool has_alpha = SDL_ISPIXELFORMAT_ALPHA(surf->format);
 
+        /* Igual que SDL2: ABGR8888 en little-endian produce R,G,B,A en memoria
+         * (correcto para OpenGL GL_RGBA). RGB24 da R,G,B directo. */
         SDL_PixelFormat dst_format;
         if (has_alpha) {
-            dst_format = SDL_PIXELFORMAT_RGBA8888;
+            dst_format = SDL_PIXELFORMAT_ABGR8888;
             data->bytes_per_pixel = 4;
             data->gl_format = 0x1908;  // GL_RGBA
         } else {
-            dst_format = SDL_PIXELFORMAT_XRGB8888;
+            dst_format = SDL_PIXELFORMAT_RGB24;
             data->bytes_per_pixel = 3;
             data->gl_format = 0x1907;  // GL_RGB
         }
@@ -56,25 +58,12 @@ class image_loader_sdl3 : public image_loader_backend {
         const unsigned char* src = static_cast<const unsigned char*>(converted->pixels);
         const unsigned src_pitch = converted->pitch;
         unsigned char* dst = data->pixels.data();
+        const unsigned row_bytes = data->width * data->bytes_per_pixel;
 
-        if (has_alpha) {
-            const unsigned row_bytes = data->width * 4;
-            for (unsigned y = 0; y < data->height; ++y) {
-                memcpy(dst, src, row_bytes);
-                src += src_pitch;
-                dst += data->pitch;
-            }
-        } else {
-            // XRGB8888 -> RGB (3 bpp): copiar R,G,B omitiendo el byte X
-            for (unsigned y = 0; y < data->height; ++y) {
-                for (unsigned x = 0; x < data->width; ++x) {
-                    dst[x * 3 + 0] = src[x * 4 + 0];
-                    dst[x * 3 + 1] = src[x * 4 + 1];
-                    dst[x * 3 + 2] = src[x * 4 + 2];
-                }
-                src += src_pitch;
-                dst += data->pitch;
-            }
+        for (unsigned y = 0; y < data->height; ++y) {
+            memcpy(dst, src, row_bytes);
+            src += src_pitch;
+            dst += data->pitch;
         }
         SDL_DestroySurface(converted);
 
