@@ -23,7 +23,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "panel_manager.h"
 #include "texts.h"
 #include "widget.h"
-#include <SDL.h>
 #include <iomanip>
 #include <sstream>
 

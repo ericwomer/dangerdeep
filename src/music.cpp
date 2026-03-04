@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "log.h"
 #include "system.h"
 #include "xml.h"
-#include <SDL.h>
+#include "display_backend.h"
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -93,7 +93,7 @@ void music::init() {
 
     audio_backend* be = get_audio_backend();
     if (!be->init_audio_subsystem()) {
-        log_warning("Unable to initialize SDL Audio: " << SDL_GetError());
+        log_warning("Unable to initialize SDL Audio: " << display_get_error());
         use_music = false;
         return;
     }

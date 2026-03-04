@@ -46,7 +46,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vector3.h"
 #include "widget.h"
 #include "xml.h"
-#include <SDL.h>
+#include "display_backend.h"
+#include "game_event.h"
 #include <glu.h>
 
 #define VIEWMODEL
@@ -510,11 +511,11 @@ void view_model(const string &modelfilename, const string &datafilename) {
             glColor4f(1, 1, 1, 1);
         }
 
-        list<SDL_Event> events = sys().poll_event_queue();
-        for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
-            SDL_Event &event = *it;
-            if (event.type == SDL_KEYDOWN) {
-                switch (event.key.keysym.sym) {
+        list<game_event> events = sys().poll_event_queue();
+        for (list<game_event>::iterator it = events.begin(); it != events.end(); ++it) {
+            const game_event &event = *it;
+            if (event.type == event_type::KEY_DOWN) {
+                switch (event.keysym.sym) {
                 case SDLK_ESCAPE:
                     return;
                 case SDLK_KP4:
@@ -540,7 +541,7 @@ void view_model(const string &modelfilename, const string &datafilename) {
                     break;
                 case SDLK_s: {
                     // Allow user to save smoke position
-                    if (smoke && (SDL_GetModState() & (KMOD_LCTRL | KMOD_RCTRL))) {
+                    if (smoke && (display_get_mod_state() & (DFTD_KMOD_LCTRL | DFTD_KMOD_RCTRL))) {
                         try {
                             xml_doc dataxml(datafilename);
                             dataxml.load();
@@ -576,40 +577,39 @@ void view_model(const string &modelfilename, const string &datafilename) {
                 default:
                     break;
                 }
-            } else if (event.type == SDL_MOUSEMOTION) {
+            } else if (event.type == event_type::MOUSE_MOTION) {
                 vector2 motion = sys().translate_motion(event) * 0.5;
-                if (event.motion.state & SDL_BUTTON_LMASK) {
+                if (event.motion_state & MOUSE_BUTTON_LMASK) {
                     viewangles.y += motion.x;
                     viewangles.x += motion.y;
-                } else if (event.motion.state & SDL_BUTTON_RMASK) {
+                } else if (event.motion_state & MOUSE_BUTTON_RMASK) {
                     viewangles.z += motion.x;
                     viewangles.x += motion.y;
-                } else if (event.motion.state & SDL_BUTTON_MMASK) {
+                } else if (event.motion_state & MOUSE_BUTTON_MMASK) {
                     pos.x += motion.x;
                     pos.y += motion.y;
                 }
-            } else if (event.type == SDL_MOUSEBUTTONDOWN) {
-                // Check if x,,y,z are pressed and if so mouse wheel moves smoke position by delta.
+            } else if (event.type == event_type::MOUSE_BUTTON_DOWN) {
+                // Check if x,y,z are pressed and if so mouse wheel moves smoke position by delta.
                 // delta is either 1.0 if a shift key is pressed or 0.1 otherwise.
-                Uint8 *keys = SDL_GetKeyState(NULL);
-                float delta = (SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT)) ? 1.000 : 0.100;
+                float delta = (display_get_mod_state() & (DFTD_KMOD_LSHIFT | DFTD_KMOD_RSHIFT)) ? 1.000f : 0.100f;
 
-                if (event.button.button == SDL_BUTTON_WHEELUP) {
-                    if (keys[SDLK_x]) {
+                if (event.button_button == MOUSE_BUTTON_WHEELUP) {
+                    if (display_is_key_down(SDLK_x)) {
                         smoke_pos.x += delta;
-                    } else if (keys[SDLK_y]) {
+                    } else if (display_is_key_down(SDLK_y)) {
                         smoke_pos.y += delta;
-                    } else if (keys[SDLK_z]) {
+                    } else if (display_is_key_down(SDLK_z)) {
                         smoke_pos.z += delta;
                     } else {
                         pos.z -= 2;
                     }
-                } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
-                    if (keys[SDLK_x]) {
+                } else if (event.button_button == MOUSE_BUTTON_WHEELDOWN) {
+                    if (display_is_key_down(SDLK_x)) {
                         smoke_pos.x -= delta;
-                    } else if (keys[SDLK_y]) {
+                    } else if (display_is_key_down(SDLK_y)) {
                         smoke_pos.y -= delta;
-                    } else if (keys[SDLK_z]) {
+                    } else if (display_is_key_down(SDLK_z)) {
                         smoke_pos.z -= delta;
                     } else {
                         pos.z += 2;

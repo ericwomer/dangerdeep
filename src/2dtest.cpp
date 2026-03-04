@@ -42,11 +42,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "objcache.h"
 #include "primitives.h"
 #include "system.h"
+#include "display_backend.h"
 #include "texture.h"
 #include "vector3.h"
 #include "widget.h"
 #include "xml.h"
-#include <SDL.h>
 #include <glu.h>
 
 #include "mymain.cpp"
@@ -328,7 +328,7 @@ int mymain(list<string> &args) {
 
         sys().swap_buffers();
 
-        SDL_Delay(5000);
+        display_delay(5000);
     }
 
     delete test_texture;

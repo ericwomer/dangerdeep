@@ -57,7 +57,7 @@ class panel_manager {
               unsigned time_scale, const std::string &game_time);
 
     /// Check if panel should process mouse event
-    /// @param event - SDL event to check
+    /// @param event - game event to check
     /// @return true if event was handled by panel
     bool check_mouse_event(const game_event &event);
 

@@ -26,9 +26,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif
 
 #include "oglext/OglExt.h"
-#include <SDL.h>
 #include <glu.h>
 
+#include "game_event.h"
 #include "cfg.h"
 #include "datadirs.h"
 #include "faulthandler.h"
@@ -570,14 +570,14 @@ void run() {
 
         vector3 oldpos = pos;
         const double movesc = 0.25;
-        list<SDL_Event> events = sys().poll_event_queue();
+        list<game_event> events = sys().poll_event_queue();
         vector3 forward = -invmvr.column3(2) * movesc;
         vector3 upward = invmvr.column3(1) * movesc;
         vector3 sideward = invmvr.column3(0) * movesc;
-        for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
-            SDL_Event &event = *it;
-            if (event.type == SDL_KEYDOWN) {
-                switch (event.key.keysym.sym) {
+        for (list<game_event>::iterator it = events.begin(); it != events.end(); ++it) {
+            const game_event &event = *it;
+            if (event.type == event_type::KEY_DOWN) {
+                switch (event.keysym.sym) {
                 case SDLK_ESCAPE:
                     return;
                 case SDLK_KP4:
@@ -601,8 +601,8 @@ void run() {
                 default:
                     break;
                 }
-            } else if (event.type == SDL_KEYUP) {
-                switch (event.key.keysym.sym) {
+            } else if (event.type == event_type::KEY_UP) {
+                switch (event.keysym.sym) {
                 case SDLK_KP4:
                     mv_sideward = 0;
                     break;
@@ -624,18 +624,18 @@ void run() {
                 default:
                     break;
                 }
-            } else if (event.type == SDL_MOUSEMOTION) {
+            } else if (event.type == event_type::MOUSE_MOTION) {
                 vector2 motion = sys().translate_motion(event) * 0.5;
-                if (event.motion.state & SDL_BUTTON_LMASK) {
+                if (event.motion_state & MOUSE_BUTTON_LMASK) {
                     viewangles.z -= motion.x;
                     viewangles.x -= motion.y;
-                } else if (event.motion.state & SDL_BUTTON_RMASK) {
+                } else if (event.motion_state & MOUSE_BUTTON_RMASK) {
                     viewangles.y += motion.x;
                     // 				} else if (event.motion.state & SDL_BUTTON_MMASK) {
                     // 					pos.x += motion.x;
                     // 					pos.y += motion.y;
                 }
-            } else if (event.type == SDL_MOUSEBUTTONDOWN) {
+            } else if (event.type == event_type::MOUSE_BUTTON_DOWN) {
                 // 				if (event.button.button == SDL_BUTTON_WHEELUP) {
                 // 					pos.z -= movesc;
                 // 				} else if (event.button.button == SDL_BUTTON_WHEELDOWN) {

@@ -36,7 +36,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "thread.h"
 #include "vector3.h"
 #include "xml.h"
-#include <SDL.h>
 #include <glu.h>
 #include <iomanip>
 #include <iostream>

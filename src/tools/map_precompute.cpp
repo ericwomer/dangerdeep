@@ -19,7 +19,7 @@
 
 /* Splits the ETOPO1 cell-centered float binary file into tiles */
 
-#include <SDL.h>
+#include <cstdint>
 #include <fstream>
 #include <list>
 #include <sstream>
@@ -32,7 +32,7 @@
 #include "../terrain.h"
 #include "../vector2.h"
 
-inline void print_tile(morton_bivector<Sint16> &tile) {
+inline void print_tile(morton_bivector<int16_t> &tile) {
 
     for (int y = 0; y < tile.size(); y++) {
         for (int x = 0; x < tile.size(); x++) {
@@ -43,7 +43,7 @@ inline void print_tile(morton_bivector<Sint16> &tile) {
     std::cout << std::endl;
 }
 
-inline void load_tile(ifstream &file, morton_bivector<Sint16> &tile, vector2i tl, vector2i map_size, vector2i padded_size) {
+inline void load_tile(ifstream &file, morton_bivector<int16_t> &tile, vector2i tl, vector2i map_size, vector2i padded_size) {
     // from tl to br ...
 
     float buffer = 0.0;
@@ -56,7 +56,7 @@ inline void load_tile(ifstream &file, morton_bivector<Sint16> &tile, vector2i tl
             else {
                 file.seekg(((pos.y * map_size.x) + pos.x) * sizeof(float));
                 file.read((char *)&buffer, sizeof(buffer));
-                tile.at(x, y) = (Sint16)buffer;
+                tile.at(x, y) = (int16_t)buffer;
             }
         }
     }
@@ -199,7 +199,7 @@ int mymain(list<string> &args) {
     std::cout << "\tclip_br: " << clip_br << std::endl;
     std::cout << "\tstart: " << vector2i(sqr_x_start, sqr_y_start) << std::endl;
     std::cout << "\tend: " << vector2i(padded_cols, padded_rows) << std::endl;
-    morton_bivector<Sint16> tile;
+    morton_bivector<int16_t> tile;
 
     for (unsigned sqr_y = sqr_y_start; sqr_y < end_y; sqr_y += sqr_size) {
         for (unsigned sqr_x = sqr_x_start; sqr_x < end_x; sqr_x += sqr_size) {
@@ -227,7 +227,7 @@ int mymain(list<string> &args) {
             }
 
             bzip_ostream bout(&file);
-            bout.write((char *)tile.data_ptr(), tile.size() * tile.size() * sizeof(Sint16));
+            bout.write((char *)tile.data_ptr(), tile.size() * tile.size() * sizeof(int16_t));
             bout.close();
 
             file.close();
@@ -238,6 +238,6 @@ int mymain(list<string> &args) {
 }
 
 #undef write_Uint8
-#undef write_Sint16
+#undef write_int16_t
 #undef read_bw
 #undef read_bw_s

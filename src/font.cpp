@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "oglext/OglExt.h"
 #include "shader.h"
 #include "system.h"
-#include <SDL.h>
 #include <fstream>
 #include <sstream>
 using std::ifstream;

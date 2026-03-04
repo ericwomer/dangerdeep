@@ -54,6 +54,12 @@ void display_setup_events_and_cursor();
 std::list<game_event> poll_display_events();
 const char* get_key_name(key_code k);
 
+// --- Estado teclado (para viewmodel, etc.) ---
+/// Estado de modificadores (Shift, Ctrl, Alt) - valores DFTD_KMOD_*
+key_mod display_get_mod_state();
+/// true si la tecla con keycode k está pulsada
+bool display_is_key_down(key_code k);
+
 // --- Screenshot ---
 /// Guarda imagen RGB (3 bytes/pixel, row-major) como BMP
 void display_save_bmp_rgb(const char* path, const uint8_t* rgb, int w, int h);

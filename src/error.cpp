@@ -20,8 +20,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // Danger from the Deep, standard error/exception
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
+#include "display_backend.h"
 #include "error.h"
-#include <SDL.h>
 #include <sstream>
 
 #if defined(DEBUG) && defined(__GNUC__)
@@ -34,5 +34,5 @@ std::string error::str(const char *file, unsigned line) {
 #endif
 
 sdl_error::sdl_error(const std::string &msg)
-    : error(std::string("SDL error: ") + msg + std::string(", SDL: ") + SDL_GetError()) {
+    : error(std::string("SDL error: ") + msg + std::string(", SDL: ") + display_get_error()) {
 }

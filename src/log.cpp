@@ -23,23 +23,34 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "log.h"
 #include "mutex.h"
-#include <SDL.h>
+#include <cstdint>
+#include <chrono>
 #include <iostream>
 #include <list>
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <thread>
+
+static uint32_t get_current_thread_id() {
+    return static_cast<uint32_t>(std::hash<std::thread::id>{}(std::this_thread::get_id()) & 0xFFFFFFFFu);
+}
+static uint32_t get_log_time_ms() {
+    return static_cast<uint32_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count() & 0xFFFFFFFFu);
+}
 
 struct log_msg {
     log::level lvl;
-    Uint32 tid;
-    Uint32 time;
+    uint32_t tid;
+    uint32_t time;
     std::string msg;
 
     log_msg(log::level l, const std::string &m)
         : lvl(l),
-          tid(SDL_ThreadID()),
-          time(SDL_GetTicks()),
+          tid(get_current_thread_id()),
+          time(get_log_time_ms()),
           msg(m) {
     }
 
@@ -92,12 +103,12 @@ class log_internal {
   public:
     mutex mtx;
     std::list<log_msg> loglines;
-    std::map<Uint32, std::string> threadnames; // string copy, not ptr (thread may be destroyed before log write)
+    std::map<uint32_t, std::string> threadnames; // string copy, not ptr (thread may be destroyed before log write)
     log_internal() {}
 };
 
 log::log() : mylogint(std::make_unique<log_internal>()) {
-    mylogint->threadnames[SDL_ThreadID()] = "__main__";
+    mylogint->threadnames[get_current_thread_id()] = "__main__";
 }
 
 log::~log() = default;
@@ -143,7 +154,7 @@ std::string log::get_last_n_lines(unsigned n) const {
 void log::new_thread(const char *name) {
     {
         mutex_locker ml(mylogint->mtx);
-        mylogint->threadnames[SDL_ThreadID()] = name ? name : "";
+        mylogint->threadnames[get_current_thread_id()] = name ? name : "";
     }
     log_sysinfo("---------- < NEW > THREAD ----------");
 }
@@ -157,11 +168,11 @@ void log::end_thread() {
 }
 
 const char *log::get_thread_name() const {
-    return get_thread_name(SDL_ThreadID());
+    return get_thread_name(get_current_thread_id());
 }
 
 const char *log::get_thread_name(unsigned tid) const {
-    std::map<Uint32, std::string>::const_iterator it = mylogint->threadnames.find(tid);
+    std::map<uint32_t, std::string>::const_iterator it = mylogint->threadnames.find(tid);
     if (it == mylogint->threadnames.end())
         throw std::runtime_error("no thread name registered for thread! BUG!");
     return it->second.c_str();

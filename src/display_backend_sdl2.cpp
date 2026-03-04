@@ -208,6 +208,17 @@ const char* get_key_name(key_code k) {
     return s ? s : "";
 }
 
+key_mod display_get_mod_state() {
+    return static_cast<key_mod>(SDL_GetModState());
+}
+
+bool display_is_key_down(key_code k) {
+    int numkeys = 0;
+    const Uint8* state = SDL_GetKeyboardState(&numkeys);
+    SDL_Scancode sc = SDL_GetScancodeFromKey(static_cast<SDL_Keycode>(k));
+    return state && static_cast<int>(sc) < numkeys && state[sc];
+}
+
 void display_save_bmp_rgb(const char* path, const uint8_t* rgb, int w, int h) {
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
     Uint32 rmask = 0xff000000, gmask = 0x00ff0000, bmask = 0x0000ff00;
