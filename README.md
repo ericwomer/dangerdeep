@@ -9,11 +9,11 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/C++-17-00599C?logo=cplusplus&logoColor=white" alt="C++17" />
-  <img src="https://img.shields.io/badge/CMake-3.10+-064F8C?logo=cmake&logoColor=white" alt="CMake" />
+  <img src="https://img.shields.io/badge/C++-20-00599C?logo=cplusplus&logoColor=white" alt="C++20" />
+  <img src="https://img.shields.io/badge/CMake-3.20+-064F8C?logo=cmake&logoColor=white" alt="CMake" />
   <img src="https://img.shields.io/badge/SDL2-2.0-8B0000?logo=sdl" alt="SDL2" />
   <img src="https://img.shields.io/badge/OpenGL-2.x-5586A4?logo=opengl" alt="OpenGL" />
-  <img src="https://img.shields.io/badge/Linux-X11-FCC624?logo=linux&logoColor=black" alt="Linux" />
+  <img src="https://img.shields.io/badge/Linux-Wayland-FCC624?logo=linux&logoColor=black" alt="Linux" />
   <img src="https://img.shields.io/badge/License-GPL%20v2-blue" alt="GPL v2" />
 </p>
 
@@ -62,9 +62,9 @@ git lfs pull
 
 | Requisito   | Detalle                          |
 | ----------- | --------------------------------- |
-| Sistema     | Linux (X11), OpenGL 2.x o superior |
-| Compilador  | GCC o Clang, estándar C++17       |
-| CMake       | 3.10 o superior                   |
+| Sistema     | Linux (Wayland), OpenGL 2.x o superior |
+| Compilador  | GCC o Clang, estándar C++20       |
+| CMake       | 3.20 o superior                   |
 
 Dependencias de sistema (las versiones son las que proporcione tu distro; no se fijan en el proyecto):
 
@@ -77,7 +77,6 @@ Dependencias de sistema (las versiones son las que proporcione tu distro; no se 
 | **TinyXML**   | XML (datos, config)| 2.6.x                       |
 | **bzip2**     | Descompresión      | 1.0.x                       |
 | **OpenGL**    | Render 3D          | 2.x (Mesa o drivers)        |
-| **X11**       | Display            | —                           |
 
 Puedes **actualizar** las dependencias con lo que ofrezca tu sistema (p. ej. en Debian/Ubuntu: `sudo apt update && sudo apt upgrade`). Al reconfigurar y recompilar, el proyecto usará las versiones instaladas. Si CMake muestra versiones al configurar (SDL2_MIXER_VERSION, etc.), son las que está usando.
 
@@ -89,9 +88,9 @@ Puedes **actualizar** las dependencias con lo que ofrezca tu sistema (p. ej. en 
 | **FFTW3 → “FFTW4”** | No | No existe FFTW4; la rama estable actual es FFTW 3.3.x. El proyecto ya usa FFTW3. |
 | **bzip2 → otro compresor** | Sí | Medio. Uso acotado: `bzip.h`/`bzip.cpp` y datos de tiles (`.bz2`). Se puede sustituir por **zstd** o **zlib** con una capa tipo stream similar; habría que reconvertir/recomprimir datos o soportar ambos formatos. |
 | **OpenGL → Vulkan** | Sí, en teoría | Muy alto. Todo el render (shaders, texturas, modelos, agua, cielo, oglext, etc.) está en OpenGL. Implica reescribir el pipeline de render. |
-| **X11 → Wayland** | Parcial / indirecto | El juego usa **SDL** para ventana e input; con SDL2 ya se puede usar Wayland si el sistema y la build de SDL lo permiten. El único uso directo de X11 está en `dftdtester` (herramienta de pruebas). Pasar a SDL3 mejoraría el soporte Wayland sin tocar X11 a mano. |
+| **X11 → Wayland** | Completado | El juego usa **SDL2** para ventana e input; se usa Wayland. |
 
-El código usa C++17 (p. ej. `std::unique_ptr`, `std::make_unique`; disponibles `std::optional`, structured bindings, `std::filesystem`).
+El código usa C++20 (p. ej. `std::unique_ptr`, `std::make_unique`, `std::optional`, concepts, ranges cuando aplica).
 
 ---
 
@@ -109,8 +108,7 @@ sudo apt-get install -y \
   libsdl2-mixer-dev \
   libtinyxml-dev \
   libgl1-mesa-dev \
-  libglu1-mesa-dev \
-  libx11-dev
+  libglu1-mesa-dev
 ```
 
 Opcionales para formato, lint, tests y cobertura:
@@ -176,18 +174,28 @@ El proyecto usa **GitHub Actions** para integración y despliegue continuo. Todo
 
 ### Workflows Configurados
 
-| Workflow | Qué verifica | Badge |
-|----------|--------------|-------|
-| **CI** | Build + Tests (98 tests unitarios) | ![CI](https://github.com/cavazquez/dangerdeep/actions/workflows/ci.yml/badge.svg) |
-| **Format** | Código cumple estilo (clang-format) | ![Format](https://github.com/cavazquez/dangerdeep/actions/workflows/format.yml/badge.svg) |
-| **Lint** | Análisis estático (cppcheck) | ![Lint](https://github.com/cavazquez/dangerdeep/actions/workflows/lint.yml/badge.svg) |
-| **Coverage** | Reporte de cobertura de código | ![Coverage](https://github.com/cavazquez/dangerdeep/actions/workflows/coverage.yml/badge.svg) |
+### Workflows Configurados
+
+<p align="center">
+  <img src="https://github.com/cavazquez/dangerdeep/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  <img src="https://github.com/cavazquez/dangerdeep/actions/workflows/format.yml/badge.svg" alt="Format" />
+  <img src="https://github.com/cavazquez/dangerdeep/actions/workflows/coverage.yml/badge.svg" alt="Coverage" />
+</p>
+
+| Workflow | Qué verifica | Cuándo |
+|----------|--------------|--------|
+| **CI** | Build + Tests (98 tests) | Push / PR |
+| **Format** | clang-format | Push / PR |
+| **Coverage** | Cobertura de código | Push / PR (master, main) |
+| **Lint** | cppcheck completo | Solo manual (Actions → Run workflow) |
+
+> El lint completo (cppcheck) tarda varios minutos; se ejecuta manualmente desde la pestaña Actions de GitHub.
 
 ### Características
 
 - ✅ **Build automático**: Compila en Ubuntu latest con todas las dependencias
 - ✅ **98 tests**: Ejecuta toda la suite de tests unitarios (100% passing)
-- ✅ **Cache ccache**: Compilaciones incrementales más rápidas
+- ✅ **Cache**: ccache para compilación, apt para dependencias (builds más rápidos)
 - ✅ **Format check**: Verifica que el código sigue el estilo del proyecto
 - ✅ **Static analysis**: cppcheck detecta problemas potenciales
 - ✅ **Coverage**: Genera reportes de cobertura de código
@@ -234,7 +242,7 @@ Los tests unitarios usan **CTest**; `parser_test` necesita el directorio `data/`
 Para el reporte de cobertura se usa **lcov** con *branch coverage*; instalación: `sudo apt install lcov`.
 
 > Con **Valgrind**, el juego se lanza con `--datadir` apuntando a `data/`. Si los assets son punteros Git LFS, el script avisa y sugiere `git lfs pull`.  
-> El script usa `valgrind-suppressions.supp` para ignorar fugas conocidas de librerías del sistema (NVIDIA, X11, SDL2, PulseAudio, D-Bus); el test solo falla si hay fugas en código del proyecto.
+> El script usa `valgrind-suppressions.supp` para ignorar fugas conocidas de librerías del sistema (NVIDIA, SDL2, PulseAudio, D-Bus); el test solo falla si hay fugas en código del proyecto.
 
 ---
 
@@ -252,8 +260,8 @@ Para el reporte de cobertura se usa **lcov** con *branch coverage*; instalación
 
 | Categoría | Herramienta | Uso |
 |-----------|--------------|-----|
-| **Lenguaje** | C++17 | Core del proyecto |
-| **Build** | CMake 3.10+ | Sistema de compilación |
+| **Lenguaje** | C++20 | Core del proyecto |
+| **Build** | CMake 3.20+ | Sistema de compilación |
 | **Gráficos** | OpenGL 2.x | Render 3D |
 | **Multimedia** | SDL2 | Ventanas, input, audio, imágenes |
 | **Matemáticas** | FFTW3 | FFT (sonar, simulación) |

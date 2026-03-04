@@ -1,10 +1,8 @@
 name: Lint (cppcheck)
 
+# Solo se ejecuta manualmente; cppcheck completo tarda mucho
 on:
-  push:
-    branches: [ master, main, develop ]
-  pull_request:
-    branches: [ master, main, develop ]
+  workflow_dispatch:
 
 jobs:
   lint:
@@ -15,9 +13,18 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Cache apt
+      uses: actions/cache@v4
+      with:
+        path: |
+          /var/cache/apt/archives/partial
+          /var/cache/apt/archives
+        key: ${{ runner.os }}-apt-lint
+        restore-keys: ${{ runner.os }}-apt-
+    
     - name: Install cppcheck
       run: |
-        sudo apt-get update
+        sudo apt-get update -qq
         sudo apt-get install -y cppcheck
     
     - name: Run lint

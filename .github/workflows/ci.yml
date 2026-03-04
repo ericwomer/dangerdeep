@@ -17,9 +17,18 @@ jobs:
       with:
         submodules: recursive
     
+    - name: Cache apt packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          /var/cache/apt/archives/partial
+          /var/cache/apt/archives
+        key: ${{ runner.os }}-apt-${{ hashFiles('CMakeLists.txt') }}
+        restore-keys: ${{ runner.os }}-apt-
+    
     - name: Install dependencies
       run: |
-        sudo apt-get update
+        sudo apt-get update -qq
         sudo apt-get install -y \
           build-essential \
           cmake \
@@ -33,13 +42,12 @@ jobs:
           libgl1-mesa-dev \
           libglu1-mesa-dev \
           libtinyxml-dev \
-          libx11-dev \
           ccache
     
     - name: Setup ccache
       uses: hendrikmuhs/ccache-action@v1.2
       with:
-        key: ${{ runner.os }}-ccache-${{ github.sha }}
+        key: ${{ runner.os }}-ccache-${{ hashFiles('CMakeLists.txt', 'src/CMakeLists.txt', 'src/test/CMakeLists.txt') }}
         restore-keys: |
           ${{ runner.os }}-ccache-
     

@@ -13,8 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Cache apt
+        uses: actions/cache@v4
+        with:
+          path: |
+            /var/cache/apt/archives/partial
+            /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-format
+          restore-keys: ${{ runner.os }}-apt-
+
       - name: Instalar clang-format
-        run: sudo apt-get update && sudo apt-get install -y clang-format
+        run: sudo apt-get update -qq && sudo apt-get install -y clang-format
 
       - name: Verificar formato
         run: ./check.sh --format
