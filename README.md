@@ -21,6 +21,7 @@ Comandá un U-Boot en un entorno 3D realista: sonar, TDC, torpedos y ataques a c
 - [Instalación](#instalación)
 - [Compilación](#compilación)
 - [Ejecución](#ejecución)
+- [CI/CD](#cicd)
 - [Tests y calidad de código](#tests-y-calidad-de-código)
 - [Estructura del proyecto](#estructura-del-proyecto)
 - [Licencia](#licencia)
@@ -150,6 +151,45 @@ Para indicar otra ruta de datos en tiempo de ejecución:
 ```
 
 Para una instalación en el sistema, configurar con: `cmake .. -Ddatadir=/usr/local/share/dangerdeep/` (o la ruta donde se instalarán los datos).
+
+---
+
+## CI/CD
+
+El proyecto usa **GitHub Actions** para integración y despliegue continuo. Todos los workflows se ejecutan automáticamente en cada push y pull request.
+
+### Workflows Configurados
+
+| Workflow | Qué verifica | Badge |
+|----------|--------------|-------|
+| **CI** | Build + Tests (98 tests unitarios) | ![CI](https://github.com/cavazquez/dangerdeep/actions/workflows/ci.yml/badge.svg) |
+| **Format** | Código cumple estilo (clang-format) | ![Format](https://github.com/cavazquez/dangerdeep/actions/workflows/format.yml/badge.svg) |
+| **Lint** | Análisis estático (cppcheck) | ![Lint](https://github.com/cavazquez/dangerdeep/actions/workflows/lint.yml/badge.svg) |
+| **Coverage** | Reporte de cobertura de código | ![Coverage](https://github.com/cavazquez/dangerdeep/actions/workflows/coverage.yml/badge.svg) |
+
+### Características
+
+- ✅ **Build automático**: Compila en Ubuntu latest con todas las dependencias
+- ✅ **98 tests**: Ejecuta toda la suite de tests unitarios (100% passing)
+- ✅ **Cache ccache**: Compilaciones incrementales más rápidas
+- ✅ **Format check**: Verifica que el código sigue el estilo del proyecto
+- ✅ **Static analysis**: cppcheck detecta problemas potenciales
+- ✅ **Coverage**: Genera reportes de cobertura de código
+- ✅ **Artifacts**: Guarda logs y reportes para debugging
+
+### Verificación Local
+
+Antes de hacer push, ejecutá localmente las mismas verificaciones que CI:
+
+```bash
+# Verificar todo
+./check.sh --format   # Formato
+./check.sh --lint     # Lint
+./check.sh --unit     # Tests
+
+# O todo en uno
+./check.sh --format && ./check.sh --lint && ./check.sh --unit
+```
 
 ---
 

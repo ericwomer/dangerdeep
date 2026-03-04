@@ -1,0 +1,55 @@
+name: Coverage
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          libsdl2-dev \
+          libsdl2-image-dev \
+          libsdl2-mixer-dev \
+          libsdl2-net-dev \
+          libopenal-dev \
+          libgl1-mesa-dev \
+          libtinyxml-dev \
+          lcov
+    
+    - name: Build with coverage
+      run: ./check.sh --coverage
+    
+    - name: Generate coverage report
+      run: |
+        cd build/coverage
+        lcov --summary coverage.info
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./build/coverage/coverage.info
+        flags: unittests
+        name: codecov-dangerdeep
+        fail_ci_if_error: false
+    
+    - name: Upload coverage HTML
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: build/coverage/html/
