@@ -493,6 +493,13 @@ list<game_event> system::poll_event_queue() {
                             is_sleeping = false;
                             time_passed_while_sleeping += display_get_ticks() - sleep_time;
                         }
+                    } else if (ge.window_event == window_event_type::SIZE_CHANGED) {
+                        unsigned new_w = static_cast<unsigned>(ge.window_data1 > 0 ? ge.window_data1 : params.resolution_x);
+                        unsigned new_h = static_cast<unsigned>(ge.window_data2 > 0 ? ge.window_data2 : params.resolution_y);
+                        if (new_w > 0 && new_h > 0 && (new_w != params.resolution_x || new_h != params.resolution_y)) {
+                            set_video_mode(new_w, new_h, params.fullscreen, true);
+                            glClearColor(0, 0, 0, 1);
+                        }
                     }
                 }
                 continue;

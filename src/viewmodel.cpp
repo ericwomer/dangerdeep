@@ -160,7 +160,7 @@ void model_load_dialog::load_model(widget_list *models) {
 
     model_entry entry = files[selected_model];
 
-    string data_filename = entry.dir + entry.name;
+    string data_filename = data_file().get_filename(entry.name);
     string model_filename;
 
     try {
@@ -168,6 +168,8 @@ void model_load_dialog::load_model(widget_list *models) {
         dataxml.load();
         xml_elem root = dataxml.first_child().child("classification");
         model_filename = root.attr("modelname");
+        // El modelo está en el mismo directorio que el .data (objects/ships/...), no en models/
+        model_filename = entry.dir + model_filename;
 
         view_model(model_filename, data_filename);
 
@@ -474,7 +476,7 @@ void view_model(const string &modelfilename, const string &datafilename) {
             glEnable(GL_LIGHTING);
         }
 
-        msh->display();
+        // msh->display();  // Cubo de referencia deshabilitado; puede interferir con algunos drivers
 
         if (wireframe == 1) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -773,6 +775,11 @@ int mymain(list<string> &args) {
         } else {
             modelfilename = *it;
         }
+    }
+
+    // Sin nombre de modelo: abrir selector en vez de fallar
+    if (modelfilename.empty() && !use_gui) {
+        use_gui = true;
     }
 
     res_y = res_x * 3 / 4;

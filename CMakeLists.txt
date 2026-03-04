@@ -68,31 +68,43 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
 #------------------------------------
+# SDL: SDL2 (por defecto) o SDL3
+option(USE_SDL3 "Build with SDL3 instead of SDL2" OFF)
 
-find_package(SDL2 REQUIRED)
-include_directories(${SDL2_INCLUDE_DIR})
-message(STATUS "SDL2_INCLUDE_DIR:       ${SDL2_INCLUDE_DIR}")
-message(STATUS "SDL2_LIBRARY:           ${SDL2_LIBRARY}")
-if(DEFINED SDL2_VERSION)
-	message(STATUS "SDL2_VERSION:           ${SDL2_VERSION}")
-endif()
+if(USE_SDL3)
+	find_package(SDL3 REQUIRED CONFIG COMPONENTS SDL3)
+	find_package(SDL3_mixer REQUIRED CONFIG)
+	find_package(SDL3_image REQUIRED CONFIG)
+	add_definitions(-DUSE_SDL3=1)
+	# Redirigir #include <SDL.h> a SDL3 para archivos que aún usan SDL directo
+	include_directories(BEFORE ${CMAKE_SOURCE_DIR}/cmake/sdl3_compat)
+	message(STATUS "SDL: Using SDL3")
+	set(SDL_LIBS SDL3::SDL3 SDL3_mixer::SDL3_mixer SDL3_image::SDL3_image)
+else()
+	find_package(SDL2 REQUIRED)
+	include_directories(${SDL2_INCLUDE_DIR})
+	message(STATUS "SDL2_INCLUDE_DIR:       ${SDL2_INCLUDE_DIR}")
+	message(STATUS "SDL2_LIBRARY:           ${SDL2_LIBRARY}")
+	if(DEFINED SDL2_VERSION)
+		message(STATUS "SDL2_VERSION:           ${SDL2_VERSION}")
+	endif()
 
-#------------------------------------
+	#------------------------------------
+	find_package(SDL2_mixer REQUIRED)
+	include_directories(${SDL2_MIXER_INCLUDE_DIRS})
+	message(STATUS "SDL2_MIXER_LIBRARY:     ${SDL2_MIXER_LIBRARIES}")
+	if(DEFINED SDL2_MIXER_VERSION_STRING)
+		message(STATUS "SDL2_MIXER_VERSION:     ${SDL2_MIXER_VERSION_STRING}")
+	endif()
 
-find_package(SDL2_mixer REQUIRED)
-include_directories(${SDL2_MIXER_INCLUDE_DIRS})
-message(STATUS "SDL2_MIXER_LIBRARY:     ${SDL2_MIXER_LIBRARIES}")
-if(DEFINED SDL2_MIXER_VERSION_STRING)
-	message(STATUS "SDL2_MIXER_VERSION:     ${SDL2_MIXER_VERSION_STRING}")
-endif()
-
-#------------------------------------
-
-find_package(SDL2_image REQUIRED)
-include_directories(${SDL2_IMAGE_INCLUDE_DIRS})
-message(STATUS "SDL2_IMAGE_LIBRARY:     ${SDL2_IMAGE_LIBRARIES}")
-if(DEFINED SDL2_IMAGE_VERSION_STRING)
-	message(STATUS "SDL2_IMAGE_VERSION:     ${SDL2_IMAGE_VERSION_STRING}")
+	#------------------------------------
+	find_package(SDL2_image REQUIRED)
+	include_directories(${SDL2_IMAGE_INCLUDE_DIRS})
+	message(STATUS "SDL2_IMAGE_LIBRARY:     ${SDL2_IMAGE_LIBRARIES}")
+	if(DEFINED SDL2_IMAGE_VERSION_STRING)
+		message(STATUS "SDL2_IMAGE_VERSION:     ${SDL2_IMAGE_VERSION_STRING}")
+	endif()
+	set(SDL_LIBS ${SDL2_LIBRARY} ${SDL2_MIXER_LIBRARIES} ${SDL2_IMAGE_LIBRARIES})
 endif()
 
 #------------------------------------
@@ -180,9 +192,7 @@ include_directories("${CMAKE_BINARY_DIR}")
 
 set(LIBS
 	${OPENGL_LIBRARY}
-	${SDL2_LIBRARY}
-	${SDL2_IMAGE_LIBRARIES}
-	${SDL2_MIXER_LIBRARIES}
+	${SDL_LIBS}
 	${BZIP2_LIBRARIES}
 	${FFTW_LIBRARIES}
 	${X11_LIBS}

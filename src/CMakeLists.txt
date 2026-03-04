@@ -90,10 +90,20 @@ set(DFTDSOURCES
 	world.cpp
 	)
 
+if(USE_SDL3)
+	set(DFTD_AUDIO_BACKEND audio_backend_sdl3.cpp)
+	set(DFTD_DISPLAY_BACKEND display_backend_sdl3.cpp)
+	set(DFTD_IMAGE_LOADER image_loader_sdl3.cpp)
+else()
+	set(DFTD_AUDIO_BACKEND audio_backend_sdl2.cpp)
+	set(DFTD_DISPLAY_BACKEND display_backend_sdl2.cpp)
+	set(DFTD_IMAGE_LOADER image_loader_sdl2.cpp)
+endif()
+
 set(DFTDMEDIASOURCES
-	audio_backend_sdl2.cpp
-	display_backend_sdl2.cpp
-	image_loader_sdl2.cpp
+	${DFTD_AUDIO_BACKEND}
+	${DFTD_DISPLAY_BACKEND}
+	${DFTD_IMAGE_LOADER}
 	bv_tree.cpp
 	error.cpp
 	font.cpp
@@ -300,13 +310,16 @@ add_executable(dangerdeep ${MAIN_SRC} ${INC})
 # Precompiled Headers: acelera compilación pre-compilando headers pesados usados frecuentemente
 # Requiere CMake 3.16+
 # NOTA: Solo incluir headers con declaraciones puras (sin definiciones inline conflictivas)
+# Con USE_SDL3, usar nuestro wrapper <SDL.h> (redirige a SDL3 + compat)
+# para que SDLK_w, SDL_SwapLE16 etc funcionen
+set(SDL_PCH_HDR <SDL.h>)
 target_precompile_headers(dangerdeep PRIVATE
 	<vector>
 	<string>
 	<sstream>
 	<iostream>
 	<fstream>
-	<SDL.h>
+	${SDL_PCH_HDR}
 	"system.h"
 	"log.h"
 	"cfg.h"

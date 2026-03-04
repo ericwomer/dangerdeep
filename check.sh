@@ -301,10 +301,12 @@ if [[ $# -eq 0 ]]; then
 	echo "  --lint, -l         Ejecutar análisis estático rápido (cppcheck)"
 	echo "  --lint-full        Análisis estático completo"
 	echo "  --gl, --opengl     Test de capacidades OpenGL"
+	echo "  --sdl3             Usar SDL3 en lugar de SDL2 (compila en build-sdl3/)"
 	echo "  -h, --help         Mostrar esta ayuda"
 	echo ""
 	echo "Ejemplos:"
-	echo "  $0 --build            # Compilar"
+	echo "  $0 --build            # Compilar con SDL2"
+	echo "  $0 --sdl3 --build     # Compilar con SDL3"
 	echo "  $0 --force            # Recompilar todo (make clean + make)"
 	echo "  $0 --reconfigure      # Regenerar makefiles de CMake + compilar"
 	echo "  $0 --clean            # Borrar build/ y recompilar"
@@ -345,6 +347,7 @@ for arg in "$@"; do
 		--lint-full)       DO_LINT_FULL=1; DO_LINT=0 ;;
 		--no-lint)         DO_LINT=0; DO_LINT_FULL=0 ;;
 		--gl|--opengl)     DO_GL=1 ;;
+		--sdl3)            BUILD_DIR="${SCRIPT_DIR}/build-sdl3"; EXTRA_CMAKE_ARGS="${EXTRA_CMAKE_ARGS} -DUSE_SDL3=ON" ;;
 		-h|--help)
 			echo "Uso: $0 [opciones]"
 			echo ""
@@ -362,10 +365,12 @@ for arg in "$@"; do
 			echo "  --lint, -l         Ejecutar análisis estático rápido (cppcheck)"
 			echo "  --lint-full        Análisis estático completo"
 			echo "  --gl, --opengl     Test de capacidades OpenGL"
+			echo "  --sdl3             Usar SDL3 en lugar de SDL2 (compila en build-sdl3/)"
 			echo "  -h, --help         Mostrar esta ayuda"
 			echo ""
 			echo "Ejemplos:"
-			echo "  $0 --build            # Compilar"
+			echo "  $0 --build            # Compilar con SDL2"
+			echo "  $0 --sdl3 --build     # Compilar con SDL3"
 			echo "  $0 --force            # Recompilar todo (make clean + make)"
 			echo "  $0 --reconfigure      # Regenerar makefiles de CMake + compilar"
 			echo "  $0 --clean            # Borrar build/ y recompilar"

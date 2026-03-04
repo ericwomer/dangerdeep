@@ -163,6 +163,9 @@ void sub_torpsetup_display::process_input(class game &gm, const game_event &even
         mx = sys().translate_position_x(event);
         my = sys().translate_position_y(event);
         turnknobdrag = TK_NONE;
+        break;
+    default:
+        break;
     }
 
 #if 0

@@ -105,21 +105,30 @@ Interfaz para TCP/UDP. `network.cpp` ya está aislado; basta con un backend que 
 3. **Display** – Más invasivo; hacer tras audio e imagen.
 4. **Red** – Menor impacto; último.
 
-## Build: selección de backend
+## Estado actual de migración SDL3 (marzo 2025)
 
-En CMake:
-```cmake
-option(USE_SDL3 "Build with SDL3" OFF)
-if(USE_SDL3)
-    find_package(SDL3 REQUIRED)
-    find_package(SDL3_mixer REQUIRED)
-    add_definitions(-DUSE_SDL3=1)
-    set(AUDIO_BACKEND_SRC audio_backend_sdl3.cpp)
-else()
-    find_package(SDL2 REQUIRED)
-    find_package(SDL2_mixer REQUIRED)
-    set(AUDIO_BACKEND_SRC audio_backend_sdl2.cpp)
-endif()
+### ✅ Hecho
+- **CMake**: Opción `USE_SDL3`, selección condicional de backends (display, audio, image)
+- **display_backend_sdl3.cpp**: Ventana, GL, eventos, screenshots BMP. API SDL3: `SDL_GetDisplays(int*)`, `SDL_GetFullscreenDisplayModes(id, int*)`, `SDL_GetScancodeFromKey(key, mod*)`
+- **image_loader_sdl3.cpp**: Carga de imágenes vía SDL3_image
+- **audio_backend_sdl3.cpp**: Música y SFX vía SDL3_mixer (MIX_LoadAudio(mixer, path, predecode), MIX_StopTrack(track, fade), MIX_SetTrack3DPosition(track, &pos), callback (void*, MIX_Track*))
+- **texture.cpp**: Rama SDL3 en `sdl_init()`: SDL_ConvertSurface a RGBA/XRGB, luego `image_data_init()`
+- **cmake/sdl3_compat/**: Wrappers para SDL.h (SDL_FALSE/TRUE, SDLK_x→SDLK_X, SwapLE16→Swap16LE)
+
+### ✅ Compilación con USE_SDL3
+La compilación con SDL3 **completa correctamente**.
+
+### ⏳ Pendiente / verificar en runtime
+- **Pruebas funcionales**: Ejecutar el juego con SDL3 y verificar audio, imagen y display.
+- **Red (network)**: Módulo aún no migrado (SDL2_net → SDL3_net cuando exista).
+
+### Cómo compilar
+```bash
+# SDL2 (por defecto)
+cmake -B build && cmake --build build
+
+# SDL3 (requiere libsdl3, libsdl3-mixer, libsdl3-image instalados)
+cmake -B build -DUSE_SDL3=ON && cmake --build build
 ```
 
 ## Referencias

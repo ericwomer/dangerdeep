@@ -163,6 +163,38 @@ std::vector<uint8_t> sdl_image::get_plain_data(unsigned &w, unsigned &h, unsigne
 
 // --------------------------------------------------
 
+#ifdef USE_SDL3
+void texture::sdl_init(SDL_Surface *teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
+                       bool makenormalmap, float detailh, bool rgb2grey) {
+    // SDL3: convertir a formato estándar y usar image_data_init
+    bool has_alpha = SDL_ISPIXELFORMAT_ALPHA(teximage->format);
+    SDL_PixelFormat dst_fmt = has_alpha ? SDL_PIXELFORMAT_RGBA8888 : SDL_PIXELFORMAT_XRGB8888;
+    SDL_Surface *conv = SDL_ConvertSurface(teximage, dst_fmt);
+    if (!conv)
+        throw texerror(get_name(), std::string("SDL surface conversion failed: ") + SDL_GetError());
+    image_data img;
+    img.width = conv->w;
+    img.height = conv->h;
+    img.bytes_per_pixel = has_alpha ? 4 : 3;
+    img.pitch = img.width * img.bytes_per_pixel;
+    img.gl_format = has_alpha ? 0x1908 : 0x1907;
+    img.pixels.resize(img.width * img.height * img.bytes_per_pixel);
+    const unsigned char *src = static_cast<const unsigned char *>(conv->pixels);
+    for (int y = 0; y < conv->h; ++y) {
+        if (has_alpha) {
+            memcpy(img.pixels.data() + y * img.pitch, src + y * conv->pitch, img.pitch);
+        } else {
+            for (int x = 0; x < conv->w; ++x) {
+                img.pixels[y * img.pitch + x * 3 + 0] = src[y * conv->pitch + x * 4 + 0];
+                img.pixels[y * img.pitch + x * 3 + 1] = src[y * conv->pitch + x * 4 + 1];
+                img.pixels[y * img.pitch + x * 3 + 2] = src[y * conv->pitch + x * 4 + 2];
+            }
+        }
+    }
+    SDL_DestroySurface(conv);
+    image_data_init(img, sx, sy, sw, sh, makenormalmap, detailh, rgb2grey);
+}
+#else
 void texture::sdl_init(SDL_Surface *teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
                        bool makenormalmap, float detailh, bool rgb2grey) {
     // compute texture width and height
@@ -353,6 +385,7 @@ void texture::sdl_init(SDL_Surface *teximage, unsigned sx, unsigned sy, unsigned
     SDL_UnlockSurface(teximage);
     init(data, makenormalmap, detailh);
 }
+#endif // !USE_SDL3
 
 void texture::image_data_init(const image_data &img, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
                               bool makenormalmap, float detailh, bool rgb2grey) {
