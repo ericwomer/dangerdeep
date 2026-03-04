@@ -296,12 +296,21 @@ void widget::ref_all_backgrounds() {
     }
 }
 
-void widget::unref_all_backgrounds() {
+void widget::unref_all_backgrounds(const widget *keep_refs_for) {
+    // Must clear all widget pointers BEFORE unref, else shared images can be
+    // freed while other widgets still hold raw pointers (use-after-free).
+    const std::string *keep_name =
+        keep_refs_for && !keep_refs_for->background_image_name.empty()
+            ? &keep_refs_for->background_image_name
+            : nullptr;
+    for (list<widget *>::iterator it = widgets.begin(); it != widgets.end(); ++it) {
+        (*it)->background = 0;
+    }
     for (list<widget *>::iterator it = widgets.begin(); it != widgets.end(); ++it) {
         widget &w = *(*it);
-        if (w.background) {
+        if (!w.background_image_name.empty() &&
+            (!keep_name || w.background_image_name != *keep_name)) {
             imagecache().unref(w.background_image_name);
-            w.background = 0;
         }
     }
 }
@@ -745,7 +754,7 @@ int widget::run(unsigned timeout, bool do_stacking, widget *focussed_at_begin) {
         myparent->disable();
     closeme = false;
     if (!do_stacking)
-        unref_all_backgrounds();
+        unref_all_backgrounds(this);
     // we should encapsulate the code from here in a try call, to make changes reversible on error.
     // but in case of errors, we can't handle them well here, so no matter.
     widgets.push_back(this);

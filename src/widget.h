@@ -257,7 +257,9 @@ class widget {
 
     static std::list<widget *> widgets;  // stack of dialogues, topmost is back
     static void ref_all_backgrounds();   // for all stacked widgets, ref backgrounds
-    static void unref_all_backgrounds(); // for all stacked widgets, unref backgrounds
+    /// Unref backgrounds of widgets in stack. If keep_refs_for != 0, do not unref
+    /// images that widget uses (avoids use-after-free when opening a child dialog).
+    static void unref_all_backgrounds(const widget *keep_refs_for = nullptr);
 };
 
 class widget_text : public widget {
