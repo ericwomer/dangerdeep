@@ -14,7 +14,7 @@ class sea_object;
 
 TEST_CASE("physics_system - Constructor y destructor", "[physics_system]") {
     physics_system ps;
-    // Si compila y no crashea, pasa
+    (void)ps;  // Solo verificamos que ctor/dtor no crasheen
 }
 
 TEST_CASE("physics_system - check_collisions con vector vacío", "[physics_system]") {
