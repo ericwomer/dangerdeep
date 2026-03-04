@@ -22,6 +22,7 @@ set(DFTDSOURCES
 	freeview_display.cpp
 	game.cpp
 	game_editor.cpp
+	game_loader.cpp
 	gun_shell.cpp
 	height_generator_map.cpp
 	highscorelist.cpp
@@ -39,6 +40,7 @@ set(DFTDSOURCES
 	panel_manager.cpp
 	physics_system.cpp
 	sea_object.cpp
+	save_manager.cpp
 	sensors.cpp
 	scene_environment.cpp
 	network_manager.cpp

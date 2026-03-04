@@ -65,6 +65,8 @@ class lighting_system;
 class ping_manager;
 class time_freezer;
 class scoring_manager;
+class save_manager;
+class game_loader;
 struct ping;
 struct sink_record;
 struct job;
@@ -74,7 +76,9 @@ struct job;
 #include "date.h"
 #include "event.h"
 #include "logbook.h"
+#include "ping_manager.h"
 #include "player_info.h"
+#include "scoring_manager.h"
 #include "sensors.h"
 #include "sonar.h"
 #include "trail_manager.h"
@@ -102,6 +106,8 @@ struct job;
 
 ///\brief Central object of the game world with physics simulation etc.
 class game {
+    friend class game_loader;
+
   public:
     // ping struct moved to ping_manager.h
     // sink_record struct moved to scoring_manager.h
@@ -212,6 +218,9 @@ class game {
 
     // Visibility subsystem
     std::unique_ptr<visibility_manager> myvisibility;
+
+    // Save/load subsystem
+    std::unique_ptr<save_manager> mysave;
 
     random_generator random_gen;
 
@@ -396,6 +405,11 @@ class game {
 
     height_generator &get_height_gen() { return *myheightgen.get(); }
     const height_generator &get_height_gen() const { return *myheightgen.get(); }
+
+    const scoring_manager &get_scoring_manager() const { return *myscoring; }
+    const ping_manager &get_ping_manager() const { return *mypings; }
+    const trail_manager &get_trail_manager() const { return *mytrails; }
+    const visibility_manager &get_visibility_manager() const { return *myvisibility; }
 
     /// get pointers to all ships for collision tests.
     std::vector<ship *> get_all_ships() const;

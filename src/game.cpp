@@ -57,6 +57,8 @@ double log2(double n) {
 #include "physics_system.h"
 #include "ping_manager.h"
 #include "quaternion.h"
+#include "game_loader.h"
+#include "save_manager.h"
 #include "scoring_manager.h"
 #include "sensors.h"
 #include "ship.h"
@@ -111,7 +113,8 @@ game::game()
       myfreezer(std::make_unique<time_freezer>()),
       myscoring(std::make_unique<scoring_manager>()),
       mytrails(std::make_unique<trail_manager>()),
-      myvisibility(std::make_unique<visibility_manager>()) {
+      myvisibility(std::make_unique<visibility_manager>()),
+      mysave(std::make_unique<save_manager>()) {
     // empty, so that heirs can construct a game object. Needed for editor
 
     mywater = std::make_unique<water>(0.0, config);
@@ -152,7 +155,8 @@ game::game(class cfg &cfg_ref, class log &log_ref, const string &subtype, unsign
       myfreezer(std::make_unique<time_freezer>()),
       myscoring(std::make_unique<scoring_manager>()),
       mytrails(std::make_unique<trail_manager>(time)),
-      myvisibility(std::make_unique<visibility_manager>()) {
+      myvisibility(std::make_unique<visibility_manager>()),
+      mysave(std::make_unique<save_manager>()) {
     /****************************************************************
             custom mission generation:
             As first find a random date and time, using time of day (tod).
@@ -311,189 +315,8 @@ game::game(class cfg &cfg_ref, class log &log_ref, const string &filename)
       logger(log_ref),
       my_run_state(running), myevents(std::make_unique<event_manager>()), myjobs(std::make_unique<job_scheduler>()), mynetwork(std::make_unique<network_manager>()), player(0),
       time(0),
-      myphysics(std::make_unique<physics_system>()), mylighting(std::make_unique<lighting_system>()), mypings(std::make_unique<ping_manager>()), myfreezer(std::make_unique<time_freezer>()), myscoring(std::make_unique<scoring_manager>()), mytrails(std::make_unique<trail_manager>()), myvisibility(std::make_unique<visibility_manager>()) {
-    xml_doc doc(filename);
-    doc.load();
-    // could be savegame or mission, maybe check...
-    // has_child("dftd-savegame") or has_child("dftd-mission");
-    xml_elem sg = doc.first_child();
-    // fixme: check for savegames.
-    //	unsigned v = sg.attr(version);
-    //	if (v != SAVEVERSION)
-    //		throw error("invalid game version");
-
-#if 0
-	if (config.geti("cpucores") > 1) {
-		myworker = std::make_unique<simulate_worker>(*this);
-		myworker->start();
-	}
-#endif
-
-    // load state first, because time is stored there and we need time/date for checks
-    // while loading the rest.
-    xml_elem gst = sg.child("state");
-    time = gst.attrf("time");
-    mytrails->set_last_trail_time(gst.attrf("last_trail_time"));
-    equipment_date.load(gst.child("equipment_date"));
-    myvisibility->set_max_distance(gst.attrf("max_view_dist"));
-
-    // fixme: save original water creation time and random seed with that water was generated.
-    // set the same seed here again, so water is exactly like it was at game start.
-    mywater = std::make_unique<water>(time, cfg_ref);
-
-    // myheightgen.reset(new height_generator_map("default.xml"));
-
-    myheightgen = std::make_unique<terrain<Sint16>>(get_map_dir() + "terrain/terrain.xml", get_map_dir() + "terrain/", TERRAIN_NR_LEVELS + 1);
-
-    // create empty objects so references can be filled.
-    // there must be ships in a mission...
-    xml_elem sh = sg.child("ships");
-    for (xml_elem::iterator it = sh.iterate("ship"); !it.end(); it.next()) {
-        xml_doc spec(data_file().get_filename(it.elem().attr("type")));
-        spec.load();
-        ships.push_back(std::make_unique<ship>(*this, spec.first_child()));
-    }
-
-    // there must be submarines in a mission...
-    xml_elem su = sg.child("submarines");
-    for (xml_elem::iterator it = su.iterate("submarine"); !it.end(); it.next()) {
-        xml_doc spec(data_file().get_filename(it.elem().attr("type")));
-        spec.load();
-        submarines.push_back(std::make_unique<submarine>(*this, spec.first_child()));
-    }
-
-    if (sg.has_child("airplanes")) {
-        xml_elem ap = sg.child("airplanes");
-        for (xml_elem::iterator it = ap.iterate("airplane"); !it.end(); it.next()) {
-            xml_doc spec(data_file().get_filename(it.elem().attr("type")));
-            spec.load();
-            airplanes.push_back(std::make_unique<airplane>(*this, spec.first_child()));
-        }
-    }
-
-    if (sg.has_child("torpedoes")) {
-        xml_elem tp = sg.child("torpedoes");
-        for (xml_elem::iterator it = tp.iterate("torpedo"); !it.end(); it.next()) {
-            xml_doc spec(data_file().get_filename(it.elem().attr("type")));
-            spec.load();
-            torpedoes.push_back(std::make_unique<torpedo>(*this, spec.first_child(), torpedo::setup()));
-        }
-    }
-
-    if (sg.has_child("depth_charges")) {
-        xml_elem dc = sg.child("depth_charges");
-        for (xml_elem::iterator it = dc.iterate("depth_charge"); !it.end(); it.next()) {
-            // xml_doc spec(get_depth_charge_dir() + it.elem().attr("type") + ".xml");
-            // spec.load();
-            depth_charges.push_back(std::make_unique<depth_charge>(*this /*, spec.first_child()*/));
-        }
-    }
-
-    if (sg.has_child("gun_shells")) {
-        xml_elem gs = sg.child("gun_shells");
-        for (xml_elem::iterator it = gs.iterate("gun_shell"); !it.end(); it.next()) {
-            // xml_doc spec(get_gun_shell_dir() + it.elem().attr("type") + ".xml");
-            // spec.load();
-            gun_shells.push_back(std::make_unique<gun_shell>(*this /*, spec.first_child()*/));
-        }
-    }
-
-    if (sg.has_child("convoys")) {
-        xml_elem cv = sg.child("convoys");
-        for (xml_elem::iterator it = cv.iterate("convoy"); !it.end(); it.next()) {
-            // xml_doc spec(get_convoy_dir() + it.elem().attr("type") + ".xml");
-            // spec.load();
-            convoys.push_back(std::make_unique<convoy>(*this /*, spec.first_child()*/));
-        }
-    }
-
-    // fixme: handle water splashes too.
-
-#if 0
-	if (sg.has_child("particles")) {
-		xml_elem pt = sg.child("particles");
-		for (xml_elem::iterator it = pt.iterate("particle"); !it.end(); it.next()) {
-			//xml_doc spec(get_particle_dir() + it.elem().attr("type") + ".xml");
-			//spec.load();
-			particles.push_back(std::make_unique<particle>(*this/*, spec.first_child()*/));
-		}
-	}
-#endif
-
-    // now all objects exist and must get loaded
-    unsigned k = 0;
-    for (xml_elem::iterator it = sh.iterate("ship"); !it.end(); it.next(), ++k) {
-        ships[k]->load(it.elem());
-    }
-
-    k = 0;
-    for (xml_elem::iterator it = su.iterate("submarine"); !it.end(); it.next(), ++k) {
-        submarines[k]->load(it.elem());
-    }
-
-    if (airplanes.size() > 0) {
-        k = 0;
-        for (xml_elem::iterator it = sg.child("airplanes").iterate("airplane"); !it.end(); it.next(), ++k) {
-            airplanes[k]->load(it.elem());
-        }
-    }
-
-    if (torpedoes.size() > 0) {
-        k = 0;
-        for (xml_elem::iterator it = sg.child("torpedoes").iterate("torpedo"); !it.end(); it.next(), ++k) {
-            torpedoes[k]->load(it.elem());
-        }
-    }
-
-    if (depth_charges.size() > 0) {
-        k = 0;
-        for (xml_elem::iterator it = sg.child("depth_charges").iterate("depth_charge"); !it.end(); it.next(), ++k) {
-            depth_charges[k]->load(it.elem());
-        }
-    }
-
-    if (gun_shells.size() > 0) {
-        k = 0;
-        for (xml_elem::iterator it = sg.child("gun_shells").iterate("gun_shell"); !it.end(); it.next(), ++k) {
-            gun_shells[k]->load(it.elem());
-        }
-    }
-
-    if (convoys.size() > 0) {
-        k = 0;
-        for (xml_elem::iterator it = sg.child("convoys").iterate("convoy"); !it.end(); it.next(), ++k) {
-            convoys[k]->load(it.elem());
-        }
-    }
-
-    // fixme: handle water splashes too
-
-#if 0
-	if (particles.size() > 0) {
-		k = 0;
-		for (xml_elem::iterator it = sg.child("particles").iterate("particle"); !it.end(); it.next(), ++k) {
-			particles[k]->load(it.elem());
-		}
-	}
-#endif
-
-    // create jobs fixme - at the moment the job interface is not used.
-    // use it for regularly updating weather/sky/waves etc. etc.
-
-    // load player
-    xml_elem pl = sg.child("player");
-    player = load_ptr(pl.attru("ref"));
-    // fixme: maybe check if type matches!
-
-    // ui is created from client of game!
-
-    myscoring->load(sg);
-
-    // fixme save and load logbook
-
-    mypings->load(sg);
-
-    playerinfo = player_info(sg.child("player_info"));
+      myphysics(std::make_unique<physics_system>()), mylighting(std::make_unique<lighting_system>()), mypings(std::make_unique<ping_manager>()), myfreezer(std::make_unique<time_freezer>()), myscoring(std::make_unique<scoring_manager>()), mytrails(std::make_unique<trail_manager>()), myvisibility(std::make_unique<visibility_manager>()), mysave(std::make_unique<save_manager>()) {
+    game_loader::load(*this, filename);
 }
 
 game::~game() {
@@ -505,142 +328,11 @@ game::~game() {
 // --------------------------------------------------------------------------------
 
 void game::save(const string &savefilename, const string &description) const {
-    xml_doc doc(savefilename);
-    xml_elem sg = doc.add_child("dftd-savegame");
-    sg.set_attr(description, "description");
-    sg.set_attr(SAVEVERSION, "version");
-    sg.set_attr(GAMETYPE, "type");
-
-    xml_elem sh = sg.add_child("ships");
-    sh.set_attr(unsigned(ships.size()), "nr");
-    for (unsigned k = 0; k < ships.size(); ++k) {
-        xml_elem e = sh.add_child("ship");
-        e.set_attr(ships[k]->get_specfilename(), "type");
-        ships[k]->save(e);
-    }
-
-    xml_elem su = sg.add_child("submarines");
-    su.set_attr(unsigned(submarines.size()), "nr");
-    for (unsigned k = 0; k < submarines.size(); ++k) {
-        xml_elem e = su.add_child("submarine");
-        e.set_attr(submarines[k]->get_specfilename(), "type");
-        submarines[k]->save(e);
-    }
-
-    xml_elem ap = sg.add_child("airplanes");
-    ap.set_attr(unsigned(airplanes.size()), "nr");
-    for (unsigned k = 0; k < airplanes.size(); ++k) {
-        xml_elem e = ap.add_child("airplane");
-        e.set_attr(airplanes[k]->get_specfilename(), "type");
-        airplanes[k]->save(e);
-    }
-
-    xml_elem tp = sg.add_child("torpedoes");
-    tp.set_attr(unsigned(torpedoes.size()), "nr");
-    for (unsigned k = 0; k < torpedoes.size(); ++k) {
-        xml_elem e = tp.add_child("torpedo");
-        e.set_attr(torpedoes[k]->get_specfilename(), "type");
-        torpedoes[k]->save(e);
-    }
-
-    xml_elem dc = sg.add_child("depth_charges");
-    dc.set_attr(unsigned(depth_charges.size()), "nr");
-    for (unsigned k = 0; k < depth_charges.size(); ++k) {
-        xml_elem e = dc.add_child("depth_charge");
-        // e.set_attr(depth_charges[k]->get_specfilename(), "type");//no specfilename for DCs
-        depth_charges[k]->save(e);
-    }
-
-    xml_elem gs = sg.add_child("gun_shells");
-    gs.set_attr(unsigned(gun_shells.size()), "nr");
-    for (unsigned k = 0; k < gun_shells.size(); ++k) {
-        xml_elem e = gs.add_child("gun_shell");
-        // e.set_attr(gun_shells[k]->get_specfilename(), "type");//no specfilename for shells
-        gun_shells[k]->save(e);
-    }
-
-    xml_elem cv = sg.add_child("convoys");
-    cv.set_attr(unsigned(convoys.size()), "nr");
-    for (unsigned k = 0; k < convoys.size(); ++k) {
-        xml_elem e = cv.add_child("convoy");
-        // e.set_attr(convoys[k]->get_specfilename(), "type");//no specfilename for convoys
-        convoys[k]->save(e);
-    }
-
-#if 0 // fixme later!!!
-	xml_elem pt = sg.add_child("particles");
-	pt.set_attr(particles.size(), "nr");
-	for (unsigned k = 0; k < particles.size(); ++k) {
-		xml_elem e = pt.add_child("particle");
-		//e.set_attr(particles[k]->get_specfilename(), "type");//no specfilename for particles
-		particles[k]->save(e);
-	}
-#endif
-
-    // my_run_state doesn't need to be saved
-
-    // jobs are generated by dftd itself
-
-    // save player
-    submarine *tmpsub = dynamic_cast<submarine *>(player);
-    string pltype;
-    if (tmpsub) {
-        pltype = "submarine";
-    } else {
-        ship *tmpship = dynamic_cast<ship *>(player);
-        if (tmpship) {
-            pltype = "ship";
-        } else {
-            airplane *tmpairpl = dynamic_cast<airplane *>(player);
-            if (tmpairpl) {
-                pltype = "airplane";
-            } else {
-                throw error("internal error: player is no sub, ship or airplane");
-            }
-        }
-    }
-    xml_elem pl = sg.add_child("player");
-    pl.set_attr(save_ptr(player), "ref");
-    pl.set_attr(pltype, "type");
-
-    // user interface is generated according to player object by dftd
-
-    myscoring->save(sg);
-
-    // fixme save and load logbook
-
-    xml_elem gst = sg.add_child("state");
-    gst.set_attr(time, "time");
-    // save current date as reference for human readers.
-    date(unsigned(time)).save(gst);
-    gst.set_attr(mytrails->get_last_trail_time(), "last_trail_time");
-    xml_elem equ = gst.add_child("equipment_date");
-    equipment_date.save(equ);
-    gst.set_attr(myvisibility->get_max_distance(), "max_view_dist");
-
-    mypings->save(sg);
-
-    xml_elem pi = sg.add_child("player_info");
-    playerinfo.save(pi);
-
-    // fixme: later save and load random_gen seed value, to make randomness repeatable
-
-    // finally save file
-    doc.save();
+    mysave->save(*this, savefilename, description);
 }
 
 string game::read_description_of_savegame(const string &filename) {
-    // causes 90mb mem leak fixme
-    xml_doc doc(filename);
-    doc.load();
-    xml_elem sg = doc.child("dftd-savegame");
-    unsigned v = sg.attru("version");
-    if (v != SAVEVERSION)
-        return "<ERROR> Invalid version";
-    string d = sg.attr("description");
-    if (d.length() == 0)
-        return "<ERROR> Empty description";
-    return d;
+    return save_manager::read_description_of_savegame(filename);
 }
 
 void game::compute_max_view_dist() {

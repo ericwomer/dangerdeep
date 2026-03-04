@@ -11,6 +11,8 @@
 7. [ping_manager](#ping_manager)
 8. [logbook](#logbook)
 9. [network_manager](#network_manager)
+10. [save_manager](#save_manager)
+11. [game_loader](#game_loader)
 
 ---
 
@@ -580,6 +582,88 @@ net.apply_game_state(game_instance);
 
 ---
 
+## save_manager
+
+### Propósito
+
+Centraliza la serialización del estado del juego a archivos XML de partida guardada. Encapsula toda la lógica de guardado (ships, submarines, torpedoes, scoring, pings, etc.) y la lectura de descripciones para el menú de carga.
+
+### API
+
+```cpp
+class save_manager {
+public:
+    save_manager() = default;
+
+    void save(const game& g, const std::string& savefilename,
+              const std::string& description) const;
+
+    static std::string read_description_of_savegame(const std::string& filename);
+};
+```
+
+### Uso Típico
+
+```cpp
+// En game
+mysave->save(*this, filename, description);
+
+// Para menú de carga
+std::string desc = save_manager::read_description_of_savegame(filename);
+```
+
+### Integración
+
+- `game` posee `std::unique_ptr<save_manager> mysave`
+- `game::save()` delega en `mysave->save(*this, ...)`
+- `game::read_description_of_savegame()` delega en `save_manager::read_description_of_savegame()`
+
+### Dependencias
+
+- `game`, `world` (entidades)
+- `xml_doc`, `xml_elem` (serialización)
+- Subsistemas: scoring_manager, ping_manager, trail_manager, visibility_manager
+
+---
+
+## game_loader
+
+### Propósito
+
+Centraliza la deserialización del estado del juego desde archivos XML (misiones o partidas guardadas). Complementa a `save_manager` en el flujo de persistencia. Es amigo de `game` para poder poblar miembros protegidos durante la construcción.
+
+### API
+
+```cpp
+class game_loader {
+public:
+    static void load(game& g, const std::string& filename);
+};
+```
+
+### Uso Típico
+
+```cpp
+// En constructor de game (desde archivo)
+game::game(cfg&, log&, filename) : ... {
+    game_loader::load(*this, filename);
+}
+```
+
+### Integración
+
+- `game` declara `friend class game_loader`
+- El constructor `game(cfg&, log&, filename)` delega en `game_loader::load(*this, filename)`
+- Carga: estado (time, trails, visibility), water, terrain, entidades (ships, subs, torpedoes, etc.), player, scoring, pings, playerinfo
+
+### Dependencias
+
+- `game` (acceso friend)
+- `datadirs.h` (get_map_dir, data_file)
+- `xml`, `terrain`, `water`, entidades del juego
+
+---
+
 ## Patrones Comunes
 
 Todos los subsistemas siguen patrones consistentes:
@@ -660,8 +744,7 @@ TEST_CASE("subsystem - basic operation") {
 ### Candidatos para Extracción
 
 1. **input_manager**: Unificar gestión de input
-2. **save_manager**: Centralizar guardado/carga
-3. **ui_manager**: Sistema de UI del juego
+2. **ui_manager**: Sistema de UI del juego
 4. **sound_manager**: Audio y música
 
 ### Mejoras Arquitecturales
