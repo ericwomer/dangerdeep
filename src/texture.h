@@ -119,8 +119,13 @@ class texture {
     mapping_mode mapping;   // how GL draws the texture (GL_NEAREST, GL_LINEAR, etc.)
     clamping_mode clamping; // how GL handles the border (GL_REPEAT, GL_CLAMP_TO_EDGE)
 
+    void sdl_init(SDL_Surface *teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
+                  bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
+
     void image_data_init(const image_data &img, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
                          bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
+
+    void sdl_rgba_init(SDL_Surface *teximagergb, SDL_Surface *teximagea);
 
     // copy data to OpenGL, set parameters
     void init(const std::vector<Uint8> &data, bool makenormalmap = false,
@@ -196,7 +201,13 @@ class texture {
     texture(const std::string &filename, mapping_mode mapping_ = NEAREST, clamping_mode clamp = REPEAT,
             bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false, GLenum _dimension = GL_TEXTURE_2D);
 
-    // create texture from subimage of sdl_image
+    // create texture from subimage of SDL surface.
+    // sw,sh need not to be powers of two.
+    texture(SDL_Surface *teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
+            mapping_mode mapping_ = NEAREST, clamping_mode clamp = REPEAT,
+            bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false, GLenum _dimension = GL_TEXTURE_2D);
+
+    // create texture from subimage of SDL surface, based on sdl_image
     // sw,sh need not to be powers of two.
     texture(const sdl_image &teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
             mapping_mode mapping_ = NEAREST, clamping_mode clamp = REPEAT,

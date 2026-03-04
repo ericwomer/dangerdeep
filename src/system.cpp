@@ -27,10 +27,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif
 
 #include "oglext/OglExt.h"
-#include <SDL.h>
+#include "display_backend.h"
 #include <glu.h>
 
-#include "display_backend.h"
 #include "game_event.h"
 #include "font.h"
 #include "log.h"
@@ -41,6 +40,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <cmath>
 #include <cstdarg>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -110,60 +110,28 @@ system::system(const parameters &params_) : params(params_),
                                             last_swap_time(0),
                                             screenshot_nr(0) {
 
-    int err = SDL_Init(SDL_INIT_VIDEO);
-    if (err < 0)
-        throw sdl_error("video init failed");
+    display_init_video();
+    int vmaj, vmin, vpat;
+    display_get_version(&vmaj, &vmin, &vpat);
+    cout << "SDL " << vmaj << "." << vmin << "." << vpat << endl;
 
     //	if (params.window_caption.length() > 0) { // Quesiont earlyer was answered.
     //		SDL_WM_SetCaption(params.window_caption.c_str(), NULL);
     //	}
 
-    // request available SDL video modes
-    // !Rake: Not necessary in SDL2 for
-    // initial runnint since we use
-    // SDL_FULLSCREEN_DESKTOP when
-    // creating the window
-    // ...hopefully.
-
-    // SDL_DisplayMode* modes = new(SDL_DisplayMode);
-    int numdisplays = 0, displayindex = 0;
-    (void)numdisplays; // displayindex can always be 0 here since its only for testing on one monitor/display
-
-    numdisplays = SDL_GetNumVideoDisplays();
-
-    int numdisplaymode = SDL_GetNumDisplayModes(displayindex);
-    if (numdisplaymode == 0)
-        throw sdl_error("Failed to query number of display modes");
-
-    std::vector<SDL_DisplayMode> modes; //
-    SDL_DisplayMode *dummy = new SDL_DisplayMode;
-
-    for (int i = 0; i < SDL_GetNumDisplayModes(0); ++i) {
-        if (SDL_GetDisplayMode(displayindex, i, dummy) != 0) {
-            throw sdl_error("Failed to get display mode."); // !Rake: for lack of a better error message.
-        }
-
-#ifdef DEBUG // !Rake: some debug cruft for your pleasure
-        cout << "Available Display Modes: " << dummy->w << "x" << dummy->h << " @ " << dummy->refresh_rate << std::endl;
-#endif // DEBUG
-        modes.push_back(*dummy);
-        available_resolutions.push_back(vector2i(dummy->w, dummy->h));
-    }
-    delete dummy;
+    int displayindex = 0;
+    display_get_available_resolutions(displayindex, available_resolutions);
+    if (available_resolutions.empty())
+        throw sdl_error("Failed to query display modes");
 
     try {
         set_video_mode(params.resolution_x, params.resolution_y, params.fullscreen, false);
     } catch (...) {
-        SDL_Quit();
+        display_quit_video();
         throw;
     }
 
-    SDL_EventState(SDL_WINDOWEVENT_SIZE_CHANGED, SDL_IGNORE); // fixme
-    SDL_EventState(SDL_SYSWMEVENT, SDL_IGNORE);               // fixme
-    SDL_JoystickEventState(SDL_IGNORE);
-    // SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);//fixme !Rake: Fixed?
-    SDL_ShowCursor(SDL_ENABLE); // fixme
-    // SDL_EnableUNICODE(1); // !Rake: removed in SDL2
+    display_setup_events_and_cursor();
 
     // check for some OpenGL Extensions
     const char *vendorc = (const char *)glGetString(GL_VENDOR);
@@ -230,15 +198,10 @@ system::system() {
 
 system::~system() {
     glsl_shader_setup::default_deinit();
-    if (glcontext) {
-        SDL_GL_DeleteContext(static_cast<SDL_GLContext>(glcontext));
-        glcontext = nullptr;
-    }
-    if (screen) {
-        SDL_DestroyWindow(static_cast<SDL_Window*>(screen));
-        screen = nullptr;
-    }
-    SDL_Quit();
+    display_destroy_window(screen, glcontext);
+    screen = nullptr;
+    glcontext = nullptr;
+    display_quit_video();
 }
 
 void system::set_video_mode(unsigned &res_x_, unsigned &res_y_, bool fullscreen, bool resize) {
@@ -278,59 +241,21 @@ void system::set_video_mode(unsigned &res_x_, unsigned &res_y_, bool fullscreen,
     //	if (!videoInfo)
     //		throw sdl_error("Video info query failed");
 
-    // Note: the SDL_GL_DOUBLEBUFFER flag is ignored with OpenGL modes.
-    // the flags SDL_HWPALETTE, SDL_HWSURFACE and SDL_HWACCEL
-    // are not needed for OpenGL mode.
-    Uint32 videoFlags = SDL_WINDOW_OPENGL;
-    if (fullscreen)
-        videoFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP; // !Rake: Its a nice safety mesure to use SDL_WINDOW_FULLSCREEN_DESKTOP
-                                                     // and let the players change it later.
-    if (SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1) < 0)
-        throw sdl_error("setting double buffer mode failed");
-
-    /* Sometimes when setting SDL_GL_ACCELERATED_VISUAL (0 or 1 !?) multisampling is borked
-     * if (SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 0) < 0)
-     *	throw sdl_error("setting accelerated visual failed");
-     */
-
-    if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, params.use_multisampling) < 0)
-        throw sdl_error("setting multisampling failed");
-    if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, params.multisample_level) < 0)
-        throw sdl_error("setting multisamplelevel failed");
-
+    int vsync_val = params.vertical_sync ? 1 : 0;
     if (!resize) {
-        // SDL_Surface* screen = SDL_SetVideoMode(res_x_, res_y_, bpp, videoFlags);
-        screen = SDL_CreateWindow(params.window_caption.c_str(),
-                                  SDL_WINDOWPOS_UNDEFINED,
-                                  SDL_WINDOWPOS_UNDEFINED,
-                                  res_x_, res_y_,
-                                  videoFlags);
-        if (!screen)
-            throw sdl_error("Video mode set failed");
-
-        glcontext = SDL_GL_CreateContext(static_cast<SDL_Window*>(screen));
-        if (!glcontext) {
-            std::string error = "Couldn't create context: ";
-            error += SDL_GetError();
-            throw sdl_error(error.c_str());
-        }
-        window_id = SDL_GetWindowID(static_cast<SDL_Window*>(screen));
+        display_create_window(params.window_caption.c_str(), res_x_, res_y_, fullscreen,
+                             params.use_multisampling, params.multisample_level, vsync_val,
+                             &screen, &glcontext);
+        window_id = display_get_window_id(screen);
     } else {
-        SDL_SetWindowSize(static_cast<SDL_Window*>(screen), res_x_, res_y_);
+        display_set_window_size(screen, res_x_, res_y_);
     }
 
     int actual_w = 0, actual_h = 0;
-    SDL_GetWindowSize(static_cast<SDL_Window*>(screen), &actual_w, &actual_h);
+    display_get_window_size(screen, &actual_w, &actual_h);
     if (actual_w > 0 && actual_h > 0) {
         res_x_ = unsigned(actual_w);
         res_y_ = unsigned(actual_h);
-    }
-
-    // enable VSync, but doesn't work on Linux/Nvidia/SDL 1.2.11 (?!)
-    // works with Linux/Nvidia/SDL 1.2.12
-    if (SDL_GL_SetSwapInterval(params.vertical_sync) < 0) {
-        std::cout << "SDL_GL_SetSwapInterval: " << SDL_GetError() << std::endl;
-        throw sdl_error("setting VSync failed");
     }
 
     params.resolution_x = res_x_;
@@ -522,7 +447,7 @@ void system::unprepare_2d_drawing() {
 }
 
 unsigned long system::millisec() {
-    return SDL_GetTicks() - time_passed_while_sleeping;
+    return display_get_ticks() - time_passed_while_sleeping;
 }
 
 void system::swap_buffers() {
@@ -530,13 +455,13 @@ void system::swap_buffers() {
         draw_console();
     }
     if (screen)
-        SDL_GL_SwapWindow(static_cast<SDL_Window*>(screen));
+        display_swap_buffers(screen);
     if (maxfps > 0) {
         unsigned tm = millisec();
         unsigned d = tm - last_swap_time;
         unsigned dmax = 1000 / maxfps;
         if (d < dmax) {
-            SDL_Delay(dmax - d);
+            display_delay(dmax - d);
             last_swap_time = tm + dmax - d;
         } else {
             last_swap_time = tm;
@@ -547,7 +472,7 @@ void system::swap_buffers() {
 list<game_event> system::poll_event_queue() {
     list<game_event> events;
     if (!window_id && screen)
-        window_id = SDL_GetWindowID(static_cast<SDL_Window*>(screen));
+        window_id = display_get_window_id(screen);
 
     do {
         unsigned nr_of_events = 0;
@@ -562,11 +487,11 @@ list<game_event> system::poll_event_queue() {
             case event_type::WINDOW_EVENT:
                 if (ge.window_id == window_id) {
                     if (ge.window_event == window_event_type::FOCUS_LOST) {
-                        if (!is_sleeping) { is_sleeping = true; sleep_time = SDL_GetTicks(); }
+                        if (!is_sleeping) { is_sleeping = true; sleep_time = display_get_ticks(); }
                     } else if (ge.window_event == window_event_type::FOCUS_GAINED) {
                         if (is_sleeping) {
                             is_sleeping = false;
-                            time_passed_while_sleeping += SDL_GetTicks() - sleep_time;
+                            time_passed_while_sleeping += display_get_ticks() - sleep_time;
                         }
                     }
                 }
@@ -587,7 +512,7 @@ list<game_event> system::poll_event_queue() {
             events.push_back(ge);
         }
         if (nr_of_events == 0 && is_sleeping)
-            SDL_Delay(25);
+            display_delay(25);
     } while (is_sleeping);
 
     return events;
@@ -630,28 +555,16 @@ void* system::get_window_handle() const {
 }
 
 void system::screenshot(const std::string &filename) {
-    Uint32 rmask, gmask, bmask;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    rmask = 0xff000000;
-    gmask = 0x00ff0000;
-    bmask = 0x0000ff00;
-#else
-    rmask = 0x000000ff;
-    gmask = 0x0000ff00;
-    bmask = 0x00ff0000;
-#endif
-    vector<Uint8> pic(params.resolution_x * params.resolution_y * 3);
+    vector<uint8_t> pic(params.resolution_x * params.resolution_y * 3);
     glReadPixels(0, 0, params.resolution_x, params.resolution_y, GL_RGB, GL_UNSIGNED_BYTE, &pic[0]);
-    // flip image vertically
-    vector<Uint8> flip(params.resolution_x * 3);
+    // flip image vertically (OpenGL origin is bottom-left)
+    vector<uint8_t> flip(params.resolution_x * 3);
     for (unsigned y = 0; y < params.resolution_y / 2; ++y) {
         unsigned y2 = params.resolution_y - y - 1;
         memcpy(&flip[0], &pic[params.resolution_x * 3 * y], params.resolution_x * 3);
         memcpy(&pic[params.resolution_x * 3 * y], &pic[params.resolution_x * 3 * y2], params.resolution_x * 3);
         memcpy(&pic[params.resolution_x * 3 * y2], &flip[0], params.resolution_x * 3);
     }
-    SDL_Surface *tmp = SDL_CreateRGBSurfaceFrom(&pic[0], params.resolution_x, params.resolution_y,
-                                                24, params.resolution_x * 3, rmask, gmask, bmask, 0);
     std::string fn;
     if (filename.empty()) {
         ostringstream os;
@@ -660,8 +573,7 @@ void system::screenshot(const std::string &filename) {
     } else {
         fn = filename + ".bmp";
     }
-    SDL_SaveBMP(tmp, fn.c_str());
-    SDL_FreeSurface(tmp);
+    display_save_bmp_rgb(fn.c_str(), pic.data(), params.resolution_x, params.resolution_y);
     log_info("screenshot taken as " << fn);
 }
 

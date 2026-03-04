@@ -69,18 +69,30 @@ struct audio_backend {
 
 **Cliente**: `sdl_image` usa `get_image_loader()->load()`, guarda `image_data`. `texture` usa `image_data_init()` en lugar de SDL_Surface. Eliminado `#include <SDL_image.h>` de: texture.h, image.cpp, font.cpp, coastmap.cpp, height_generator_map.cpp, global_data.cpp, system.cpp.
 
-## 3. Display y eventos (`display_backend`)
+## 3. Display y eventos (`display_backend`) ✅ HECHO
 
-**Interfaz** (simplificada):
-- `init()`, `quit()`
-- `create_window(w, h, fullscreen)` → handle opaco
-- `poll_events()` → lista de eventos en formato propio (key, button, motion, etc.)
-- `swap_buffers(window)`
-- `get_window_size()` → `vector2i`
+**Interfaz** (`src/display_backend.h`):
+- `display_init_video()`, `display_quit_video()`
+- `display_get_version()`, `display_get_available_resolutions()`
+- `display_create_window()`, `display_destroy_window()`
+- `display_set_window_size()`, `display_get_window_size()`, `display_get_window_id()`
+- `display_swap_buffers()`, `display_set_swap_interval()`
+- `display_get_ticks()`, `display_delay()`
+- `display_setup_events_and_cursor()`
+- `poll_display_events()` → lista de `game_event`
+- `display_save_bmp_rgb()` para screenshots
 
-**Problema**: Muchos sitios usan `SDL_Event` directamente. Opciones:
-- (A) Definir `game_event` con los campos necesarios; el backend traduce.
-- (B) Mantener `SDL_Event` en la interfaz pero solo en el .cpp del backend; el resto del código no incluye SDL.
+**Implementación**: `display_backend_sdl2.cpp` (SDL2)
+
+**Cliente**: `system.cpp` usa la API de display_backend; ya no incluye `<SDL.h>`. Los handles de ventana y GL son `void*` opacos.
+
+## 3b. Códigos de tecla (`dftd_keys.h`)
+
+**Propósito**: Definir constantes SDLK_* sin depender de SDL, para que el código de juego no incluya SDL.h cuando solo necesita códigos de tecla.
+
+**Uso**: `#define DFTD_KEYS_ONLY` antes de `#include "dftd_keys.h"` en archivos que solo necesitan teclas. Los valores son compatibles con SDL2.
+
+**Constantes de botones**: `MOUSE_BUTTON_LEFT`, `MOUSE_BUTTON_LMASK`, etc. en `game_event.h` (ya migrados en map_display, sub_torpedo_display, widget).
 
 ## 4. Red (`network_backend`)
 

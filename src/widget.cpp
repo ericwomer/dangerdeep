@@ -20,8 +20,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // OpenGL based widgets
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
+#include "display_backend.h"
 #include "oglext/OglExt.h"
-#include <SDL_image.h>
 
 #include "datadirs.h"
 #include "filehelper.h"
@@ -750,7 +750,7 @@ int widget::run(unsigned timeout, bool do_stacking, widget *focussed_at_begin) {
         list<game_event> events = sys().poll_event_queue();
         if (!redrawme && inited && events.size() == 0) {
             unsigned crsrstat0 = sys().millisec() / 500 & 1;
-            SDL_Delay(50);
+            display_delay(50);
             unsigned crsrstat1 = sys().millisec() / 500 & 1;
             if (crsrstat1 == crsrstat0)
                 continue;
@@ -1481,7 +1481,7 @@ void widget_3dview::on_drag(int mx, int my, int rx, int ry, int mb) {
         z_angle += rx * 0.5;
         x_angle += ry * 0.5;
     }
-    if (mb & SDL_BUTTON_RMASK) {
+    if (mb & MOUSE_BUTTON_RMASK) {
         translation.x += rx * 0.1;
         translation.y += ry * 0.1;
     }

@@ -42,7 +42,8 @@ class image_loader_sdl2 : public image_loader_backend {
         bool has_alpha = surf->format->Amask != 0;
         Uint32 pixel_format;
         if (has_alpha) {
-            pixel_format = SDL_PIXELFORMAT_RGBA8888;
+            // ABGR8888: en little-endian produce R,G,B,A en memoria (correcto para OpenGL GL_RGBA)
+            pixel_format = SDL_PIXELFORMAT_ABGR8888;
             data->bytes_per_pixel = 4;
             data->gl_format = 0x1908; // GL_RGBA
         } else {
@@ -62,6 +63,7 @@ class image_loader_sdl2 : public image_loader_backend {
         const unsigned src_pitch = converted->pitch;
         unsigned char* dst = data->pixels.data();
         const unsigned row_bytes = data->width * data->bytes_per_pixel;
+
         for (unsigned y = 0; y < data->height; ++y) {
             memcpy(dst, src, row_bytes);
             src += src_pitch;

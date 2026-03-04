@@ -244,7 +244,7 @@ void sub_torpedo_display::display(class game &gm) const {
                 minutes = (torpedoes[tb].remaining_time - floor(hours) * 3600) / 60;
                 seconds = torpedoes[tb].remaining_time - floor(hours) * 3600 - floor(minutes) * 60;
             }
-            if (mb & SDL_BUTTON_LMASK) {
+            if (mb & MOUSE_BUTTON_LMASK) {
                 // display remaining time if possible
                 // torpedo reload remaning time
                 if (torpedoes[tb].status == submarine::stored_torpedo::st_reloading ||

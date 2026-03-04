@@ -963,7 +963,7 @@ void map_display::process_input(class game &gm, const game_event &event) {
         break;
 
     case event_type::MOUSE_BUTTON_DOWN:
-        if (event.button_button == SDL_BUTTON_LEFT) {
+        if (event.button_button == MOUSE_BUTTON_LEFT) {
 #ifndef CVEDIT
             // set target. get visible objects and determine which is nearest to
             // mouse position. set target for player object

@@ -34,7 +34,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "model.h"
 #include "primitives.h"
 #include "system.h"
-#include "image_loader.h"
 #include "texture.h"
 #include "triangulate.h"
 #include "xml.h"
@@ -1008,7 +1007,7 @@ coastmap::coastmap(const string &filename) {
             mapoffy -= mapw;
             for (int xx = 0; xx < int(mapw); ++xx) {
                 uint8_t c = offset[xx * bpp];
-                themap[mapoffy + xx] = (c > 127) ? 1 : 0;
+                themap[mapoffy + xx] = (c > 0) ? 1 : 0;
             }
             offset += img->pitch;
         }
