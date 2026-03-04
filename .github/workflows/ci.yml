@@ -23,13 +23,17 @@ jobs:
         sudo apt-get install -y \
           build-essential \
           cmake \
+          libbz2-dev \
+          libfftw3-dev \
           libsdl2-dev \
           libsdl2-image-dev \
           libsdl2-mixer-dev \
           libsdl2-net-dev \
           libopenal-dev \
           libgl1-mesa-dev \
+          libglu1-mesa-dev \
           libtinyxml-dev \
+          libx11-dev \
           ccache
     
     - name: Setup ccache

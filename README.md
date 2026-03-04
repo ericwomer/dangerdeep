@@ -8,6 +8,22 @@
   <sub>v0.3.900 · GPL v2 · Linux</sub>
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/C++-17-00599C?logo=cplusplus&logoColor=white" alt="C++17" />
+  <img src="https://img.shields.io/badge/CMake-3.10+-064F8C?logo=cmake&logoColor=white" alt="CMake" />
+  <img src="https://img.shields.io/badge/SDL2-2.0-8B0000?logo=sdl" alt="SDL2" />
+  <img src="https://img.shields.io/badge/OpenGL-2.x-5586A4?logo=opengl" alt="OpenGL" />
+  <img src="https://img.shields.io/badge/Linux-X11-FCC624?logo=linux&logoColor=black" alt="Linux" />
+  <img src="https://img.shields.io/badge/License-GPL%20v2-blue" alt="GPL v2" />
+</p>
+
+<p align="center">
+  <img src="https://github.com/cavazquez/dangerdeep/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  <img src="https://github.com/cavazquez/dangerdeep/actions/workflows/format.yml/badge.svg" alt="Format" />
+  <img src="https://github.com/cavazquez/dangerdeep/actions/workflows/lint.yml/badge.svg" alt="Lint" />
+  <img src="https://github.com/cavazquez/dangerdeep/actions/workflows/coverage.yml/badge.svg" alt="Coverage" />
+</p>
+
 ---
 
 Comandá un U-Boot en un entorno 3D realista: sonar, TDC, torpedos y ataques a convoyes con física y sensores fieles a la época.
@@ -232,8 +248,19 @@ Para el reporte de cobertura se usa **lcov** con *branch coverage*; instalación
 | `docs/`        | Documentación adicional: [REFACTORING.md](docs/REFACTORING.md) (refactor), [STD_ALTERNATIVES.md](docs/STD_ALTERNATIVES.md) (uso de la std) |
 | `packaging/`   | Scripts para empaquetado (p. ej. Ubuntu) |
 
-Stack: SDL2 (vídeo, imagen, audio), OpenGL, FFTW, BZip2, TinyXML, X11.  
-Los headers se incluyen por nombre (`#include "foo.h"`) desde `src/`; CMake añade las rutas de dependencias externas. No se usa precompiled header.
+### Stack técnico
+
+| Categoría | Herramienta | Uso |
+|-----------|--------------|-----|
+| **Lenguaje** | C++17 | Core del proyecto |
+| **Build** | CMake 3.10+ | Sistema de compilación |
+| **Gráficos** | OpenGL 2.x | Render 3D |
+| **Multimedia** | SDL2 | Ventanas, input, audio, imágenes |
+| **Matemáticas** | FFTW3 | FFT (sonar, simulación) |
+| **Datos** | TinyXML, BZip2 | Serialización, compresión |
+| **Testing** | Catch2, CTest | 98 tests unitarios |
+| **QA** | clang-format, cppcheck | Formato, análisis estático |
+| **CI/CD** | GitHub Actions | Build, tests, coverage automáticos |
 
 ---
 
