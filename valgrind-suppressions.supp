@@ -116,6 +116,13 @@
    ...
    obj:*libSDL2*
 }
+# SDL2 realloc (en music::init -> SDL_Init/SDL_mixer)
+{
+   suppress_sdl2_realloc
+   Memcheck:Leak
+   fun:realloc
+   obj:*libSDL2*
+}
 
 # PulseAudio
 {

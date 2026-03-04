@@ -69,7 +69,7 @@ class widget {
     std::string text;
     widget *parent;
     std::string background_image_name;
-    image *background;             // if this is != 0, the image is rendered in the background, centered
+    objcachet<image>::reference background; // RAII: each widget holds its own ref (avoids use-after-free when sharing)
     const texture *background_tex; // drawn as tiles if != 0 and no image defined
     bool enabled;
     std::list<widget *> children;
@@ -204,13 +204,13 @@ class widget {
     virtual void set_parent(widget *w) { parent = w; }
     virtual std::string get_text() const { return text; }
     virtual void set_text(const std::string &s) { text = s; }
-    virtual const image *get_background() const { return background; }
+    virtual const image *get_background() const { return background.get(); }
     virtual const texture *get_background_tex() const { return background_tex; }
     // Note! such a function is a bad idea, as image is not unref'd then at the cache!
     // virtual void set_background(const image* b) { background = b; background_tex = 0; }
     virtual void set_background(const texture *t) {
         background_tex = t;
-        background = 0;
+        background.reset();
     }
     virtual void set_return_value(int rv) { retval = rv; }
     virtual int get_return_value() const { return retval; }

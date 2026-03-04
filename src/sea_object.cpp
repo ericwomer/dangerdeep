@@ -420,9 +420,9 @@ sea_object::sea_object(game &gm_, const xml_elem &parent)
 
 sea_object::~sea_object() {
     // 	cout << "d'tor: unregistered layout " << skin_name << "\n";
-    if (skin_name.length() > 0)
+    if (skin_name.length() > 0 && mymodel)
         mymodel->unregister_layout(skin_name);
-    // mymodel RAII wrapper will automatically unref on destruction
+    // mymodel RAII wrapper keeps model alive until we're done; no unref needed
 }
 
 void sea_object::load(const xml_elem &parent) {

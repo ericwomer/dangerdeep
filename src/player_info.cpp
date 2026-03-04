@@ -50,6 +50,8 @@ player_info::player_info()
 player_info::player_info(const xml_elem &parent) {
     name = parent.attr("name");
     photo = parent.attr("photo");
+    if (photo.empty())
+        photo = "1";
     flotilla = parent.attru("flotilla");
     submarineid = parent.attr("submarineid");
     soldbuch_nr = parent.attr("soldbuch_nr");

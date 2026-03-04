@@ -66,10 +66,9 @@ void display_loading_screen() {
     glClear(GL_COLOR_BUFFER_BIT);
     sys().prepare_2d_drawing();
 
-    // display a nice loading image in the background
-    image *background;
-    background = imagecache().ref("entryscreen.png");
-    background->draw(0, 0);
+    // display a nice loading image in the background (RAII: reference released when scope ends)
+    objcachet<image>::reference background(imagecache(), "entryscreen.png");
+    if (background.get()) background->draw(0, 0);
 
     unsigned fh = font_arial->get_height();
     unsigned y = 0;

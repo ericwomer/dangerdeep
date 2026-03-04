@@ -31,6 +31,7 @@ sudo apt install build-essential cmake libsdl2-dev libsdl2-image-dev \
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Visión general de arquitectura, subsistemas |
 | [SUBSYSTEMS.md](SUBSYSTEMS.md) | API detallada de cada subsistema |
 | [TESTING.md](TESTING.md) | Cómo escribir y ejecutar tests |
+| [TERRAIN_TILES.md](TERRAIN_TILES.md) | Generación de tiles de batimetría (ETOPO1, map_precompute) |
 | [CONTRIBUTING.md](../CONTRIBUTING.md) | Mejores prácticas, estilo de código |
 | [REFACTORING.md](REFACTORING.md) | Historia de refactorings realizados |
 

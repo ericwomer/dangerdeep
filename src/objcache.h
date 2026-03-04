@@ -72,26 +72,28 @@ class objcachet {
         return nullptr;
     }
 
-    // Get or create object with automatic reference counting
-    T *ref(const std::string &objname) {
+    // Get shared_ptr for proper reference counting (each caller holds their own ref)
+    std::shared_ptr<T> ref_shared(const std::string &objname) {
         if (objname.empty())
             return nullptr;
 
         auto it = cache.find(objname);
         if (it != cache.end()) {
-            // Try to get existing object
             if (auto sp = it->second.lock()) {
-                active_refs[sp.get()] = sp;
-                return sp.get();
+                return sp;
             }
-            // Object expired, remove weak_ptr
             cache.erase(it);
         }
 
-        // Create new object
         auto sp = std::make_shared<T>(basedir + objname);
         cache[objname] = sp;
-        active_refs[sp.get()] = sp;
+        return sp;
+    }
+
+    // Get or create object (returns raw pointer; for shared objects use reference with ref_shared)
+    T *ref(const std::string &objname) {
+        auto sp = ref_shared(objname);
+        active_refs[sp.get()] = sp;  // keep alive until unref (legacy single-ref use)
         return sp.get();
     }
 
@@ -152,67 +154,51 @@ class objcachet {
         }
     }
 
-    // RAII reference handler
+    // RAII reference handler - holds shared_ptr for correct refcount when multiple objects share
     class reference {
-        objcachet<T> *mycache;
-        T *myobj;
+        std::shared_ptr<T> mysp;
 
       public:
         // Constructor that loads from cache
         reference(objcachet<T> &cache, const std::string &objname)
-            : mycache(&cache), myobj(cache.ref(objname)) {}
+            : mysp(cache.ref_shared(objname)) {}
 
         // Default constructor (empty reference)
-        reference() : mycache(nullptr), myobj(nullptr) {}
+        reference() : mysp(nullptr) {}
 
         // Disable copy
         reference(const reference &) = delete;
         reference &operator=(const reference &) = delete;
 
         // Enable move
-        reference(reference &&other) noexcept
-            : mycache(other.mycache), myobj(other.myobj) {
-            other.myobj = nullptr;
-        }
+        reference(reference &&other) noexcept : mysp(std::move(other.mysp)) {}
 
         reference &operator=(reference &&other) noexcept {
             if (this != &other) {
-                reset();
-                mycache = other.mycache;
-                myobj = other.myobj;
-                other.myobj = nullptr;
+                mysp = std::move(other.mysp);
             }
             return *this;
         }
 
-        ~reference() {
-            reset();
-        }
+        ~reference() = default;
 
-        void reset() {
-            if (myobj && mycache) {
-                mycache->unref(myobj);
-                myobj = nullptr;
-            }
-        }
+        void reset() { mysp.reset(); }
 
         // Load a new object (releases old one if present)
         void load(objcachet<T> &cache, const std::string &objname) {
-            reset();
-            mycache = &cache;
-            myobj = cache.ref(objname);
+            mysp = cache.ref_shared(objname);
         }
 
-        T *get() { return myobj; }
-        const T *get() const { return myobj; }
+        T *get() { return mysp.get(); }
+        const T *get() const { return mysp.get(); }
 
         // Additional access methods
-        T &operator*() { return *myobj; }
-        const T &operator*() const { return *myobj; }
-        T *operator->() { return myobj; }
-        const T *operator->() const { return myobj; }
+        T &operator*() { return *mysp; }
+        const T &operator*() const { return *mysp; }
+        T *operator->() { return mysp.get(); }
+        const T *operator->() const { return mysp.get(); }
 
-        explicit operator bool() const { return myobj != nullptr; }
+        explicit operator bool() const { return mysp != nullptr; }
     };
 
     // Convenient alias for RAII handles

@@ -92,16 +92,15 @@ class log_internal {
   public:
     mutex mtx;
     std::list<log_msg> loglines;
-    std::map<Uint32, const char *> threadnames;
+    std::map<Uint32, std::string> threadnames; // string copy, not ptr (thread may be destroyed before log write)
     log_internal() {}
 };
 
-log::log()
-    : mylogint(0) {
-
-    mylogint = new log_internal();
+log::log() : mylogint(std::make_unique<log_internal>()) {
     mylogint->threadnames[SDL_ThreadID()] = "__main__";
 }
+
+log::~log() = default;
 
 bool log::copy_output_to_console = false;
 
@@ -144,7 +143,7 @@ std::string log::get_last_n_lines(unsigned n) const {
 void log::new_thread(const char *name) {
     {
         mutex_locker ml(mylogint->mtx);
-        mylogint->threadnames[SDL_ThreadID()] = name;
+        mylogint->threadnames[SDL_ThreadID()] = name ? name : "";
     }
     log_sysinfo("---------- < NEW > THREAD ----------");
 }
@@ -162,8 +161,8 @@ const char *log::get_thread_name() const {
 }
 
 const char *log::get_thread_name(unsigned tid) const {
-    std::map<Uint32, const char *>::const_iterator it = mylogint->threadnames.find(tid);
+    std::map<Uint32, std::string>::const_iterator it = mylogint->threadnames.find(tid);
     if (it == mylogint->threadnames.end())
         throw std::runtime_error("no thread name registered for thread! BUG!");
-    return it->second;
+    return it->second.c_str();
 }

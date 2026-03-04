@@ -65,9 +65,10 @@ widget::widget(xml_elem &elem, widget *_parent)
     size = vector2i(elem.attri("width"), elem.attri("height"));
     if (elem.has_attr("text") && elem.attri("text") > 0)
         text = texts::get(elem.attri("text"));
-    if (elem.has_attr("bg_image"))
+    if (elem.has_attr("bg_image")) {
         background_image_name = elem.attr("bg_image");
-    background = imagecache().ref(background_image_name);
+        background.load(imagecache(), background_image_name);
+    }
     if (elem.has_attr("bg_texture")) {
         set_background(std::make_unique<texture>(get_texture_dir() += elem.attr("bg_texture")).get());
     }
@@ -290,27 +291,22 @@ widget *widget::get_child(const std::string &child, bool recursive) {
 void widget::ref_all_backgrounds() {
     for (list<widget *>::iterator it = widgets.begin(); it != widgets.end(); ++it) {
         widget &w = *(*it);
-        if (!w.background_image_name.empty() && w.background == 0) {
-            w.background = imagecache().ref(w.background_image_name);
+        if (!w.background_image_name.empty() && !w.background) {
+            w.background.load(imagecache(), w.background_image_name);
         }
     }
 }
 
 void widget::unref_all_backgrounds(const widget *keep_refs_for) {
-    // Must clear all widget pointers BEFORE unref, else shared images can be
-    // freed while other widgets still hold raw pointers (use-after-free).
+    // Reset references to free memory; keep_refs_for keeps its background for drawing
     const std::string *keep_name =
         keep_refs_for && !keep_refs_for->background_image_name.empty()
             ? &keep_refs_for->background_image_name
             : nullptr;
     for (list<widget *>::iterator it = widgets.begin(); it != widgets.end(); ++it) {
-        (*it)->background = 0;
-    }
-    for (list<widget *>::iterator it = widgets.begin(); it != widgets.end(); ++it) {
         widget &w = *(*it);
-        if (!w.background_image_name.empty() &&
-            (!keep_name || w.background_image_name != *keep_name)) {
-            imagecache().unref(w.background_image_name);
+        if (!keep_name || w.background_image_name != *keep_name) {
+            w.background.reset();
         }
     }
 }
@@ -374,14 +370,13 @@ std::unique_ptr<widget::theme> widget::replace_theme(std::unique_ptr<widget::the
 
 widget::widget(int x, int y, int w, int h, const string &text_, widget *parent_, const std::string &backgrimg)
     : pos(x, y), size(w, h), text(text_), parent(parent_), background_image_name(backgrimg),
-      background(imagecache().ref(backgrimg)),
+      background(imagecache(), backgrimg),
       background_tex(0), enabled(true), retval(-1), closeme(false), redrawme(true) {
     // note: when backgrimg is empty, the cache automatically returns a NULL pointer.
 }
 
 widget::~widget() {
-    if (background)
-        imagecache().unref(background);
+    // background (reference) auto-releases, no unref needed
     for (list<widget *>::iterator it = children.begin(); it != children.end(); ++it)
         delete *it;
     if (this == focussed)

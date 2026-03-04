@@ -117,13 +117,17 @@ freeview_display::freeview_display(user_interface &ui_) : user_display(ui_), abo
     conning_tower->register_layout();
     conning_tower->set_layout();
     add_loading_screen("conning tower model loaded");
-    // valgrind reports lost memory in the following line, but why?!
-    std::unique_ptr<texture> uwbt(new texture(get_texture_dir() + "underwater_background.png", texture::LINEAR, texture::CLAMP));
-    texturecache().ref("underwater_background.png", uwbt.get());
+    // ref(objname, ptr) does not take ownership; we must keep the texture alive.
+    underwater_background_owner =
+        std::make_unique<texture>(get_texture_dir() + "underwater_background.png", texture::LINEAR, texture::CLAMP);
+    texturecache().ref("underwater_background.png", underwater_background_owner.get());
     underwater_background.load(texturecache(), "underwater_background.png");
 }
 
 freeview_display::~freeview_display() {
+    if (underwater_background_owner) {
+        texturecache().unref(underwater_background_owner.get());
+    }
 }
 
 vector3 freeview_display::get_viewpos(class game &gm) const {

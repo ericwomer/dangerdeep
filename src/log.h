@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define LOG_H
 
 #include "singleton.h"
+#include <memory>
 #include <sstream>
 
 #ifdef DEBUG
@@ -89,7 +90,8 @@ class log : public singleton<class log> {
 
   protected:
     log();
-    class log_internal *mylogint;
+    ~log();
+    std::unique_ptr<class log_internal> mylogint;
     const char *get_thread_name() const;
     const char *get_thread_name(unsigned tid) const;
     friend class log_msg;

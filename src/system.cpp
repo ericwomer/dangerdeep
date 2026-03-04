@@ -501,7 +501,7 @@ void system::prepare_2d_drawing() {
 
 void system::unprepare_2d_drawing() {
     if (!draw_2d)
-        throw runtime_error("2d drawing already turned off");
+        return; // idempotent: already off (e.g. from nested/exceptional path)
     glFlush();
     glPixelZoom(1.0f, 1.0f);
     glMatrixMode(GL_PROJECTION);

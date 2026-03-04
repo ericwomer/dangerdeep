@@ -68,7 +68,7 @@ class morton_bivector {
   public:
     morton_bivector() : datasize(0) {}
 
-    morton_bivector(const bivector<T> &bv) {
+    morton_bivector(const bivector<T> &bv) : datasize(0) {
         resize(std::max(pow(2, ceil(log2(bv.datasize.x))), pow(2, ceil(log2(bv.datasize.y)))));
         for (int y = 0; y < bv.datasize.y; y++) {
             for (int x = 0; x < bv.datasize.x; x++) {
@@ -77,7 +77,7 @@ class morton_bivector {
         }
     }
 
-    morton_bivector(const morton_bivector<T> &bv) {
+    morton_bivector(const morton_bivector<T> &bv) : datasize(0) {
         resize(bv.size());
 
         for (long y = 0; y < datasize; y++) {

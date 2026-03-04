@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "angle.h"
 #include "color.h"
 #include "objcache.h"
+#include <memory>
 #include "sea_object.h"
 #include "user_display.h"
 #include "vector3.h"
@@ -53,6 +54,10 @@ class freeview_display : public user_display {
 
     objcachet<texture>::reference underwater_background;
     objcachet<texture>::reference splashring;
+
+    /// Owner of the texture inserted into texturecache for "underwater_background.png".
+    /// ref(objname, raw_ptr) does not take ownership; we must keep it alive.
+    std::unique_ptr<texture> underwater_background_owner;
 
     freeview_display();
 

@@ -576,7 +576,7 @@ class widget_image_select : public widget {
           extension(ext_), current(imagenames.begin()) {
         if (imagenames.empty())
             throw error("can't use widget_image_select with empty list");
-        background = imagecache().ref(*current + extension);
+        background.load(imagecache(), *current + extension);
         add_child(new widget_text(20, 20, 0, 0, texts::get(117)));
     }
     virtual const std::string &get_current_imagename() const { return *current; }
@@ -590,9 +590,7 @@ class widget_image_select : public widget {
                 current = imagenames.end();
             current--;
         }
-        imagecache().unref(background);
-        background = 0;
-        background = imagecache().ref(*current + extension);
+        background.load(imagecache(), *current + extension);
         redraw();
     }
     void draw() const {
@@ -611,9 +609,7 @@ class widget_image_select : public widget {
         }
         if (next != current) {
             current = next;
-            imagecache().unref(background);
-            background = 0;
-            background = imagecache().ref(*current + extension);
+            background.load(imagecache(), *current + extension);
             redraw();
         }
     }
