@@ -104,7 +104,7 @@ void sub_soldbuch_display::display(class game &gm) const {
     });
 }
 
-void sub_soldbuch_display::process_input(class game &gm, const SDL_Event &event) {
+void sub_soldbuch_display::process_input(class game &gm, const game_event &event) {
 }
 
 void sub_soldbuch_display::enter(bool is_day) {

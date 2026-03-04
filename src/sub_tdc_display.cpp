@@ -86,7 +86,7 @@ sub_tdc_display::sub_tdc_display(user_interface &ui_)
     : user_display(ui_), show_screen1(true), tubeselected_time(0.0) {
 }
 
-void sub_tdc_display::process_input(class game &gm, const SDL_Event &event) {
+void sub_tdc_display::process_input(class game &gm, const game_event &event) {
     submarine *sub = dynamic_cast<submarine *>(gm.get_player());
     int mx, my;
     submarine_interface &si = dynamic_cast<submarine_interface &>(ui);
@@ -98,7 +98,7 @@ void sub_tdc_display::process_input(class game &gm, const SDL_Event &event) {
         const scheme_screen1 &s = *myscheme1;
 
         switch (event.type) {
-        case SDL_MOUSEBUTTONDOWN: {
+        case event_type::MOUSE_BUTTON_DOWN: {
             mx = sys().translate_position_x(event);
             my = sys().translate_position_y(event);
             // check if mouse is over parallax display
@@ -114,8 +114,8 @@ void sub_tdc_display::process_input(class game &gm, const SDL_Event &event) {
             }
 
         } break;
-        case SDL_MOUSEMOTION:
-            if (event.motion.state & SDL_BUTTON_LMASK) {
+        case event_type::MOUSE_MOTION:
+            if (event.motion_state & MOUSE_BUTTON_LMASK) {
                 mx = sys().translate_position_x(event);
                 my = sys().translate_position_y(event);
                 // check if mouse is over parallax display, fixme: same code as above, group it!
@@ -141,7 +141,7 @@ void sub_tdc_display::process_input(class game &gm, const SDL_Event &event) {
         const scheme_screen2 &s = *myscheme2;
 
         switch (event.type) {
-        case SDL_MOUSEBUTTONDOWN: {
+        case event_type::MOUSE_BUTTON_DOWN: {
             mx = sys().translate_position_x(event);
             my = sys().translate_position_y(event);
             // check if mouse is over tube indicators

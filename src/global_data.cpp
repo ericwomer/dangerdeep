@@ -31,7 +31,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "system.h"
 #include "system_defines.h"
 #include "texture.h"
-#include <SDL_image.h>
 #include <iomanip>
 #include <list>
 #include <sstream>
@@ -78,7 +77,7 @@ void display_loading_screen() {
         y += fh;
     }
     sys().unprepare_2d_drawing();
-    sys().swap_buffers(sys().get_sdl_window());
+    sys().swap_buffers();
 }
 
 void reset_loading_screen() {

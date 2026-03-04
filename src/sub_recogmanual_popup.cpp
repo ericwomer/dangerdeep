@@ -69,7 +69,7 @@ sub_recogmanual_popup::sub_recogmanual_popup(user_interface &ui_)
     }
 }
 
-bool sub_recogmanual_popup::process_input(class game &gm, const SDL_Event &event) {
+bool sub_recogmanual_popup::process_input(class game &gm, const game_event &event) {
     btn_left.check_for_mouse_event(event);
     btn_right.check_for_mouse_event(event);
     if (page < 0)

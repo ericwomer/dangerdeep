@@ -60,7 +60,7 @@ class sub_recogmanual_popup : public user_popup {
 
     void display(class game &gm) const;
 
-    bool process_input(class game &gm, const SDL_Event &event);
+    bool process_input(class game &gm, const game_event &event);
 };
 
 #endif /* SUB_RECOGMANUAL_POPUP_H */

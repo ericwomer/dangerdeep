@@ -185,9 +185,9 @@ void sub_damage_display::display(class game &gm) const {
     sys().unprepare_2d_drawing();
 }
 
-void sub_damage_display::process_input(class game &gm, const SDL_Event &event) {
+void sub_damage_display::process_input(class game &gm, const game_event &event) {
     switch (event.type) {
-    case SDL_MOUSEMOTION:
+    case event_type::MOUSE_MOTION:
         mx = sys().translate_position_x(event);
         my = sys().translate_position_y(event);
         break;

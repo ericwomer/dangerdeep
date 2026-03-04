@@ -28,9 +28,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "oglext/OglExt.h"
 #include <SDL.h>
-#include <SDL_image.h>
 #include <glu.h>
 
+#include "display_backend.h"
+#include "game_event.h"
 #include "font.h"
 #include "log.h"
 #include "primitives.h"
@@ -96,7 +97,8 @@ system::parameters::parameters(double near_z_, double far_z_, unsigned res_x, un
 }
 
 system::system(const parameters &params_) : params(params_),
-                                            screen(0),
+                                            screen(nullptr),
+                                            glcontext(nullptr),
                                             show_console(false),
                                             console_font(0),
                                             console_background(0),
@@ -228,6 +230,14 @@ system::system() {
 
 system::~system() {
     glsl_shader_setup::default_deinit();
+    if (glcontext) {
+        SDL_GL_DeleteContext(static_cast<SDL_GLContext>(glcontext));
+        glcontext = nullptr;
+    }
+    if (screen) {
+        SDL_DestroyWindow(static_cast<SDL_Window*>(screen));
+        screen = nullptr;
+    }
     SDL_Quit();
 }
 
@@ -298,21 +308,19 @@ void system::set_video_mode(unsigned &res_x_, unsigned &res_y_, bool fullscreen,
         if (!screen)
             throw sdl_error("Video mode set failed");
 
-        glcontext = SDL_GL_CreateContext(screen);
+        glcontext = SDL_GL_CreateContext(static_cast<SDL_Window*>(screen));
         if (!glcontext) {
             std::string error = "Couldn't create context: ";
             error += SDL_GetError();
             throw sdl_error(error.c_str());
         }
-
-    } else { // must be window resize
-        SDL_SetWindowSize(screen, res_x_, res_y_);
+        window_id = SDL_GetWindowID(static_cast<SDL_Window*>(screen));
+    } else {
+        SDL_SetWindowSize(static_cast<SDL_Window*>(screen), res_x_, res_y_);
     }
 
-    // SDL_WINDOW_FULLSCREEN_DESKTOP can resize the window to desktop resolution.
-    // We must use the actual window size so mouse coordinates match the viewport.
     int actual_w = 0, actual_h = 0;
-    SDL_GetWindowSize(screen, &actual_w, &actual_h);
+    SDL_GetWindowSize(static_cast<SDL_Window*>(screen), &actual_w, &actual_h);
     if (actual_w > 0 && actual_h > 0) {
         res_x_ = unsigned(actual_w);
         res_y_ = unsigned(actual_h);
@@ -517,11 +525,12 @@ unsigned long system::millisec() {
     return SDL_GetTicks() - time_passed_while_sleeping;
 }
 
-void system::swap_buffers(SDL_Window *window) {
+void system::swap_buffers() {
     if (show_console) {
         draw_console();
     }
-    SDL_GL_SwapWindow(window);
+    if (screen)
+        SDL_GL_SwapWindow(static_cast<SDL_Window*>(screen));
     if (maxfps > 0) {
         unsigned tm = millisec();
         unsigned d = tm - last_swap_time;
@@ -535,80 +544,48 @@ void system::swap_buffers(SDL_Window *window) {
     }
 }
 
-// intermediate solution: just return list AND handle events, the app client can choose then
-// what he wants (if he handles events by himself, he have to flush the key queue each frame)
-list<SDL_Event> system::poll_event_queue() {
-    list<SDL_Event> events;
+list<game_event> system::poll_event_queue() {
+    list<game_event> events;
+    if (!window_id && screen)
+        window_id = SDL_GetWindowID(static_cast<SDL_Window*>(screen));
 
-    Uint32 window_id = SDL_GetWindowID(sys().get_sdl_window()); // !Rake: Should only need to call this once
-
-    SDL_Event event;
     do {
         unsigned nr_of_events = 0;
-        while (SDL_PollEvent(&event)) {
-            switch (event.type) {
-            case SDL_QUIT: // Quit event
+        list<game_event> raw = poll_display_events();
+        for (game_event& ge : raw) {
+            switch (ge.type) {
+            case event_type::QUIT:
                 log_info("---------- immediate exit ----------");
                 log::instance().write(std::cerr, log::LOG_SYSINFO);
-                {
-                    std::ofstream f("log.txt");
-                    log::instance().write(f, log::LOG_SYSINFO);
-                }
+                { std::ofstream f("log.txt"); log::instance().write(f, log::LOG_SYSINFO); }
                 throw quit_exception(0);
-            // !Rake: an attemp to rewrite the window focus event
-            case SDL_WINDOWEVENT:
-                if (event.window.windowID == window_id) {
-                    if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
-                        if (!is_sleeping) {
-                            is_sleeping = true;
-                            sleep_time = SDL_GetTicks();
-                        }
-                    } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+            case event_type::WINDOW_EVENT:
+                if (ge.window_id == window_id) {
+                    if (ge.window_event == window_event_type::FOCUS_LOST) {
+                        if (!is_sleeping) { is_sleeping = true; sleep_time = SDL_GetTicks(); }
+                    } else if (ge.window_event == window_event_type::FOCUS_GAINED) {
                         if (is_sleeping) {
                             is_sleeping = false;
                             time_passed_while_sleeping += SDL_GetTicks() - sleep_time;
                         }
                     }
                 }
-                continue; // filter these events
-                /* !Rake: replaced with above ^
-                case SDL_ACTIVEEVENT:		// Application activation or focus event
-                        if (event.active.state & SDL_APPMOUSEFOCUS) {
-                                if (event.active.gain == 0) {
-                                        if (!is_sleeping) {
-                                                is_sleeping = true;
-                                                sleep_time = SDL_GetTicks();
-                                        }
-                                } else {
-                                        if (is_sleeping) {
-                                                is_sleeping = false;
-                                                time_passed_while_sleeping += SDL_GetTicks() - sleep_time;
-                                        }
-                                }
-                        }
-                        continue; // filter these events
-                */
-                // !Rake:
-
-            case SDL_KEYDOWN: // Keyboard event - key down
-                if (event.key.keysym.scancode == SDL_SCANCODE_KP_POWER)
+                continue;
+            case event_type::KEY_DOWN:
+                if (ge.keysym.scancode == SCANCODE_KP_POWER)
                     show_console = !show_console;
                 break;
-
-            case SDL_KEYUP: // pass known events through
-            case SDL_MOUSEMOTION:
-            case SDL_MOUSEBUTTONDOWN:
-            case SDL_MOUSEBUTTONUP:
+            case event_type::KEY_UP:
+            case event_type::MOUSE_MOTION:
+            case event_type::MOUSE_BUTTON_DOWN:
+            case event_type::MOUSE_BUTTON_UP:
                 break;
-
-            default: // by default don't pass though unknown events
+            default:
                 continue;
             }
-
             ++nr_of_events;
-            events.push_back(event);
+            events.push_back(ge);
         }
-        // do not waste CPU time when sleeping
         if (nr_of_events == 0 && is_sleeping)
             SDL_Delay(25);
     } while (is_sleeping);
@@ -616,40 +593,40 @@ list<SDL_Event> system::poll_event_queue() {
     return events;
 }
 
-double system::translate_motion_x(const SDL_Event &event) {
-    if (event.type == SDL_MOUSEMOTION)
-        return event.motion.xrel * double(res_x_2d) / res_area_2d_w;
-    else
-        return 0.0;
+double system::translate_motion_x(const game_event &event) {
+    if (event.type == event_type::MOUSE_MOTION)
+        return event.motion_xrel * double(res_x_2d) / res_area_2d_w;
+    return 0.0;
 }
 
-double system::translate_motion_y(const SDL_Event &event) {
-    if (event.type == SDL_MOUSEMOTION)
-        return event.motion.yrel * double(res_y_2d) / res_area_2d_h;
-    else
-        return 0.0;
+double system::translate_motion_y(const game_event &event) {
+    if (event.type == event_type::MOUSE_MOTION)
+        return event.motion_yrel * double(res_y_2d) / res_area_2d_h;
+    return 0.0;
 }
 
-vector2 system::translate_motion(const SDL_Event &event) {
+vector2 system::translate_motion(const game_event &event) {
     return vector2(translate_motion_x(event), translate_motion_y(event));
 }
 
-int system::translate_position_x(const SDL_Event &event) {
-    if (event.type == SDL_MOUSEMOTION)
-        return transform_2d_x(event.motion.x);
-    else
-        return transform_2d_x(event.button.x);
+int system::translate_position_x(const game_event &event) {
+    if (event.type == event_type::MOUSE_MOTION)
+        return transform_2d_x(event.motion_x);
+    return transform_2d_x(event.button_x);
 }
 
-int system::translate_position_y(const SDL_Event &event) {
-    if (event.type == SDL_MOUSEMOTION)
-        return transform_2d_y(event.motion.y);
-    else
-        return transform_2d_y(event.button.y);
+int system::translate_position_y(const game_event &event) {
+    if (event.type == event_type::MOUSE_MOTION)
+        return transform_2d_y(event.motion_y);
+    return transform_2d_y(event.button_y);
 }
 
-vector2i system::translate_position(const SDL_Event &event) {
+vector2i system::translate_position(const game_event &event) {
     return vector2i(translate_position_x(event), translate_position_y(event));
+}
+
+void* system::get_window_handle() const {
+    return screen;
 }
 
 void system::screenshot(const std::string &filename) {

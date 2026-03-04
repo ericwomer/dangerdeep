@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "freeview_display.h"
+#include "game_event.h"
 #include "airplane.h"
 #include "caustics.h"
 #include "depth_charge.h"
@@ -146,7 +147,7 @@ void freeview_display::display(class game &gm) const {
     post_display(gm);
 }
 
-void freeview_display::process_input(class game &gm, const SDL_Event &event) {
+void freeview_display::process_input(class game &gm, const game_event &event) {
     glPushMatrix();
     glLoadIdentity();
     set_modelview_matrix(gm, vector3()); // position doesn't matter, only direction.
@@ -157,8 +158,8 @@ void freeview_display::process_input(class game &gm, const SDL_Event &event) {
     vector3 forward = -viewmatrix.row3(2);
 
     switch (event.type) {
-    case SDL_KEYDOWN:
-        switch (event.key.keysym.sym) {
+    case event_type::KEY_DOWN:
+        switch (event.keysym.sym) {
         case SDLK_KP_8:
             add_pos -= forward * 15;
             break;
@@ -187,18 +188,18 @@ void freeview_display::process_input(class game &gm, const SDL_Event &event) {
             break;
         }
         break;
-    case SDL_MOUSEMOTION:
-        if (event.motion.state & SDL_BUTTON_LMASK) {
+    case event_type::MOUSE_MOTION:
+        if (event.motion_state & MOUSE_BUTTON_LMASK) {
             ui.add_bearing(sys().translate_motion_x(event) * 0.5);
             ui.add_elevation(-sys().translate_motion_y(event) * 0.5);
             // fixme handle clamping of elevation at +-90deg
         }
         break;
-    case SDL_MOUSEWHEEL: // Come up with a better scheme later on if this one does
-                         // not pan out.
-        if (event.wheel.y > 0) {
+    case event_type::MOUSE_WHEEL: // Come up with a better scheme later on if this one does
+                                  // not pan out.
+        if (event.wheel_y > 0) {
             add_pos += forward * 15;
-        } else if (event.wheel.y < 0) {
+        } else if (event.wheel_y < 0) {
             add_pos -= forward * 15;
         }
         break;

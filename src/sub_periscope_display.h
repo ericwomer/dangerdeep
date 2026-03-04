@@ -56,7 +56,7 @@ class sub_periscope_display : public freeview_display {
     virtual ~sub_periscope_display();
 
     // overload for zoom key handling ('y') and TDC input
-    virtual void process_input(class game &gm, const SDL_Event &event);
+    virtual void process_input(class game &gm, const game_event &event);
     virtual void display(class game &gm) const;
 
     virtual unsigned get_popup_allow_mask() const;

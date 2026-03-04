@@ -38,6 +38,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "log.h"
 #include "music.h"
 #include "particle.h" // for hack, fixme
+#include "game_event.h"
 #include "submarine_interface.h"
 #include "system.h"
 #include "texts.h"
@@ -177,24 +178,12 @@ void submarine_interface::fire_tube(submarine *player, int nr) {
     }
 }
 
-void submarine_interface::process_input(const SDL_Event &event) {
+void submarine_interface::process_input(const game_event &event) {
     submarine *player = dynamic_cast<submarine *>(mygame->get_player());
 
-    /*
-    // check output for key input
-    if (event.type == SDL_KEYDOWN) {
-            cout << "pressed key " << SDL_GetKeyName(event.key.keysym.sym) << " for keysym " << unsigned(event.key.keysym.sym)
-            << " mod " << int(event.key.keysym.mod) << " unicode " << event.key.keysym.unicode << " scancode " <<
-            unsigned(event.key.keysym.scancode) << "\n";
-    }
-    */
-
-    // fixme: if editor needs key input (CV name or mission description etc.)
-    // we need to fetch the event to some widgets, and not use it here!
-
     // switch screen selector on if it is not visible
-    if (event.type == SDL_MOUSEBUTTONDOWN) {
-        if (event.button.button == SDL_BUTTON_RIGHT) {
+    if (event.type == event_type::MOUSE_BUTTON_DOWN) {
+        if (event.button_button == MOUSE_BUTTON_RIGHT) {
             if (!main_menu_visible) {
                 main_menu_visible = true;
                 return;
@@ -205,115 +194,115 @@ void submarine_interface::process_input(const SDL_Event &event) {
     // we need to check the event mentioned above extra!
 
     // check for common keys
-    if (event.type == SDL_KEYDOWN) {
+    if (event.type == event_type::KEY_DOWN) {
         const cfg &mycfg = get_config();
 
         // SCREENS
-        if (event.key.keysym.sym == SDLK_b)
+        if (event.keysym.sym == SDLK_b)
             goto_valves();
-        if (mycfg.getkey(KEY_SHOW_GAUGES_SCREEN).equal(event.key.keysym)) {
+        if (mycfg.getkey(KEY_SHOW_GAUGES_SCREEN).equal(event.keysym)) {
             goto_gauges();
-        } else if (mycfg.getkey(KEY_SHOW_PERISCOPE_SCREEN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_SHOW_PERISCOPE_SCREEN).equal(event.keysym)) {
             goto_periscope();
-        } else if (mycfg.getkey(KEY_SHOW_UZO_SCREEN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_SHOW_UZO_SCREEN).equal(event.keysym)) {
             goto_UZO();
-        } else if (mycfg.getkey(KEY_SHOW_BRIDGE_SCREEN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_SHOW_BRIDGE_SCREEN).equal(event.keysym)) {
             goto_bridge();
-        } else if (mycfg.getkey(KEY_SHOW_MAP_SCREEN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_SHOW_MAP_SCREEN).equal(event.keysym)) {
             goto_map();
-        } else if (mycfg.getkey(KEY_SHOW_TORPEDO_SCREEN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_SHOW_TORPEDO_SCREEN).equal(event.keysym)) {
             goto_torpedomanagement();
-        } else if (mycfg.getkey(KEY_SHOW_DAMAGE_CONTROL_SCREEN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_SHOW_DAMAGE_CONTROL_SCREEN).equal(event.keysym)) {
             goto_damagecontrol();
-        } else if (mycfg.getkey(KEY_SHOW_LOGBOOK_SCREEN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_SHOW_LOGBOOK_SCREEN).equal(event.keysym)) {
             goto_captainscabin();
-        } else if (mycfg.getkey(KEY_SHOW_SUCCESS_RECORDS_SCREEN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_SHOW_SUCCESS_RECORDS_SCREEN).equal(event.keysym)) {
             goto_sonar();
-        } else if (mycfg.getkey(KEY_SHOW_FREEVIEW_SCREEN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_SHOW_FREEVIEW_SCREEN).equal(event.keysym)) {
             goto_freeview();
-        } else if (mycfg.getkey(KEY_SHOW_TDC_SCREEN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_SHOW_TDC_SCREEN).equal(event.keysym)) {
             goto_TDC();
-        } else if (mycfg.getkey(KEY_SHOW_TORPSETUP_SCREEN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_SHOW_TORPSETUP_SCREEN).equal(event.keysym)) {
             goto_torpedosettings();
-        } else if (mycfg.getkey(KEY_SHOW_TORPEDO_CAMERA).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_SHOW_TORPEDO_CAMERA).equal(event.keysym)) {
             // show next torpedo in torpedo camera view
             torpedo_cam_track_nr++;
 
             // MOVEMENT
-        } else if (mycfg.getkey(KEY_RUDDER_LEFT).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_RUDDER_LEFT).equal(event.keysym)) {
             player->set_rudder(ship::rudderleft);
             add_message(texts::get(33));
-        } else if (mycfg.getkey(KEY_RUDDER_HARD_LEFT).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_RUDDER_HARD_LEFT).equal(event.keysym)) {
             player->set_rudder(ship::rudderfullleft);
             add_message(texts::get(35));
-        } else if (mycfg.getkey(KEY_RUDDER_RIGHT).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_RUDDER_RIGHT).equal(event.keysym)) {
             player->set_rudder(ship::rudderright);
             add_message(texts::get(34));
-        } else if (mycfg.getkey(KEY_RUDDER_HARD_RIGHT).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_RUDDER_HARD_RIGHT).equal(event.keysym)) {
             player->set_rudder(ship::rudderfullright);
             add_message(texts::get(36));
-        } else if (mycfg.getkey(KEY_RUDDER_UP).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_RUDDER_UP).equal(event.keysym)) {
             player->set_planes_to(-0.5);
             add_message(texts::get(37));
-        } else if (mycfg.getkey(KEY_RUDDER_HARD_UP).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_RUDDER_HARD_UP).equal(event.keysym)) {
             player->set_planes_to(-1.0);
             add_message(texts::get(37));
-        } else if (mycfg.getkey(KEY_RUDDER_DOWN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_RUDDER_DOWN).equal(event.keysym)) {
             add_message(texts::get(38));
             player->set_planes_to(0.5);
-        } else if (mycfg.getkey(KEY_RUDDER_HARD_DOWN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_RUDDER_HARD_DOWN).equal(event.keysym)) {
             add_message(texts::get(38));
             player->set_planes_to(1.0);
-        } else if (mycfg.getkey(KEY_CENTER_RUDDERS).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_CENTER_RUDDERS).equal(event.keysym)) {
             player->set_rudder(ship::ruddermidships);
             player->set_planes_to(0);
             add_message(texts::get(42));
 
             // THROTTLE
-        } else if (mycfg.getkey(KEY_THROTTLE_LISTEN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_THROTTLE_LISTEN).equal(event.keysym)) {
             player->set_throttle(ship::aheadlisten);
             add_message(texts::get(139));
-        } else if (mycfg.getkey(KEY_THROTTLE_SLOW).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_THROTTLE_SLOW).equal(event.keysym)) {
             player->set_throttle(ship::aheadslow);
             add_message(texts::get(43));
-        } else if (mycfg.getkey(KEY_THROTTLE_HALF).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_THROTTLE_HALF).equal(event.keysym)) {
             player->set_throttle(ship::aheadhalf);
             add_message(texts::get(44));
-        } else if (mycfg.getkey(KEY_THROTTLE_FULL).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_THROTTLE_FULL).equal(event.keysym)) {
             player->set_throttle(ship::aheadfull);
             add_message(texts::get(45));
-        } else if (mycfg.getkey(KEY_THROTTLE_FLANK).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_THROTTLE_FLANK).equal(event.keysym)) {
             player->set_throttle(ship::aheadflank);
             add_message(texts::get(46));
-        } else if (mycfg.getkey(KEY_THROTTLE_STOP).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_THROTTLE_STOP).equal(event.keysym)) {
             player->set_throttle(ship::stop);
             add_message(texts::get(47));
-        } else if (mycfg.getkey(KEY_THROTTLE_REVERSE).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_THROTTLE_REVERSE).equal(event.keysym)) {
             player->set_throttle(ship::reverse);
             add_message(texts::get(48));
-        } else if (mycfg.getkey(KEY_THROTTLE_REVERSEHALF).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_THROTTLE_REVERSEHALF).equal(event.keysym)) {
             player->set_throttle(ship::reversehalf);
             add_message(texts::get(140));
-        } else if (mycfg.getkey(KEY_THROTTLE_REVERSEFULL).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_THROTTLE_REVERSEFULL).equal(event.keysym)) {
             player->set_throttle(ship::reversefull);
             add_message(texts::get(141));
 
             // TORPEDOES
-        } else if (mycfg.getkey(KEY_FIRE_TORPEDO).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_FIRE_TORPEDO).equal(event.keysym)) {
             fire_tube(player, -1);
-        } else if (mycfg.getkey(KEY_FIRE_TUBE_1).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_FIRE_TUBE_1).equal(event.keysym)) {
             fire_tube(player, 0);
-        } else if (mycfg.getkey(KEY_FIRE_TUBE_2).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_FIRE_TUBE_2).equal(event.keysym)) {
             fire_tube(player, 1);
-        } else if (mycfg.getkey(KEY_FIRE_TUBE_3).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_FIRE_TUBE_3).equal(event.keysym)) {
             fire_tube(player, 2);
-        } else if (mycfg.getkey(KEY_FIRE_TUBE_4).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_FIRE_TUBE_4).equal(event.keysym)) {
             fire_tube(player, 3);
-        } else if (mycfg.getkey(KEY_FIRE_TUBE_5).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_FIRE_TUBE_5).equal(event.keysym)) {
             fire_tube(player, 4);
-        } else if (mycfg.getkey(KEY_FIRE_TUBE_6).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_FIRE_TUBE_6).equal(event.keysym)) {
             fire_tube(player, 5);
-        } else if (mycfg.getkey(KEY_SELECT_TARGET).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_SELECT_TARGET).equal(event.keysym)) {
             sea_object *tgt = mygame->contact_in_direction(player, get_absolute_bearing());
             // set initial tdc values, also do that when tube is switched
             player->set_target(tgt);
@@ -325,7 +314,7 @@ void submarine_interface::process_input(const SDL_Event &event) {
             }
 
             // DEPTH, SNORKEL, SCOPE
-        } else if (mycfg.getkey(KEY_SCOPE_UP_DOWN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_SCOPE_UP_DOWN).equal(event.keysym)) {
             if (player->is_scope_up()) {
                 player->scope_down();
                 add_message(texts::get(54));
@@ -333,17 +322,17 @@ void submarine_interface::process_input(const SDL_Event &event) {
                 player->scope_up();
                 add_message(texts::get(55));
             }
-        } else if (mycfg.getkey(KEY_CRASH_DIVE).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_CRASH_DIVE).equal(event.keysym)) {
             add_message(texts::get(41));
             mygame->add_logbook_entry(texts::get(41));
             player->crash_dive();
-        } else if (mycfg.getkey(KEY_GO_TO_SNORKEL_DEPTH).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_GO_TO_SNORKEL_DEPTH).equal(event.keysym)) {
             if (player->has_snorkel()) {
                 player->dive_to_depth(unsigned(player->get_snorkel_depth()));
                 add_message(texts::get(12));
                 mygame->add_logbook_entry(texts::get(97));
             }
-        } else if (mycfg.getkey(KEY_TOGGLE_SNORKEL).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_TOGGLE_SNORKEL).equal(event.keysym)) {
             if (player->has_snorkel()) {
                 if (player->is_snorkel_up()) {
                     player->snorkel_down();
@@ -357,9 +346,9 @@ void submarine_interface::process_input(const SDL_Event &event) {
                     mygame->add_logbook_entry(texts::get(95));
                 }
             }
-        } else if (mycfg.getkey(KEY_SET_HEADING_TO_VIEW).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_SET_HEADING_TO_VIEW).equal(event.keysym)) {
             player->head_to_course(get_absolute_bearing());
-        } else if (mycfg.getkey(KEY_IDENTIFY_TARGET).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_IDENTIFY_TARGET).equal(event.keysym)) {
             // calculate distance to target for identification detail
             if (player->get_target()) {
                 ostringstream oss;
@@ -369,39 +358,39 @@ void submarine_interface::process_input(const SDL_Event &event) {
             } else {
                 add_message(texts::get(80));
             }
-        } else if (mycfg.getkey(KEY_GO_TO_PERISCOPE_DEPTH).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_GO_TO_PERISCOPE_DEPTH).equal(event.keysym)) {
             add_message(texts::get(40));
             mygame->add_logbook_entry(texts::get(40));
             player->dive_to_depth(unsigned(player->get_periscope_depth()));
-        } else if (mycfg.getkey(KEY_GO_TO_SURFACE).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_GO_TO_SURFACE).equal(event.keysym)) {
             player->dive_to_depth(0);
             add_message(texts::get(39));
             mygame->add_logbook_entry(texts::get(39));
 
             // VIEWS
-        } else if (mycfg.getkey(KEY_SET_VIEW_TO_HEADING).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_SET_VIEW_TO_HEADING).equal(event.keysym)) {
             bearing = (bearing_is_relative) ? 0.0 : player->get_heading();
-        } else if (mycfg.getkey(KEY_TURN_VIEW_LEFT).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_TURN_VIEW_LEFT).equal(event.keysym)) {
             add_bearing(angle(-1));
-        } else if (mycfg.getkey(KEY_TURN_VIEW_LEFT_FAST).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_TURN_VIEW_LEFT_FAST).equal(event.keysym)) {
             add_bearing(angle(-10));
-        } else if (mycfg.getkey(KEY_TURN_VIEW_RIGHT).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_TURN_VIEW_RIGHT).equal(event.keysym)) {
             add_bearing(angle(1));
-        } else if (mycfg.getkey(KEY_TURN_VIEW_RIGHT_FAST).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_TURN_VIEW_RIGHT_FAST).equal(event.keysym)) {
             add_bearing(angle(10));
 
             // TIME SCALE
-        } else if (mycfg.getkey(KEY_TIME_SCALE_UP).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_TIME_SCALE_UP).equal(event.keysym)) {
             if (time_scale_up()) {
                 add_message(texts::get(31));
             }
-        } else if (mycfg.getkey(KEY_TIME_SCALE_DOWN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_TIME_SCALE_DOWN).equal(event.keysym)) {
             if (time_scale_down()) {
                 add_message(texts::get(32));
             }
 
             // GUNS
-        } else if (mycfg.getkey(KEY_FIRE_DECK_GUN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_FIRE_DECK_GUN).equal(event.keysym)) {
             if (player->has_deck_gun()) {
                 if (!player->is_submerged()) {
                     if (player->get_target() && player->get_target() != player) {
@@ -425,10 +414,10 @@ void submarine_interface::process_input(const SDL_Event &event) {
                     add_message(texts::get(27));
                 }
             }
-        } else if (mycfg.getkey(KEY_TOGGLE_MAN_DECK_GUN).equal(event.key.keysym)) {
+        } else if (mycfg.getkey(KEY_TOGGLE_MAN_DECK_GUN).equal(event.keysym)) {
             if (player->has_deck_gun()) {
                 if (!player->is_submerged()) {
-                    if (event.key.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) {
+                    if (event.keysym.mod & (DFTD_KMOD_LSHIFT | DFTD_KMOD_RSHIFT)) {
                         if (player->is_gun_manned()) {
                             if (player->unman_guns())
                                 add_message(texts::get(126));
@@ -443,7 +432,7 @@ void submarine_interface::process_input(const SDL_Event &event) {
             } else {
                 add_message(texts::get(269));
             }
-        } else if (get_config().getkey(KEY_TAKE_SCREENSHOT).equal(event.key.keysym)) {
+        } else if (get_config().getkey(KEY_TAKE_SCREENSHOT).equal(event.keysym)) {
             sys().screenshot();
             log_info("screenshot taken.");
 
@@ -451,7 +440,7 @@ void submarine_interface::process_input(const SDL_Event &event) {
         } else {
             // rest of the keys per switch (not user defineable)
             // quit, screenshot, pause etc.
-            switch (event.key.keysym.sym) {
+            switch (event.keysym.sym) {
             case SDLK_ESCAPE:
                 request_abort();
                 break;

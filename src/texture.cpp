@@ -30,12 +30,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "system.h"
 
+#include "image_loader.h"
 #include "log.h"
 #include "primitives.h"
 #include "texture.h"
 #include "vector3.h"
 #include <SDL.h>
-#include <SDL_image.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -97,311 +97,108 @@ static GLuint clampmodes[texture::NR_OF_CLAMPING_MODES] = {
     GL_CLAMP_TO_EDGE};
 // --------------------------------------------------
 
-sdl_image::sdl_image(const std::string &filename)
-    : img(0) {
-    // get extension
+sdl_image::sdl_image(const std::string &filename) {
     string::size_type st = filename.rfind(".");
-    string extension = filename.substr(st);
-    Uint32 sdl_color_key = 0; // used for the color key
+    string extension = (st != string::npos) ? filename.substr(st) : "";
 
     if (extension != ".jpg|png") {
-        // standard texture, just one file
-        img = IMG_Load(filename.c_str());
-        if (!img)
+        image_loader_backend* loader = get_image_loader();
+        data = loader->load(filename);
+        if (!data)
             throw file_read_error(filename);
     } else {
-        // special texture, using jpg for RGB and png/grey for A.
         string fnrgb = filename.substr(0, st) + ".jpg";
         string fna = filename.substr(0, st) + ".png";
-        // "recursive" use of constructor. looks wild, but is valid.
-        sdl_image teximagergb(fnrgb);
-        sdl_image teximagea(fna);
-
-        // combine surfaces to one
-        if (teximagergb->w != teximagea->w || teximagergb->h != teximagea->h)
-            throw texture::texerror(filename, "jpg/png load: widths/heights don't match");
-
-        if (teximagergb->format->BytesPerPixel != 3 || (teximagergb->format->Amask != 0))
-            throw texture::texerror(fnrgb, ".jpg: no 3 byte/pixel RGB image!");
-
-        if (teximagea->format->BytesPerPixel != 1 || teximagea->format->palette == 0 || teximagea->format->palette->ncolors != 256 || ((SDL_GetColorKey(teximagea.get_SDL_Surface(), &sdl_color_key) != -1))) // !Rake: if SDL_GetColorKey == -1 colorkey was not enabled.
-            throw texture::texerror(fna, ".png: no 8bit greyscale non-alpha-channel image!");
-
-        Uint32 rmask, gmask, bmask, amask;
-
-        /* SDL interprets each pixel as a 32-bit number, so our masks must depend
-           on the endianness (byte order) of the machine */
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-        rmask = 0xff000000;
-        gmask = 0x00ff0000;
-        bmask = 0x0000ff00;
-        amask = 0x000000ff;
-#else
-        rmask = 0x000000ff;
-        gmask = 0x0000ff00;
-        bmask = 0x00ff0000;
-        amask = 0xff000000;
-#endif
-
-        SDL_Surface *result = SDL_CreateRGBSurface(SDL_SWSURFACE,
-                                                   teximagergb->w,
-                                                   teximagergb->h,
-                                                   32, rmask, gmask, bmask, amask);
-        if (!result)
+        image_loader_backend* loader = get_image_loader();
+        auto rgb_img = loader->load(fnrgb);
+        auto alpha_img = loader->load(fna);
+        if (!rgb_img || !alpha_img)
             throw file_read_error(filename);
+        if (rgb_img->width != alpha_img->width || rgb_img->height != alpha_img->height)
+            throw texture::texerror(filename, "jpg/png load: widths/heights don't match");
+        if (rgb_img->bytes_per_pixel < 3)
+            throw texture::texerror(fnrgb, ".jpg: need at least 3 byte/pixel RGB");
+        if (alpha_img->bytes_per_pixel < 1)
+            throw texture::texerror(fna, ".png: need alpha/grey channel");
 
-        try {
-            // copy pixel data
-            teximagergb.lock();
-            teximagea.lock();
-            SDL_LockSurface(result);
+        data = std::make_unique<image_data>();
+        data->width = rgb_img->width;
+        data->height = rgb_img->height;
+        data->bytes_per_pixel = 4;
+        data->gl_format = 0x1908; // GL_RGBA
+        data->pitch = data->width * 4;
+        data->pixels.resize(data->width * data->height * 4);
 
-            // fixme: when reading pixels out of sdl surfaces,
-            // we need to take care of the pixel format...
-            unsigned char *ptr = ((unsigned char *)(result->pixels));
-            unsigned char *offsetrgb = ((unsigned char *)(teximagergb->pixels));
-            unsigned char *offseta = ((unsigned char *)(teximagea->pixels));
-            // 2006-12-01 doc1972 images with negative width and height doesn? exist, so we cast to unsigned
-            for (unsigned y = 0; y < (unsigned int)teximagergb->h; ++y) {
-                for (unsigned x = 0; x < (unsigned int)teximagergb->w; ++x) {
-                    ptr[4 * x] = offsetrgb[3 * x];
-                    ptr[4 * x + 1] = offsetrgb[3 * x + 1];
-                    ptr[4 * x + 2] = offsetrgb[3 * x + 2];
-                    ptr[4 * x + 3] = offseta[x];
-                }
-                offsetrgb += teximagergb->pitch;
-                offseta += teximagea->pitch;
-                ptr += result->pitch;
+        const uint8_t* src_rgb = rgb_img->pixels.data();
+        const uint8_t* src_a = alpha_img->pixels.data();
+        unsigned pitch_rgb = rgb_img->pitch;
+        unsigned pitch_a = alpha_img->pitch;
+        unsigned bpp_rgb = rgb_img->bytes_per_pixel;
+        uint8_t* dst = data->pixels.data();
+        for (unsigned y = 0; y < data->height; ++y) {
+            for (unsigned x = 0; x < data->width; ++x) {
+                dst[4 * x] = src_rgb[bpp_rgb * x];
+                dst[4 * x + 1] = src_rgb[bpp_rgb * x + 1];
+                dst[4 * x + 2] = src_rgb[bpp_rgb * x + 2];
+                dst[4 * x + 3] = src_a[alpha_img->bytes_per_pixel * x];
             }
-
-            teximagergb.unlock();
-            teximagea.unlock();
-            SDL_UnlockSurface(result);
-        } catch (...) {
-            if (result)
-                SDL_FreeSurface(result);
-            throw;
+            src_rgb += pitch_rgb;
+            src_a += pitch_a;
+            dst += data->pitch;
         }
-
-        img = result;
     }
-}
-
-sdl_image::~sdl_image() {
-    SDL_FreeSurface(img);
-}
-
-void sdl_image::lock() {
-    SDL_LockSurface(img);
-}
-
-void sdl_image::unlock() {
-    SDL_UnlockSurface(img);
 }
 
 std::vector<uint8_t> sdl_image::get_plain_data(unsigned &w, unsigned &h, unsigned &byte_per_pixel) {
-    byte_per_pixel = img->format->BytesPerPixel;
-    w = img->w;
-    h = img->h;
+    w = data->width;
+    h = data->height;
+    byte_per_pixel = data->bytes_per_pixel;
     std::vector<uint8_t> tmp(w * h * byte_per_pixel);
-    lock();
-    for (unsigned y = 0; y < h; ++y) {
-        memcpy(&tmp[y * w * byte_per_pixel], (uint8_t *)img->pixels + y * img->pitch, w * byte_per_pixel);
-    }
-    unlock();
+    for (unsigned y = 0; y < h; ++y)
+        memcpy(&tmp[y * w * byte_per_pixel], data->pixels.data() + y * data->pitch, w * byte_per_pixel);
     return tmp;
 }
 
 // --------------------------------------------------
 
-void texture::sdl_init(SDL_Surface *teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-                       bool makenormalmap, float detailh, bool rgb2grey) {
-    // compute texture width and height
+void texture::image_data_init(const image_data &img, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
+                              bool makenormalmap, float detailh, bool rgb2grey) {
     unsigned tw = sw, th = sh;
     if (!size_non_power_two()) {
-        tw = 1;
-        th = 1;
-        while (tw < sw)
-            tw *= 2;
-        while (th < sh)
-            th *= 2;
+        tw = th = 1;
+        while (tw < sw) tw *= 2;
+        while (th < sh) th *= 2;
     }
     width = sw;
     height = sh;
     gl_width = tw;
     gl_height = th;
 
-    SDL_LockSurface(teximage);
-
-    const SDL_PixelFormat &fmt = *(teximage->format);
-    unsigned bpp = fmt.BytesPerPixel;
-
-    /*
-            cout << "texture: " << texfilename
-                 << " palette: " << teximage->format->palette
-                 << " bpp " << unsigned(teximage->format->BitsPerPixel)
-                 << " bytepp " << unsigned(teximage->format->BytesPerPixel)
-                 << " Rmask " << teximage->format->Rmask
-                 << " Gmask " << teximage->format->Gmask
-                 << " Bmask " << teximage->format->Bmask
-                 << " Amask " << teximage->format->Amask
-                 << "\n";
-    */
-
-    vector<Uint8> data;
-    if (fmt.palette != 0) {
-        // old color table code, does not work
-        // glEnable(GL_COLOR_TABLE);
-        if (bpp != 1)
-            throw texerror(get_name(), "only 8bit palette files supported");
-        int ncol = fmt.palette->ncolors;
-        if (ncol > 256)
-            throw texerror(get_name(), "max. 256 colors in palette supported");
-        bool usealpha = (teximage->flags & SDL_SRCCOLORKEY);
-
-        // check for greyscale images (GL_LUMINANCE), fixme: add also LUMINANCE_ALPHA!
-        bool lumi = false;
-        if (ncol == 256 && !usealpha) {
-            unsigned i = 0;
-            for (; i < 256; ++i) {
-                if (unsigned(fmt.palette->colors[i].r) != i)
-                    break;
-                if (unsigned(fmt.palette->colors[i].g) != i)
-                    break;
-                if (unsigned(fmt.palette->colors[i].b) != i)
-                    break;
-            }
-            if (i == 256)
-                lumi = true;
-        }
-
-        if (lumi) {
-            // grey value images
-            format = GL_LUMINANCE;
-            bpp = 1;
-
-            data.resize(tw * th * bpp);
-            unsigned char *ptr = &data[0];
-            unsigned char *offset = ((unsigned char *)(teximage->pixels)) + sy * teximage->pitch + sx;
-            for (unsigned y = 0; y < sh; y++) {
-                memcpy(ptr, offset, sw /* * bpp */);
-                offset += teximage->pitch;
-                ptr += tw * bpp;
-            }
-        } else {
-            // color images
-            format = usealpha ? GL_RGBA : GL_RGB;
-            bpp = usealpha ? 4 : 3;
-
-            // old color table code, does not work
-            // glColorTable(GL_TEXTURE_2D, internalformat, 256, GL_RGBA, GL_UNSIGNED_BYTE, &(palette[0]));
-            // internalformat = GL_COLOR_INDEX8_EXT;
-            // externalformat = GL_COLOR_INDEX;
-            data.resize(tw * th * bpp);
-            unsigned char *ptr = &data[0];
-            unsigned char *offset = ((unsigned char *)(teximage->pixels)) + sy * teximage->pitch + sx;
-
-            // This is used to set the color key to the value, if set, for the color key.
-            Uint32 sdl_color_key = 0;
-            SDL_GetColorKey(teximage, &sdl_color_key);
-            for (unsigned y = 0; y < sh; y++) {
-                unsigned char *ptr2 = ptr;
-                for (unsigned x = 0; x < sw; ++x) {
-                    Uint8 pixindex = *(offset + x);
-                    const SDL_Color &pixcolor = fmt.palette->colors[pixindex];
-                    *ptr2++ = pixcolor.r;
-                    *ptr2++ = pixcolor.g;
-                    *ptr2++ = pixcolor.b;
-                    if (usealpha)
-                        *ptr2++ = (pixindex == (sdl_color_key & 0xff)) ? 0x00 : 0xff; // !Rake: Hope this works
-                }
-                // old color table code, does not work
-                // memcpy(ptr, offset, sw);
-                offset += teximage->pitch;
-                ptr += tw * bpp;
-            }
-        }
-    } else {
-        bool usealpha = fmt.Amask != 0;
-        if (rgb2grey) {
-            if (usealpha) {
-                format = GL_LUMINANCE_ALPHA;
-                bpp = 2;
-            } else {
-                format = GL_LUMINANCE;
-                bpp = 1;
-            }
-        } else {
-            if (usealpha) {
-                format = GL_RGBA;
-                bpp = 4;
-            } else {
-                format = GL_RGB;
-                bpp = 3;
-            }
-        }
-        data.resize(tw * th * bpp);
-        unsigned char *ptr = &data[0];
-        unsigned char *offset = ((unsigned char *)(teximage->pixels)) + sy * teximage->pitch + sx * bpp;
-        if (rgb2grey) {
-            for (unsigned y = 0; y < sh; y++) {
-                for (unsigned x = 0; x < sw; ++x)
-                    ptr[x * bpp] = offset[x * (bpp + 2) + 1]; // take green value, it doesn't matter
-                if (bpp == 2)
-                    // with alpha
-                    for (unsigned x = 0; x < sw; ++x)
-                        ptr[x * 2 + 1] = offset[x * 4 + 3];
-                offset += teximage->pitch;
-                ptr += tw * bpp;
-            }
-        } else {
-            for (unsigned y = 0; y < sh; y++) {
-#if 0
-				// new code, that uses the RGB-masks of SDL to load/transform
-				// colors.
-				if (bpp == 3) {
-					Uint8* linedst = (Uint8*)ptr;
-					Uint8* linesrc = (Uint8*)offset;
-					for (unsigned x = 0; x < sw; ++x) {
-						// be careful! with bpp=3 this could lead to
-						// an off by one segfault error, if pitch is
-						// not a multiple of four...we just hope the best.
-						// could be done quicker with mmx, but this performance
-						// is not that critical here
-						Uint32 pv = *(Uint32*)linesrc; // fixme: is that right for Big-Endian machines? SDL Docu suggests yes...
-						linedst[0] = Uint8(((pv & fmt.Rmask) >> fmt.Rshift) << fmt.Rloss);
-						linedst[1] = Uint8(((pv & fmt.Gmask) >> fmt.Gshift) << fmt.Gloss);
-						linedst[2] = Uint8(((pv & fmt.Bmask) >> fmt.Bshift) << fmt.Bloss);
-						linesrc += bpp;
-						linedst += bpp;
-					}
-				} else {
-					// bpp = 4 here
-					Uint32* linedst = (Uint32*)ptr;
-					Uint32* linesrc = (Uint32*)offset;
-					for (unsigned x = 0; x < sw; ++x) {
-						Uint32 pv = linesrc[x];
-						Uint32 r = (((pv & fmt.Rmask) >> fmt.Rshift) << fmt.Rloss);
-						Uint32 g = (((pv & fmt.Gmask) >> fmt.Gshift) << fmt.Gloss);
-						Uint32 b = (((pv & fmt.Bmask) >> fmt.Bshift) << fmt.Bloss);
-						Uint32 a = (((pv & fmt.Bmask) >> fmt.Bshift) << fmt.Bloss);
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-						pv = a | (b << 8) | (g << 16) | (r << 24);
-#else
-						pv = r | (g << 8) | (b << 16) | (a << 24);
-#endif
-						linedst[x] = pv;
-					}
-				}
-#endif
-                // old code, that assumes bytes come in R,G,B order:
-                memcpy(ptr, offset, sw * bpp);
-                offset += teximage->pitch;
-                ptr += tw * bpp;
-            }
-        }
+    unsigned src_bpp = img.bytes_per_pixel;
+    format = (src_bpp == 4) ? GL_RGBA : GL_RGB;
+    unsigned dst_bpp = src_bpp;
+    if (rgb2grey) {
+        format = (src_bpp == 4) ? GL_LUMINANCE_ALPHA : GL_LUMINANCE;
+        dst_bpp = (src_bpp == 4) ? 2 : 1;
     }
-    SDL_UnlockSurface(teximage);
+
+    vector<Uint8> data(tw * th * dst_bpp);
+    unsigned char *ptr = data.data();
+    const unsigned char *offset = img.pixels.data() + sy * img.pitch + sx * src_bpp;
+
+    for (unsigned y = 0; y < sh; y++) {
+        if (rgb2grey) {
+            for (unsigned x = 0; x < sw; ++x) {
+                ptr[x * dst_bpp] = offset[x * src_bpp + 1]; // green for luminance
+                if (dst_bpp == 2)
+                    ptr[x * 2 + 1] = offset[x * src_bpp + 3]; // alpha
+            }
+        } else {
+            memcpy(ptr, offset, sw * dst_bpp);
+        }
+        offset += img.pitch;
+        ptr += tw * dst_bpp;
+    }
     init(data, makenormalmap, detailh);
 }
 
@@ -726,16 +523,8 @@ texture::texture(const string &filename, mapping_mode mapping_, clamping_mode cl
     texfilename = filename;
 
     sdl_image teximage(filename);
-    sdl_init(teximage.get_SDL_Surface(), 0, 0, teximage->w, teximage->h, makenormalmap, detailh, rgb2grey);
-}
-
-texture::texture(SDL_Surface *teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-                 mapping_mode mapping_, clamping_mode clamp, bool makenormalmap, float detailh,
-                 bool rgb2grey, GLenum _dimension) {
-    dimension = _dimension;
-    mapping = mapping_;
-    clamping = clamp;
-    sdl_init(teximage, sx, sy, sw, sh, makenormalmap, detailh, rgb2grey);
+    const image_data* img = teximage.get_image_data();
+    image_data_init(*img, 0, 0, img->width, img->height, makenormalmap, detailh, rgb2grey);
 }
 
 texture::texture(const sdl_image &teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
@@ -744,7 +533,8 @@ texture::texture(const sdl_image &teximage, unsigned sx, unsigned sy, unsigned s
     dimension = _dimension;
     mapping = mapping_;
     clamping = clamp;
-    sdl_init(teximage.get_SDL_Surface(), sx, sy, sw, sh, makenormalmap, detailh, rgb2grey);
+    const image_data* img = teximage.get_image_data();
+    image_data_init(*img, sx, sy, sw, sh, makenormalmap, detailh, rgb2grey);
 }
 
 texture::texture(const vector<Uint8> &pixels, unsigned w, unsigned h, int format_,
@@ -904,40 +694,19 @@ void texture::sub_image(int xoff, int yoff, unsigned w, unsigned h,
 }
 
 void texture::sub_image(const sdl_image &sdlimage, int xoff, int yoff, unsigned w, unsigned h) {
-    SDL_Surface *teximage = sdlimage.get_SDL_Surface();
-
-    SDL_LockSurface(teximage);
-
-    const SDL_PixelFormat &fmt = *(teximage->format);
-    unsigned bpp = fmt.BytesPerPixel;
-
-    vector<Uint8> data;
-    if (fmt.palette != 0) {
-        // no color tables, fixme
+    const image_data* img = sdlimage.get_image_data();
+    if (!img || img->pixels.empty())
         return;
-    }
-    bool usealpha = fmt.Amask != 0;
-    if (usealpha) {
-        format = GL_RGBA;
-        bpp = 4;
-    } else {
-        format = GL_RGB;
-        bpp = 3;
-    }
-    data.resize(w * h * bpp);
-    unsigned char *ptr = &data[0];
-    unsigned char *offset = ((unsigned char *)(teximage->pixels)) + yoff * teximage->pitch + xoff * bpp;
+    unsigned bpp = img->bytes_per_pixel;
+    format = (bpp == 4) ? GL_RGBA : GL_RGB;
+    vector<Uint8> data(w * h * bpp);
+    const unsigned char* offset = img->pixels.data() + yoff * img->pitch + xoff * bpp;
     for (unsigned y = 0; y < h; y++) {
-        // old code, that assumes bytes come in R,G,B order:
-        memcpy(ptr, offset, w * bpp);
-        offset += teximage->pitch;
-        ptr += w * bpp;
+        memcpy(&data[y * w * bpp], offset, w * bpp);
+        offset += img->pitch;
     }
-    SDL_UnlockSurface(teximage);
-
     glBindTexture(GL_TEXTURE_2D, opengl_name);
-    glTexSubImage2D(GL_TEXTURE_2D, 0 /* mipmap level */,
-                    xoff, yoff, w, h, format, GL_UNSIGNED_BYTE, &data[0]);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, xoff, yoff, w, h, format, GL_UNSIGNED_BYTE, data.data());
 }
 
 unsigned texture::get_bpp() const {

@@ -45,7 +45,7 @@ class sub_uzo_display : public freeview_display {
     sub_uzo_display(class user_interface &ui_);
 
     // overload for zoom key handling ('y')
-    virtual void process_input(class game &gm, const SDL_Event &event);
+    virtual void process_input(class game &gm, const game_event &event);
 
     virtual unsigned get_popup_allow_mask() const;
 

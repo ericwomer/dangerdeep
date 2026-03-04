@@ -24,15 +24,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "oglext/OglExt.h"
 #include "system.h"
 #include "texture.h"
-#include <SDL_image.h>
 #include <sstream>
 #include <vector>
 using std::string;
 
 image::image(const string &s) : name(s), width(0), height(0), gltx(0), glty(0) {
     sdl_image img(name);
-    width = img->w;
-    height = img->h;
+    width = img.get_width();
+    height = img.get_height();
 
     // create vector of textures
     if (texture::size_non_power_two()) {

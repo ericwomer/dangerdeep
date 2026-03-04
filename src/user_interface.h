@@ -159,8 +159,8 @@ class user_interface {
     virtual void set_time(double tm);
 
     // process common events (common keys, mouse input to panel)
-    virtual void process_input(const SDL_Event &event);
-    virtual void process_input(std::list<SDL_Event> &events);
+    virtual void process_input(const game_event &event);
+    virtual void process_input(std::list<game_event> &events);
 
     // create ui matching to player type (requested from game)
     static user_interface *create(game &gm);

@@ -18,6 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 #include "music.h"
+#include "audio_backend.h"
 #include "datadirs.h"
 #include "error.h"
 #include "global_data.h"
@@ -25,7 +26,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "system.h"
 #include "xml.h"
 #include <SDL.h>
-#include <SDL_mixer.h>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -56,19 +56,15 @@ music::~music() {
 }
 
 void music::destructor() {
-    map<string, vector<Mix_Chunk *>>::iterator it;
-    for (it = sfx_events.begin(); it != sfx_events.end(); ++it) {
-        for (vector<Mix_Chunk *>::iterator ik = it->second.begin();
-             ik != it->second.end(); ++ik) {
-            Mix_FreeChunk(*ik);
-        }
+    audio_backend* be = get_audio_backend();
+    for (auto& kv : sfx_events) {
+        for (auto* c : kv.second)
+            be->free_chunk(c);
     }
     sfx_events.clear();
-    for (it = sfx_machines.begin(); it != sfx_machines.end(); ++it) {
-        for (vector<Mix_Chunk *>::iterator ik = it->second.begin();
-             ik != it->second.end(); ++ik) {
-            Mix_FreeChunk(*ik);
-        }
+    for (auto& kv : sfx_machines) {
+        for (auto* c : kv.second)
+            be->free_chunk(c);
     }
     sfx_machines.clear();
 }
@@ -76,14 +72,10 @@ void music::destructor() {
 void music::start_play_track(unsigned nr, unsigned fadeintime) {
     if (nr < playlist.size()) {
         current_track = nr;
-        int err = -1;
-        if (fadeintime > 0) {
-            err = Mix_FadeInMusic(musiclist[current_track], 1, fadeintime);
-        } else {
-            err = Mix_PlayMusic(musiclist[current_track], 1);
-        }
-        if (err < 0)
-            throw sdl_error("music playing failed.");
+        audio_backend* be = get_audio_backend();
+        bool ok = be->play_music(musiclist[current_track], 1, static_cast<int>(fadeintime));
+        if (!ok)
+            throw sdl_error(std::string("music playing failed: ") + be->get_error());
         stopped = false;
     }
 }
@@ -99,33 +91,29 @@ void music::init() {
     if (!use_music)
         return;
 
-    if (SDL_Init(SDL_INIT_AUDIO) != 0) {
-        log_warning("Unable to to initialize SDL Audio: " << SDL_GetError());
+    audio_backend* be = get_audio_backend();
+    if (!be->init_audio_subsystem()) {
+        log_warning("Unable to initialize SDL Audio: " << SDL_GetError());
         use_music = false;
         return;
     }
 
-    int audio_rate = int(sample_rate);
-    Uint16 audio_format = AUDIO_S16SYS;
-    int audio_channels = 2;
-    int audio_buffers = 4096;
+    const int audio_channels = 2;
+    const int audio_buffers = 4096;
+    log_info("Audio initialize " << audio_channels << " chnls " << sample_rate << "hz");
 
-    log_info("Audio initialize " << audio_channels << " chnls " << audio_rate << "hz");
-
-    if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers) != 0) {
-        log_warning("Unable to initialize audio: " << Mix_GetError());
+    if (!be->open_audio(sample_rate, 0, audio_channels, audio_buffers)) {
+        log_warning("Unable to initialize audio: " << be->get_error());
         use_music = false;
         return;
     }
 
-    Mix_HookMusicFinished(callback_track_finished);
+    be->set_music_finished_callback(callback_track_finished);
 
-    // allocate channels
-    if (Mix_AllocateChannels(SFX_CHANNELS_TOTAL) < int(SFX_CHANNELS_TOTAL))
+    if (!be->allocate_channels(SFX_CHANNELS_TOTAL))
         throw error("could not allocate enough channels");
 
-    // reserve sfx channels for environmental noises (engine, sonar)
-    if (Mix_ReserveChannels(nr_reserved_channels) < int(nr_reserved_channels))
+    if (!be->reserve_channels(nr_reserved_channels))
         throw error("could not reserve enough channels");
 
 #if 0
@@ -185,21 +173,19 @@ void music::deinit() {
     if (!use_music)
         return;
 
-    // halt
-    if (Mix_PlayingMusic()) {
-        Mix_HaltMusic();
+    audio_backend* be = get_audio_backend();
+    if (be->is_playing_music()) {
+        be->halt_music();
         stopped = true;
     }
 
-    // clear playlist
-    for (vector<Mix_Music *>::iterator it = musiclist.begin(); it != musiclist.end(); ++it) {
-        Mix_FreeMusic(*it);
-    }
+    for (auto* m : musiclist)
+        be->free_music(m);
     musiclist.clear();
 
     destructor();
 
-    Mix_CloseAudio();
+    be->close_audio();
 }
 
 void music::request_abort() {
@@ -281,10 +267,11 @@ void music::exec_append_track(const std::string &filename) {
     if (!use_music)
         throw std::invalid_argument("no music support");
 
-    Mix_Music *tmp = Mix_LoadMUS((get_sound_dir() + filename).c_str());
+    audio_backend* be = get_audio_backend();
+    audio_music_handle* tmp = be->load_music(get_sound_dir() + filename);
 
-    if (0 == tmp) {
-        log_warning("Failed to load track: " << filename << ", " << Mix_GetError());
+    if (!tmp) {
+        log_warning("Failed to load track: " << filename << ", " << be->get_error());
         throw file_read_error(filename);
     }
     playlist.push_back(filename);
@@ -300,7 +287,7 @@ void music::exec_set_playback_mode(playback_mode pbm_) {
 void music::exec_play(unsigned fadein) {
     if (!use_music)
         throw std::invalid_argument("no music support");
-    if (!Mix_PlayingMusic()) {
+    if (!get_audio_backend()->is_playing_music()) {
         start_play_track(current_track, fadein);
     } else {
         throw std::runtime_error("music still playing, can't execute play()");
@@ -310,14 +297,15 @@ void music::exec_play(unsigned fadein) {
 void music::exec_stop(unsigned fadeout) {
     if (!use_music)
         throw std::invalid_argument("no music support");
-    if (Mix_PausedMusic())
-        Mix_ResumeMusic();
-    if (Mix_PlayingMusic()) {
+    audio_backend* be = get_audio_backend();
+    if (be->is_paused_music())
+        be->resume_music();
+    if (be->is_playing_music()) {
         stopped = true;
         if (fadeout > 0)
-            Mix_FadeOutMusic(int(fadeout));
+            be->fade_out_music(static_cast<int>(fadeout));
         else
-            Mix_HaltMusic();
+            be->halt_music();
     } else {
         throw std::runtime_error("music not playing, can't execute stop()");
     }
@@ -326,19 +314,21 @@ void music::exec_stop(unsigned fadeout) {
 void music::exec_pause() {
     if (!use_music)
         throw std::invalid_argument("no music support");
-    if (Mix_PlayingMusic() && !Mix_PausedMusic())
-        Mix_PauseMusic();
+    audio_backend* be = get_audio_backend();
+    if (be->is_playing_music() && !be->is_paused_music())
+        be->pause_music();
 }
 
 void music::exec_resume() {
     if (!use_music)
         throw std::invalid_argument("no music support");
-    Mix_ResumeMusic();
+    get_audio_backend()->resume_music();
 }
 
 void music::exec_set_music_position(float pos) {
-    Mix_RewindMusic();
-    if (Mix_SetMusicPosition(pos) == -1) {
+    audio_backend* be = get_audio_backend();
+    be->rewind_music();
+    if (!be->set_music_position(pos)) {
         throw std::runtime_error("music set position failed");
     }
 }
@@ -392,19 +382,21 @@ void music::exec_get_current_track(unsigned &track) {
 }
 
 void music::exec_is_playing(bool &isply) {
-    if (!Mix_PlayingMusic() || Mix_PausedMusic())
+    audio_backend* be = get_audio_backend();
+    if (!be->is_playing_music() || be->is_paused_music())
         throw std::runtime_error("music not playing");
+    isply = true;
 }
 
 void music::exec_play_sfx(const std::string &category, const vector3 &listener, angle listener_dir, const vector3 &noise_pos) {
     if (!use_music)
         throw std::invalid_argument("no music support");
-    map<string, vector<Mix_Chunk *>>::iterator it = sfx_events.find(category);
+    auto it = sfx_events.find(category);
     if (it == sfx_events.end())
         throw invalid_argument(string("unknown category for sfx: ") + category);
-    // chose random sound of category
     unsigned snr = unsigned(it->second.size() * rnd());
-    Mix_Chunk *chk = it->second[snr];
+    audio_chunk_handle* chk = it->second[snr];
+    audio_backend* be = get_audio_backend();
 
     double distanceFromPlayer = listener.distance(noise_pos);
     // calculate max hearing distance (meters)
@@ -441,52 +433,50 @@ void music::exec_play_sfx(const std::string &category, const vector3 &listener, 
         angle bearingFromPlayer(noise_pos.xy() - listener.xy());
         bearingFromPlayer = bearingFromPlayer + listener_dir;
 
-        // dist for Mix_SetPosition() is calculated as a value between 0 and 255 with 0 being the loudest
-        // (closest)
-        int dist = (int)(distanceFromPlayer / hearing_increment);
+        // dist for set_channel_position is 0-255, 0 = loudest
+        int dist = static_cast<int>(distanceFromPlayer / hearing_increment);
+        short angle_val = static_cast<short>(bearingFromPlayer.value());
 
-        int channel_num = Mix_PlayChannel(-1, chk, 0);
+        int channel_num = be->play_channel(-1, chk, 0);
         if (channel_num < 0)
-            throw sdl_error("unable to play sfx"); // Mix_GetError() here...
-        if (!Mix_SetPosition(channel_num, (short)bearingFromPlayer.value(), dist))
-            throw sdl_error("Mix_SetPosition() failed");
+            throw sdl_error(std::string("unable to play sfx: ") + be->get_error());
+        if (!be->set_channel_position(channel_num, angle_val, static_cast<unsigned char>(dist)))
+            throw sdl_error("set_channel_position() failed");
     }
 }
 
 void music::exec_play_sfx_machine(const std::string &name, unsigned throttle) {
     if (!use_music)
         throw std::invalid_argument("no music support");
-    map<string, vector<Mix_Chunk *>>::iterator it = sfx_machines.find(name);
+    auto it = sfx_machines.find(name);
     if (it == sfx_machines.end())
         throw invalid_argument(string("unknown machine name: ") + name);
+    audio_backend* be = get_audio_backend();
     unsigned nrthr = it->second.size();
     unsigned thr = throttle * (nrthr + 1) / 100;
     if (thr == 0) {
-        // stop machine
-        if (Mix_Playing(SFX_CHANNEL_MACHINE))
-            Mix_HaltChannel(SFX_CHANNEL_MACHINE);
-        current_machine_sfx = 0;
+        if (be->is_channel_playing(SFX_CHANNEL_MACHINE))
+            be->halt_channel(SFX_CHANNEL_MACHINE);
+        current_machine_sfx = nullptr;
         return;
     }
     thr = std::min(thr - 1, nrthr - 1);
 
-    Mix_Chunk *chk = it->second[thr];
-    if (chk == current_machine_sfx) {
-        // nothing to do, already playing
+    audio_chunk_handle* chk = it->second[thr];
+    if (chk == current_machine_sfx)
         return;
-    }
-    // stop old sfx
-    if (Mix_Playing(SFX_CHANNEL_MACHINE))
-        Mix_HaltChannel(SFX_CHANNEL_MACHINE);
-    current_machine_sfx = 0;
-    if (Mix_PlayChannel(SFX_CHANNEL_MACHINE, chk, -1) < 0)
-        throw sdl_error("can't play channel");
+
+    if (be->is_channel_playing(SFX_CHANNEL_MACHINE))
+        be->halt_channel(SFX_CHANNEL_MACHINE);
+    current_machine_sfx = nullptr;
+    if (be->play_channel(SFX_CHANNEL_MACHINE, chk, -1) < 0)
+        throw sdl_error(std::string("can't play channel: ") + be->get_error());
     current_machine_sfx = chk;
 }
 
 void music::exec_pause_sfx(bool on) {
     if (on)
-        Mix_Pause(-1);
+        get_audio_backend()->pause_channel(-1);
     else
-        Mix_Resume(-1);
+        get_audio_backend()->resume_channel(-1);
 }

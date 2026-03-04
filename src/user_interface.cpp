@@ -283,7 +283,7 @@ void user_interface::set_time(double tm) {
     mygame->get_water().set_time(tm);
 }
 
-void user_interface::process_input(const SDL_Event &event) {
+void user_interface::process_input(const game_event &event) {
     if (panel_visible) {
         if (mypanel->check_mouse_event(event))
             return;
@@ -297,16 +297,12 @@ void user_interface::process_input(const SDL_Event &event) {
 
     if (screen_selector_visible) {
         if (screen_selector->check_for_mouse_event(event)) {
-            // drag for the menu
-            // fixme: drag&drop support should be in widget class...
-            if (event.type == SDL_MOUSEMOTION) {
+            if (event.type == event_type::MOUSE_MOTION) {
                 vector2i p = screen_selector->get_pos();
                 vector2i s = screen_selector->get_size();
-                // drag menu with left mouse button when on title or right mouse button else
                 vector2i position = sys().translate_position(event);
                 vector2 motion = sys().translate_motion(event);
-                if (event.motion.state & SDL_BUTTON_MMASK || (event.motion.state & SDL_BUTTON_LMASK && position.x >= p.x && position.y >= p.y && position.x < p.x + s.x && position.y < p.y + 32)) {
-
+                if ((event.motion_state & MOUSE_BUTTON_MMASK) || ((event.motion_state & MOUSE_BUTTON_LMASK) && position.x >= p.x && position.y >= p.y && position.x < p.x + s.x && position.y < p.y + 32)) {
                     p.x += int(ceil(motion.x));
                     p.y += int(ceil(motion.y));
                     p = p.max(vector2i(0, 0));
@@ -320,22 +316,15 @@ void user_interface::process_input(const SDL_Event &event) {
 
     if (playlist_visible) {
         if (music_playlist->check_for_mouse_event(event)) {
-            // drag for the menu
-            // fixme: drag&drop support should be in widget class...
-            if (event.type == SDL_MOUSEMOTION) {
+            if (event.type == event_type::MOUSE_MOTION) {
                 vector2i p = music_playlist->get_pos();
                 vector2i s = music_playlist->get_size();
                 vector2i pos = sys().translate_position(event);
-                // drag menu with left mouse button when on title or right mouse button else
-                if (event.motion.state & SDL_BUTTON_MMASK || (event.motion.state & SDL_BUTTON_LMASK && pos.x >= p.x && pos.y >= p.y && pos.x < p.x + s.x && pos.y < p.y + 32 + 8)) {
-
+                if ((event.motion_state & MOUSE_BUTTON_MMASK) || ((event.motion_state & MOUSE_BUTTON_LMASK) && pos.x >= p.x && pos.y >= p.y && pos.x < p.x + s.x && pos.y < p.y + 32 + 8)) {
                     p.x += int(ceil(sys().translate_motion_x(event)));
                     p.y += int(ceil(sys().translate_motion_y(event)));
-                    if (p.x < 0)
-                        p.x = 0;
-                    if (p.y < 0)
-                        p.y = 0;
-                    // 2006-11-30 doc1972 negative pos and size of a playlist makes no sence, so we cast
+                    if (p.x < 0) p.x = 0;
+                    if (p.y < 0) p.y = 0;
                     if ((unsigned int)(p.x + s.x) > sys().get_res_x_2d())
                         p.x = sys().get_res_x_2d() - s.x;
                     if ((unsigned int)(p.y + s.y) > sys().get_res_y_2d())
@@ -347,12 +336,12 @@ void user_interface::process_input(const SDL_Event &event) {
         }
     }
 
-    if (event.type == SDL_KEYDOWN) {
-        if (config.getkey(KEY_TOGGLE_RELATIVE_BEARING).equal(event.key.keysym)) {
+    if (event.type == event_type::KEY_DOWN) {
+        if (config.getkey(KEY_TOGGLE_RELATIVE_BEARING).equal(event.keysym)) {
             bearing_is_relative = !bearing_is_relative;
             add_message(texts::get(bearing_is_relative ? 220 : 221));
             return;
-        } else if (config.getkey(KEY_TOGGLE_POPUP).equal(event.key.keysym)) {
+        } else if (config.getkey(KEY_TOGGLE_POPUP).equal(event.keysym)) {
             toggle_popup();
             return;
         }
@@ -361,15 +350,12 @@ void user_interface::process_input(const SDL_Event &event) {
     displays[current_display]->process_input(*mygame, event);
 }
 
-void user_interface::process_input(list<SDL_Event> &events) {
-    // if screen selector menu is open and mouse is over that window, handle mouse events there.
-
+void user_interface::process_input(std::list<game_event> &events) {
     if (current_popup > 0)
         popups[current_popup - 1]->process_input(*mygame, events);
 
-    for (list<SDL_Event>::const_iterator it = events.begin();
-         it != events.end(); ++it)
-        process_input(*it);
+    for (auto& ev : events)
+        process_input(ev);
 }
 
 void user_interface::show_target(double vx, double vy, double w, double h, const vector3 &viewpos) {
@@ -514,9 +500,9 @@ void user_interface::set_current_display(unsigned curdis) {
     // clear both screen buffers
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
-    sys().swap_buffers(sys().get_sdl_window());
+    sys().swap_buffers();
     glClear(GL_COLOR_BUFFER_BIT);
-    sys().swap_buffers(sys().get_sdl_window());
+    sys().swap_buffers();
 
     displays[current_display]->enter(daymode);
     if (mygame)

@@ -38,7 +38,7 @@ class sub_ecard_popup : public user_popup {
 
     virtual void display(class game &gm) const;
 
-    virtual bool process_input(class game &gm, const SDL_Event &event);
+    virtual bool process_input(class game &gm, const game_event &event);
 };
 
 #endif /* SUB_ECARD_POPUP_H */

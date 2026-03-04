@@ -23,9 +23,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
+#include "game_event.h"
 #include "singleton.h"
 #include "vector2.h"
-#include <SDL.h>
 #include <list>
 #include <map>
 #include <set>
@@ -84,7 +84,7 @@ class system : public singleton<class system> {
     system(const parameters &params);
     ~system();
     void set_video_mode(unsigned &res_x_, unsigned &res_y_, bool fullscreen, bool resize);
-    void swap_buffers(SDL_Window *window);
+    void swap_buffers();
 
     /** must be called once per frame (or the OS will think your app is dead)
         the events are also bypassed to the application.
@@ -93,13 +93,13 @@ class system : public singleton<class system> {
         Be careful! mouse button / move events need to be handled with
         translate_motion() / translate_position()
     */
-    std::list<SDL_Event> poll_event_queue();
-    double translate_motion_x(const SDL_Event &event);
-    double translate_motion_y(const SDL_Event &event);
-    vector2 translate_motion(const SDL_Event &event);
-    int translate_position_x(const SDL_Event &event);
-    int translate_position_y(const SDL_Event &event);
-    vector2i translate_position(const SDL_Event &event);
+    std::list<game_event> poll_event_queue();
+    double translate_motion_x(const game_event &event);
+    double translate_motion_y(const game_event &event);
+    vector2 translate_motion(const game_event &event);
+    int translate_position_x(const game_event &event);
+    int translate_position_y(const game_event &event);
+    vector2i translate_position(const game_event &event);
 
     void draw_console_with(const font *fnt, const texture *background = 0);
     void prepare_2d_drawing(); // must be called as pair!
@@ -153,7 +153,8 @@ class system : public singleton<class system> {
     font &get_font(const std::string &basefilename) const;
     bool unregister_font(const std::string &basefilename);
 
-    SDL_Window *get_sdl_window(void) { return screen; }
+    /// Handle nativo de ventana (SDL_Window* en SDL2)
+    void* get_window_handle() const;
 
   private:
     system();
@@ -163,8 +164,9 @@ class system : public singleton<class system> {
     void screen_resize(unsigned w, unsigned h, double nearz, double farz);
 
     parameters params;
-    SDL_Window *screen;      // !Rake: needed for some gl functions to work.
-    SDL_GLContext glcontext; // !Rake: in case its needed.
+    void* screen = nullptr;  // SDL_Window* en SDL2
+    void* glcontext = nullptr;  // SDL_GLContext en SDL2
+    uint32_t window_id = 0;
 
     bool show_console;
     const font *console_font;

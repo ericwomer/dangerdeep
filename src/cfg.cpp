@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "cfg.h"
+#include "display_backend.h"
 #include "global_data.h"
 #include "keys.h"
 #include "log.h"
@@ -32,7 +33,7 @@ using namespace std;
 cfg *cfg::myinst = 0;
 
 string cfg::key::get_name() const {
-    string result = SDL_GetKeyName(SDL_Keycode(keysym));
+    string result = get_key_name(keysym);
     if (shift)
         result = string("Shift + ") + result;
     if (alt)
@@ -42,8 +43,8 @@ string cfg::key::get_name() const {
     return result;
 }
 
-bool cfg::key::equal(const SDL_Keysym &ks) const {
-    return (ks.sym == keysym && ctrl == ((ks.mod & (KMOD_LCTRL | KMOD_RCTRL)) != 0) && alt == ((ks.mod & (KMOD_LALT | KMOD_RALT | KMOD_MODE)) != 0) && shift == ((ks.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) != 0));
+bool cfg::key::equal(const key_sym &ks) const {
+    return (ks.sym == keysym && ctrl == ((ks.mod & (DFTD_KMOD_LCTRL | DFTD_KMOD_RCTRL)) != 0) && alt == ((ks.mod & (DFTD_KMOD_LALT | DFTD_KMOD_RALT | DFTD_KMOD_MODE)) != 0) && shift == ((ks.mod & (DFTD_KMOD_LSHIFT | DFTD_KMOD_RSHIFT)) != 0));
 }
 
 cfg::cfg() {
@@ -101,7 +102,7 @@ void cfg::load(const string &filename) {
                     log_warning("found key with invalid name " << keyname << " in config file");
                     continue;
                 }
-                SDL_Keycode keysym = SDL_Keycode(it2.elem().attri("keysym"));
+                key_code keysym = static_cast<key_code>(it2.elem().attri("keysym"));
                 bool ctrl = it2.elem().attrb("ctrl");
                 bool alt = it2.elem().attrb("alt");
                 bool shift = it2.elem().attrb("shift");
@@ -158,7 +159,7 @@ void cfg::register_option(const string &name, const string &value) {
     vals[name] = value;
 }
 
-void cfg::register_key(const string &name, SDL_Keycode keysym, bool ctrl, bool alt, bool shift) {
+void cfg::register_key(const string &name, key_code keysym, bool ctrl, bool alt, bool shift) {
     unsigned nr = NR_OF_KEY_IDS;
     for (unsigned i = 0; i < NR_OF_KEY_IDS; ++i) {
         if (string(key_names[i].name) == name) {
@@ -202,7 +203,7 @@ void cfg::set(const string &name, const string &value) {
         throw error(string("cfg: set(), name not registered: ") + name);
 }
 
-void cfg::set_key(unsigned nr, SDL_Keycode keysym, bool ctrl, bool alt, bool shift) {
+void cfg::set_key(unsigned nr, key_code keysym, bool ctrl, bool alt, bool shift) {
     map<unsigned, key>::iterator it = valk.find(nr);
     if (it != valk.end())
         it->second = key(it->second.action, keysym, ctrl, alt, shift);

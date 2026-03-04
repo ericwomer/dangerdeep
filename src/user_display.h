@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define USER_DISPLAY_H
 
 #include "datadirs.h"
+#include "game_event.h"
 #include "system.h"
 #include "texture.h"
 #include <SDL.h>
@@ -116,11 +117,10 @@ class user_display {
     
     // very basic. Just draw display and handle input.
     virtual void display(class game &gm) const = 0;
-    virtual void process_input(class game &gm, const SDL_Event &event) = 0;
-    virtual void process_input(class game &gm, const std::list<SDL_Event> &events) {
-        for (std::list<SDL_Event>::const_iterator it = events.begin();
-             it != events.end(); ++it)
-            process_input(gm, *it);
+    virtual void process_input(class game &gm, const game_event &event) = 0;
+    virtual void process_input(class game &gm, const std::list<game_event> &events) {
+        for (const auto& ev : events)
+            process_input(gm, ev);
     }
     // mask contains one bit per popup (at most 31 popups)
     virtual unsigned get_popup_allow_mask() const { return 0; }

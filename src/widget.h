@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "color.h"
 #include "font.h"
+#include "game_event.h"
 #include "model.h"
 #include "objcache.h"
 #include "vector2.h"
@@ -112,8 +113,8 @@ class widget {
 
     struct key_event {
         const widget *source;
-        const SDL_Keysym ks;
-        key_event(const widget *_source, const SDL_Keysym &_ks)
+        const key_sym ks;
+        key_event(const widget *_source, const key_sym &_ks)
             : source(_source), ks(_ks) {}
     };
     struct mouse_click_event {
@@ -157,7 +158,7 @@ class widget {
 
     std::list<const action_listener *> action_listeners;
 
-    void fire_key_event(const SDL_Keysym &ks);
+    void fire_key_event(const key_sym &ks);
     void fire_mouse_click_event(int mx, int my, int mb);
     void fire_mouse_release_event();
     void fire_mouse_drag_event(int mx, int my, int rx, int ry, int mb);
@@ -221,7 +222,7 @@ class widget {
     virtual void redraw();
 
     // called for every key in queue
-    virtual void on_char(const SDL_Keysym &ks);
+    virtual void on_char(const key_sym &ks);
     // called on mouse button down (mb is one of SDL_BUTTON_LMASK, ...RMASK, ...MMASK)
     virtual void on_click(int mx, int my, int mb) {}
     virtual void on_click(const vector2i &m, int mb) { return on_click(m.x, m.y, mb); }
@@ -233,13 +234,9 @@ class widget {
     virtual void on_drag(int mx, int my, int rx, int ry, int mb) {}
 
     // determine type of input, fetch it to on_* functions
-    virtual void process_input(const SDL_Event &event);
-    // just calls the previous function repeatedly
-    virtual void process_input(const std::list<SDL_Event> &events);
-
-    // check if event is mouse event and is over widget. In that case process_input()
-    // is called and true is returned
-    virtual bool check_for_mouse_event(const SDL_Event &event);
+    virtual void process_input(const game_event &event);
+    virtual void process_input(const std::list<game_event> &events);
+    virtual bool check_for_mouse_event(const game_event &event);
 
     // run() always returns 1    - fixme: make own widget classes for them?
     static std::unique_ptr<widget> create_dialogue_ok(widget *parent_, const std::string &title, const std::string &text = "", int w = 0, int h = 0);
@@ -517,7 +514,7 @@ class widget_edit : public widget {
         cursorpos = s.length();
     }
     void draw() const;
-    void on_char(const SDL_Keysym &ks);
+    void on_char(const key_sym &ks);
     virtual void on_enter() {} // run on pressed ENTER-key
     virtual void on_change() {}
 };
@@ -598,7 +595,7 @@ class widget_slider : public widget {
                   widget *parent_ = 0);
     widget_slider(xml_elem &elem, widget *_parent = 0);
     void draw() const;
-    void on_char(const SDL_Keysym &ks);
+    void on_char(const key_sym &ks);
     void on_click(int mx, int my, int mb);
     void on_drag(int mx, int my, int rx, int ry, int mb);
     virtual void set_values(int minv, int maxv, int currv, int descrstep);

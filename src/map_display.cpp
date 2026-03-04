@@ -751,7 +751,7 @@ void map_display::display(class game &gm) const {
     sys().unprepare_2d_drawing();
 }
 
-void map_display::process_input(class game &gm, const SDL_Event &event) {
+void map_display::process_input(class game &gm, const game_event &event) {
     sea_object *player = gm.get_player();
 
     if (gm.is_editor()) {
@@ -832,42 +832,42 @@ void map_display::process_input(class game &gm, const SDL_Event &event) {
             return;
         }
         // no panel visible. handle extra edit modes
-        if (event.type == SDL_KEYDOWN) {
-            if (event.key.keysym.sym == SDLK_LSHIFT) {
+        if (event.type == event_type::KEY_DOWN) {
+            if (event.keysym.sym == SDLK_LSHIFT) {
                 shift_key_pressed |= 1;
                 return;
-            } else if (event.key.keysym.sym == SDLK_RSHIFT) {
+            } else if (event.keysym.sym == SDLK_RSHIFT) {
                 shift_key_pressed |= 2;
                 return;
-            } else if (event.key.keysym.sym == SDLK_LCTRL) {
+            } else if (event.keysym.sym == SDLK_LCTRL) {
                 ctrl_key_pressed |= 1;
                 return;
-            } else if (event.key.keysym.sym == SDLK_RCTRL) {
+            } else if (event.keysym.sym == SDLK_RCTRL) {
                 ctrl_key_pressed |= 2;
                 return;
             }
-        } else if (event.type == SDL_KEYUP) {
-            if (event.key.keysym.sym == SDLK_LSHIFT) {
+        } else if (event.type == event_type::KEY_UP) {
+            if (event.keysym.sym == SDLK_LSHIFT) {
                 shift_key_pressed &= ~1;
                 return;
-            } else if (event.key.keysym.sym == SDLK_RSHIFT) {
+            } else if (event.keysym.sym == SDLK_RSHIFT) {
                 shift_key_pressed &= ~2;
                 return;
-            } else if (event.key.keysym.sym == SDLK_LCTRL) {
+            } else if (event.keysym.sym == SDLK_LCTRL) {
                 ctrl_key_pressed &= ~1;
                 return;
-            } else if (event.key.keysym.sym == SDLK_RCTRL) {
+            } else if (event.keysym.sym == SDLK_RCTRL) {
                 ctrl_key_pressed &= ~2;
                 return;
             }
-        } else if (event.type == SDL_MOUSEBUTTONDOWN) {
-            if (event.button.button == SDL_BUTTON_LEFT) {
+        } else if (event.type == event_type::MOUSE_BUTTON_DOWN) {
+            if (event.button_button == MOUSE_BUTTON_LEFT) {
                 mx_down = sys().translate_position_x(event);
                 my_down = sys().translate_position_y(event);
                 return;
             }
-        } else if (event.type == SDL_MOUSEBUTTONUP) {
-            if (event.button.button == SDL_BUTTON_LEFT) {
+        } else if (event.type == event_type::MOUSE_BUTTON_UP) {
+            if (event.button_button == MOUSE_BUTTON_LEFT) {
                 mx_curr = sys().translate_position_x(event);
                 my_curr = sys().translate_position_y(event);
                 // check for shift / ctrl
@@ -932,10 +932,10 @@ void map_display::process_input(class game &gm, const SDL_Event &event) {
                 my_down = -1;
                 return;
             }
-        } else if (event.type == SDL_MOUSEMOTION) {
+        } else if (event.type == event_type::MOUSE_MOTION) {
             mx_curr = sys().translate_position_x(event);
             my_curr = sys().translate_position_y(event);
-            if ((event.motion.state & SDL_BUTTON_MMASK) && (ctrl_key_pressed != 0)) {
+            if ((event.motion_state & MOUSE_BUTTON_MMASK) && (ctrl_key_pressed != 0)) {
                 // move selected objects!
                 vector2 drag = sys().translate_motion(event) * (1.0 / mapzoom);
                 for (std::set<sea_object *>::const_iterator it = selection.begin();
@@ -952,18 +952,18 @@ void map_display::process_input(class game &gm, const SDL_Event &event) {
 
     // non-editor events.
     switch (event.type) {
-    case SDL_MOUSEWHEEL:
-        if (event.wheel.y > 0) {
+    case event_type::MOUSE_WHEEL:
+        if (event.wheel_y > 0) {
             if (mapzoom < 1)
                 mapzoom *= 1.25;
-        } else if (event.wheel.y < 0) {
+        } else if (event.wheel_y < 0) {
             if (mapzoom > 1.0 / 16384)
                 mapzoom /= 1.25;
         }
         break;
 
-    case SDL_MOUSEBUTTONDOWN:
-        if (event.button.button == SDL_BUTTON_LEFT) {
+    case event_type::MOUSE_BUTTON_DOWN:
+        if (event.button_button == SDL_BUTTON_LEFT) {
 #ifndef CVEDIT
             // set target. get visible objects and determine which is nearest to
             // mouse position. set target for player object
@@ -1005,7 +1005,7 @@ void map_display::process_input(class game &gm, const SDL_Event &event) {
 #endif
         }
 #ifdef CVEDIT
-        if (event.button.button == SDL_BUTTON_RIGHT) {
+        if (event.button_button == MOUSE_BUTTON_RIGHT) {
             vector2 mapclick(sys().translate_position_x(event) - 512, 384 - sys().translate_position_y(event));
             vector2 real = mapclick * (1.0 / mapzoom) + mapoffset + player->get_pos().xy();
             cvroute.push_back(real);
@@ -1013,36 +1013,36 @@ void map_display::process_input(class game &gm, const SDL_Event &event) {
 #endif
 
         break;
-    case SDL_MOUSEMOTION:
+    case event_type::MOUSE_MOTION:
         mx = sys().translate_position_x(event);
         my = sys().translate_position_y(event);
-        if ((event.motion.state & SDL_BUTTON_MMASK) && (ctrl_key_pressed == 0)) {
+        if ((event.motion_state & MOUSE_BUTTON_MMASK) && (ctrl_key_pressed == 0)) {
             vector2 motion = sys().translate_motion(event);
             motion.y = -motion.y;
             mapoffset += motion * (1.0 / mapzoom);
         }
 #ifdef CVEDIT
-        if (event.motion.state & SDL_BUTTON_LMASK && cvridx >= 0) {
+        if (event.motion_state & MOUSE_BUTTON_LMASK && cvridx >= 0) {
             vector2 motion = sys().translate_motion(event);
             motion.y = -motion.y;
             cvroute[cvridx] += motion * (1.0 / mapzoom);
         }
 #endif
-    case SDL_KEYDOWN:
-        if (ui.get_config().getkey(KEY_ZOOM_MAP).equal(event.key.keysym)) {
+    case event_type::KEY_DOWN:
+        if (ui.get_config().getkey(KEY_ZOOM_MAP).equal(event.keysym)) {
             if (mapzoom < 1)
                 mapzoom *= 2;
-        } else if (ui.get_config().getkey(KEY_UNZOOM_MAP).equal(event.key.keysym)) {
+        } else if (ui.get_config().getkey(KEY_UNZOOM_MAP).equal(event.keysym)) {
             if (mapzoom > 1.0 / 16384)
                 mapzoom /= 2;
         }
-        if (event.key.keysym.sym == SDLK_m) {
+        if (event.keysym.sym == SDLK_m) {
             mapmode++;
             if (mapmode > 1)
                 mapmode = 0;
         }
 #ifdef CVEDIT
-        if (event.key.keysym.sym == SDLK_w) {
+        if (event.keysym.sym == SDLK_w) {
             cout << "Current cv route:\n\n";
             for (unsigned i = 0; i < cvroute.size(); ++i) {
                 cout << "\t<waypoint x=\"" << cvroute[i].x << "\" y=\"" << cvroute[i].y

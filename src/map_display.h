@@ -113,7 +113,7 @@ class map_display : public user_display {
     map_display(class user_interface &ui_);
 
     virtual void display(game &gm) const;
-    virtual void process_input(game &gm, const SDL_Event &event);
+    virtual void process_input(game &gm, const game_event &event);
 };
 
 #endif

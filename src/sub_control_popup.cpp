@@ -38,7 +38,7 @@ sub_control_popup::sub_control_popup(user_interface &ui_) : user_popup(ui_) {
 sub_control_popup::~sub_control_popup() {
 }
 
-bool sub_control_popup::process_input(class game &gm, const SDL_Event &event) {
+bool sub_control_popup::process_input(class game &gm, const game_event &event) {
     switch (event.type) {
     default:
         return false;

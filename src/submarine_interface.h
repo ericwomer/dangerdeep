@@ -116,7 +116,7 @@ class submarine_interface : public user_interface {
     void fire_tube(submarine *player, int nr);
 
     virtual void display() const;
-    virtual void process_input(const SDL_Event &events);
+    virtual void process_input(const game_event &event);
     virtual unsigned get_selected_tube() const { return selected_tube; }
     virtual void select_tube(unsigned nr) { selected_tube = nr; }
 };

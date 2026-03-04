@@ -91,6 +91,9 @@ set(DFTDSOURCES
 	)
 
 set(DFTDMEDIASOURCES
+	audio_backend_sdl2.cpp
+	display_backend_sdl2.cpp
+	image_loader_sdl2.cpp
 	bv_tree.cpp
 	error.cpp
 	font.cpp

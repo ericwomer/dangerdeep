@@ -235,7 +235,7 @@ void widget::fire_mouse_click_event(int mx, int my, int mb) {
     }
 }
 
-void widget::fire_key_event(const SDL_Keysym &ks) {
+void widget::fire_key_event(const key_sym &ks) {
     key_event event(this, ks);
     for (std::list<const action_listener *>::const_iterator it = action_listeners.begin(); it != action_listeners.end(); it++) {
         (*it)->key_pressed(event);
@@ -344,7 +344,7 @@ widget::theme::theme(const char *elements_filename, const char *icons_filename, 
                      color tc, color tsc, color tdc) : myfont(fnt), textcol(tc), textselectcol(tsc), textdisabledcol(tdc) {
     {
         sdl_image tmp(get_texture_dir() + elements_filename);
-        int fw = tmp->h;
+        int fw = tmp.get_height();
         backg = std::make_unique<texture>(tmp, 0, 0, fw, fw);
         skbackg = std::make_unique<texture>(tmp, fw, 0, fw, fw);
         for (int i = 0; i < 8; ++i)
@@ -356,7 +356,7 @@ widget::theme::theme(const char *elements_filename, const char *icons_filename, 
     }
     {
         sdl_image tmp(get_texture_dir() + icons_filename);
-        int fw = tmp->h;
+        int fw = tmp.get_height();
         for (int i = 0; i < 4; ++i)
             icons[i] = std::make_unique<texture>(tmp, i * fw, 0, fw, fw);
     }
@@ -556,7 +556,7 @@ void widget::redraw() {
         parent->redraw();
 }
 
-void widget::on_char(const SDL_Keysym &ks) {
+void widget::on_char(const key_sym &ks) {
     // we can't handle it, so pass it to the parent
     if (parent)
         parent->on_char(ks);
@@ -583,84 +583,71 @@ void widget::draw_frame(int x, int y, int w, int h, bool out) {
     frelem[7]->draw(x, y + fw, fw, h - 2 * fw);
 }
 
-void widget::process_input(const SDL_Event &event) {
+void widget::process_input(const game_event &event) {
     vector2i pos;
     switch (event.type) {
-    case SDL_KEYDOWN:
+    case event_type::KEY_DOWN:
         if (focussed && focussed->is_enabled())
-            focussed->on_char(event.key.keysym);
+            focussed->on_char(event.keysym);
         break;
-
-    case SDL_KEYUP: // ignore for now
+    case event_type::KEY_UP:
         break;
-
-    case SDL_MOUSEBUTTONDOWN:
+    case event_type::MOUSE_BUTTON_DOWN:
         pos = sys().translate_position(event);
-        if (event.button.button == SDL_BUTTON_LEFT) {
+        if (event.button_button == MOUSE_BUTTON_LEFT) {
             compute_focus(pos);
             if (focussed)
-                focussed->on_click(pos, SDL_BUTTON_LMASK);
-        } else if (event.button.button == SDL_BUTTON_RIGHT) {
+                focussed->on_click(pos, MOUSE_BUTTON_LMASK);
+        } else if (event.button_button == MOUSE_BUTTON_RIGHT) {
             compute_focus(pos);
             if (focussed)
-                focussed->on_click(pos, SDL_BUTTON_RMASK);
-        } else if (event.button.button == SDL_BUTTON_MIDDLE) {
+                focussed->on_click(pos, MOUSE_BUTTON_RMASK);
+        } else if (event.button_button == MOUSE_BUTTON_MIDDLE) {
             compute_focus(pos);
             if (focussed)
-                focussed->on_click(pos, SDL_BUTTON_MMASK);
-        }
-        // !Rake: Rewrite see case SDL_MOUSEWHEEL:
-        // } else if (event.button.button == SDL_BUTTON_WHEELUP) {
-        //	if (focussed) focussed->on_wheel(1);
-        // } else if (event.button.button == SDL_BUTTON_WHEELDOWN) {
-        //	if (focussed) focussed->on_wheel(2);
-        //}
-        break;
-    case SDL_MOUSEWHEEL:
-        if (event.wheel.y > 0)
-            if (focussed)
-                focussed->on_wheel(1);
-        if (event.wheel.y < 0)
-            if (focussed)
-                focussed->on_wheel(2);
-        break;
-
-    case SDL_MOUSEBUTTONUP:
-        if (event.button.button == SDL_BUTTON_LEFT) {
-            if (focussed)
-                focussed->on_release();
+                focussed->on_click(pos, MOUSE_BUTTON_MMASK);
         }
         break;
-
-    case SDL_MOUSEMOTION:
+    case event_type::MOUSE_WHEEL:
+        if (event.wheel_y > 0 && focussed)
+            focussed->on_wheel(1);
+        if (event.wheel_y < 0 && focussed)
+            focussed->on_wheel(2);
+        break;
+    case event_type::MOUSE_BUTTON_UP:
+        if (event.button_button == MOUSE_BUTTON_LEFT && focussed)
+            focussed->on_release();
+        break;
+    case event_type::MOUSE_MOTION:
         compute_mouseover(sys().translate_position(event));
         if (focussed)
             focussed->on_drag(sys().translate_position_x(event),
                               sys().translate_position_y(event),
                               int(ceil(sys().translate_motion_x(event))),
                               int(ceil(sys().translate_motion_y(event))),
-                              event.motion.state);
+                              event.motion_state);
+        break;
+    default:
         break;
     }
 }
 
-void widget::process_input(const list<SDL_Event> &events) {
-    for (list<SDL_Event>::const_iterator it = events.begin(); it != events.end(); ++it) {
-        process_input(*it);
-    }
+void widget::process_input(const list<game_event> &events) {
+    for (const auto& ev : events)
+        process_input(ev);
 }
 
-bool widget::check_for_mouse_event(const SDL_Event &event) {
+bool widget::check_for_mouse_event(const game_event &event) {
     vector2i pos = sys().translate_position(event);
-    if (event.type == SDL_MOUSEMOTION && is_mouse_over(pos)) {
+    if (event.type == event_type::MOUSE_MOTION && is_mouse_over(pos)) {
         process_input(event);
         return true;
     }
-    if (event.type == SDL_MOUSEBUTTONDOWN && is_mouse_over(pos)) {
+    if (event.type == event_type::MOUSE_BUTTON_DOWN && is_mouse_over(pos)) {
         process_input(event);
         return true;
     }
-    if (event.type == SDL_MOUSEBUTTONUP && is_mouse_over(pos)) {
+    if (event.type == event_type::MOUSE_BUTTON_UP && is_mouse_over(pos)) {
         process_input(event);
         return true;
     }
@@ -760,7 +747,7 @@ int widget::run(unsigned timeout, bool do_stacking, widget *focussed_at_begin) {
         if (timeout != 0 && time > endtime)
             break;
 
-        list<SDL_Event> events = sys().poll_event_queue();
+        list<game_event> events = sys().poll_event_queue();
         if (!redrawme && inited && events.size() == 0) {
             unsigned crsrstat0 = sys().millisec() / 500 & 1;
             SDL_Delay(50);
@@ -780,7 +767,7 @@ int widget::run(unsigned timeout, bool do_stacking, widget *focussed_at_begin) {
         }
         sys().unprepare_2d_drawing();
         process_input(events);
-        sys().swap_buffers(sys().get_sdl_window());
+        sys().swap_buffers();
     }
     widgets.pop_back();
     if (!do_stacking)
@@ -1353,7 +1340,7 @@ unsigned widget_edit::cursor_right() const {
     return font::character_right(text, cursorpos);
 }
 
-void widget_edit::on_char(const SDL_Keysym &ks) {
+void widget_edit::on_char(const key_sym &ks) {
     int c = ks.sym;
     unsigned l = text.length();
     unsigned textw = globaltheme->myfont->get_size(text).x;
@@ -1490,7 +1477,7 @@ void widget_3dview::on_wheel(int wd) {
 }
 
 void widget_3dview::on_drag(int mx, int my, int rx, int ry, int mb) {
-    if (mb & SDL_BUTTON_LMASK) {
+    if (mb & MOUSE_BUTTON_LMASK) {
         z_angle += rx * 0.5;
         x_angle += ry * 0.5;
     }
@@ -1609,7 +1596,7 @@ void widget_slider::draw() const {
     draw_line(pos.x + sliderw / 2 + offset, pos.y + h0 + barh / 2, pos.x + sliderw / 2 + offset, pos.y + h0 + h1 - barh * 3 / 2);
 }
 
-void widget_slider::on_char(const SDL_Keysym &ks) {
+void widget_slider::on_char(const key_sym &ks) {
     // move with cursor
     int c = ks.sym;
     if (c == SDLK_LEFT && currvalue > minvalue) {
@@ -1624,7 +1611,7 @@ void widget_slider::on_char(const SDL_Keysym &ks) {
 
 void widget_slider::on_click(int mx, int my, int mb) {
     // set slider...
-    if (mb & SDL_BUTTON_LMASK) {
+    if (mb & MOUSE_BUTTON_LMASK) {
         int sliderpos = std::min(std::max(pos.x, mx), pos.x + size.x) - pos.x;
         currvalue = (sliderpos * (maxvalue - minvalue) + size.x / 2) / size.x + minvalue;
         on_change();
@@ -1634,7 +1621,7 @@ void widget_slider::on_click(int mx, int my, int mb) {
 
 void widget_slider::on_drag(int mx, int my, int rx, int ry, int mb) {
     // move slider...
-    if (mb & SDL_BUTTON_LMASK) {
+    if (mb & MOUSE_BUTTON_LMASK) {
         int sliderpos = std::min(std::max(pos.x, mx), pos.x + size.x) - pos.x;
         currvalue = (sliderpos * (maxvalue - minvalue) + size.x / 2) / size.x + minvalue;
         on_change();

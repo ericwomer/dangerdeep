@@ -56,7 +56,7 @@ class sub_recogmanual_display : public user_display {
     sub_recogmanual_display(class user_interface &ui_);
 
     virtual void display(class game &gm) const;
-    virtual void process_input(class game &gm, const SDL_Event &event);
+    virtual void process_input(class game &gm, const game_event &event);
 
     void enter(bool is_day);
     void leave();

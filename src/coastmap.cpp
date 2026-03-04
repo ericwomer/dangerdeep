@@ -34,10 +34,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "model.h"
 #include "primitives.h"
 #include "system.h"
+#include "image_loader.h"
 #include "texture.h"
 #include "triangulate.h"
 #include "xml.h"
-#include <SDL_image.h>
 #include <fstream>
 #include <list>
 #include <vector>
@@ -984,13 +984,12 @@ coastmap::coastmap(const string &filename) {
 
     {
         sdl_image surf(get_map_dir() + et.attr("image"));
-        mapw = surf->w;
-        maph = surf->h;
+        const image_data* img = surf.get_image_data();
+        mapw = img->width;
+        maph = img->height;
         pixelw_real = realwidth / mapw;
         realheight = maph * realwidth / mapw;
-        // compute integer number of pixels per segment
         unsigned pixperseqnonpower2 = unsigned(ceil(60000 / pixelw_real));
-        // find next power of 2 that is larger or equal than computed nonpower2 pixel width
         for (pixels_per_seg = 1; pixels_per_seg < pixperseqnonpower2; pixels_per_seg <<= 1)
             ;
 
@@ -1002,21 +1001,17 @@ coastmap::coastmap(const string &filename) {
 
         themap.resize(mapw * maph);
 
-        surf.lock();
-        if (surf->format->BytesPerPixel != 1 || surf->format->palette == 0 || surf->format->palette->ncolors != 2)
-            throw error(string("coastmap: image is no black/white 1bpp paletted image, in ") + filename);
-
-        Uint8 *offset = (Uint8 *)(surf->pixels);
+        const uint8_t* offset = img->pixels.data();
+        unsigned bpp = img->bytes_per_pixel;
         int mapoffy = maph * mapw;
         for (int yy = 0; yy < int(maph); yy++) {
             mapoffy -= mapw;
             for (int xx = 0; xx < int(mapw); ++xx) {
-                Uint8 c = (*offset++);
-                themap[mapoffy + xx] = (c > 0) ? 1 : 0;
+                uint8_t c = offset[xx * bpp];
+                themap[mapoffy + xx] = (c > 127) ? 1 : 0;
             }
-            offset += surf->pitch - mapw;
+            offset += img->pitch;
         }
-        surf.unlock();
     }
 
     add_loading_screen("image transformed");

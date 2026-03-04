@@ -82,7 +82,7 @@ class sub_torpsetup_display : public user_display {
   public:
     sub_torpsetup_display(class user_interface &ui_);
 
-    virtual void process_input(class game &gm, const SDL_Event &event);
+    virtual void process_input(class game &gm, const game_event &event);
     virtual void display(class game &gm) const;
 
     void enter(bool is_day);

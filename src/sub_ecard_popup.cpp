@@ -38,7 +38,7 @@ sub_ecard_popup::sub_ecard_popup(user_interface &ui_) : user_popup(ui_) {
 sub_ecard_popup::~sub_ecard_popup() {
 }
 
-bool sub_ecard_popup::process_input(class game &gm, const SDL_Event &event) {
+bool sub_ecard_popup::process_input(class game &gm, const game_event &event) {
     // nothing to do
     switch (event.type) {
     default:

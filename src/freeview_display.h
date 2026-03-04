@@ -86,7 +86,7 @@ class freeview_display : public user_display {
     virtual ~freeview_display();
 
     virtual void display(class game &gm) const;
-    virtual void process_input(class game &gm, const SDL_Event &event);
+    virtual void process_input(class game &gm, const game_event &event);
 };
 
 #endif

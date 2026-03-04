@@ -95,28 +95,26 @@ void sub_captainscabin_display::display(class game &gm) const {
     sys().unprepare_2d_drawing();
 }
 
-void sub_captainscabin_display::process_input(class game &gm, const SDL_Event &event) {
+void sub_captainscabin_display::process_input(class game &gm, const game_event &event) {
     //	submarine* sub = dynamic_cast<submarine*>(gm.get_player());
 
     switch (event.type) {
-    case SDL_MOUSEWHEEL:
-        if (event.wheel.y > 0) {
-        } else if (event.wheel.y < 0) {
+    case event_type::MOUSE_WHEEL:
+        if (event.wheel_y > 0) {
+        } else if (event.wheel_y < 0) {
         }
         break;
-    case SDL_MOUSEBUTTONDOWN:
-        // check if there is a clickable area below the mouse and take some action
+    case event_type::MOUSE_BUTTON_DOWN:
         mx = sys().translate_position_x(event);
         my = sys().translate_position_y(event);
-        if (event.button.button == SDL_BUTTON_LEFT) {
+        if (event.button_button == MOUSE_BUTTON_LEFT) {
             // fixme:
         }
         break;
-    case SDL_MOUSEBUTTONUP:
-        // check if there is a clickable area below the mouse and take some action
+    case event_type::MOUSE_BUTTON_UP:
         mx = sys().translate_position_x(event);
         my = sys().translate_position_y(event);
-        if (event.button.button == SDL_BUTTON_LEFT) {
+        if (event.button_button == MOUSE_BUTTON_LEFT) {
             for (vector<clickable_area>::iterator it = clickable_areas.begin();
                  it != clickable_areas.end(); ++it) {
                 if (it->is_mouse_over(mx, my)) {
@@ -126,7 +124,7 @@ void sub_captainscabin_display::process_input(class game &gm, const SDL_Event &e
             }
         }
         break;
-    case SDL_MOUSEMOTION:
+    case event_type::MOUSE_MOTION:
         mx = sys().translate_position_x(event);
         my = sys().translate_position_y(event);
         break;

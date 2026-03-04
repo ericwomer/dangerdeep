@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef USER_POPUP_H
 #define USER_POPUP_H
 
-#include <SDL.h>
+#include "game_event.h"
 #include <list>
 
 class user_popup {
@@ -48,10 +48,9 @@ class user_popup {
     // very basic. Just draw display and handle input.
     virtual void display(class game &gm) const = 0;
     // returns true if event was used
-    virtual bool process_input(class game &gm, const SDL_Event &event) = 0;
-    virtual void process_input(class game &gm, std::list<SDL_Event> &events) {
-        std::list<SDL_Event>::iterator it = events.begin();
-        while (it != events.end()) {
+    virtual bool process_input(class game &gm, const game_event &event) = 0;
+    virtual void process_input(class game &gm, std::list<game_event> &events) {
+        for (auto it = events.begin(); it != events.end(); ) {
             if (process_input(gm, *it))
                 it = events.erase(it);
             else

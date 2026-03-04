@@ -183,29 +183,28 @@ sub_periscope_display::sub_periscope_display(user_interface &ui_)
 sub_periscope_display::~sub_periscope_display() {
 }
 
-void sub_periscope_display::process_input(class game &gm, const SDL_Event &event) {
+void sub_periscope_display::process_input(class game &gm, const game_event &event) {
     switch (event.type) {
-    case SDL_KEYDOWN:
-        if (ui.get_config().getkey(KEY_TOGGLE_ZOOM_OF_VIEW).equal(event.key.keysym)) {
+    case event_type::KEY_DOWN:
+        if (ui.get_config().getkey(KEY_TOGGLE_ZOOM_OF_VIEW).equal(event.keysym)) {
             zoomed = !zoomed;
         }
         break;
-    case SDL_MOUSEWHEEL:
-        if (event.wheel.y > 0) {
+    case event_type::MOUSE_WHEEL:
+        if (event.wheel_y > 0) {
             zoomed = true;
-        } else if (event.wheel.y < 0) {
+        } else if (event.wheel_y < 0) {
             zoomed = false;
         }
         return;
-    case SDL_MOUSEMOTION:
-        if (event.motion.state & SDL_BUTTON_LMASK) {
-            if (event.motion.yrel != 0) {
-                // remove y motion, replace by scope raise/lower code
+    case event_type::MOUSE_MOTION:
+        if (event.motion_state & MOUSE_BUTTON_LMASK) {
+            if (event.motion_yrel != 0) {
                 submarine *s = dynamic_cast<submarine *>(gm.get_player());
-                s->scope_to_level(s->get_scope_raise_level() - event.motion.yrel / 100.0f);
-                SDL_Event e = event;
-                e.motion.yrel = 0;
-                freeview_display::process_input(gm, e);
+                s->scope_to_level(s->get_scope_raise_level() - event.motion_yrel / 100.0f);
+                game_event ev = event;
+                ev.motion_yrel = 0;
+                freeview_display::process_input(gm, ev);
                 return;
             }
         }

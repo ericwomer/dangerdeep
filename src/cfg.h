@@ -23,8 +23,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef CFG_H
 #define CFG_H
 
+#include "game_event.h"
 #include "singleton.h"
-#include <SDL.h>
 #include <map>
 #include <string>
 
@@ -37,22 +37,17 @@ class cfg : public singleton<class cfg> {
     ///\brief Documentation is build of keys. Each key has a name and an value.
     struct key {
         std::string action;
-        SDL_Keycode keysym;
+        key_code keysym;
         bool ctrl, alt, shift;
-        key() : keysym(SDLK_UNKNOWN), ctrl(false), alt(false), shift(false) {}
-        ~key() {}
-        key(const std::string &ac, SDL_Keycode ks, bool c, bool a, bool s) : action(ac), keysym(ks), ctrl(c), alt(a), shift(s) {}
+        key() : keysym(0), ctrl(false), alt(false), shift(false) {}
+        key(const std::string &ac, key_code ks, bool c, bool a, bool s) : action(ac), keysym(ks), ctrl(c), alt(a), shift(s) {}
         key(const key &k) : action(k.action), keysym(k.keysym), ctrl(k.ctrl), alt(k.alt), shift(k.shift) {}
         key &operator=(const key &k) {
-            action = k.action;
-            keysym = k.keysym;
-            ctrl = k.ctrl;
-            alt = k.alt;
-            shift = k.shift;
+            action = k.action; keysym = k.keysym; ctrl = k.ctrl; alt = k.alt; shift = k.shift;
             return *this;
         }
-        std::string get_name() const; // uses SDLK_GetKeyName
-        bool equal(const SDL_Keysym &ks) const;
+        std::string get_name() const;
+        bool equal(const key_sym &ks) const;
     };
 
   private:
@@ -85,13 +80,13 @@ class cfg : public singleton<class cfg> {
     void register_option(const std::string &name, int value);
     void register_option(const std::string &name, float value);
     void register_option(const std::string &name, const std::string &value);
-    void register_key(const std::string &name, SDL_Keycode keysym, bool ctrl, bool alt, bool shift);
+    void register_key(const std::string &name, key_code keysym, bool ctrl, bool alt, bool shift);
 
     void set(const std::string &name, bool value);
     void set(const std::string &name, int value);
     void set(const std::string &name, float value);
     void set(const std::string &name, const std::string &value);
-    void set_key(unsigned nr, SDL_Keycode keysym, bool ctrl, bool alt, bool shift);
+    void set_key(unsigned nr, key_code keysym, bool ctrl, bool alt, bool shift);
 
     bool getb(const std::string &name) const;
     int geti(const std::string &name) const;

@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-// user display: submarine's ghg (Gruppenhorchger‰t) hearing device
+// user display: submarine's ghg (Gruppenhorchgerùt) hearing device
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "sub_ghg_display.h"
@@ -48,7 +48,7 @@ sub_ghg_display::sub_ghg_display(user_interface &ui_)
     : user_display(ui_), turnknobdrag(TK_NONE), turnknobang(TK_NR) {
 }
 
-void sub_ghg_display::process_input(class game &gm, const SDL_Event &event) {
+void sub_ghg_display::process_input(class game &gm, const game_event &event) {
     int mx, my, mb;
     (void)mb;
 
@@ -59,10 +59,9 @@ void sub_ghg_display::process_input(class game &gm, const SDL_Event &event) {
     const scheme &s = *myscheme;
 
     switch (event.type) {
-    case SDL_MOUSEBUTTONDOWN:
+    case event_type::MOUSE_BUTTON_DOWN:
         mx = sys().translate_position_x(event);
         my = sys().translate_position_y(event);
-        // check if mouse is over turn knobs
         turnknobdrag = TK_NONE;
         if (s.direction_knob.is_mouse_over(mx, my, 64)) {
             turnknobdrag = TK_DIRECTION;
@@ -70,11 +69,11 @@ void sub_ghg_display::process_input(class game &gm, const SDL_Event &event) {
             turnknobdrag = TK_VOLUME;
         }
         break;
-    case SDL_MOUSEMOTION:
+    case event_type::MOUSE_MOTION:
         mx = sys().translate_motion_x(event);
         my = sys().translate_motion_y(event);
-        mb = event.motion.state;
-        if (event.motion.state & SDL_BUTTON_LMASK) {
+        mb = event.motion_state;
+        if (event.motion_state & MOUSE_BUTTON_LMASK) {
             if (turnknobdrag != TK_NONE) {
                 float &ang = turnknobang[unsigned(turnknobdrag)];
                 ang += mx * TK_ANGFAC;
@@ -94,7 +93,7 @@ void sub_ghg_display::process_input(class game &gm, const SDL_Event &event) {
             }
         }
         break;
-    case SDL_MOUSEBUTTONUP:
+    case event_type::MOUSE_BUTTON_UP:
         mx = sys().translate_position_x(event);
         my = sys().translate_position_y(event);
         turnknobdrag = TK_NONE;

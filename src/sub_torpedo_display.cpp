@@ -268,7 +268,7 @@ void sub_torpedo_display::display(class game &gm) const {
     sys().unprepare_2d_drawing();
 }
 
-void sub_torpedo_display::process_input(class game &gm, const SDL_Event &event) {
+void sub_torpedo_display::process_input(class game &gm, const game_event &event) {
     submarine *sub = dynamic_cast<submarine *>(gm.get_player());
     const vector<submarine::stored_torpedo> &torpedoes = sub->get_torpedoes();
 
@@ -276,9 +276,9 @@ void sub_torpedo_display::process_input(class game &gm, const SDL_Event &event) 
     //  increase/decrease torp_desc_line when clicking on desc text area or using mouse wheel
 
     switch (event.type) {
-    case SDL_MOUSEBUTTONDOWN:
+    case event_type::MOUSE_BUTTON_DOWN:
         // check if there is a tube below the mouse and set torptranssrc
-        if (event.button.button == SDL_BUTTON_LEFT) {
+        if (event.button_button == MOUSE_BUTTON_LEFT) {
             torptranssrc = get_tube_below_mouse(get_tubecoords(sub));
             if (torptranssrc != ILLEGAL_TUBE) {
                 if (torpedoes[torptranssrc].status !=
@@ -286,17 +286,20 @@ void sub_torpedo_display::process_input(class game &gm, const SDL_Event &event) 
                     torptranssrc = ILLEGAL_TUBE;
                 }
             }
-            mb |= SDL_BUTTON_LMASK;
-        } else if (event.wheel.y > 0) {
+            mb |= MOUSE_BUTTON_LMASK;
+        }
+        break;
+    case event_type::MOUSE_WHEEL:
+        if (event.wheel_y > 0) {
             if (torp_desc_line > 0)
                 --torp_desc_line;
-        } else if (event.wheel.y < 0) {
+        } else if (event.wheel_y < 0) {
             ++torp_desc_line;
         }
         break;
-    case SDL_MOUSEBUTTONUP:
+    case event_type::MOUSE_BUTTON_UP:
         // check if there is a tube below and if its empty
-        if (event.button.button == SDL_BUTTON_LEFT) {
+        if (event.button_button == MOUSE_BUTTON_LEFT) {
             unsigned torptransdst = get_tube_below_mouse(get_tubecoords(sub));
             if (torptransdst != ILLEGAL_TUBE && torptranssrc != ILLEGAL_TUBE) {
                 if (torpedoes[torptransdst].status ==
@@ -305,13 +308,13 @@ void sub_torpedo_display::process_input(class game &gm, const SDL_Event &event) 
                 }
             }
             torptranssrc = ILLEGAL_TUBE;
-            mb &= ~SDL_BUTTON_LMASK;
+            mb &= ~MOUSE_BUTTON_LMASK;
         }
         break;
-    case SDL_MOUSEMOTION:
+    case event_type::MOUSE_MOTION:
         mx = sys().translate_position_x(event);
         my = sys().translate_position_y(event);
-        mb = event.motion.state;
+        mb = event.motion_state;
 
         break;
     default:

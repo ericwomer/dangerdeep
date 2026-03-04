@@ -86,7 +86,7 @@ void sub_recogmanual_display::display(class game &gm) const {
     });
 }
 
-void sub_recogmanual_display::process_input(class game &gm, const SDL_Event &event) {
+void sub_recogmanual_display::process_input(class game &gm, const game_event &event) {
     btn_left.check_for_mouse_event(event);
     btn_right.check_for_mouse_event(event);
     if (page < 0)

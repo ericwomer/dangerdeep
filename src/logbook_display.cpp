@@ -166,17 +166,17 @@ void logbook_display::display(class game &gm) const {
     sys().unprepare_2d_drawing();
 }
 
-void logbook_display::process_input(class game &gm, const SDL_Event &event) {
+void logbook_display::process_input(class game &gm, const game_event &event) {
     switch (event.type) {
-    case SDL_KEYDOWN:
-        if (event.key.keysym.sym == SDLK_LESS) {
-            if (event.key.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT))
+    case event_type::KEY_DOWN:
+        if (event.keysym.sym == SDLK_LESS) {
+            if (event.keysym.mod & (DFTD_KMOD_LSHIFT | DFTD_KMOD_RSHIFT))
                 next_page();
             else
                 previous_page();
         }
         break;
-    case SDL_MOUSEBUTTONDOWN:
+    case event_type::MOUSE_BUTTON_DOWN:
         if (sys().translate_position_x(event) < 530)
             previous_page();
         else

@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "cfg.h"
 #include "credits.h"
+#include "game_event.h"
 #include "datadirs.h"
 #include "date.h"
 #include "faulthandler.h"
@@ -377,7 +378,7 @@ game::run_state game__exec(game &gm, user_interface &ui) {
     ui.request_abort(false);
 
     while (gm.get_run_state() == game::running && !ui.abort_requested()) {
-        list<SDL_Event> events = sys().poll_event_queue();
+        list<game_event> events = sys().poll_event_queue();
 
         // maybe limit input processing to 30 fps
         ui.process_input(events);
@@ -419,7 +420,7 @@ game::run_state game__exec(game &gm, user_interface &ui) {
             lastframes = frames;
         }
 
-        sys().swap_buffers(sys().get_sdl_window());
+        sys().swap_buffers();
     }
 
     ui.pause_all_sound();
@@ -1270,14 +1271,14 @@ void configure_key(widget_list *wkeys) {
         unsigned keynr;
         cfg &config_ref;
 
-        void on_char(const SDL_Keysym &ks) {
+        void on_char(const key_sym &ks) override {
             if (ks.sym == SDLK_ESCAPE) {
                 close(0);
                 return;
             }
-            bool ctrl = (ks.mod & (KMOD_LCTRL | KMOD_RCTRL)) != 0;
-            bool alt = (ks.mod & (KMOD_LALT | KMOD_RALT | KMOD_MODE /* Alt Gr */)) != 0;
-            bool shift = (ks.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) != 0;
+            bool ctrl = (ks.mod & (DFTD_KMOD_LCTRL | DFTD_KMOD_RCTRL)) != 0;
+            bool alt = (ks.mod & (DFTD_KMOD_LALT | DFTD_KMOD_RALT | DFTD_KMOD_MODE /* Alt Gr */)) != 0;
+            bool shift = (ks.mod & (DFTD_KMOD_LSHIFT | DFTD_KMOD_RSHIFT)) != 0;
             config_ref.set_key(keynr, ks.sym, ctrl, alt, shift);
             keyname->set_text(config_ref.getkey(keynr).get_name());
             redraw();
@@ -1990,14 +1991,14 @@ int mymain(list<string> &args) {
             sys().prepare_2d_drawing();
             font_arial->print(0, 0, str_problems.str());
             sys().unprepare_2d_drawing();
-            sys().swap_buffers(sys().get_sdl_window());
+            sys().swap_buffers();
             bool quit = false;
             while (!quit) {
-                list<SDL_Event> events = sys().poll_event_queue();
-                for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
-                    if (it->type == SDL_KEYDOWN) {
+                list<game_event> events = sys().poll_event_queue();
+                for (list<game_event>::iterator it = events.begin(); it != events.end(); ++it) {
+                    if (it->type == event_type::KEY_DOWN) {
                         quit = true;
-                    } else if (it->type == SDL_MOUSEBUTTONUP) {
+                    } else if (it->type == event_type::MOUSE_BUTTON_UP) {
                         quit = true;
                     }
                 }

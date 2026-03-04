@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _MUSIC_H_
 #define _MUSIC_H_
 
-#include <SDL_mixer.h>
+#include "audio_backend.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -154,12 +154,11 @@ class music : public singleton<class music>, public thread {
     playback_mode pbm;
     bool stopped;
     std::vector<std::string> playlist;
-    // we can't use the ptrvector here, since Mix_Music ptrs must be freed with special function.
-    std::vector<Mix_Music *> musiclist;
+    std::vector<audio_music_handle *> musiclist;
     message_queue command_queue;
-    std::map<std::string, std::vector<Mix_Chunk *>> sfx_events;
-    std::map<std::string, std::vector<Mix_Chunk *>> sfx_machines;
-    Mix_Chunk *current_machine_sfx;
+    std::map<std::string, std::vector<audio_chunk_handle *>> sfx_events;
+    std::map<std::string, std::vector<audio_chunk_handle *>> sfx_machines;
+    audio_chunk_handle *current_machine_sfx;
     void destructor();
 
     void start_play_track(unsigned nr, unsigned fadeintime = 0);

@@ -97,7 +97,7 @@ void panel_manager::draw(double heading, double speed, double depth,
     panel_widget->draw();
 }
 
-bool panel_manager::check_mouse_event(const SDL_Event &event) {
+bool panel_manager::check_mouse_event(const game_event &event) {
     if (!is_visible) {
         return false;
     }

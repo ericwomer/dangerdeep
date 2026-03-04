@@ -90,7 +90,7 @@ sub_torpsetup_display::sub_torpsetup_display(user_interface &ui_)
     */
 }
 
-void sub_torpsetup_display::process_input(class game &gm, const SDL_Event &event) {
+void sub_torpsetup_display::process_input(class game &gm, const game_event &event) {
     submarine *sub = dynamic_cast<submarine *>(gm.get_player());
     torpedo::setup &tbsetup = sub->get_torp_in_tube(dynamic_cast<submarine_interface &>(ui).get_selected_tube()).setup;
     if (!myscheme.get())
@@ -99,7 +99,7 @@ void sub_torpsetup_display::process_input(class game &gm, const SDL_Event &event
     int mx, my, mb;
     (void)mb;
     switch (event.type) {
-    case SDL_MOUSEBUTTONDOWN:
+    case event_type::MOUSE_BUTTON_DOWN:
         mx = sys().translate_position_x(event);
         my = sys().translate_position_y(event);
         // check if mouse is over turn knobs
@@ -125,11 +125,11 @@ void sub_torpsetup_display::process_input(class game &gm, const SDL_Event &event
             tbsetup.torpspeed = idx;
         }
         break;
-    case SDL_MOUSEMOTION:
+    case event_type::MOUSE_MOTION:
         mx = sys().translate_motion_x(event);
         my = sys().translate_motion_y(event);
-        mb = event.motion.state;
-        if (event.motion.state & SDL_BUTTON_LMASK) {
+        mb = event.motion_state;
+        if (event.motion_state & MOUSE_BUTTON_LMASK) {
             if (turnknobdrag != TK_NONE) {
                 float &ang = turnknobang[unsigned(turnknobdrag)];
                 ang += mx * TK_ANGFAC;
@@ -159,7 +159,7 @@ void sub_torpsetup_display::process_input(class game &gm, const SDL_Event &event
             }
         }
         break;
-    case SDL_MOUSEBUTTONUP:
+    case event_type::MOUSE_BUTTON_UP:
         mx = sys().translate_position_x(event);
         my = sys().translate_position_y(event);
         turnknobdrag = TK_NONE;

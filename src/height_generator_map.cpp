@@ -60,8 +60,9 @@ height_generator_map::height_generator_map(const std::string &filename)
     realoffset.x = et.attrf("realoffsetx");
     realoffset.y = et.attrf("realoffsety");
     sdl_image surf(get_map_dir() + et.attr("heights"));
-    mapw = surf->w;
-    maph = surf->h;
+    const image_data* img = surf.get_image_data();
+    mapw = img->width;
+    maph = img->height;
     pixelw_real = realwidth / mapw;
     mapoff.x = realoffset.x / pixelw_real;
     mapoff.y = realoffset.y / pixelw_real;
@@ -69,20 +70,17 @@ height_generator_map::height_generator_map(const std::string &filename)
     sample_spacing = pixelw_real / (1 << subdivision_steps);
     log2_color_res_factor = 0;
     height_data.resize(vector2i(mapw, maph));
-    surf.lock();
-    if (surf->format->BytesPerPixel != 1 || surf->format->palette == 0 || surf->format->palette->ncolors != 256)
-        throw error(string("coastmap: image is no greyscale 8bpp paletted image, in ") + filename);
-    Uint8 *offset = (Uint8 *)(surf->pixels);
-    int mapoffy = maph * mapw;
+    if (img->bytes_per_pixel < 1)
+        throw error(string("height_generator_map: need at least 1 bpp, in ") + filename);
+    const uint8_t* offset = img->pixels.data();
+    unsigned bpp = img->bytes_per_pixel;
     for (int yy = 0; yy < int(maph); yy++) {
-        mapoffy -= mapw;
         for (int xx = 0; xx < int(mapw); ++xx) {
-            Uint8 c = (*offset++);
+            uint8_t c = offset[xx * bpp];
             height_data.at(xx, maph - 1 - yy) = (float(c) - 128) * 4;
         }
-        offset += surf->pitch - mapw;
+        offset += img->pitch;
     }
-    surf.unlock();
 
     static const char *texnames[8] = {
         "tex_stone.jpg",

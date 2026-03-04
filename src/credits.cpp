@@ -777,13 +777,10 @@ void show_credits() {
     double totaltime = sys().millisec() / 1000.0;
     double measuretime = 5; // seconds
     while (!quit) {
-        list<SDL_Event> events = sys().poll_event_queue();
-        for (list<SDL_Event>::iterator it = events.begin(); it != events.end(); ++it) {
-            if (it->type == SDL_KEYDOWN) {
+        list<game_event> events = sys().poll_event_queue();
+        for (auto& ev : events) {
+            if (ev.type == event_type::KEY_DOWN || ev.type == event_type::MOUSE_BUTTON_UP)
                 quit = true;
-            } else if (it->type == SDL_MOUSEBUTTONUP) {
-                quit = true;
-            }
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -880,7 +877,7 @@ void show_credits() {
             lastframes = frames;
         }
 
-        sys().swap_buffers(sys().get_sdl_window());
+        sys().swap_buffers();
     }
 
     glClearColor(0, 0, 1, 0);

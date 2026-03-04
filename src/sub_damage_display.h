@@ -41,7 +41,7 @@ class sub_damage_display : public user_display {
     virtual void display_popup(int x, int y, const std::string &text, bool atleft, bool atbottom) const;
 
     virtual void display(class game &gm) const;
-    virtual void process_input(class game &gm, const SDL_Event &event);
+    virtual void process_input(class game &gm, const game_event &event);
 
     void enter(bool is_day);
     void leave();

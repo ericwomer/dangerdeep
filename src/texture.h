@@ -34,9 +34,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <windows.h>
 #endif
 
+#include "image_loader.h"
 #include "oglext/OglExt.h"
 #include <SDL.h>
-#include <SDL_image.h>
 
 #include <list>
 #include <memory>
@@ -47,42 +47,31 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "error.h"
 #include "vector3.h"
 
-/// wrapper for SDL_Surface/SDL_images to make memory management automatic
-/// !Rake: What have you done?
+/// Wrapper para imagen cargada (usa image_loader, sin tipos SDL en interfaz)
 class sdl_image {
   public:
     /// create image from file
-    ///@note can combine RGB(jpg) and A(png) into one surface
+    ///@note can combine RGB(jpg) and A(png) into one image
     sdl_image(const std::string &filename);
 
-    /// destroy image
-    ~sdl_image();
-
-    /// lock surface
-    void lock();
-
-    /// unlock surface
-    void unlock();
-
-    /// get pointer to surface
-    SDL_Surface *get_SDL_Surface() const { return img; }
-
-    /// access elements of surface
-    SDL_Surface *operator->() const throw() { return img; }
+    ~sdl_image() = default;
 
     /// transform values to plain vector
     std::vector<uint8_t> get_plain_data(unsigned &w, unsigned &h, unsigned &byte_per_pixel);
 
-    /// get width of image
-    unsigned get_width() const { return img->w; }
+    unsigned get_width() const { return data->width; }
+    unsigned get_height() const { return data->height; }
 
-    /// get height of image
-    unsigned get_height() const { return img->h; }
+    /// acceso para texture
+    const image_data* get_image_data() const { return data.get(); }
+    image_data* get_image_data() { return data.get(); }
 
-  protected:
-    SDL_Surface *img;
+    /// operador -> para compatibilidad (img->w, img->h)
+    const image_data* operator->() const { return data.get(); }
 
   private:
+    std::unique_ptr<image_data> data;
+
     sdl_image(); // no copy
     sdl_image &operator=(const sdl_image &other);
     sdl_image(const sdl_image &other);
@@ -130,10 +119,8 @@ class texture {
     mapping_mode mapping;   // how GL draws the texture (GL_NEAREST, GL_LINEAR, etc.)
     clamping_mode clamping; // how GL handles the border (GL_REPEAT, GL_CLAMP_TO_EDGE)
 
-    void sdl_init(SDL_Surface *teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-                  bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
-
-    void sdl_rgba_init(SDL_Surface *teximagergb, SDL_Surface *teximagea);
+    void image_data_init(const image_data &img, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
+                         bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false);
 
     // copy data to OpenGL, set parameters
     void init(const std::vector<Uint8> &data, bool makenormalmap = false,
@@ -209,13 +196,7 @@ class texture {
     texture(const std::string &filename, mapping_mode mapping_ = NEAREST, clamping_mode clamp = REPEAT,
             bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false, GLenum _dimension = GL_TEXTURE_2D);
 
-    // create texture from subimage of SDL surface.
-    // sw,sh need not to be powers of two.
-    texture(SDL_Surface *teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-            mapping_mode mapping_ = NEAREST, clamping_mode clamp = REPEAT,
-            bool makenormalmap = false, float detailh = 1.0f, bool rgb2grey = false, GLenum _dimension = GL_TEXTURE_2D);
-
-    // create texture from subimage of SDL surface, based on sdl_image
+    // create texture from subimage of sdl_image
     // sw,sh need not to be powers of two.
     texture(const sdl_image &teximage, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
             mapping_mode mapping_ = NEAREST, clamping_mode clamp = REPEAT,

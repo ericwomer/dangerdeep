@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef PANEL_MANAGER_H
 #define PANEL_MANAGER_H
 
-#include <SDL_events.h>
+#include "game_event.h"
 #include <memory>
 #include <string>
 
@@ -59,7 +59,7 @@ class panel_manager {
     /// Check if panel should process mouse event
     /// @param event - SDL event to check
     /// @return true if event was handled by panel
-    bool check_mouse_event(const SDL_Event &event);
+    bool check_mouse_event(const game_event &event);
 
     /// Set panel visibility
     /// @param visible - true to show panel, false to hide

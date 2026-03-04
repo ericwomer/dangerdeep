@@ -226,9 +226,9 @@ int mymain(list<string> &args) {
 
     sdl_image test_img(get_image_dir() + "sv_r2c2_red_pos8.jpg");
     colorf col(1, 1, 1, 1);
-    texture *test_texture = new texture(test_img, 0, 0, test_img->w, test_img->h, texture::NEAREST, texture::CLAMP);
-    texture *test_texture2 = new texture(test_img, 0, 0, test_img->w, test_img->h, texture::LINEAR, texture::CLAMP);
-    texture *test_texture3 = new texture(test_img, 0, 0, test_img->w, test_img->h, texture::NEAREST_MIPMAP_NEAREST, texture::CLAMP);
+    texture *test_texture = new texture(test_img, 0, 0, test_img.get_width(), test_img.get_height(), texture::NEAREST, texture::CLAMP);
+    texture *test_texture2 = new texture(test_img, 0, 0, test_img.get_width(), test_img.get_height(), texture::LINEAR, texture::CLAMP);
+    texture *test_texture3 = new texture(test_img, 0, 0, test_img.get_width(), test_img.get_height(), texture::NEAREST_MIPMAP_NEAREST, texture::CLAMP);
 
     log_warning("T1 FMT = " << glenum2str(test_texture->get_format()));
     log_warning("T2 FMT = " << glenum2str(test_texture2->get_format()));

@@ -118,16 +118,16 @@ sub_uzo_display::sub_uzo_display(user_interface &ui_) : freeview_display(ui_), z
     drawbridge = false;
 }
 
-void sub_uzo_display::process_input(class game &gm, const SDL_Event &event) {
+void sub_uzo_display::process_input(class game &gm, const game_event &event) {
     submarine *sub = dynamic_cast<submarine *>(gm.get_player());
     if (sub->is_submerged()) {
     }
     switch (event.type) {
-    case SDL_KEYDOWN:
-        if (ui.get_config().getkey(KEY_TOGGLE_ZOOM_OF_VIEW).equal(event.key.keysym)) {
+    case event_type::KEY_DOWN:
+        if (ui.get_config().getkey(KEY_TOGGLE_ZOOM_OF_VIEW).equal(event.keysym)) {
             zoomed = !zoomed;
         } else {
-            switch (event.key.keysym.sym) {
+            switch (event.keysym.sym) {
                 // filter away keys NP_1...NP_9 to avoid moving viewer like in freeview mode
             case SDLK_KP_8:
                 return;
@@ -146,10 +146,10 @@ void sub_uzo_display::process_input(class game &gm, const SDL_Event &event) {
             }
         }
         break;
-    case SDL_MOUSEBUTTONDOWN:
-        if (event.wheel.y > 0) {
+    case event_type::MOUSE_WHEEL:
+        if (event.wheel_y > 0) {
             zoomed = true;
-        } else if (event.wheel.y < 0) {
+        } else if (event.wheel_y < 0) {
             zoomed = false;
         }
         break;

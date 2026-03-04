@@ -87,12 +87,12 @@ void sub_gauges_display::display(class game &gm) const {
     system::sys().unprepare_2d_drawing();
 }
 
-void sub_gauges_display::process_input(class game &gm, const SDL_Event &event) {
+void sub_gauges_display::process_input(class game &gm, const game_event &event) {
     // fixme: actions are executed, but no messages are sent...
     submarine *sub = dynamic_cast<submarine *>(gm.get_player());
     int mx, my;
     switch (event.type) {
-    case SDL_MOUSEBUTTONDOWN:
+    case event_type::MOUSE_BUTTON_DOWN:
         mx = sys().translate_position_x(event);
         my = sys().translate_position_y(event);
         // if mouse is over control c, compute angle a, set matching command, fixme

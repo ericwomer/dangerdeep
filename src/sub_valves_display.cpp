@@ -29,7 +29,7 @@ void sub_valves_display::display(class game &gm) const {
     });
 }
 
-void sub_valves_display::process_input(class game &gm, const SDL_Event &event) {
+void sub_valves_display::process_input(class game &gm, const game_event &event) {
 }
 
 void sub_valves_display::enter(bool is_day) {
