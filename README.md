@@ -12,6 +12,7 @@
   <img src="https://img.shields.io/badge/C++-20-00599C?logo=cplusplus&logoColor=white" alt="C++20" />
   <img src="https://img.shields.io/badge/CMake-3.20+-064F8C?logo=cmake&logoColor=white" alt="CMake" />
   <img src="https://img.shields.io/badge/SDL2-2.0-8B0000?logo=sdl" alt="SDL2" />
+  <img src="https://img.shields.io/badge/SDL3-supported-8B0000?logo=sdl" alt="SDL3" />
   <img src="https://img.shields.io/badge/OpenGL-2.x-5586A4?logo=opengl" alt="OpenGL" />
   <img src="https://img.shields.io/badge/Linux-Wayland-FCC624?logo=linux&logoColor=black" alt="Linux" />
   <img src="https://img.shields.io/badge/License-GPL%20v2-blue" alt="GPL v2" />
@@ -70,9 +71,10 @@ Dependencias de sistema (las versiones son las que proporcione tu distro; no se 
 
 | Dependencia   | Uso en el proyecto | Versión mínima recomendada |
 | ------------- | ------------------ | --------------------------- |
-| **SDL2**      | Ventana, eventos   | 2.0.5+                      |
-| **SDL2_image**| Carga de imágenes  | 2.0.x                       |
-| **SDL2_mixer**| Audio / música     | 2.0.x                       |
+| **SDL2**      | Ventana, eventos (por defecto) | 2.0.5+                      |
+| **SDL2_image**| Carga de imágenes (SDL2)       | 2.0.x                       |
+| **SDL2_mixer**| Audio / música (SDL2)          | 2.0.x                       |
+| **SDL3**      | Alternativa: ventana, eventos, audio, imágenes | 3.x (opcional) |
 | **FFTW3**     | FFT (sonar, etc.)  | 3.3.x                       |
 | **TinyXML**   | XML (datos, config)| 2.6.x                       |
 | **bzip2**     | Descompresión      | 1.0.x                       |
@@ -84,7 +86,7 @@ Puedes **actualizar** las dependencias con lo que ofrezca tu sistema (p. ej. en 
 
 | Cambio | ¿Se puede? | Esfuerzo y notas |
 |--------|------------|-------------------|
-| **SDL2 → SDL3** | Sí | Medio–alto. API distinta (ventana, eventos, etc.) en muchas fuentes. SDL3 mejora Wayland y es la línea futura. |
+| **SDL2 → SDL3** | ✅ Implementado | Soporte dual: `-DUSE_SDL3=ON` en CMake o `./check.sh --sdl3`. SDL3 mejora Wayland y es la línea futura. |
 | **FFTW3 → “FFTW4”** | No | No existe FFTW4; la rama estable actual es FFTW 3.3.x. El proyecto ya usa FFTW3. |
 | **bzip2 → otro compresor** | Sí | Medio. Uso acotado: `bzip.h`/`bzip.cpp` y datos de tiles (`.bz2`). Se puede sustituir por **zstd** o **zlib** con una capa tipo stream similar; habría que reconvertir/recomprimir datos o soportar ambos formatos. |
 | **OpenGL → Vulkan** | Sí, en teoría | Muy alto. Todo el render (shaders, texturas, modelos, agua, cielo, oglext, etc.) está en OpenGL. Implica reescribir el pipeline de render. |
@@ -133,6 +135,16 @@ cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
 make -j$(nproc)
 ```
 
+Para compilar con **SDL3**:
+
+```bash
+./check.sh --sdl3
+# o manualmente:
+mkdir build-sdl3 && cd build-sdl3
+cmake .. -DUSE_SDL3=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo
+make -j$(nproc)
+```
+
 Si tienes **ccache** instalado, CMake lo usará como launcher del compilador; las recompilaciones serán mucho más rápidas al reutilizar objetos ya compilados (en la salida de `cmake` verás "ccache: activado").
 
 El ejecutable se genera en `build/src/dangerdeep` (en algunas configuraciones puede estar en `build/dangerdeep`).
@@ -141,6 +153,7 @@ El ejecutable se genera en `build/src/dangerdeep` (en algunas configuraciones pu
 
 | Opción                     | Valores    | Descripción                                      |
 | -------------------------- | ---------- | ------------------------------------------------- |
+| `USE_SDL3`                 | `ON`/`OFF` | Usar SDL3 en lugar de SDL2                        |
 | `USE_CLANG`                | `ON`/`OFF` | Usar Clang en lugar de GCC                        |
 | `USE_UNITY`                | `ON`/`OFF` | Activar unity builds                              |
 | `BUILD_ASAN`               | `ON`/`OFF` | AddressSanitizer + LeakSanitizer (detección fugas) |
@@ -174,8 +187,6 @@ El proyecto usa **GitHub Actions** para integración y despliegue continuo. Todo
 
 ### Workflows Configurados
 
-### Workflows Configurados
-
 <p align="center">
   <img src="https://github.com/cavazquez/dangerdeep/actions/workflows/ci.yml/badge.svg" alt="CI" />
   <img src="https://github.com/cavazquez/dangerdeep/actions/workflows/format.yml/badge.svg" alt="Format" />
@@ -184,7 +195,7 @@ El proyecto usa **GitHub Actions** para integración y despliegue continuo. Todo
 
 | Workflow | Qué verifica | Cuándo |
 |----------|--------------|--------|
-| **CI** | Build + Tests (98 tests) | Push / PR |
+| **CI** | Build SDL2 + SDL3 + Tests (98 tests) | Push / PR |
 | **Format** | clang-format | Push / PR |
 | **Coverage** | Cobertura de código | Push / PR (master, main) |
 | **Lint** | cppcheck completo | Solo manual (Actions → Run workflow) |
@@ -225,6 +236,7 @@ El script `check.sh` centraliza operaciones de QA (formato, lint, compilación, 
 | ------- | ----------- |
 | `./check.sh` | Mostrar ayuda con todas las opciones |
 | `./check.sh --build` | Compilar el proyecto |
+| `./check.sh --sdl3` | Compilar con SDL3 (directorio `build-sdl3/`) |
 | `./check.sh --force` | Forzar recompilación completa (make clean + make) |
 | `./check.sh --reconfigure` | Regenerar makefiles de CMake + compilar |
 | `./check.sh --clean` | Borrar `build/` y recompilar desde cero |
@@ -253,7 +265,7 @@ Para el reporte de cobertura se usa **lcov** con *branch coverage*; instalación
 | `src/`         | Código C++ (simulación, gráficos, UI) |
 | `data/`        | Datos del juego (modelos, texturas, sonidos, mapas; parte vía Git LFS) |
 | `cmake/`       | Módulos de CMake |
-| `docs/`        | Documentación adicional: [REFACTORING.md](docs/REFACTORING.md) (refactor), [STD_ALTERNATIVES.md](docs/STD_ALTERNATIVES.md) (uso de la std) |
+| `docs/`        | Documentación adicional: [REFACTORING.md](docs/REFACTORING.md) (refactor), [SDL3_MIGRATION.md](docs/SDL3_MIGRATION.md) (SDL3), [STD_ALTERNATIVES.md](docs/STD_ALTERNATIVES.md) (uso de la std) |
 | `packaging/`   | Scripts para empaquetado (p. ej. Ubuntu) |
 
 ### Stack técnico
@@ -263,7 +275,7 @@ Para el reporte de cobertura se usa **lcov** con *branch coverage*; instalación
 | **Lenguaje** | C++20 | Core del proyecto |
 | **Build** | CMake 3.20+ | Sistema de compilación |
 | **Gráficos** | OpenGL 2.x | Render 3D |
-| **Multimedia** | SDL2 | Ventanas, input, audio, imágenes |
+| **Multimedia** | SDL2 / SDL3 | Ventanas, input, audio, imágenes |
 | **Matemáticas** | FFTW3 | FFT (sonar, simulación) |
 | **Datos** | TinyXML, BZip2 | Serialización, compresión |
 | **Testing** | Catch2, CTest | 98 tests unitarios |
