@@ -208,7 +208,7 @@ gdb ./build/src/dangerdeep
 ### Build Essentials
 
 - **C++20 compiler** (GCC 10+, Clang 12+)
-- **CMake 3.10+**
+- **CMake 3.20+**
 - **Make** o **Ninja**
 
 ### Librerías

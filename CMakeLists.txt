@@ -115,9 +115,15 @@ message(STATUS "BZIP2_LIBRARY:          ${BZIP2_LIBRARIES}")
 
 #------------------------------------
 
-find_package(X11 REQUIRED)
-include_directories(${X11_INCLUDE_DIR})
-message(STATUS "X11_LIBRARY:            ${X11_LIBRARIES}")
+find_package(X11)
+if(X11_FOUND)
+	include_directories(${X11_INCLUDE_DIR})
+	message(STATUS "X11_LIBRARY:            ${X11_LIBRARIES}")
+	set(X11_LIBS ${X11_LIBRARIES})
+else()
+	message(STATUS "X11: no encontrado (Wayland/SDL2)")
+	set(X11_LIBS "")
+endif()
 
 #------------------------------------
 
@@ -179,7 +185,7 @@ set(LIBS
 	${SDL2_MIXER_LIBRARIES}
 	${BZIP2_LIBRARIES}
 	${FFTW_LIBRARIES}
-	${X11_LIBRARIES}
+	${X11_LIBS}
 	${TINYXML_LIBRARIES})
 
 # message("LIBS:  ${LIBS}")

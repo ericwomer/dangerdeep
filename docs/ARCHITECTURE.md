@@ -20,7 +20,7 @@
 ### Estadísticas del Proyecto
 
 - **Lenguaje**: C++20
-- **Build System**: CMake 3.10+
+- **Build System**: CMake 3.20+
 - **Líneas de código**: ~150,000 LOC
 - **Tests**: 98 tests unitarios (100% passing)
 - **Cobertura**: En crecimiento (50+ módulos con tests)
