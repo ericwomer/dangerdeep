@@ -50,8 +50,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "game_event.h"
 #include <glu.h>
 
+#ifndef VIEWMODEL
 #define VIEWMODEL
-
+#endif
 #include "mymain.cpp"
 
 using std::vector;
@@ -61,8 +62,8 @@ using std::vector;
 #undef IS_INSIDE_TEST
 
 int res_x, res_y;
-font *font_arial = 0;
-font *font_vtremington12 = 0;
+// Usar las variables globales de global_data.h (extern)
+#include "global_data.h"
 
 vector4t<GLfloat> lposition(0, 0, 0, 1);
 
@@ -106,7 +107,7 @@ class model_load_dialog {
     void message(const string &msg);
 };
 
-model_load_dialog::model_load_dialog() : theme(0) {
+model_load_dialog::model_load_dialog() : theme(nullptr) {
     theme = std::make_unique<widget::theme>("widgetelements_menu.png", "widgeticons_menu.png", font_vtremington12, color(182, 146, 137), color(222, 208, 195), color(92, 72, 68));
 }
 
@@ -518,22 +519,22 @@ void view_model(const string &modelfilename, const string &datafilename) {
                 switch (event.keysym.sym) {
                 case SDLK_ESCAPE:
                     return;
-                case SDLK_KP4:
+                case SDLK_KP_4:
                     pos.x -= 1.0;
                     break;
-                case SDLK_KP6:
+                case SDLK_KP_6:
                     pos.x += 1.0;
                     break;
-                case SDLK_KP8:
+                case SDLK_KP_8:
                     pos.y -= 1.0;
                     break;
-                case SDLK_KP2:
+                case SDLK_KP_2:
                     pos.y += 1.0;
                     break;
-                case SDLK_KP1:
+                case SDLK_KP_1:
                     pos.z -= 1.0;
                     break;
-                case SDLK_KP3:
+                case SDLK_KP_3:
                     pos.z += 1.0;
                     break;
                 case SDLK_l:

@@ -316,6 +316,22 @@ target_precompile_headers(dangerdeep PRIVATE
 
 target_link_libraries(dangerdeep ${LIBS})
 
+# Herramienta viewmodel: visor de modelos .mdl (usa mymain con VIEWMODEL)
+option(BUILD_VIEWMODEL "Build viewmodel tool (model viewer)" OFF)
+if(BUILD_VIEWMODEL)
+	set(VM_SRC ${MAIN_SRC})
+	list(REMOVE_ITEM VM_SRC subsim.cpp)
+	list(APPEND VM_SRC viewmodel.cpp)
+	add_executable(viewmodel ${VM_SRC} ${INC})
+	target_compile_definitions(viewmodel PRIVATE VIEWMODEL)
+	target_link_libraries(viewmodel ${LIBS})
+	target_include_directories(viewmodel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+	# Sin PCH para evitar conflictos (viewmodel tiene su propio flujo)
+	set_target_properties(viewmodel PROPERTIES
+		SKIP_PRECOMPILE_HEADERS ON
+	)
+endif()
+
 if(BUILD_UNIT_TESTS)
 	add_subdirectory(test)
 endif()
