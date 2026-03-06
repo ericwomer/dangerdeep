@@ -21,9 +21,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // (C)+(W) by Thorsten Jordan. See LICENSE
 
 #include "make_mesh.h"
-#include <cmath>
-
+#include "rnd.h"
 #include "dmath.h"
+#include <cmath>
 
 using namespace std;
 
@@ -348,9 +348,9 @@ model::mesh *heightfield(unsigned resx, unsigned resy, const vector<Uint8> &heig
     m->indices.resize((resx - 1) * (resy - 1) * 2 * 3);
     for (unsigned i = 0; i < resy; ++i) {
         for (unsigned j = 0; j < resx; ++j) {
-            float r0 = float(rand()) / RAND_MAX;
-            float r1 = float(rand()) / RAND_MAX;
-            float r2 = float(rand()) / RAND_MAX;
+            float r0 = static_cast<float>(rnd());
+            float r1 = static_cast<float>(rnd());
+            float r2 = static_cast<float>(rnd());
             m->vertices[i * resx + j] = vector3f(xscal * j + (r0 * 2 - 1) * xnoise,
                                                  yscal * i + (r1 * 2 - 1) * ynoise,
                                                  zscal * float(heights[i * resx + j]) *

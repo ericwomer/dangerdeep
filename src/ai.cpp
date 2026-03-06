@@ -410,7 +410,7 @@ float quantify(float a, float b)
 float random_part(float min, float max)
 {
 	float d = max - min;
-	float r = float(rand() % 1001) / 1000.0;
+	float r = float(rnd(1001u)) / 1000.0f;
 	return min + r * d;
 }
 

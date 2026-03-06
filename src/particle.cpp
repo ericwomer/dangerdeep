@@ -63,19 +63,19 @@ vector<float> particle::interpolate_func;
 vector<Uint8> particle::make_2d_smoothed_noise_map(unsigned wh) {
     vector<Uint8> tmp(wh * wh);
     for (unsigned i = 0; i < wh * wh; ++i)
-        tmp[i] = (Uint8)(rand() % 256);
+        tmp[i] = (Uint8)(rnd(256));
     for (unsigned i = 0; i < wh; ++i) {
         tmp[i] = 0;
-        if (rand() % 2 == 0)
+        if (rnd(2u) == 0)
             tmp[wh + i] = 0;
         tmp[wh * i] = 0;
-        if (rand() % 2 == 0)
+        if (rnd(2u) == 0)
             tmp[wh * i + 1] = 0;
         tmp[wh * i + wh - 1] = 0;
-        if (rand() % 2 == 0)
+        if (rnd(2u) == 0)
             tmp[wh * i + wh - 2] = 0;
         tmp[(wh - 1) * wh + i] = 0;
-        if (rand() % 2 == 0)
+        if (rnd(2u) == 0)
             tmp[(wh - 2) * wh + i] = 0;
     }
     vector<Uint8> tmp2(wh * wh);
@@ -164,7 +164,7 @@ vector<Uint8> particle::compute_fire_frame(unsigned wh, const vector<Uint8> &old
                     sum += unsigned(oldframe[yy * wh + xx]);
                 }
             }
-            unsigned r = rand() % 64;
+            unsigned r = rnd(64u);
             sum = (r > sum) ? 0 : sum - r;
             sum = (sum * 28) / 256;
             if (sum > 255)
@@ -175,12 +175,12 @@ vector<Uint8> particle::compute_fire_frame(unsigned wh, const vector<Uint8> &old
 
     for (unsigned k = 0; k < 2; ++k) {
         for (unsigned j = 0; j < wh / 4; ++j) {
-            unsigned x = (j < wh * 7 / 32) ? (rand() % (wh / 2) + wh / 4) : (rand() % (wh - 2)) + 1;
+            unsigned x = (j < wh * 7 / 32) ? (rnd(wh / 2) + wh / 4) : (rnd(wh - 2) + 1);
             Uint8 c;
-            if (rand() % 4 == 0)
+            if (rnd(4u) == 0)
                 c = 0;
             else
-                c = rand() % 55 + 200;
+                c = rnd(55u) + 200;
             result[(wh - 1 - k) * wh + x] = c;
         }
     }
@@ -427,7 +427,7 @@ void particle::display_all(const vector<particle *> &pts, const vector3 &viewpos
 
 // smoke
 
-smoke_particle::smoke_particle(const vector3 &pos) : particle(pos), texnr(rand() % NR_OF_SMOKE_TEXTURES) {
+smoke_particle::smoke_particle(const vector3 &pos) : particle(pos), texnr(rnd(NR_OF_SMOKE_TEXTURES)) {
     velocity.x = -1; // wind test, wind from NE, speed ~1.4m/s
     velocity.y = -1;
     velocity.z = 4.0; // m/s

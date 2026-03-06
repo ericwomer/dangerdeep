@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define OCEAN_WAVE_GENERATOR
 
 #include "global_constants.h"
+#include "rnd.h"
 #include "vector3.h"
 #include <complex>
 #include <cstdlib>
@@ -146,7 +147,7 @@ class ocean_wave_generator {
 
 template <class T>
 T ocean_wave_generator<T>::myrnd() {
-    return T(rand()) / RAND_MAX;
+    return T(rnd());
 }
 
 template <class T>

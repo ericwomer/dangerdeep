@@ -33,14 +33,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "mymain.cpp"
 #include "oglext/OglExt.h"
 #include "ptrvector.h"
+#include "rnd.h"
 #include "shader.h"
 #include "system.h"
 #include "triangle_intersection.h"
 #include <SDL.h>
 
 using std::vector;
-
-inline double rnd() { return double(rand()) / RAND_MAX; }
 
 int mymain(list<string> &args) {
     if (args.size() != 2)

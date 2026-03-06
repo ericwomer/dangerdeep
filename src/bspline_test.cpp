@@ -1,10 +1,8 @@
 // some test code for the 2d bsplines!
 #include "bspline.h"
-#include <cstdlib>
+#include "rnd.h"
 #include <fstream>
 using namespace std;
-
-double rnd() { return double(rand()) / RAND_MAX; }
 
 #if 1
 int main(int, char **) {
@@ -68,7 +66,7 @@ const unsigned N = 4;
 const unsigned D = 33;
 const unsigned R = 4;
 int main(int, char **) {
-    srand(3746867);
+    seed_global_rnd(3746867u);
     std::vector<float> cps(D * D);
     for (unsigned y = 0; y < D; ++y)
         for (unsigned x = 0; x < D; ++x)

@@ -60,6 +60,9 @@ add_executable(global_data_utils_test ${TEST_DIR}/global_data_utils_test.cpp)
 target_link_libraries(global_data_utils_test ${LIBS})
 add_test(NAME global_data_utils_test COMMAND global_data_utils_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
+# str_utils_test: str(), str_wf() de global_data.h
+add_catch2_test(str_utils_test)
+
 # rnd_global_test: rnd(), seed_global_rnd() (rnd.cpp, solo std)
 add_executable(rnd_global_test ${TEST_DIR}/rnd_global_test.cpp ${SRC_PARENT}/rnd.cpp)
 target_link_libraries(rnd_global_test ${LIBS})
@@ -149,7 +152,7 @@ target_link_libraries(condvar_test ${LIBS})
 add_test(NAME condvar_test COMMAND condvar_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 # bspline_test: bspline.h
-add_executable(bspline_test ${TEST_DIR}/bspline_test.cpp)
+add_executable(bspline_test ${TEST_DIR}/bspline_test.cpp ${SRC_PARENT}/rnd.cpp)
 target_link_libraries(bspline_test ${LIBS})
 add_test(NAME bspline_test COMMAND bspline_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -193,9 +196,15 @@ add_executable(xml_exception_test ${TEST_DIR}/xml_exception_test.cpp)
 target_link_libraries(xml_exception_test ${LIBS})
 add_test(NAME xml_exception_test COMMAND xml_exception_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
+# xml_attr_test: attri/attrf (stoi/stod) con XML temporal
+add_catch2_test(xml_attr_test ${SRC_PARENT}/xml.cpp)
+
 add_executable(cfg_key_test ${TEST_DIR}/cfg_key_test.cpp)
 target_link_libraries(cfg_key_test ${LIBS})
 add_test(NAME cfg_key_test COMMAND cfg_key_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# cfg_load_test: cfg::load + set_str (stoi/stod)
+add_catch2_test(cfg_load_test ${SRC_PARENT}/cfg.cpp ${SRC_PARENT}/xml.cpp ${SRC_PARENT}/keys.cpp ${SRC_PARENT}/log.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
 
 add_catch2_test(bv_tree_leaf_test)
 
@@ -215,7 +224,7 @@ add_executable(faulthandler_test ${TEST_DIR}/faulthandler_test.cpp ${SRC_PARENT}
 target_link_libraries(faulthandler_test ${LIBS})
 add_test(NAME faulthandler_test COMMAND faulthandler_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(perlinnoise_test ${TEST_DIR}/perlinnoise_test.cpp ${SRC_PARENT}/perlinnoise.cpp)
+add_executable(perlinnoise_test ${TEST_DIR}/perlinnoise_test.cpp ${SRC_PARENT}/perlinnoise.cpp ${SRC_PARENT}/rnd.cpp)
 target_link_libraries(perlinnoise_test ${LIBS})
 add_test(NAME perlinnoise_test COMMAND perlinnoise_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 

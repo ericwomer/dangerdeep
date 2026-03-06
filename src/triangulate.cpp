@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // (C) Thorsten Jordan
 
 #include "triangulate.h"
+#include "rnd.h"
 
 using namespace std;
 
@@ -30,7 +31,7 @@ polygon (point list) are points p_0....p_n-1
 i = 0
 while point list contains more than three points
         take first point on list (index i)
-        if p_i, p_i+1, p_i+2 don't form a triangle (angle at p_i+1 is >= 180∞), i:=i+1, continue
+        if p_i, p_i+1, p_i+2 don't form a triangle (angle at p_i+1 is >= 180ù), i:=i+1, continue
         for all j in from [i+3, i[ (cyclic indices!) check if p_j is in triangle p_i, p_i+1, p_i+2
         if all points are outside, then add triangle i,i+1,i+2, remove p_i+1 from point list
         else i:=i+1 (rotate list)
@@ -137,7 +138,7 @@ vector<unsigned> triangulate::compute(const vector<vector2> &vertices) {
         }
     }
     // add remaining triangle
-    // fixme: wird letztes dreieck eingef¸gt, aber es ist nicht ccw????
+    // fixme: wird letztes dreieck eingefùgt, aber es ist nicht ccw????
     indices.push_back(i0);
     indices.push_back(i1);
     indices.push_back(i2);
@@ -181,7 +182,7 @@ int main(int argc, char** argv)
         for (unsigned i = 0; i < nverts; ++i) {
                 double f = 2*3.14159f*i/nverts;
                 vector2 d(cos(f), sin(f));
-                double l = 50.0f+30.0f*rand()/RAND_MAX;
+                double l = 50.0 + 30.0 * rnd();
                 verts.push_back(d*l);
         }
 

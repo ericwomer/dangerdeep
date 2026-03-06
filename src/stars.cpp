@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "datadirs.h"
 #include "log.h"
+#include "rnd.h"
 #include "shader.h"
 #include "stars.h"
 #include "system.h"
@@ -134,7 +135,7 @@ void stars::display(const float max_view_dist) const {
     // update alpha values for twinkle stars
     colorf *color = (colorf *)&star_colors[star_count_static];
     for (unsigned int i = star_count_static; i < star_count; i++) {
-        color->a = 0.5f + (0.3f * rand() / RAND_MAX); //	alpha in range [0.5, 0.8]
+        color->a = 0.5f + (0.3f * static_cast<float>(rnd())); // alpha in range [0.5, 0.8]
         color++;
     }
     star_colors_VBO.init_data(star_colors.size() * sizeof(colorf), &star_colors[0], GL_STREAM_DRAW);

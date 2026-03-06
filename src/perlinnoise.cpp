@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "perlinnoise.h"
 #include <fstream>
+#include "rnd.h"
 #include <math.h>
 #include <sstream>
 #include <stdexcept>
@@ -30,7 +31,7 @@ using std::vector;
 perlinnoise::noise_func::noise_func(unsigned s, unsigned f, float px, float py)
     : size(s), frequency(f), phasex(fixed32(px)), phasey(fixed32(py)) {
     data.resize(size * size);
-    unsigned base = rand();
+    unsigned base = static_cast<unsigned>(rnd() * 0x100000000ULL);
     for (unsigned i = 0; i < size * size; ++i) {
         data[i] = Uint8(base >> 24);
         base = base * (base * 15731 + 789221) + 1376312589;
@@ -343,7 +344,7 @@ std::vector<float> perlinnoise::valuesf(unsigned x, unsigned y, unsigned w, unsi
 perlinnoise3d::noise_func::noise_func(unsigned s, unsigned f, float px, float py, float pz)
     : size(s), frequency(f), phasex(px), phasey(py), phasez(pz) {
     data.resize(size * size * size);
-    uint32_t base = rand();
+    uint32_t base = static_cast<uint32_t>(rnd() * 0x100000000ULL);
     const float bd = 1.0f / float(1LL << 32);
     for (unsigned i = 0; i < size * size * size; ++i) {
         data[i] = float(base) * bd;
