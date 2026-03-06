@@ -41,6 +41,7 @@ static const char *categoryfiles[texts::nr_of_categories] = {
 std::unique_ptr<texts> texts_singleton_handler;
 
 vector<string> texts::available_language_codes;
+unordered_map<string, unsigned> texts::available_language_codes_index;
 
 const texts &texts::obj() {
     if (!texts_singleton_handler.get())
@@ -52,18 +53,8 @@ texts::texts(const string &langcode) : language_code(langcode) {
     if (available_language_codes.empty())
         read_available_language_codes();
 
-    bool ok = false;
-    for (vector<string>::const_iterator it = available_language_codes.begin();
-         it != available_language_codes.end(); ++it) {
-        if (*it == language_code) {
-            ok = true;
-            break;
-        }
-    }
-
-    if (!ok) {
+    if (available_language_codes_index.find(language_code) == available_language_codes_index.end())
         throw error(string("invalid language code: ") + language_code);
-    }
 
     strings.resize(nr_of_categories);
     for (unsigned i = 0; i < nr_of_categories; ++i)
@@ -124,11 +115,8 @@ string texts::get_language_code() {
 
 unsigned texts::get_current_language_nr() {
     string lg = get_language_code();
-    for (unsigned i = 0; i < available_language_codes.size(); ++i) {
-        if (available_language_codes[i] == lg)
-            return i;
-    }
-    return 0; // should never reach this
+    auto it = available_language_codes_index.find(lg);
+    return (it != available_language_codes_index.end()) ? it->second : 0; // should never reach 0 when not found
 }
 
 string texts::get(unsigned no, category ct) {
@@ -203,12 +191,15 @@ string texts::numeric_from_daytime(const date &d) {
 
 void texts::read_available_language_codes() {
     available_language_codes.clear();
+    available_language_codes_index.clear();
     parser p(get_data_dir() + TEXTS_DIR + "languages.csv");
     if (p.get_cell() != "CODE")
         p.error("no CODE keyword in texts file");
+    unsigned idx = 0;
     while (p.next_column()) {
         string lc = p.get_cell();
         available_language_codes.push_back(lc);
+        available_language_codes_index[lc] = idx++;
     }
 }
 

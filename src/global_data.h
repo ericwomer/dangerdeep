@@ -71,6 +71,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "singleton.h"
 #include "vector2.h"
 #include <SDL.h>
+#include <bit>
 #include <cmath>
 #include <iomanip>
 #include <list>
@@ -132,21 +133,11 @@ inline void add_saturated(C &sum, const C &add, const C &max) { sum = std::min(s
 inline Sint32 clamp_zero(Sint32 x) { return x & ~(x >> 31); }
 inline Sint32 clamp_value(Sint32 x, Sint32 val) { return val - clamp_zero(val - x); }
 
-inline unsigned ulog2(unsigned x) {
-    unsigned i = 0;
-    for (; x > 0; ++i, x >>= 1) {
-    }
-    return i - 1;
-}
+inline unsigned ulog2(unsigned x) { return x ? std::bit_width(x) - 1u : 0u; }
 
-inline unsigned nextgteqpow2(unsigned x) {
-    unsigned i = 1;
-    for (; i < x && i != 0; i <<= 1) {
-    }
-    return i;
-}
+inline unsigned nextgteqpow2(unsigned x) { return x ? std::bit_ceil(x) : 1u; }
 
-inline bool ispow2(unsigned x) { return (x & (x - 1)) == 0; }
+inline bool ispow2(unsigned x) { return std::has_single_bit(x); }
 
 // give degrees,minutes like this 123/45x with x = N,W,E,S
 double transform_nautic_posx_to_real(const std::string &s);

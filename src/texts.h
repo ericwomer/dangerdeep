@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 ///\brief Stores text objects for various languages. Used for internationalization.
@@ -47,6 +48,7 @@ class texts {
     texts(const std::string &langcode = "en");
 
     static std::vector<std::string> available_language_codes;
+    static std::unordered_map<std::string, unsigned> available_language_codes_index;
 
   public:
     static void set_language(const std::string &language_code);

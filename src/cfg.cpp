@@ -61,15 +61,15 @@ bool cfg::set_str(const string &name, const string &value) {
         else if (value == "false" || value == "no")
             it->second = false;
         else
-            it->second = bool(atoi(value.c_str()));
+            it->second = bool(std::stoi(value));
     } else {
         map<string, int>::iterator it = vali.find(name);
         if (it != vali.end()) {
-            it->second = atoi(value.c_str());
+            it->second = std::stoi(value);
         } else {
             map<string, float>::iterator it = valf.find(name);
             if (it != valf.end()) {
-                it->second = atof(value.c_str());
+                it->second = std::stod(value);
             } else {
                 map<string, string>::iterator it = vals.find(name);
                 if (it != vals.end()) {

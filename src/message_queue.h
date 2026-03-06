@@ -69,13 +69,13 @@ class message_queue {
     message_queue &operator=(const message_queue &);
 
   protected:
-    std::list<message *> myqueue; // fixme use ptrlist
+    std::list<std::unique_ptr<message>> myqueue;
     mutex mymutex;
     condvar emptycondvar;
     condvar ackcondvar;
     bool msginqueue;
     bool abortwait;                // set to true by wakeup_receiver()
-    std::list<message *> ackqueue; // queue with acknowledged messages
+    std::list<std::unique_ptr<message>> ackqueue; // queue with acknowledged messages
 
   public:
     /// create message queue
@@ -95,12 +95,12 @@ class message_queue {
 
     /// wait for a messages
     ///@param wait - if true block while queue is empty, if false only test and do not block
-    ///@return list of messages
-    std::list<message *> receive(bool wait = true);
+    ///@return list of messages (ownership transferred to caller)
+    std::list<std::unique_ptr<message>> receive(bool wait = true);
 
     /// acknowledge received message.
     ///@note Must be called for every message passed from the receive function!
-    void acknowledge(message *msg);
+    void acknowledge(std::unique_ptr<message> msg);
 
     /// process all messages, that is wait for messages, run eval() for every message and ack them
     ///@param wait - true: block if queue is empty

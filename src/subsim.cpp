@@ -45,6 +45,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "keys.h"
 #include "log.h"
 #include "model.h"
+#include "audio_backend.h"
 #include "music.h"
 #include "mymain.cpp"
 #include "scoring_manager.h"
@@ -2023,6 +2024,16 @@ int mymain(list<string> &args) {
 
     // create and start thread for music handling.
     music::create_instance(new music(use_sound));
+
+#ifdef USE_SDL3
+    // SDL3_mixer: MIX_CreateMixerDevice must be called from main thread
+    audio_backend* be = get_audio_backend();
+    if (be->init_audio_subsystem()) {
+        const int audio_channels = 2;
+        const int audio_buffers = 4096;
+        be->open_audio(44100, 0, audio_channels, audio_buffers);
+    }
+#endif
 
     music::instance().start();
     music::instance().append_track("ImInTheMood.ogg");

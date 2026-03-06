@@ -44,7 +44,11 @@ class audio_backend_sdl3 : public audio_backend {
     }
 
     bool init_audio_subsystem() override {
-        return SDL_Init(SDL_INIT_AUDIO);
+        if (!SDL_Init(SDL_INIT_AUDIO))
+            return false;
+        if (!MIX_Init())
+            return false;
+        return true;
     }
 
     bool open_audio(unsigned rate, unsigned short format, unsigned channels, unsigned buffers) override {
@@ -74,6 +78,7 @@ class audio_backend_sdl3 : public audio_backend {
             MIX_DestroyMixer(mixer);
             mixer = nullptr;
         }
+        MIX_Quit();
     }
 
     audio_music_handle* load_music(const std::string& path) override {

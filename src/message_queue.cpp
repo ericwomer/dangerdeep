@@ -47,12 +47,11 @@ message_queue::~message_queue() {
     bool ackqueueempty = true;
     {
         mutex_locker ml(mymutex);
-        for (std::list<message *>::iterator it = myqueue.begin(); it != myqueue.end(); ++it) {
-            if ((*it)->needsanswer) {
-                ackqueue.push_back(*it);
-            } else {
-                delete *it;
-            }
+        while (!myqueue.empty()) {
+            auto m = std::move(myqueue.front());
+            myqueue.pop_front();
+            if (m->needsanswer)
+                ackqueue.push_back(std::move(m));
         }
         ackcondvar.signal();
         ackqueueempty = ackqueue.empty();
@@ -70,7 +69,7 @@ bool message_queue::send(message::ptr msg, bool waitforanswer) {
     message *msg_addr = msg.get();
     mutex_locker oml(mymutex);
     bool e = myqueue.empty();
-    myqueue.push_back(msg.release());
+    myqueue.push_back(std::move(msg));
     msginqueue = true;
     if (e) {
         emptycondvar.signal();
@@ -79,11 +78,9 @@ bool message_queue::send(message::ptr msg, bool waitforanswer) {
         while (true) {
             ackcondvar.wait(mymutex);
             // check if this message has been acknowledged
-            for (std::list<message *>::iterator it = ackqueue.begin(); it != ackqueue.end();) {
-                if (*it == msg_addr) {
-                    // found it, return result, delete and unqueue message
+            for (auto it = ackqueue.begin(); it != ackqueue.end(); ++it) {
+                if (it->get() == msg_addr) {
                     bool result = (*it)->result;
-                    delete *it;
                     ackqueue.erase(it);
                     return result;
                 }
@@ -101,8 +98,8 @@ void message_queue::wakeup_receiver() {
     emptycondvar.signal();
 }
 
-std::list<message *> message_queue::receive(bool wait) {
-    std::list<message *> result;
+std::list<std::unique_ptr<message>> message_queue::receive(bool wait) {
+    std::list<std::unique_ptr<message>> result;
     mutex_locker oml(mymutex);
     if (myqueue.empty()) {
         if (wait && !abortwait) {
@@ -126,24 +123,23 @@ std::list<message *> message_queue::receive(bool wait) {
     return result;
 }
 
-void message_queue::acknowledge(message *msg) {
+void message_queue::acknowledge(std::unique_ptr<message> msg) {
     if (!msg)
         throw error("acknowledge without message called");
     bool needsanswer = msg->needsanswer;
     mutex_locker oml(mymutex);
     if (needsanswer) {
-        ackqueue.push_back(msg);
+        ackqueue.push_back(std::move(msg));
         ackcondvar.signal();
-    } else {
-        delete msg;
     }
 }
 
 void message_queue::process_messages(bool wait) {
-    std::list<message *> msgs = receive(wait);
+    auto msgs = receive(wait);
     while (!msgs.empty()) {
-        msgs.front()->evaluate();
-        acknowledge(msgs.front());
+        auto msg = std::move(msgs.front());
         msgs.pop_front();
+        msg->evaluate();
+        acknowledge(std::move(msg));
     }
 }
