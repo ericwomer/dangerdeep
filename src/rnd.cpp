@@ -19,13 +19,15 @@ std::mt19937 &global_rng() {
 } // namespace
 
 double rnd() {
-    return std::generate_canonical<double, 32>(global_rng());
+    static std::uniform_real_distribution<double> dist(0.0, 1.0);
+    return dist(global_rng());
 }
 
 unsigned rnd(unsigned b) {
     if (b == 0)
         return 0;
-    return static_cast<unsigned>(b * rnd());
+    std::uniform_int_distribution<unsigned> dist(0, b - 1);
+    return dist(global_rng());
 }
 
 void seed_global_rnd(unsigned seed) {
