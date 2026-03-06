@@ -42,6 +42,7 @@ jobs:
         mkdir -p build
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_UNIT_TESTS=ON \
+          -DBUILD_VALGRIND_FRIENDLY=ON \
           -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
     - name: Build
@@ -103,6 +104,7 @@ jobs:
         mkdir -p build-sdl3
         cd build-sdl3
         cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_UNIT_TESTS=ON -DUSE_SDL3=ON \
+          -DBUILD_VALGRIND_FRIENDLY=ON \
           -DCMAKE_PREFIX_PATH=${{ steps.sdl.outputs.prefix }} \
           -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
