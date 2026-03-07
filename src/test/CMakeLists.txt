@@ -60,14 +60,13 @@ add_executable(global_data_utils_test ${TEST_DIR}/global_data_utils_test.cpp)
 target_link_libraries(global_data_utils_test ${LIBS})
 add_test(NAME global_data_utils_test COMMAND global_data_utils_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
+# global_data_math_test: myfmod, myfrac, mysgn, myclamp, myinterpolate (inline en global_data.h)
+add_catch2_test(global_data_math_test)
+
 # str_utils_test: str(), str_wf() de global_data.h
 add_catch2_test(str_utils_test)
 
-# rnd_global_test: rnd(), seed_global_rnd() (rnd.cpp, solo std)
-add_executable(rnd_global_test ${TEST_DIR}/rnd_global_test.cpp ${SRC_PARENT}/rnd.cpp)
-target_link_libraries(rnd_global_test ${LIBS})
-add_test(NAME rnd_global_test COMMAND rnd_global_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
+# rnd_test: rnd(), seed_global_rnd(), rnd(unsigned) - Catch2 (reemplaza rnd_global_test)
 # string_split_test: string_split() (string_split.cpp)
 add_executable(string_split_test ${TEST_DIR}/string_split_test.cpp ${SRC_PARENT}/string_split.cpp)
 target_link_libraries(string_split_test ${LIBS})
