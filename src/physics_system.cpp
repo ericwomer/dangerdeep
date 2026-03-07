@@ -34,17 +34,23 @@ void physics_system::check_collisions(const std::vector<ship *> &allships) {
     // Torpedoes are at the beginning of allships vector, determined by m
     unsigned m = 0; // Note: torpedoes count would need to be passed in or determined differently
 
+    // Precompute BV-tree params once per ship (O(N)) instead of O(N^2) - was the main bottleneck
+    std::vector<bv_tree::param> params;
+    params.reserve(allships.size());
+    for (unsigned k = 0; k < allships.size(); ++k) {
+        params.push_back(allships[k]->compute_bv_tree_params());
+    }
+
     // now check for collisions for all ships idx i with partner index > max(m,i)
     // so we have N^2/2 tests and not N^2.
     // we don't check for torpedo<->torpedo collisions.
     for (unsigned i = 0; i < allships.size(); ++i) {
         const vector3 &actor_pos = allships[i]->get_pos();
-        // use partner's position relative to actor
-        bv_tree::param p0 = allships[i]->compute_bv_tree_params();
+        const bv_tree::param &p0 = params[i];
         for (unsigned j = std::max(i + 1, m); j < allships.size(); ++j) {
             const vector3 &partner_pos = allships[j]->get_pos();
             matrix4 rel_trans = matrix4::trans(partner_pos - actor_pos);
-            bv_tree::param p1 = allships[j]->compute_bv_tree_params();
+            bv_tree::param p1 = params[j];
             p1.transform = rel_trans * p1.transform;
 #if 0
 			std::list<vector3f> contact_points;

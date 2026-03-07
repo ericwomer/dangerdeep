@@ -865,6 +865,10 @@ void ship::compute_force_and_torque(vector3 &F, vector3 &T) const {
     // 750,000,000 cycles, and this loop 7/1000 per cent
     // of full cpu time, so multicore wont help much here,
     // most cpu time is spent elsewhere
+    // Depth threshold: voxels below -10m are definitely submerged (waves ?2m).
+    // Skip expensive compute_water_height for these - saves ~50% calls when submerged.
+    const double deep_submerged_z = -10.0;
+
     for (unsigned i = 0; i < voxel_data.size(); ++i) {
         // instead of a per-voxel matrix-vector multiplication we could
         // transform all other vectors to mesh-vertex-space and skip
@@ -873,10 +877,16 @@ void ship::compute_force_and_torque(vector3 &F, vector3 &T) const {
         // we know here that transmat only has non-projective part
         // so mul4vec3xlat is sufficient.
         vector3f p = transmat.mul4vec3xlat(voxel_data[i].relative_position);
-        // std::cout << "i=" << i << " voxeldata " << voxel_data[i].relative_position << " p=" << p << "\n";
-        float wh = gm.compute_water_height(vector2(position.x + p.x, position.y + p.y));
-        // std::cout << "i=" << i << " p=" << p << " wh=" << wh << "\n";
-        double voxel_below_water = std::max(std::min((p.z + position.z - wh) / voxel_radius, 1.0), -1.0);
+        const double voxel_z = p.z + position.z;
+
+        double voxel_below_water;
+        if (voxel_z < deep_submerged_z) {
+            // Deeply submerged: skip water height lookup, voxel is fully below surface
+            voxel_below_water = -1.0; // clamped, gives submerged_part = 1.0
+        } else {
+            float wh = gm.compute_water_height(vector2(position.x + p.x, position.y + p.y));
+            voxel_below_water = std::max(std::min((voxel_z - wh) / voxel_radius, 1.0), -1.0);
+        }
         if (voxel_below_water < 1.0 /*p.z + position.z < wh*/) {
             // voxels partly below water must be computed or torque is severely wrong
             double submerged_part = 1.0 - (voxel_below_water + 1.0) * 0.5;
