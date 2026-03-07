@@ -115,11 +115,13 @@ Interfaz para TCP/UDP. `network.cpp` ya está aislado; basta con un backend que 
 - **texture.cpp**: Rama SDL3 en `sdl_init()`: SDL_ConvertSurface a RGBA/XRGB, luego `image_data_init()`
 - **cmake/sdl3_compat/**: Wrappers para SDL.h (SDL_FALSE/TRUE, SDLK_x→SDLK_X, SwapLE16→Swap16LE)
 
-### ✅ Compilación con USE_SDL3
-La compilación con SDL3 **completa correctamente**.
+### ✅ Compilación y CI
+- La compilación con `-DUSE_SDL3=ON` **completa correctamente**.
+- **CI**: El workflow de GitHub Actions compila SDL2 y SDL3 en paralelo y ejecuta los 101 tests en ambos builds.
+- **Tests**: Todos los tests unitarios pasan con SDL3 (sin display/audio en runtime).
 
-### ⏳ Pendiente / verificar en runtime
-- **Pruebas funcionales**: Ejecutar el juego con SDL3 y verificar audio, imagen y display.
+### ⏳ Verificación en runtime
+- **Pruebas funcionales**: Ejecutar el juego con SDL3 (`./build-sdl3/src/dangerdeep`) y verificar audio, imagen y display en un entorno con ventana.
 - **Red (network)**: Módulo aún no migrado (SDL2_net → SDL3_net cuando exista).
 
 ### Cómo compilar

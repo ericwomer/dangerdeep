@@ -102,16 +102,14 @@ Documento de trabajo con mejoras de arquitectura y buenas prácticas, priorizada
 ## Prioridad alta (impacto en acoplamiento / compilación)
 
 1. **Migración SDL2 → SDL3**
-   - **Estado**: 🚫 **Bloqueada** - SDL3_mixer incompatible (branch `feature/sdl3-migration`, 2026-03-02)
-   - **Progreso**: 75% completado (sin audio). Ver `docs/SDL3_MIGRATION.md` en branch para análisis completo.
-   - **Bloqueante crítico**: SDL3_mixer cambió completamente su API. Los tipos `Mix_Music` y `Mix_Chunk` ya no existen, reemplazados por `MIX_Mixer`, `MIX_Audio`, `MIX_Track`. Requiere reescritura completa del sistema de audio (~2000 líneas + 50 archivos).
-   - **Completado en branch**:
-     - ✅ CMakeLists.txt, includes, constantes (145+ archivos)
-     - ✅ Sistema de eventos y teclado completamente migrado
-     - ✅ widget.h refactorizado (nueva estructura `key_info`)
-     - ✅ Constantes de teclas actualizadas (SDLK_a → SDLK_A)
-   - **Decisión**: **Mantener SDL2 en master**. SDL3 aún no es viable para proyectos con audio complejo.
-   - **Revisión futura**: Evaluar en 6-12 meses cuando SDL3_mixer madure.
+   - **Estado**: ✅ **Implementada** vía backends (display, audio, image). Ver `docs/SDL3_MIGRATION.md`.
+   - **Estrategia**: Abstracciones (`display_backend`, `audio_backend`, `image_loader`) que ocultan SDL. Backends SDL2 y SDL3 seleccionables en compilación (`-DUSE_SDL3=ON`).
+   - **Completado**:
+     - ✅ display_backend_sdl3.cpp (ventana, GL, eventos, screenshots)
+     - ✅ audio_backend_sdl3.cpp (SDL3_mixer: MIX_Mixer, MIX_Track, etc.)
+     - ✅ image_loader_sdl3.cpp (SDL3_image)
+     - ✅ CI: build-sdl3 compila y ejecuta 101 tests
+   - **Pendiente**: Pruebas funcionales en runtime (ejecutar juego con SDL3, verificar audio/display). Red (network) no migrada (SDL2_net → SDL3_net cuando exista).
 
 ---
 
