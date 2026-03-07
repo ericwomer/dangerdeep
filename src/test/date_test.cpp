@@ -20,6 +20,9 @@ TEST_CASE("date - length_of_month", "[date]") {
     REQUIRE(date::length_of_month(1940, date::February) == 29);
     REQUIRE(date::length_of_month(1939, date::April) == 30);
     REQUIRE(date::length_of_month(1939, date::December) == 31);
+    REQUIRE(date::length_of_month(1939, date::March) == 31);
+    REQUIRE(date::length_of_month(1939, date::May) == 31);
+    REQUIRE(date::length_of_month(1939, date::June) == 30);
 }
 
 TEST_CASE("date - Constructor año/mes/día", "[date]") {
@@ -75,6 +78,86 @@ TEST_CASE("date - Constructor desde string", "[date]") {
 TEST_CASE("date - Constructor desde string inválido lanza", "[date]") {
     REQUIRE_THROWS_AS(date("invalid"), error);
     REQUIRE_THROWS_AS(date("1939-9-3"), error);  // formato incorrecto
+}
+
+static void write_date_xml(const char *path, const char *day, const char *time) {
+    xml_doc doc(path);
+    xml_elem root = doc.add_child("root");
+    xml_elem d = root.add_child("date");
+    d.set_attr(std::string(day), "day");
+    d.set_attr(std::string(time), "time");
+    doc.save();
+}
+
+TEST_CASE("date - load validación year", "[date]") {
+    char tmp[] = "/tmp/dftd_date_inv_XXXXXX";
+    int fd = mkstemp(tmp);
+    REQUIRE(fd >= 0);
+    close(fd);
+    write_date_xml(tmp, "1938/9/3", "10:30:0");
+    date d(0);
+    xml_doc doc(tmp);
+    doc.load();
+    REQUIRE_THROWS_AS(d.load(doc.first_child()), error);
+    write_date_xml(tmp, "1946/1/1", "0:0:0");
+    doc.load();
+    REQUIRE_THROWS_AS(d.load(doc.first_child()), error);
+    unlink(tmp);
+}
+
+TEST_CASE("date - load validación month/day/time", "[date]") {
+    char tmp[] = "/tmp/dftd_date_inv_XXXXXX";
+    int fd = mkstemp(tmp);
+    REQUIRE(fd >= 0);
+    close(fd);
+    date d(0);
+    xml_doc doc(tmp);
+    write_date_xml(tmp, "1939/0/1", "0:0:0");
+    doc.load();
+    REQUIRE_THROWS_AS(d.load(doc.first_child()), error);
+    write_date_xml(tmp, "1939/13/1", "0:0:0");
+    doc.load();
+    REQUIRE_THROWS_AS(d.load(doc.first_child()), error);
+    write_date_xml(tmp, "1939/1/0", "0:0:0");
+    doc.load();
+    REQUIRE_THROWS_AS(d.load(doc.first_child()), error);
+    write_date_xml(tmp, "1939/1/32", "0:0:0");
+    doc.load();
+    REQUIRE_THROWS_AS(d.load(doc.first_child()), error);
+    write_date_xml(tmp, "1939/1/1", "24:0:0");
+    doc.load();
+    REQUIRE_THROWS_AS(d.load(doc.first_child()), error);
+    write_date_xml(tmp, "1939/1/1", "0:60:0");
+    doc.load();
+    REQUIRE_THROWS_AS(d.load(doc.first_child()), error);
+    write_date_xml(tmp, "1939/1/1", "0:0:60");
+    doc.load();
+    REQUIRE_THROWS_AS(d.load(doc.first_child()), error);
+    unlink(tmp);
+}
+
+TEST_CASE("date - load sin hijo date lanza", "[date]") {
+    char tmp[] = "/tmp/dftd_date_nochild_XXXXXX";
+    int fd = mkstemp(tmp);
+    REQUIRE(fd >= 0);
+    close(fd);
+    {
+        xml_doc doc(tmp);
+        xml_elem root = doc.add_child("root");
+        doc.save();
+    }
+    date d(0);
+    xml_doc doc(tmp);
+    doc.load();
+    REQUIRE_THROWS_AS(d.load(doc.first_child()), xml_elem_error);
+    unlink(tmp);
+}
+
+TEST_CASE("date - Constructor lineal cruza año", "[date]") {
+    date d(365 * 86400);  // 365 días después de 1.1.1939 -> 1.1.1940
+    REQUIRE(d.get_value(date::year) == 1940);
+    REQUIRE(d.get_value(date::month) == 1);
+    REQUIRE(d.get_value(date::day) == 1);
 }
 
 TEST_CASE("date - save/load roundtrip", "[date]") {

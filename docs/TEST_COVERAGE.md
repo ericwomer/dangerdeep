@@ -20,10 +20,10 @@ Documentación sobre la suite de tests unitarios y la cobertura de cada archivo 
 |---------|-------|
 | **Total tests** | 102 |
 | **Framework** | Catch2 v3.5.2 (102 tests) |
-| **Cobertura líneas (src/)** | ~58.7% |
-| **Cobertura funciones (src/)** | ~70.1% |
-| **Cobertura branches (src/)** | ~34.9% |
-| **Tiempo ejecución** | ~0.11 s |
+| **Cobertura líneas (global)** | ~48.8% |
+| **Cobertura funciones (global)** | ~45.3% |
+| **Cobertura branches (global)** | ~25.2% |
+| **Tiempo ejecución** | ~0.15 s |
 
 Los tests se compilan con `-DBUILD_UNIT_TESTS=ON` (por defecto ON) y se ejecutan con `ctest` o `./check.sh --unit`.
 
@@ -98,7 +98,6 @@ Mapeo de cada test a los archivos fuente que ejercita directamente:
 | `rnd_test` | rnd.cpp |
 | `scene_environment_test` | scene_environment.h (smoke) |
 | `scoring_manager_test` | scoring_manager.cpp, date.cpp, xml.cpp |
-| `date_test` | date.cpp, xml.cpp |
 | `ship_interface_test` | ship_interface.h (smoke) |
 | `ships_sunk_display_test` | ships_sunk_display.h (smoke) |
 | `simplex_noise_test` | simplex_noise.cpp |
@@ -120,15 +119,13 @@ Mapeo de cada test a los archivos fuente que ejercita directamente:
 | `sub_valves_display_test` | sub_valves_display.h (smoke) |
 | `terrain_test` | terrain.h |
 | `thread_test` | thread.cpp, condvar.cpp, mutex.cpp, error.cpp, log.cpp |
-| `triangulate_test` | triangulate.cpp, rnd.cpp |
-| `triangulate_test` | triangulate.cpp, rnd.cpp |
 | `tile_cache_test` | tile_cache.h |
 | `tile_test` | tile.h |
 | `time_freezer_test` | time_freezer.h (stub) |
 | `torpedo_camera_display_test` | torpedo_camera_display.h (smoke) |
 | `trail_manager_test` | trail_manager.h |
 | `triangle_intersection_test` | triangle_intersection.h |
-| `triangulate_test` | triangulate.cpp |
+| `triangulate_test` | triangulate.cpp, rnd.cpp |
 | `ui_messages_test` | ui_messages.h (smoke) |
 | `user_popup_test` | user_popup.h (smoke) |
 | `vector2_test` | vector2.h |
@@ -137,7 +134,7 @@ Mapeo de cada test a los archivos fuente que ejercita directamente:
 | `vertexbufferobject_test` | vertexbufferobject.h (smoke) |
 | `visibility_manager_test` | visibility_manager.cpp |
 | `weather_renderer_test` | weather_renderer.h (smoke) |
-| `xml_attr_test` | xml.cpp (attri, attrf) |
+| `xml_attr_test` | xml.cpp (attri, attrf, attru, set_attr, child_text, iterate, add_child) |
 | `xml_exception_test` | xml.h (excepciones) |
 | `airplane_interface_test` | airplane_interface.h (smoke) |
 
@@ -274,10 +271,17 @@ Estos módulos tienen dependencias pesadas (OpenGL, SDL, sistema de ventanas) y 
 
 ---
 
-**Última actualización**: 2026-03-07  
+**Última actualización**: 2026-03-06  
 **Fuente de cobertura**: `./check.sh --coverage` (lcov)
 
-### Mejoras recientes (2026-03-07)
+### Mejoras recientes (2026-03-06)
+- **xml.cpp**: xml_attr_test ampliado (attri/attrf sin attr, set_attr roundtrip, child_text, iterate, get_filename)
+- **date.cpp**: date_test ampliado (load sin hijo date, load validaciones, constructor lineal cruza año)
+- **triangulate.cpp**: triangulate_test ampliado (hexágono, pentágono)
+- **frustum.cpp**: frustum_test ampliado (clip, translate, get_mirrored)
+- **Cobertura global**: 47.8% → 48.8% líneas, 24.6% → 25.2% branches
+
+### Mejoras anteriores (2026-03-07)
 - **perlinnoise.cpp**: 2.5% → 62.5% (perlinnoise_test ampliado con Catch2)
 - **error.cpp**: 0% → 37.5% (sdl_error test, error_test migrado a Catch2)
 - **cfg.cpp**: 33.7% → 54.7% (cfg_load_test: roundtrip save/load)

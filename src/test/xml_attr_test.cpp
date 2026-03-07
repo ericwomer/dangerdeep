@@ -127,3 +127,139 @@ TEST_CASE("xml_attr - iterate", "[xml_attr]") {
     REQUIRE(count == 2);
     unlink(tmp.c_str());
 }
+
+TEST_CASE("xml_attr - child inexistente lanza xml_elem_error", "[xml_attr]") {
+    std::string tmp = create_temp_xml();
+    xml_doc doc(tmp);
+    doc.load();
+    xml_elem root = doc.first_child();
+    REQUIRE_THROWS_AS(root.child("nonexistent"), xml_elem_error);
+    unlink(tmp.c_str());
+}
+
+TEST_CASE("xml_attr - add_child_text y child_text", "[xml_attr]") {
+    char tmp[] = "/tmp/dftd_xml_text_XXXXXX";
+    int fd = mkstemp(tmp);
+    REQUIRE(fd >= 0);
+    close(fd);
+    {
+        xml_doc doc(tmp);
+        xml_elem root = doc.add_child("root");
+        xml_elem n = root.add_child("node");
+        n.add_child_text("hello world");
+        doc.save();
+    }
+    {
+        xml_doc doc(tmp);
+        doc.load();
+        xml_elem root = doc.first_child();
+        xml_elem n = root.child("node");
+        REQUIRE(n.child_text() == "hello world");
+    }
+    unlink(tmp);
+}
+
+TEST_CASE("xml_attr - attri attrf sin atributo retornan 0", "[xml_attr]") {
+    std::string tmp = create_temp_xml();
+    xml_doc doc(tmp);
+    doc.load();
+    xml_elem root = doc.first_child();
+    xml_elem a = root.child("a");
+    REQUIRE(a.attri("missing") == 0);
+    REQUIRE(a.attrf("missing") == 0.0);
+    REQUIRE(a.attru("missing") == 0u);
+    unlink(tmp.c_str());
+}
+
+TEST_CASE("xml_attr - attr sin atributo retorna vacío", "[xml_attr]") {
+    std::string tmp = create_temp_xml();
+    xml_doc doc(tmp);
+    doc.load();
+    xml_elem root = doc.first_child();
+    xml_elem a = root.child("a");
+    REQUIRE(a.attr("missing") == "");
+    unlink(tmp.c_str());
+}
+
+TEST_CASE("xml_attr - set_attr y roundtrip", "[xml_attr]") {
+    char tmp[] = "/tmp/dftd_xml_setattr_XXXXXX";
+    int fd = mkstemp(tmp);
+    REQUIRE(fd >= 0);
+    close(fd);
+    {
+        xml_doc doc(tmp);
+        xml_elem root = doc.add_child("root");
+        xml_elem n = root.add_child("n");
+        n.set_attr(123, "i");
+        n.set_attr(456u, "u");
+        n.set_attr(-3.14, "f");
+        n.set_attr(std::string("hello"), "s");
+        n.set_attr(vector3(1, 2, 3));
+        xml_elem n2 = root.add_child("n2");
+        n2.set_attr(vector2(4.5, 6.5));
+        n2.set_attr(angle(90));
+        n2.set_attr(true, "flag");
+        doc.save();
+    }
+    {
+        xml_doc doc(tmp);
+        doc.load();
+        xml_elem root = doc.first_child();
+        xml_elem n = root.child("n");
+        REQUIRE(n.attri("i") == 123);
+        REQUIRE(n.attru("u") == 456u);
+        REQUIRE(std::abs(n.attrf("f") - (-3.14)) < 0.01);
+        REQUIRE(n.attr("s") == "hello");
+        vector3 v3 = n.attrv3();
+        REQUIRE(v3.x == 1.0);
+        REQUIRE(v3.y == 2.0);
+        REQUIRE(v3.z == 3.0);
+        xml_elem n2 = root.child("n2");
+        vector2 v2 = n2.attrv2();
+        REQUIRE(v2.x == 4.5);
+        REQUIRE(v2.y == 6.5);
+        REQUIRE(n2.attrb("flag") == true);
+    }
+    unlink(tmp);
+}
+
+TEST_CASE("xml_attr - child_text sin hijo lanza", "[xml_attr]") {
+    std::string tmp = create_temp_xml();
+    xml_doc doc(tmp);
+    doc.load();
+    xml_elem root = doc.first_child();
+    xml_elem a = root.child("a");
+    REQUIRE_THROWS_AS(a.child_text(), xml_error);
+    unlink(tmp.c_str());
+}
+
+TEST_CASE("xml_attr - iterate sin childname", "[xml_attr]") {
+    std::string tmp = create_temp_xml();
+    xml_doc doc(tmp);
+    doc.load();
+    xml_elem root = doc.first_child();
+    int count = 0;
+    for (xml_elem::iterator it = root.iterate(); !it.end(); it.next()) {
+        REQUIRE(it.elem().get_name().size() > 0);
+        ++count;
+    }
+    REQUIRE(count >= 2);
+    unlink(tmp.c_str());
+}
+
+TEST_CASE("xml_attr - xml_doc child inexistente lanza", "[xml_attr]") {
+    std::string tmp = create_temp_xml();
+    xml_doc doc(tmp);
+    doc.load();
+    REQUIRE_THROWS_AS(doc.child("nonexistent"), xml_elem_error);
+    unlink(tmp.c_str());
+}
+
+TEST_CASE("xml_attr - get_filename", "[xml_attr]") {
+    std::string tmp = create_temp_xml();
+    xml_doc doc(tmp);
+    REQUIRE(doc.get_filename() == tmp);
+    doc.load();
+    REQUIRE(doc.get_filename() == tmp);
+    unlink(tmp.c_str());
+}

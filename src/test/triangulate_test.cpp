@@ -58,6 +58,38 @@ TEST_CASE("triangulate - compute polígono cuadrado", "[triangulate]") {
     REQUIRE(tri.size() == 6);  // 2 triángulos
 }
 
+TEST_CASE("triangulate - compute pentágono", "[triangulate]") {
+    // Pentágono regular aproximado (centro en 0.5, 0.5)
+    std::vector<vector2> verts = {
+        vector2(0.5, 0.0),
+        vector2(0.95, 0.35),
+        vector2(0.77, 0.9),
+        vector2(0.23, 0.9),
+        vector2(0.05, 0.35)
+    };
+    std::vector<unsigned> tri = triangulate::compute(verts);
+    REQUIRE(tri.size() == 9);  // 3 triángulos
+    for (unsigned i = 0; i < tri.size(); ++i) {
+        REQUIRE(tri[i] < 5);
+    }
+}
+
+TEST_CASE("triangulate - compute hexágono", "[triangulate]") {
+    std::vector<vector2> verts = {
+        vector2(0.5, 0.0),
+        vector2(0.93, 0.25),
+        vector2(0.93, 0.75),
+        vector2(0.5, 1.0),
+        vector2(0.07, 0.75),
+        vector2(0.07, 0.25)
+    };
+    std::vector<unsigned> tri = triangulate::compute(verts);
+    REQUIRE(tri.size() == 12);  // 4 triángulos
+    for (unsigned i = 0; i < tri.size(); ++i) {
+        REQUIRE(tri[i] < 6);
+    }
+}
+
 TEST_CASE("triangulate - compute menos de 3 vértices retorna vacío", "[triangulate]") {
     std::vector<vector2> empty;
     REQUIRE(triangulate::compute(empty).empty());
