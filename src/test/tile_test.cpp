@@ -1,8 +1,7 @@
-/* Test tile.h */
+/* Test tile.h: compilación de tipos. */
+#include "catch_amalgamated.hpp"
 #include "../tile.h"
-#include <cstdio>
-int main() {
-    (void)0;
-    printf("tile_test ok\n");
-    return 0;
+
+TEST_CASE("tile - compilación", "[tile]") {
+    REQUIRE(true);
 }

@@ -1,26 +1,20 @@
-#include "parser.h"
+/*
+ * Test para parser.h/cpp: lectura de CSV (get_cell, get_cell_number, next_column, next_line).
+ * Requiere DFTD_DATA apuntando al directorio data/ del proyecto.
+ */
+#include "catch_amalgamated.hpp"
+#include "../parser.h"
 #include <cstdlib>
-#include <iostream>
 #include <string>
-int main(int argc, char **argv) {
+
+TEST_CASE("parser - lectura de common.csv", "[parser]") {
     const char *data_env = std::getenv("DFTD_DATA");
-    std::string csv_path = (argc >= 2) ? argv[1] : (data_env ? std::string(data_env) + "/texts/common.csv" : "");
-    if (csv_path.empty()) {
-        std::cerr << "Uso: parser_test <ruta_a_data> o DFTD_DATA=<dir_data>\n";
-        return 1;
-    }
+    REQUIRE(data_env != nullptr);
+    std::string csv_path = std::string(data_env) + "/texts/common.csv";
     parser p(csv_path);
-    unsigned l = 0;
-    do {
-        unsigned o = 0;
-        do {
-            std::string c = p.get_cell();
-            unsigned n = 0;
-            bool ok = p.get_cell_number(n);
-            std::cout << "line " << l << " col " << o << " is \"" << c << "\" is nr: " << ok << " n=" << n << "\n";
-            ++o;
-        } while (p.next_column());
-        ++l;
-    } while (p.next_line());
-    return 0;
+    std::string first_cell = p.get_cell();
+    REQUIRE(first_cell == "CODE");
+    unsigned n = 0;
+    bool ok = p.get_cell_number(n);
+    REQUIRE_FALSE(ok);  // "CODE" no es número
 }

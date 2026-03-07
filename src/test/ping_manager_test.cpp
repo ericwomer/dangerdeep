@@ -5,7 +5,9 @@
 #include "../ping_manager.h"
 #include "../angle.h"
 #include "../vector2.h"
+#include "../xml.h"
 #include <cmath>
+#include <unistd.h>
 
 inline bool near(double a, double b, double eps = 1e-6) {
     return std::fabs(a - b) <= eps;
@@ -128,4 +130,42 @@ TEST_CASE("ping_manager - Secuencia realista de sonar activo", "[ping_manager][i
     // Avanzar tiempo: deberían ir expirando
     pm.update(game_time);
     REQUIRE(pm.ping_count() < 5);
+}
+
+TEST_CASE("ping_manager - save/load roundtrip", "[ping_manager]") {
+    ping_manager pm;
+    pm.add_ping(vector2(1000.0, 2000.0), angle(45.0), 1.0, 5000.0, angle(30.0));
+    pm.add_ping(vector2(3000.0, 4000.0), angle(90.0), 2.0, 6000.0, angle(60.0));
+
+    char tmp[] = "/tmp/dftd_ping_save_test_XXXXXX";
+    int fd = mkstemp(tmp);
+    REQUIRE(fd >= 0);
+    close(fd);
+
+    {
+        xml_doc doc(tmp);
+        xml_elem root = doc.add_child("root");
+        pm.save(root);
+        doc.save();
+    }
+
+    ping_manager pm2;
+    {
+        xml_doc doc(tmp);
+        doc.load();
+        xml_elem root = doc.first_child();
+        pm2.load(root);
+    }
+    unlink(tmp);
+
+    REQUIRE(pm2.ping_count() == 2);
+    const std::list<ping> &pings = pm2.get_pings();
+    auto it = pings.begin();
+    REQUIRE(near(it->pos.x, 1000.0));
+    REQUIRE(near(it->pos.y, 2000.0));
+    REQUIRE(near(it->range, 5000.0));
+    ++it;
+    REQUIRE(near(it->pos.x, 3000.0));
+    REQUIRE(near(it->pos.y, 4000.0));
+    REQUIRE(near(it->range, 6000.0));
 }

@@ -1,8 +1,7 @@
-/* Test tile_cache.h */
+/* Test tile_cache.h: compilación de tipos. */
+#include "catch_amalgamated.hpp"
 #include "../tile_cache.h"
-#include <cstdio>
-int main() {
-    (void)0;
-    printf("tile_cache_test ok\n");
-    return 0;
+
+TEST_CASE("tile_cache - compilación", "[tile_cache]") {
+    REQUIRE(true);
 }

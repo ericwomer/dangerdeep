@@ -1,8 +1,7 @@
-/* Test global_data.h/cpp (solo utilidades ya testeadas en global_data_utils_test). */
+/* Test global_data.h/cpp: compilación. */
+#include "catch_amalgamated.hpp"
 #include "../global_data.h"
-#include <cstdio>
-int main() {
-    (void)0;
-    printf("global_data_test ok\n");
-    return 0;
+
+TEST_CASE("global_data - compilación", "[global_data]") {
+    REQUIRE(true);
 }

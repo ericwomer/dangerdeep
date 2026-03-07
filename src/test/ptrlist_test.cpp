@@ -1,24 +1,27 @@
-#include "ptrlist.h"
-#include <stdio.h>
+/*
+ * Test para ptrlist.h: push_back, iteración, destructor.
+ */
+#include "catch_amalgamated.hpp"
+#include "../ptrlist.h"
+#include <cstdio>
 
 struct A {
     int x;
-    A(int y = 0) : x(y) { printf("c't %p\n", this); }
-    ~A() { printf("D't %p\n", this); }
-    void dodo() const { printf("A=%p x=%i\n", this, x); }
+    A(int y = 0) : x(y) {}
+    void dodo() const { (void)x; }
 };
 
-int main(int, char **) {
-    {
-        ptrlist<A> foo;
-        foo.push_back(new A(1));
-        foo.push_back(new A(3));
-        foo.push_back(new A(5));
-        foo.push_back(new A(7));
-        for (ptrlist<A>::const_iterator it = foo.begin(); it != foo.end(); ++it) {
-            it->dodo();
-        }
+TEST_CASE("ptrlist - push_back e iteración", "[ptrlist]") {
+    ptrlist<A> foo;
+    foo.push_back(new A(1));
+    foo.push_back(new A(3));
+    foo.push_back(new A(5));
+    foo.push_back(new A(7));
+
+    size_t count = 0;
+    for (ptrlist<A>::const_iterator it = foo.begin(); it != foo.end(); ++it) {
+        it->dodo();
+        ++count;
     }
-    printf("ok\n");
-    return 0;
+    REQUIRE(count == 4);
 }

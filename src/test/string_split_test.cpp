@@ -2,42 +2,48 @@
  * Test para string_split. Comprueba el comportamiento para poder
  * implementar con std::getline sin romper usos (regiones, países, etc.).
  */
+#include "catch_amalgamated.hpp"
 #include "../string_split.h"
-#include <cassert>
-#include <cstdio>
+#include <list>
+#include <string>
 
-int main() {
-    std::list<std::string> r;
+TEST_CASE("string_split - múltiples elementos", "[string_split]") {
+    std::list<std::string> r = string_split("a,b,c", ',');
+    REQUIRE(r.size() == 3);
+    REQUIRE(*r.begin() == "a");
+    REQUIRE(*(++r.begin()) == "b");
+    REQUIRE(*r.rbegin() == "c");
+}
 
-    r = string_split("a,b,c", ',');
-    assert(r.size() == 3);
-    assert(*r.begin() == "a");
-    assert(*(++r.begin()) == "b");
-    assert(*r.rbegin() == "c");
+TEST_CASE("string_split - un solo elemento", "[string_split]") {
+    std::list<std::string> r = string_split("a", ',');
+    REQUIRE(r.size() == 1);
+    REQUIRE(*r.begin() == "a");
+}
 
-    r = string_split("a", ',');
-    assert(r.size() == 1);
-    assert(*r.begin() == "a");
+TEST_CASE("string_split - trailing separator", "[string_split]") {
+    std::list<std::string> r = string_split("a,", ',');
+    REQUIRE(r.size() == 2);
+    REQUIRE(*r.begin() == "a");
+    REQUIRE(*r.rbegin() == "");
+}
 
-    r = string_split("a,", ',');
-    assert(r.size() == 2);
-    assert(*r.begin() == "a");
-    assert(*r.rbegin() == "");
+TEST_CASE("string_split - leading separator", "[string_split]") {
+    std::list<std::string> r = string_split(",b", ',');
+    REQUIRE(r.size() == 2);
+    REQUIRE(*r.begin() == "");
+    REQUIRE(*r.rbegin() == "b");
+}
 
-    r = string_split(",b", ',');
-    assert(r.size() == 2);
-    assert(*r.begin() == "");
-    assert(*r.rbegin() == "b");
+TEST_CASE("string_split - string vacía", "[string_split]") {
+    std::list<std::string> r = string_split("", ',');
+    REQUIRE(r.size() == 1);
+    REQUIRE(*r.begin() == "");
+}
 
-    r = string_split("", ',');
-    assert(r.size() == 1);
-    assert(*r.begin() == "");
-
-    r = string_split("one;two;three", ';');
-    assert(r.size() == 3);
-    assert(*r.begin() == "one");
-    assert(*r.rbegin() == "three");
-
-    printf("string_split_test ok\n");
-    return 0;
+TEST_CASE("string_split - separador distinto", "[string_split]") {
+    std::list<std::string> r = string_split("one;two;three", ';');
+    REQUIRE(r.size() == 3);
+    REQUIRE(*r.begin() == "one");
+    REQUIRE(*r.rbegin() == "three");
 }

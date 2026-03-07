@@ -1,15 +1,14 @@
-#include "mutex.h"
-#include <stdio.h>
-int main() {
+/*
+ * Test para mutex.h: lock recursivo, unlock.
+ */
+#include "catch_amalgamated.hpp"
+#include "../mutex.h"
+
+TEST_CASE("mutex - lock recursivo y unlock", "[mutex]") {
     mutex m;
-    printf("a\n");
     m.lock();
-    printf("b\n");
-    m.lock();
-    printf("c\n");
+    m.lock();  // recursivo
     m.unlock();
-    printf("d\n");
     m.unlock();
-    printf("e\n");
-    return 0;
+    REQUIRE(true);
 }

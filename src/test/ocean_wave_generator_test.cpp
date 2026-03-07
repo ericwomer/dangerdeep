@@ -1,9 +1,7 @@
-/* Test ocean_wave_generator.h */
-#include <cmath>
+/* Test ocean_wave_generator.h: compilación de tipos. */
+#include "catch_amalgamated.hpp"
 #include "../ocean_wave_generator.h"
-#include <cstdio>
-int main() {
-    (void)0;
-    printf("ocean_wave_generator_test ok\n");
-    return 0;
+
+TEST_CASE("ocean_wave_generator - compilación", "[ocean_wave_generator]") {
+    REQUIRE(true);
 }

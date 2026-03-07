@@ -1,35 +1,45 @@
 /*
- * Test para matrix4 (4x4 matrix).
+ * Test para matrix4 (matriz 4x4).
  */
+#include "catch_amalgamated.hpp"
 #include "../matrix4.h"
-#include <cassert>
 #include <cmath>
-#include <cstdio>
 
 static bool near(double a, double b, double eps = 1e-9) {
     return std::fabs(a - b) <= eps;
 }
 
-int main() {
+TEST_CASE("matrix4 - identidad", "[matrix4]") {
     matrix4f I = matrix4f::one();
-    assert(near(I.elem(0, 0), 1.0f) && near(I.elem(1, 1), 1.0f));
-    assert(near(I.elem(2, 2), 1.0f) && near(I.elem(3, 3), 1.0f));
-    assert(near(I.elem(0, 1), 0.0f) && near(I.elem(1, 0), 0.0f));
+    REQUIRE(near(I.elem(0, 0), 1.0f));
+    REQUIRE(near(I.elem(1, 1), 1.0f));
+    REQUIRE(near(I.elem(2, 2), 1.0f));
+    REQUIRE(near(I.elem(3, 3), 1.0f));
+    REQUIRE(near(I.elem(0, 1), 0.0f));
+    REQUIRE(near(I.elem(1, 0), 0.0f));
+}
 
+TEST_CASE("matrix4 - diagonal y transpuesta", "[matrix4]") {
     matrix4f m = matrix4f::diagonal(2.0f, 2.0f, 2.0f, 2.0f);
     matrix4f half = m * 0.5f;
-    assert(near(half.elem(0, 0), 1.0f));
+    REQUIRE(near(half.elem(0, 0), 1.0f));
 
     matrix4f mt = m.transpose();
-    assert(mt.elem(0, 0) == m.elem(0, 0));
+    REQUIRE(mt.elem(0, 0) == m.elem(0, 0));
+}
 
+TEST_CASE("matrix4 - producto por vector", "[matrix4]") {
+    matrix4f I = matrix4f::one();
     vector4f v(1, 0, 0, 0);
     vector4f Iv = I * v;
-    assert(near(Iv.x, 1.0f) && near(Iv.y, 0.0f) && near(Iv.z, 0.0f) && near(Iv.w, 0.0f));
+    REQUIRE(near(Iv.x, 1.0f));
+    REQUIRE(near(Iv.y, 0.0f));
+    REQUIRE(near(Iv.z, 0.0f));
+    REQUIRE(near(Iv.w, 0.0f));
+}
 
+TEST_CASE("matrix4 - suma", "[matrix4]") {
+    matrix4f m = matrix4f::diagonal(2.0f, 2.0f, 2.0f, 2.0f);
     matrix4f m2 = m + m;
-    assert(near(m2.elem(0, 0), 4.0f));
-
-    printf("matrix4_test ok\n");
-    return 0;
+    REQUIRE(near(m2.elem(0, 0), 4.0f));
 }

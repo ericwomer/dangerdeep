@@ -1,26 +1,28 @@
 /*
  * Test para morton_bivector.h: resize, at, size, operator[].
  */
-#include <cmath>
+#include "catch_amalgamated.hpp"
 #include "../morton_bivector.h"
-#include <cassert>
 #include <cmath>
-#include <cstdio>
 
-int main() {
+static bool near(double a, double b, double eps = 1e-9) {
+    return std::fabs(a - b) < eps;
+}
+
+TEST_CASE("morton_bivector - at y operator[]", "[morton_bivector]") {
     morton_bivector<int> mb(2, 0);
-    assert(mb.size() == 2);
+    REQUIRE(mb.size() == 2);
     mb.at(0, 0) = 1;
     mb.at(1, 0) = 2;
     mb.at(0, 1) = 3;
     mb.at(1, 1) = 4;
-    assert(mb.at(0, 0) == 1 && mb.at(1, 1) == 4);
-    assert(mb[vector2i(1, 0)] == 2);
+    REQUIRE(mb.at(0, 0) == 1);
+    REQUIRE(mb.at(1, 1) == 4);
+    REQUIRE(mb[vector2i(1, 0)] == 2);
+}
 
+TEST_CASE("morton_bivector - double con valor inicial", "[morton_bivector]") {
     morton_bivector<double> mb2(4, 1.0);
-    assert(mb2.size() == 4);
-    assert(std::fabs(mb2.at(0, 0) - 1.0) < 1e-9);
-
-    printf("morton_bivector_test ok\n");
-    return 0;
+    REQUIRE(mb2.size() == 4);
+    REQUIRE(near(mb2.at(0, 0), 1.0));
 }

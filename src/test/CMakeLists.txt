@@ -18,15 +18,11 @@ macro(add_catch2_test test_name)
     add_test(NAME ${test_name} COMMAND ${test_name} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endmacro()
 
-# ptrlist_test: solo ptrlist.h (header-only)
-add_executable(ptrlist_test ${TEST_DIR}/ptrlist_test.cpp)
-target_link_libraries(ptrlist_test ${LIBS})
-add_test(NAME ptrlist_test COMMAND ptrlist_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# ptrlist_test: ptrlist.h (header-only) - MIGRADO A CATCH2
+add_catch2_test(ptrlist_test)
 
-# ptrvector_test: solo ptrvector.h (header-only)
-add_executable(ptrvector_test ${TEST_DIR}/ptrvector_test.cpp)
-target_link_libraries(ptrvector_test ${LIBS})
-add_test(NAME ptrvector_test COMMAND ptrvector_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# ptrvector_test: ptrvector.h (header-only) - MIGRADO A CATCH2
+add_catch2_test(ptrvector_test)
 
 # angle_test: angle.h + vector2.h (header-only) - MIGRADO A CATCH2
 add_catch2_test(angle_test)
@@ -40,25 +36,17 @@ add_catch2_test(vector3_test)
 # color_test: color.h (SDL_types) - MIGRADO A CATCH2
 add_catch2_test(color_test)
 
-# fixed_test: fixed.h (fixed32)
-add_executable(fixed_test ${TEST_DIR}/fixed_test.cpp)
-target_link_libraries(fixed_test ${LIBS})
-add_test(NAME fixed_test COMMAND fixed_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# fixed_test: fixed.h (fixed32) - MIGRADO A CATCH2
+add_catch2_test(fixed_test)
 
-# random_generator_test: random_generator.h
-add_executable(random_generator_test ${TEST_DIR}/random_generator_test.cpp)
-target_link_libraries(random_generator_test ${LIBS})
-add_test(NAME random_generator_test COMMAND random_generator_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# random_generator_test: random_generator.h - MIGRADO A CATCH2
+add_catch2_test(random_generator_test)
 
-# bivector_test: bivector.h + vector2.h + random_generator.h
-add_executable(bivector_test ${TEST_DIR}/bivector_test.cpp)
-target_link_libraries(bivector_test ${LIBS})
-add_test(NAME bivector_test COMMAND bivector_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# bivector_test: bivector.h + vector2.h - MIGRADO A CATCH2
+add_catch2_test(bivector_test)
 
-# global_data_utils_test: ulog2, nextgteqpow2, ispow2 (inline en global_data.h)
-add_executable(global_data_utils_test ${TEST_DIR}/global_data_utils_test.cpp)
-target_link_libraries(global_data_utils_test ${LIBS})
-add_test(NAME global_data_utils_test COMMAND global_data_utils_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# global_data_utils_test: ulog2, nextgteqpow2, ispow2 (inline en global_data.h) - MIGRADO A CATCH2
+add_catch2_test(global_data_utils_test)
 
 # global_data_math_test: myfmod, myfrac, mysgn, myclamp, myinterpolate (inline en global_data.h)
 add_catch2_test(global_data_math_test)
@@ -67,210 +55,134 @@ add_catch2_test(global_data_math_test)
 add_catch2_test(str_utils_test)
 
 # rnd_test: rnd(), seed_global_rnd(), rnd(unsigned) - Catch2 (reemplaza rnd_global_test)
-# string_split_test: string_split() (string_split.cpp)
-add_executable(string_split_test ${TEST_DIR}/string_split_test.cpp ${SRC_PARENT}/string_split.cpp)
-target_link_libraries(string_split_test ${LIBS})
-add_test(NAME string_split_test COMMAND string_split_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# string_split_test: string_split() - MIGRADO A CATCH2
+add_catch2_test(string_split_test ${SRC_PARENT}/string_split.cpp)
 
-# vector4_test: vector4.h
-add_executable(vector4_test ${TEST_DIR}/vector4_test.cpp)
-target_link_libraries(vector4_test ${LIBS})
-add_test(NAME vector4_test COMMAND vector4_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# vector4_test: vector4.h - MIGRADO A CATCH2
+add_catch2_test(vector4_test)
 
-# plane_test: plane.h + vector3.h
-add_executable(plane_test ${TEST_DIR}/plane_test.cpp)
-target_link_libraries(plane_test ${LIBS})
-add_test(NAME plane_test COMMAND plane_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# plane_test: plane.h + vector3.h - MIGRADO A CATCH2
+add_catch2_test(plane_test)
 
 # sphere_test: sphere.h - MIGRADO A CATCH2
 add_catch2_test(sphere_test)
 
-# matrix3_test: matrix3.h + matrix.h
-add_executable(matrix3_test ${TEST_DIR}/matrix3_test.cpp)
-target_link_libraries(matrix3_test ${LIBS})
-add_test(NAME matrix3_test COMMAND matrix3_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# matrix3_test: matrix3.h + matrix.h - MIGRADO A CATCH2
+add_catch2_test(matrix3_test)
 
 # quaternion_test: quaternion.h (matrix4, vector3) - MIGRADO A CATCH2
 add_catch2_test(quaternion_test)
 
-# triangle_intersection_test: triangle_intersection.h
-add_executable(triangle_intersection_test ${TEST_DIR}/triangle_intersection_test.cpp)
-target_link_libraries(triangle_intersection_test ${LIBS})
-add_test(NAME triangle_intersection_test COMMAND triangle_intersection_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# triangle_intersection_test: triangle_intersection.h - MIGRADO A CATCH2
+add_catch2_test(triangle_intersection_test)
 
-# keys_test: keys.h + keys.cpp
-add_executable(keys_test ${TEST_DIR}/keys_test.cpp ${SRC_PARENT}/keys.cpp)
-target_link_libraries(keys_test ${LIBS})
-add_test(NAME keys_test COMMAND keys_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# keys_test: keys.h + keys.cpp - MIGRADO A CATCH2
+add_catch2_test(keys_test ${SRC_PARENT}/keys.cpp)
 
-# bitstream_test: bitstream.h + bitstream.cpp
-add_executable(bitstream_test ${TEST_DIR}/bitstream_test.cpp ${SRC_PARENT}/bitstream.cpp)
-target_link_libraries(bitstream_test ${LIBS})
-add_test(NAME bitstream_test COMMAND bitstream_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# bitstream_test: bitstream.h + bitstream.cpp - MIGRADO A CATCH2
+add_catch2_test(bitstream_test ${SRC_PARENT}/bitstream.cpp)
 
-# mutex_test: mutex + error (stub display_get_error para tests)
-add_executable(mutex_test ${TEST_DIR}/mutex_test.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
-target_link_libraries(mutex_test ${LIBS})
-add_test(NAME mutex_test COMMAND mutex_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# mutex_test: mutex + error (stub display_get_error) - MIGRADO A CATCH2
+add_catch2_test(mutex_test ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
 
-# parser_test: parser + error; ruta CSV por argv[1] o env DFTD_DATA
-add_executable(parser_test ${TEST_DIR}/parser_test.cpp ${SRC_PARENT}/parser.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
-target_link_libraries(parser_test ${LIBS})
-add_test(NAME parser_test COMMAND parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-# Configurar variable de entorno para que el test encuentre los datos
+# parser_test: parser + error; DFTD_DATA para common.csv
+add_catch2_test(parser_test ${SRC_PARENT}/parser.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
 set_tests_properties(parser_test PROPERTIES ENVIRONMENT "DFTD_DATA=${CMAKE_SOURCE_DIR}/data")
 
 # error_test: error.h + error.cpp (excepciones error, file_read_error, sdl_error)
 add_catch2_test(error_test ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
 
-# align16_allocator_test: align16_allocator.h
-add_executable(align16_allocator_test ${TEST_DIR}/align16_allocator_test.cpp)
-target_link_libraries(align16_allocator_test ${LIBS})
-add_test(NAME align16_allocator_test COMMAND align16_allocator_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# align16_allocator_test: align16_allocator.h - MIGRADO A CATCH2
+add_catch2_test(align16_allocator_test)
 
-# dmath_test: dmath.h (isfinite)
-add_executable(dmath_test ${TEST_DIR}/dmath_test.cpp)
-target_link_libraries(dmath_test ${LIBS})
-add_test(NAME dmath_test COMMAND dmath_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# dmath_test: dmath.h (isfinite) - MIGRADO A CATCH2
+add_catch2_test(dmath_test)
 
-# binstream_test: binstream.h (roundtrip write/read)
-add_executable(binstream_test ${TEST_DIR}/binstream_test.cpp)
-target_link_libraries(binstream_test ${LIBS})
-add_test(NAME binstream_test COMMAND binstream_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# binstream_test: binstream.h (roundtrip write/read) - MIGRADO A CATCH2
+add_catch2_test(binstream_test)
 
-# matrix4_test: matrix4.h
-add_executable(matrix4_test ${TEST_DIR}/matrix4_test.cpp)
-target_link_libraries(matrix4_test ${LIBS})
-add_test(NAME matrix4_test COMMAND matrix4_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# matrix4_test: matrix4.h - MIGRADO A CATCH2
+add_catch2_test(matrix4_test)
 
-# condvar_test: condvar + mutex + error (stub display_get_error)
-add_executable(condvar_test ${TEST_DIR}/condvar_test.cpp ${SRC_PARENT}/condvar.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
-target_link_libraries(condvar_test ${LIBS})
-add_test(NAME condvar_test COMMAND condvar_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# condvar_test: condvar + mutex + error (stub display_get_error) - MIGRADO A CATCH2
+add_catch2_test(condvar_test ${SRC_PARENT}/condvar.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
 
-# bspline_test: bspline.h
-add_executable(bspline_test ${TEST_DIR}/bspline_test.cpp ${SRC_PARENT}/rnd.cpp)
-target_link_libraries(bspline_test ${LIBS})
-add_test(NAME bspline_test COMMAND bspline_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# bspline_test: bspline.h - MIGRADO A CATCH2
+add_catch2_test(bspline_test ${SRC_PARENT}/rnd.cpp)
 
-# singleton_test: singleton.h
-add_executable(singleton_test ${TEST_DIR}/singleton_test.cpp)
-target_link_libraries(singleton_test ${LIBS})
-add_test(NAME singleton_test COMMAND singleton_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# singleton_test: singleton.h - MIGRADO A CATCH2
+add_catch2_test(singleton_test)
 
-# objcache_test: objcache.h
-add_executable(objcache_test ${TEST_DIR}/objcache_test.cpp)
-target_link_libraries(objcache_test ${LIBS})
-add_test(NAME objcache_test COMMAND objcache_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# objcache_test: objcache.h - MIGRADO A CATCH2
+add_catch2_test(objcache_test)
 
-# polygon_test: polygon.h
-add_executable(polygon_test ${TEST_DIR}/polygon_test.cpp)
-target_link_libraries(polygon_test ${LIBS})
-add_test(NAME polygon_test COMMAND polygon_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# polygon_test: polygon.h - MIGRADO A CATCH2
+add_catch2_test(polygon_test)
 
 # matrix_test: matrix.h (matrix_invert, matrix_swap_rows, matrixt) - MIGRADO A CATCH2
 add_catch2_test(matrix_test)
 
-# global_constants_test: global_constants.h
-add_executable(global_constants_test ${TEST_DIR}/global_constants_test.cpp)
-target_link_libraries(global_constants_test ${LIBS})
-add_test(NAME global_constants_test COMMAND global_constants_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# global_constants_test: global_constants.h - MIGRADO A CATCH2
+add_catch2_test(global_constants_test)
 
 # === 50 tests adicionales ===
-add_executable(triangulate_test ${TEST_DIR}/triangulate_test.cpp ${SRC_PARENT}/triangulate.cpp)
-target_link_libraries(triangulate_test ${LIBS})
-add_test(NAME triangulate_test COMMAND triangulate_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(triangulate_test ${SRC_PARENT}/triangulate.cpp ${SRC_PARENT}/rnd.cpp)
 
-add_executable(morton_bivector_test ${TEST_DIR}/morton_bivector_test.cpp)
-target_link_libraries(morton_bivector_test ${LIBS})
-add_test(NAME morton_bivector_test COMMAND morton_bivector_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# morton_bivector_test: morton_bivector.h - MIGRADO A CATCH2
+add_catch2_test(morton_bivector_test)
 
-add_executable(bzip_test ${TEST_DIR}/bzip_test.cpp)
-target_link_libraries(bzip_test ${LIBS})
-add_test(NAME bzip_test COMMAND bzip_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(bzip_test)
 
-add_executable(xml_exception_test ${TEST_DIR}/xml_exception_test.cpp)
-target_link_libraries(xml_exception_test ${LIBS})
-add_test(NAME xml_exception_test COMMAND xml_exception_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# xml_exception_test: xml.h (excepciones) - MIGRADO A CATCH2
+add_catch2_test(xml_exception_test)
 
 # xml_attr_test: attri/attrf (stoi/stod) con XML temporal
 add_catch2_test(xml_attr_test ${SRC_PARENT}/xml.cpp)
 
-add_executable(cfg_key_test ${TEST_DIR}/cfg_key_test.cpp)
-target_link_libraries(cfg_key_test ${LIBS})
-add_test(NAME cfg_key_test COMMAND cfg_key_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(cfg_key_test)
 
 # cfg_load_test: cfg::load + set_str (stoi/stod)
 add_catch2_test(cfg_load_test ${SRC_PARENT}/cfg.cpp ${SRC_PARENT}/xml.cpp ${SRC_PARENT}/keys.cpp ${SRC_PARENT}/log.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
 
 add_catch2_test(bv_tree_leaf_test)
 
-add_executable(datadirs_test ${TEST_DIR}/datadirs_test.cpp ${SRC_PARENT}/datadirs.cpp ${SRC_PARENT}/filehelper.cpp ${SRC_PARENT}/log.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
-target_link_libraries(datadirs_test ${LIBS})
-add_test(NAME datadirs_test COMMAND datadirs_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(datadirs_test ${SRC_PARENT}/datadirs.cpp ${SRC_PARENT}/filehelper.cpp ${SRC_PARENT}/log.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
 
-add_executable(filehelper_test ${TEST_DIR}/filehelper_test.cpp ${SRC_PARENT}/filehelper.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
-target_link_libraries(filehelper_test ${LIBS})
-add_test(NAME filehelper_test COMMAND filehelper_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(filehelper_test ${SRC_PARENT}/filehelper.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
 
-add_executable(log_test ${TEST_DIR}/log_test.cpp ${SRC_PARENT}/log.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
-target_link_libraries(log_test ${LIBS})
-add_test(NAME log_test COMMAND log_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(log_test ${SRC_PARENT}/log.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
 
-add_executable(faulthandler_test ${TEST_DIR}/faulthandler_test.cpp ${SRC_PARENT}/faulthandler.cpp)
-target_link_libraries(faulthandler_test ${LIBS})
-add_test(NAME faulthandler_test COMMAND faulthandler_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# faulthandler_test: faulthandler.h - MIGRADO A CATCH2
+add_catch2_test(faulthandler_test ${SRC_PARENT}/faulthandler.cpp)
 
 add_catch2_test(perlinnoise_test ${SRC_PARENT}/perlinnoise.cpp ${SRC_PARENT}/rnd.cpp)
 
-add_executable(simplex_noise_test ${TEST_DIR}/simplex_noise_test.cpp ${SRC_PARENT}/simplex_noise.cpp)
-target_link_libraries(simplex_noise_test ${LIBS})
-add_test(NAME simplex_noise_test COMMAND simplex_noise_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(simplex_noise_test ${SRC_PARENT}/simplex_noise.cpp)
 
 add_catch2_test(frustum_test ${SRC_PARENT}/frustum.cpp)
 
-add_executable(fractal_test ${TEST_DIR}/fractal_test.cpp ${SRC_PARENT}/simplex_noise.cpp)
-target_link_libraries(fractal_test ${LIBS})
-add_test(NAME fractal_test COMMAND fractal_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(fractal_test ${SRC_PARENT}/simplex_noise.cpp)
 
-add_executable(thread_test ${TEST_DIR}/thread_test.cpp ${SRC_PARENT}/thread.cpp ${SRC_PARENT}/condvar.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${SRC_PARENT}/log.cpp ${TEST_DIR}/display_backend_stub.cpp)
-target_link_libraries(thread_test ${LIBS})
-add_test(NAME thread_test COMMAND thread_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(thread_test ${SRC_PARENT}/thread.cpp ${SRC_PARENT}/condvar.cpp ${SRC_PARENT}/mutex.cpp ${SRC_PARENT}/error.cpp ${SRC_PARENT}/log.cpp ${TEST_DIR}/display_backend_stub.cpp)
 
 # xml_doc_test: eliminado (test stub sin valor)
 # tone_reproductor_test: eliminado (test stub sin valor)
 
-add_executable(bv_tree_test ${TEST_DIR}/bv_tree_test.cpp ${SRC_PARENT}/bv_tree.cpp)
-target_link_libraries(bv_tree_test ${LIBS})
-add_test(NAME bv_tree_test COMMAND bv_tree_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(bv_tree_test ${SRC_PARENT}/bv_tree.cpp)
 
-add_executable(event_test ${TEST_DIR}/event_test.cpp)
-target_link_libraries(event_test ${LIBS})
-add_test(NAME event_test COMMAND event_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(event_test)
 
-add_executable(tile_test ${TEST_DIR}/tile_test.cpp)
-target_link_libraries(tile_test ${LIBS})
-add_test(NAME tile_test COMMAND tile_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(tile_test)
 
-add_executable(tile_cache_test ${TEST_DIR}/tile_cache_test.cpp)
-target_link_libraries(tile_cache_test ${LIBS})
-add_test(NAME tile_cache_test COMMAND tile_cache_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(tile_cache_test)
 
-add_executable(terrain_test ${TEST_DIR}/terrain_test.cpp)
-target_link_libraries(terrain_test ${LIBS})
-add_test(NAME terrain_test COMMAND terrain_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(terrain_test)
 
-add_executable(height_generator_test ${TEST_DIR}/height_generator_test.cpp)
-target_link_libraries(height_generator_test ${LIBS})
-add_test(NAME height_generator_test COMMAND height_generator_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(height_generator_test)
 
-add_executable(ocean_wave_generator_test ${TEST_DIR}/ocean_wave_generator_test.cpp)
-target_link_libraries(ocean_wave_generator_test ${LIBS})
-add_test(NAME ocean_wave_generator_test COMMAND ocean_wave_generator_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(ocean_wave_generator_test)
 
-add_executable(global_data_test ${TEST_DIR}/global_data_test.cpp)
-target_link_libraries(global_data_test ${LIBS})
-add_test(NAME global_data_test COMMAND global_data_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(global_data_test)
 
 # Tests para subsistemas extraídos (refactoring de game) - MIGRADOS A CATCH2
 add_catch2_test(trail_manager_test)
@@ -280,6 +192,8 @@ add_catch2_test(visibility_manager_test ${SRC_PARENT}/visibility_manager.cpp)
 add_catch2_test(time_freezer_test ${TEST_DIR}/time_freezer_stub.cpp)
 
 add_catch2_test(scoring_manager_test ${SRC_PARENT}/scoring_manager.cpp ${SRC_PARENT}/date.cpp ${SRC_PARENT}/xml.cpp)
+
+add_catch2_test(date_test ${SRC_PARENT}/date.cpp ${SRC_PARENT}/xml.cpp)
 
 add_catch2_test(ping_manager_test ${SRC_PARENT}/ping_manager.cpp ${SRC_PARENT}/xml.cpp)
 

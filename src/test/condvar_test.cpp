@@ -1,12 +1,11 @@
 /*
  * Test para condvar: creación, signal, timed_wait (con mutex).
  */
+#include "catch_amalgamated.hpp"
 #include "../condvar.h"
 #include "../mutex.h"
-#include <cassert>
-#include <cstdio>
 
-int main() {
+TEST_CASE("condvar - creación, signal, timed_wait", "[condvar]") {
     condvar cv;
     mutex m;
     m.lock();
@@ -15,7 +14,5 @@ int main() {
     m.lock();
     bool got = cv.timed_wait(m, 1);
     m.unlock();
-    assert(!got);
-    printf("condvar_test ok\n");
-    return 0;
+    REQUIRE_FALSE(got);
 }

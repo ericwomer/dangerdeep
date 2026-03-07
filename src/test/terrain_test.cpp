@@ -1,8 +1,7 @@
-/* Test terrain.h */
+/* Test terrain.h: compilación de tipos. */
+#include "catch_amalgamated.hpp"
 #include "../terrain.h"
-#include <cstdio>
-int main() {
-    (void)0;
-    printf("terrain_test ok\n");
-    return 0;
+
+TEST_CASE("terrain - compilación", "[terrain]") {
+    REQUIRE(true);
 }

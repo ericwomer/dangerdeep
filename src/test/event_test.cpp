@@ -1,8 +1,7 @@
 /* Test event.h: tipos de evento (solo compilación). */
+#include "catch_amalgamated.hpp"
 #include "../event.h"
-#include <cstdio>
-int main() {
-    (void)0;
-    printf("event_test ok\n");
-    return 0;
+
+TEST_CASE("event - compilación de tipos", "[event]") {
+    REQUIRE(true);
 }

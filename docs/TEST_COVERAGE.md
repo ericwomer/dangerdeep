@@ -18,8 +18,8 @@ Documentación sobre la suite de tests unitarios y la cobertura de cada archivo 
 
 | Métrica | Valor |
 |---------|-------|
-| **Total tests** | 101 |
-| **Framework** | Catch2 v3.5.2 (53 tests) + assert-based (48 tests) |
+| **Total tests** | 102 |
+| **Framework** | Catch2 v3.5.2 (102 tests) |
 | **Cobertura líneas (src/)** | ~58.7% |
 | **Cobertura funciones (src/)** | ~70.1% |
 | **Cobertura branches (src/)** | ~34.9% |
@@ -51,6 +51,7 @@ Mapeo de cada test a los archivos fuente que ejercita directamente:
 | `condvar_test` | condvar.cpp, mutex.cpp, error.cpp |
 | `coast_renderer_test` | coast_renderer.h (smoke) |
 | `datadirs_test` | datadirs.cpp, filehelper.cpp, log.cpp, mutex.cpp, error.cpp |
+| `date_test` | date.cpp, xml.cpp |
 | `daysky_test` | daysky.h (smoke) |
 | `depth_charge_test` | depth_charge.h (smoke) |
 | `error_test` | error.h, error.cpp (sdl_error) |
@@ -97,6 +98,7 @@ Mapeo de cada test a los archivos fuente que ejercita directamente:
 | `rnd_test` | rnd.cpp |
 | `scene_environment_test` | scene_environment.h (smoke) |
 | `scoring_manager_test` | scoring_manager.cpp, date.cpp, xml.cpp |
+| `date_test` | date.cpp, xml.cpp |
 | `ship_interface_test` | ship_interface.h (smoke) |
 | `ships_sunk_display_test` | ships_sunk_display.h (smoke) |
 | `simplex_noise_test` | simplex_noise.cpp |
@@ -118,6 +120,8 @@ Mapeo de cada test a los archivos fuente que ejercita directamente:
 | `sub_valves_display_test` | sub_valves_display.h (smoke) |
 | `terrain_test` | terrain.h |
 | `thread_test` | thread.cpp, condvar.cpp, mutex.cpp, error.cpp, log.cpp |
+| `triangulate_test` | triangulate.cpp, rnd.cpp |
+| `triangulate_test` | triangulate.cpp, rnd.cpp |
 | `tile_cache_test` | tile_cache.h |
 | `tile_test` | tile.h |
 | `time_freezer_test` | time_freezer.h (stub) |

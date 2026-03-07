@@ -1,16 +1,13 @@
 /*
- * Test para filehelper.h/cpp: get_current_directory, is_directory, is_file.
+ * Test para filehelper.h/cpp: get_current_directory, is_directory.
  */
+#include "catch_amalgamated.hpp"
 #include "../filehelper.h"
-#include <cassert>
-#include <cstdio>
 #include <string>
 
-int main() {
+TEST_CASE("filehelper - get_current_directory e is_directory", "[filehelper]") {
     std::string cwd = get_current_directory();
-    assert(!cwd.empty());
-    assert(is_directory("."));
-    assert(is_directory(".."));
-    printf("filehelper_test ok\n");
-    return 0;
+    REQUIRE_FALSE(cwd.empty());
+    REQUIRE(is_directory("."));
+    REQUIRE(is_directory(".."));
 }

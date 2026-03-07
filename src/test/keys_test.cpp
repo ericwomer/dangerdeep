@@ -1,16 +1,13 @@
 /*
  * Test para keys: key_names tiene NR_OF_KEY_IDS entradas y cada .nr coincide.
  */
+#include "catch_amalgamated.hpp"
 #include "../keys.h"
-#include <cassert>
-#include <cstdio>
 
-int main() {
+TEST_CASE("keys - key_names estructura", "[keys]") {
     for (unsigned i = 0; i < NR_OF_KEY_IDS; ++i) {
-        assert(key_names[i].nr == i);
-        assert(key_names[i].name != nullptr);
-        assert(key_names[i].name[0] != '\0');
+        REQUIRE(key_names[i].nr == i);
+        REQUIRE(key_names[i].name != nullptr);
+        REQUIRE(key_names[i].name[0] != '\0');
     }
-    printf("keys_test ok\n");
-    return 0;
 }
