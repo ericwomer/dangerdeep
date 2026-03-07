@@ -301,7 +301,7 @@ add_catch2_test(test_name source1.cpp source2.cpp ...)
 5. **Edge cases**: Valores máximos, nullptr, secuencias repetidas, estado inmutable
 
 **Estadísticas de tests:**
-- Total: **98/98 tests pasan (100%)** ✅ (+33 tests smoke, 2026-03-03)
+- Total: **101/101 tests pasan (100%)** ✅ (+36 tests smoke, 2026-03-06)
 - Tests con Catch2: **50 archivos** (~138 casos)
   - 17 tests previos (subsistemas + matemáticos): ~105 casos
   - 33 tests smoke nuevos: ~33 casos básicos
@@ -314,7 +314,7 @@ add_catch2_test(test_name source1.cpp source2.cpp ...)
 Módulos ahora cubiertos: rnd, player_info, job_scheduler, ui_messages, sub_control_popup, sub_ecard_popup, sub_tdc_popup, sub_valves_display, ships_sunk_display, sub_soldbuch_display, torpedo_camera_display, sub_bridge_display, sub_uzo_display, airplane_interface, height_generator_map, user_popup, sub_recogmanual_display, sub_bg_display, sub_recogmanual_popup, ship_interface, logbook_display, highscorelist, scene_environment, coast_renderer, weather_renderer, caustics, moon, stars, daysky, postprocessor, framebufferobject, vertexbufferobject, depth_charge.
 
 **Impacto en cobertura:**
-- Antes: 65 tests → Después: 98 tests (+50.8%)
+- Antes: 65 tests → Después: 101 tests (+55.4%)
 - ~40 módulos adicionales ahora tienen tests básicos
 - Reducción significativa de módulos sin cobertura
 

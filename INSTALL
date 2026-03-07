@@ -1,7 +1,10 @@
 Installation instructions
 -------------------------
 
-To install Danger for the Deep on Linux, see the Compiling from Source section
+**Current build system (2025+)**: The project uses CMake. For up-to-date
+instructions (dependencies, compilation, options), see README.md.
+
+The sections below are kept for historical reference.
 
 Installing on Windows
 ---------------------
@@ -30,45 +33,19 @@ Deep in a different resolution or in windowed mode, see the Command-line
 Options section below.
 
 
-Compiling from Source
----------------------
+Compiling from Source (legacy / historical)
+-------------------------------------------
 
-To compile Danger from the Deep, you will need the SDL, SDL-image, FFTW3
-and optionally the SDL-mixer libraries and development packages.
+The project now uses CMake. See README.md for current instructions.
 
-Extract the files using the following command (substitute the name of
-the file instead of <file.tar.gz>): tar -zxf <file.tar.gz>
-or for .bz2 files: tar -jxf <file.tar.bz2>
+Legacy: The project previously used SCons. Dependencies: SDL2 (or SDL),
+SDL_image, FFTW3, SDL_mixer. Extract source, then:
 
-Version 0.0.18 and newer
-------------------------
-
-You'll need the SCons build system (www.scons.org). It is included in
-many distributions, e.g. Debian. It needs Python
-(www.python.org). Blender uses it and Doom3/Linux, so it's pretty mature
-;-) It has some advantages over automake/autoconf.
-
-Change into the source directory and type the following commands:
-
+	# Old SCons (deprecated):
 	scons -k
 
-That's all. It will make a .tar.gz file containing source and data also.
-Copy the contents of the data directoryto a directory named /usr/local/share/dangerdeep
-and the dangerdeep binary to /usr/local/bin.
-From version 0.0.19 onwards you can run "scons install" as root to install
-the game, which is much easier.
-
-
-Version 0.0.17 and older
-------------------------
-
-Change into the source directory and type the following commands:
-
-	./configure
-	make
-	make install (you need to be root for this step)
-
-That's all.
+	# Old autotools (very old versions):
+	./configure && make && make install
 
 Running
 -------

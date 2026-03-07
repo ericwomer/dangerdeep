@@ -22,7 +22,7 @@
 - **Lenguaje**: C++20
 - **Build System**: CMake 3.20+
 - **Líneas de código**: ~150,000 LOC
-- **Tests**: 98 tests unitarios (100% passing)
+- **Tests**: 101 tests unitarios (100% passing)
 - **Cobertura**: En crecimiento (50+ módulos con tests)
 
 ### Objetivos Arquitecturales
@@ -83,7 +83,7 @@ dangerdeep/
 │   ├── *_manager.cpp/h     # Subsistemas extraídos
 │   ├── *_system.cpp/h      # Sistemas de juego
 │   ├── oglext/             # Extensiones OpenGL
-│   ├── test/               # Tests unitarios (98 tests)
+│   ├── test/               # Tests unitarios (101 tests)
 │   └── tools/              # Herramientas auxiliares
 ├── data/                   # Assets del juego
 ├── docs/                   # Documentación
@@ -398,7 +398,7 @@ game (coordinador)
 
 ### Testing
 
-1. Aumentar cobertura de tests (actualmente: 98 tests)
+1. Aumentar cobertura de tests (actualmente: 101 tests)
 2. Tests de integración entre subsistemas
 3. Performance benchmarks
 

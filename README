@@ -1,5 +1,3 @@
-his file is also way out of date (2003/07/03)
-
 Danger from the Deep - WW2 german submarine simulation
 ------------------------------------------------------
 
@@ -21,18 +19,12 @@ Technical Notes
 If you are using a setup with more than one monitor you may experience
 problems.
 
-SDL 1.2.11 seems to have problems when running the game on
-multimonitor/multihead displays. If you're running the game on a
-computer-setup which utilizes more than one screen, you may encounter
-problems, for example your X-Session dropping to the Console. In that
-case pressing ALT+F7 or ALT+CTRL+F7 might help.
+The game uses SDL2 (or SDL3 with -DUSE_SDL3=ON). Multimonitor setups
+may have quirks depending on your driver; SDL3 generally handles
+Wayland better.
 
-This is no problem with the game, but a problem of the SDL-Framwork
-we're using. The SDL-people claim that this issue should be sorted out
-in version 2.0 of SDL.
-
-On another note, your graphic-card must at least support OpenGL 1.5 and
-even better, OpenGL 2.0 for decent graphics.
+Your graphic-card must support OpenGL 2.x or superior for decent
+graphics. HARDWARE ACCELERATION is required.
 Your graphic-card MUST support HARDWARE ACCELERATION.
 
 The game won't run on machines with a Cirrus Logic 4MB card.

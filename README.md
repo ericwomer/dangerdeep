@@ -158,7 +158,8 @@ El ejecutable se genera en `build/src/dangerdeep` (en algunas configuraciones pu
 | `USE_UNITY`                | `ON`/`OFF` | Activar unity builds                              |
 | `BUILD_ASAN`               | `ON`/`OFF` | AddressSanitizer + LeakSanitizer (detección fugas) |
 | `BUILD_VALGRIND_FRIENDLY`  | `ON`/`OFF` | Binario compatible con Valgrind (sin `-march=native`) |
-| `BUILD_UNIT_TESTS`         | `ON`/`OFF` | Compilar tests unitarios (ptrlist_test, mutex_test, parser_test) |
+| `BUILD_UNIT_TESTS`         | `ON`/`OFF` | Compilar tests unitarios (ptrlist_test, mutex_test, parser_test, etc.) |
+| `BUILD_OCEANTEST`          | `ON`/`OFF` | Compilar oceantest (demo del generador de olas; por defecto OFF) |
 | `BUILD_COVERAGE`           | `ON`/`OFF` | Cobertura de código (gcov; para reporte usar `./check.sh --coverage`) |
 
 ---
@@ -195,7 +196,7 @@ El proyecto usa **GitHub Actions** para integración y despliegue continuo. Todo
 
 | Workflow | Qué verifica | Cuándo |
 |----------|--------------|--------|
-| **CI** | Build SDL2 + SDL3 + Tests (98 tests) | Push / PR |
+| **CI** | Build SDL2 + SDL3 + Tests (101 tests) | Push / PR |
 | **Format** | clang-format | Push / PR |
 | **Coverage** | Cobertura de código | Push / PR (master, main) |
 | **Lint** | cppcheck completo | Solo manual (Actions → Run workflow) |
@@ -205,7 +206,7 @@ El proyecto usa **GitHub Actions** para integración y despliegue continuo. Todo
 ### Características
 
 - ✅ **Build automático**: Compila en Ubuntu latest con todas las dependencias
-- ✅ **98 tests**: Ejecuta toda la suite de tests unitarios (100% passing)
+- ✅ **101 tests**: Ejecuta toda la suite de tests unitarios (100% passing)
 - ✅ **Cache**: ccache para compilación, apt para dependencias (builds más rápidos)
 - ✅ **Format check**: Verifica que el código sigue el estilo del proyecto
 - ✅ **Static analysis**: cppcheck detecta problemas potenciales
@@ -278,7 +279,7 @@ Para el reporte de cobertura se usa **lcov** con *branch coverage*; instalación
 | **Multimedia** | SDL2 / SDL3 | Ventanas, input, audio, imágenes |
 | **Matemáticas** | FFTW3 | FFT (sonar, simulación) |
 | **Datos** | TinyXML, BZip2 | Serialización, compresión |
-| **Testing** | Catch2, CTest | 98 tests unitarios |
+| **Testing** | Catch2, CTest | 101 tests unitarios |
 | **QA** | clang-format, cppcheck | Formato, análisis estático |
 | **CI/CD** | GitHub Actions | Build, tests, coverage automáticos |
 

@@ -42,7 +42,7 @@ dangerdeep/
 ├── src/                    # Código fuente
 │   ├── game.cpp/h          # Coordinador central
 │   ├── *_manager.cpp/h     # Subsistemas (9 extraídos)
-│   ├── test/               # Tests (98 tests, 100% passing)
+│   ├── test/               # Tests (101 tests, 100% passing)
 │   └── oglext/             # Extensiones OpenGL
 ├── data/                   # Assets (modelos, texturas, sonidos)
 ├── docs/                   # Documentación (este directorio)

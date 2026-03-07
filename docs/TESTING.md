@@ -18,7 +18,7 @@
 ### Principios
 
 1. **Tests son documentación ejecutable**: Un test claro explica cómo funciona el código
-2. **Cobertura progresiva**: Mejor 98 tests buenos que 200 triviales
+2. **Cobertura progresiva**: Mejor 101 tests buenos que 200 triviales
 3. **Aislamiento**: Cada test debe ser independiente
 4. **Velocidad**: Los tests deben ser rápidos (< 1 segundo total)
 5. **Confiabilidad**: Tests determinísticos, no flaky
@@ -44,9 +44,9 @@
 
 ### Estadísticas
 
-- **Total tests**: 98 (100% passing ✅)
+- **Total tests**: 101 (100% passing ✅)
 - **Framework principal**: Catch2 v3.5.2 (50 tests)
-- **Tests legacy**: assert-based (48 tests)
+- **Tests legacy**: assert-based (51 tests)
 - **Tiempo ejecución**: ~0.11 segundos
 - **Cobertura**: 50+ módulos
 
@@ -637,10 +637,10 @@ REQUIRE(near(result, 3.14159));
 - [Catch2 Documentation](https://github.com/catchorg/Catch2/tree/devel/docs)
 - [ARCHITECTURE.md](ARCHITECTURE.md): Arquitectura del proyecto
 - [SUBSYSTEMS.md](SUBSYSTEMS.md): Documentación de subsistemas
-- Tests: `src/test/` (98 tests)
+- Tests: `src/test/` (101 tests)
 - Helper: `src/test/CATCH2_README.md`
 
 ---
 
-**Última actualización**: 2026-03-03
+**Última actualización**: 2026-03-06
 **Mantenedor**: Equipo de desarrollo de Danger from the Deep
