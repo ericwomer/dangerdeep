@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // subsim (C)+(W) Thorsten Jordan. SEE LICENSE
 
 #include "ocean_wave_generator.h"
+#include "rnd.h"
 #include <fstream>
 using namespace std;
 typedef unsigned char Uint8;
@@ -35,7 +36,7 @@ typedef unsigned char Uint8;
 int main(int argc, char **argv) {
     const unsigned resbig = 1024;
     const unsigned ressml = 128;
-    srand(1234);
+    seed_global_rnd(1234);
     /*
       Wave tile length of 256 gives only few detail at small waves.
       Rather use length of 512 or more. That way the tiles will be less visible.
@@ -61,7 +62,7 @@ int main(int argc, char **argv) {
                                      1e-8,           // scale factor "A"
                                      256,            // wave tile length
                                      10);            // tide cycle time in seconds
-    srand(1234);
+    seed_global_rnd(1234);
     // if we delete the higher 256 frequencies, it doesn't seem to make
     // any difference (with a 1024 original resolution)
     // if we delete the higher 384 frequencies only very tiny differences
@@ -77,11 +78,11 @@ int main(int argc, char **argv) {
     // the original?
     ocean_wave_generator<float> owg3(owg1, resbig, -498);
 
-    srand(1234);
+    seed_global_rnd(1234);
 
     ocean_wave_generator<float> owg4(owg1, resbig, 512 - 498);
 
-    srand(1234);
+    seed_global_rnd(1234);
 
     /*
             ocean_wave_generator<float> owg2(ressml,	// wave resolution
@@ -93,13 +94,13 @@ int main(int argc, char **argv) {
     */
     ocean_wave_generator<float> owg2(owg1, ressml);
 
-    srand(1234);
+    seed_global_rnd(1234);
     owg1.set_time(0);
-    srand(1234);
+    seed_global_rnd(1234);
     owg2.set_time(0);
-    srand(1234);
+    seed_global_rnd(1234);
     owg3.set_time(0);
-    srand(1234);
+    seed_global_rnd(1234);
     owg4.set_time(0);
     vector<float> heights1;
     vector<float> heights2;
