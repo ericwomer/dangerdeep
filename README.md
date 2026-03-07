@@ -266,7 +266,7 @@ Para el reporte de cobertura se usa **lcov** con *branch coverage*; instalación
 | `src/`         | Código C++ (simulación, gráficos, UI) |
 | `data/`        | Datos del juego (modelos, texturas, sonidos, mapas; parte vía Git LFS) |
 | `cmake/`       | Módulos de CMake |
-| `docs/`        | Documentación adicional: [REFACTORING.md](docs/REFACTORING.md) (refactor), [SDL3_MIGRATION.md](docs/SDL3_MIGRATION.md) (SDL3), [STD_ALTERNATIVES.md](docs/STD_ALTERNATIVES.md) (uso de la std) |
+| `docs/`        | Documentación adicional: [REFACTORING.md](docs/REFACTORING.md) (refactor), [SDL3_MIGRATION.md](docs/SDL3_MIGRATION.md) (SDL3), [STD_ALTERNATIVES.md](docs/STD_ALTERNATIVES.md) (uso de la std), [TEST_COVERAGE.md](docs/TEST_COVERAGE.md) (tests y cobertura por archivo) |
 | `packaging/`   | Scripts para empaquetado (p. ej. Ubuntu) |
 
 ### Stack técnico

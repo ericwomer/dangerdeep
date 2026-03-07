@@ -637,6 +637,7 @@ REQUIRE(near(result, 3.14159));
 - [Catch2 Documentation](https://github.com/catchorg/Catch2/tree/devel/docs)
 - [ARCHITECTURE.md](ARCHITECTURE.md): Arquitectura del proyecto
 - [SUBSYSTEMS.md](SUBSYSTEMS.md): Documentación de subsistemas
+- [TEST_COVERAGE.md](TEST_COVERAGE.md): **Tests y cobertura por archivo** (mapeo completo)
 - Tests: `src/test/` (101 tests)
 - Helper: `src/test/CATCH2_README.md`
 
