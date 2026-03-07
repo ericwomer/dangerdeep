@@ -44,12 +44,16 @@ caustics::caustics()
 
 void caustics::set_time(double tm) {
     const double frame_duration = 1.0 / 25.0; // 25 fps animation
+    // Sync when uninitialized (-DBL_MAX) or far behind (e.g. after load).
+    // Must check BEFORE the while loop to avoid infinite loop on first call.
+    if (tm > mytime + frame_duration * FRAME_TEXTURE_COUNT) {
+        mytime = tm;
+        return;
+    }
     while ((tm - mytime) >= frame_duration) {
         mytime += frame_duration;
         current_texture = (current_texture + 1) % FRAME_TEXTURE_COUNT;
     }
-    if (tm > mytime + frame_duration * FRAME_TEXTURE_COUNT)
-        mytime = tm; // sync when far behind (e.g. after load)
 }
 
 texture *caustics::get_map() const {

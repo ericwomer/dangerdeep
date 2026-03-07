@@ -46,11 +46,8 @@ thread::thread(const char *name)
       thread_abort_request(false),
       thread_state(THRSTAT_NONE),
       myname(name ? name : "unnamed") {
-    if (name == nullptr) {
-        std::cout << "Error name is uninitialized!" << std::endl;
-    } else {
-        std::cout << "name = " << name << std::endl;
-    }
+    if (name == nullptr)
+        throw error("thread name is null");
 }
 
 void thread::run() {
@@ -114,7 +111,6 @@ void thread::request_abort() {
 }
 
 void thread::start() {
-    std::cout << "this->myname " << this->myname << std::endl;
     if (thread_abort_request.load())
         throw error("thread abort requested, but start() called");
     mutex_locker ml(thread_state_mutex);
