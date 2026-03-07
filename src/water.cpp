@@ -117,10 +117,9 @@ conclusions:
   and reuse only the knowledge.
 */
 
-#define REFRAC_COLOR_RES 32
-#define FRESNEL_FCT_RES 256
-
-#define FOAMAMOUNTRES 256
+static constexpr unsigned REFRAC_COLOR_RES = 32;
+static constexpr unsigned FRESNEL_FCT_RES = 256;
+static constexpr unsigned FOAMAMOUNTRES = 256;
 
 #undef MEASURE_WAVE_HEIGHTS
 
@@ -339,7 +338,7 @@ water::water(double tm, cfg &configuration) : mytime(tm),
     // spawn 1 more thread (or 3 on 4-core cpus, but two threads are already fast enough)
     thread::auto_ptr<worker> myworker;
     if (true /* construction multithreaded */) {
-        myworker.reset(new worker(*this, 1, 2));
+        myworker.reset(std::make_unique<worker>(*this, 1, 2).release());
         myworker->start();
         construction_threaded(owg, 0, 2);
         myworker.reset();

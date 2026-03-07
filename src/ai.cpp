@@ -34,11 +34,10 @@ using std::vector;
 
 // fixme: we have bspline code ready. convoys should follow their routes along a bspline
 // curve for realistic results.
-#define WPEXACTNESS 100          // how exact a waypoint has to be hit in meters
-#define AI_THINK_CYCLE_TIME 10   // sec
-#define DC_ATTACK_RADIUS 100     // distance to target before DC launching starts
-#define DC_ATTACK_RUN_RADIUS 600 // distance to contact until escort switches to
-                                 // maximum speed
+static constexpr unsigned WPEXACTNESS = 100;          // how exact a waypoint has to be hit in meters
+static constexpr unsigned AI_THINK_CYCLE_TIME = 10;   // sec
+static constexpr unsigned DC_ATTACK_RADIUS = 100;     // distance to target before DC launching starts
+static constexpr unsigned DC_ATTACK_RUN_RADIUS = 600; // distance to contact until escort switches to max speed
 
 // fixme:
 // should ai know class game?

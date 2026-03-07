@@ -92,8 +92,8 @@ using std::unique_ptr;
 */
 
 highscorelist hsl_mission, hsl_career;
-#define HSL_MISSION_NAME "mission.hsc"
-#define HSL_CAREER_NAME "career.hsc"
+static constexpr const char *HSL_MISSION_NAME = "mission.hsc";
+static constexpr const char *HSL_CAREER_NAME = "career.hsc";
 
 // a dirty hack
 void menu_notimplemented() {

@@ -33,9 +33,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using namespace std;
 
-#define SOUND_SPEC_FILENAME "sound-categories.data"
-#define SFX_CHANNELS_TOTAL 8
-#define SFX_CHANNEL_MACHINE 0
+static constexpr const char *SOUND_SPEC_FILENAME = "sound-categories.data";
+static constexpr unsigned SFX_CHANNELS_TOTAL = 8;
+static constexpr unsigned SFX_CHANNEL_MACHINE = 0;
 
 bool music::use_music = true;
 

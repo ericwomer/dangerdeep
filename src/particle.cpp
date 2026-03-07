@@ -57,6 +57,8 @@ std::unique_ptr<texture> particle::tex_marker;
 
 static constexpr unsigned NR_OF_SMOKE_TEXTURES = 16;
 static constexpr unsigned NR_OF_FIRE_TEXTURES = 64;
+static constexpr unsigned FIRE_RES = 64;
+static constexpr unsigned EXPL_FRAMES = 15;
 
 vector<float> particle::interpolate_func;
 
@@ -236,7 +238,6 @@ void particle::init() {
 
     // compute random fire textures here.
     tex_fire.resize(NR_OF_FIRE_TEXTURES);
-#define FIRE_RES 64
     vector<color> firepal(256);
     color firepal_p[9] = {
         color(0, 0, 0, 0),
@@ -292,7 +293,6 @@ void particle::init() {
     }
 
     // read in explosions
-#define EXPL_FRAMES 15
     explosionbig.resize(EXPL_FRAMES);
     for (unsigned i = 0; i < EXPL_FRAMES; ++i) {
         char tmp[20];
