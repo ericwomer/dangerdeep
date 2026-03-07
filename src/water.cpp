@@ -160,8 +160,8 @@ water::water(double tm, cfg &configuration) : mytime(tm),
                           geoclipmap_levels(wave_resolution_shift - 2),
                           patches(1 + (geoclipmap_levels - 1) * 8 * 3 * 3 + 4 /*horizon*/) {
     // generate geoclipmap index data.
-    patches.reset(0, new geoclipmap_patch(geoclipmap_resolution,
-                                          0, 0, 0, 0, geoclipmap_resolution, geoclipmap_resolution));
+    patches.reset(0, std::make_unique<geoclipmap_patch>(geoclipmap_resolution,
+                                                       0, 0, 0, 0, geoclipmap_resolution, geoclipmap_resolution));
     unsigned N2 = geoclipmap_resolution / 2, N4 = geoclipmap_resolution / 4, N34 = geoclipmap_resolution * 3 / 4;
     for (unsigned j = 1; j < geoclipmap_levels; ++j) {
         // each level has 8 patches and 9 variations of each patch.
@@ -174,23 +174,23 @@ water::water(double tm, cfg &configuration) : mytime(tm),
         for (int y = -1; y <= 1; ++y) {
             for (int x = -1; x <= 1; ++x) {
                 unsigned pn = 1 + (j - 1) * 9 * 8 + ((y + 1) * 3 + (x + 1)) * 8;
-                patches.reset(pn + 0, new geoclipmap_patch(geoclipmap_resolution, j, 0x80, 0, 0, N4 + x, N4 + y));
-                patches.reset(pn + 1, new geoclipmap_patch(geoclipmap_resolution, j, 0x01, N4 + x, 0, N2, N4 + y - 1));
-                patches.reset(pn + 2, new geoclipmap_patch(geoclipmap_resolution, j, 0x40, N34 + x, 0, N4 - x, N4 + y));
-                patches.reset(pn + 3, new geoclipmap_patch(geoclipmap_resolution, j, 0x02, 0, N4 + y, N4 + x - 1, N2));
-                patches.reset(pn + 4, new geoclipmap_patch(geoclipmap_resolution, j, 0x08, N34 + x + 1, N4 + y, N4 - x - 1, N2));
-                patches.reset(pn + 5, new geoclipmap_patch(geoclipmap_resolution, j, 0x10, 0, N34 + y, N4 + x, N4 - y));
-                patches.reset(pn + 6, new geoclipmap_patch(geoclipmap_resolution, j, 0x04, N4 + x, N34 + y + 1, N2, N4 - y - 1));
-                patches.reset(pn + 7, new geoclipmap_patch(geoclipmap_resolution, j, 0x20, N34 + x, N34 + y, N4 - x, N4 - y));
+                patches.reset(pn + 0, std::make_unique<geoclipmap_patch>(geoclipmap_resolution, j, 0x80, 0, 0, N4 + x, N4 + y));
+                patches.reset(pn + 1, std::make_unique<geoclipmap_patch>(geoclipmap_resolution, j, 0x01, N4 + x, 0, N2, N4 + y - 1));
+                patches.reset(pn + 2, std::make_unique<geoclipmap_patch>(geoclipmap_resolution, j, 0x40, N34 + x, 0, N4 - x, N4 + y));
+                patches.reset(pn + 3, std::make_unique<geoclipmap_patch>(geoclipmap_resolution, j, 0x02, 0, N4 + y, N4 + x - 1, N2));
+                patches.reset(pn + 4, std::make_unique<geoclipmap_patch>(geoclipmap_resolution, j, 0x08, N34 + x + 1, N4 + y, N4 - x - 1, N2));
+                patches.reset(pn + 5, std::make_unique<geoclipmap_patch>(geoclipmap_resolution, j, 0x10, 0, N34 + y, N4 + x, N4 - y));
+                patches.reset(pn + 6, std::make_unique<geoclipmap_patch>(geoclipmap_resolution, j, 0x04, N4 + x, N34 + y + 1, N2, N4 - y - 1));
+                patches.reset(pn + 7, std::make_unique<geoclipmap_patch>(geoclipmap_resolution, j, 0x20, N34 + x, N34 + y, N4 - x, N4 - y));
             }
         }
     }
     // horizon, for North, East, South, West part
     unsigned pn = patches.size() - 4;
-    patches.reset(pn + 0, new geoclipmap_patch(geoclipmap_resolution, geoclipmap_levels - 1, 0x01));
-    patches.reset(pn + 1, new geoclipmap_patch(geoclipmap_resolution, geoclipmap_levels - 1, 0x02));
-    patches.reset(pn + 2, new geoclipmap_patch(geoclipmap_resolution, geoclipmap_levels - 1, 0x04));
-    patches.reset(pn + 3, new geoclipmap_patch(geoclipmap_resolution, geoclipmap_levels - 1, 0x08));
+    patches.reset(pn + 0, std::make_unique<geoclipmap_patch>(geoclipmap_resolution, geoclipmap_levels - 1, 0x01));
+    patches.reset(pn + 1, std::make_unique<geoclipmap_patch>(geoclipmap_resolution, geoclipmap_levels - 1, 0x02));
+    patches.reset(pn + 2, std::make_unique<geoclipmap_patch>(geoclipmap_resolution, geoclipmap_levels - 1, 0x04));
+    patches.reset(pn + 3, std::make_unique<geoclipmap_patch>(geoclipmap_resolution, geoclipmap_levels - 1, 0x08));
 
 #if 0 // analysis
 	unsigned idxtotal = 0;

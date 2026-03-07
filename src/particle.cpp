@@ -55,8 +55,8 @@ std::unique_ptr<texture> particle::tex_fireworks;
 std::unique_ptr<texture> particle::tex_fireworks_flare;
 std::unique_ptr<texture> particle::tex_marker;
 
-#define NR_OF_SMOKE_TEXTURES 16
-#define NR_OF_FIRE_TEXTURES 64
+static constexpr unsigned NR_OF_SMOKE_TEXTURES = 16;
+static constexpr unsigned NR_OF_FIRE_TEXTURES = 64;
 
 vector<float> particle::interpolate_func;
 

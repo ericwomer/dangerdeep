@@ -24,10 +24,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "rnd.h"
 #include "dmath.h"
 #include <cmath>
+#include <memory>
 
 using namespace std;
-
-#include <cmath>
 
 namespace make_mesh {
 
@@ -79,7 +78,7 @@ void quadface(model::mesh *m, unsigned bv, float uscal, float vscal, bool out, i
 }
 
 model::mesh *cube(float w, float l, float h, float uscal, float vscal, bool out, const string &name) {
-    model::mesh *m = new model::mesh("cube");
+    auto m = std::make_unique<model::mesh>("cube");
     m->name = name;
     m->vertices.resize(6 * 4);
     m->indices.resize(6 * 2 * 3);
@@ -93,13 +92,13 @@ model::mesh *cube(float w, float l, float h, float uscal, float vscal, bool out,
         int i = cnr[j];
         m->vertices[j] = vector3f((i & 1) ? w2 : -w2, (i & 2) ? l2 : -l2, (i & 4) ? h2 : -h2);
     }
-    quadface(m, 0, uscal, vscal, out, -3, -1);
-    quadface(m, 4, uscal, vscal, out, 1, -3);
-    quadface(m, 8, uscal, vscal, out, 3, 1);
-    quadface(m, 12, uscal, vscal, out, -1, 3);
-    quadface(m, 16, uscal, vscal, out, 2, 1);
-    quadface(m, 20, uscal, vscal, out, -2, 1);
-    return m;
+    quadface(m.get(), 0, uscal, vscal, out, -3, -1);
+    quadface(m.get(), 4, uscal, vscal, out, 1, -3);
+    quadface(m.get(), 8, uscal, vscal, out, 3, 1);
+    quadface(m.get(), 12, uscal, vscal, out, -1, 3);
+    quadface(m.get(), 16, uscal, vscal, out, 2, 1);
+    quadface(m.get(), 20, uscal, vscal, out, -2, 1);
+    return m.release();
 }
 
 model::mesh *sphere(float radius, float height,
@@ -110,7 +109,7 @@ model::mesh *sphere(float radius, float height,
         slices = 3;
     if (stacks < 2)
         stacks = 2;
-    model::mesh *m = new model::mesh("sphere");
+    auto m = std::make_unique<model::mesh>("sphere");
     m->name = name;
 
     unsigned nrvert = 2 + (stacks - 1) * (slices + 1);
@@ -178,7 +177,7 @@ model::mesh *sphere(float radius, float height,
         m->indices[iptr + 1] = 2 + xx + (stacks - 2) * (slices + 1);
         iptr += 2;
     }
-    return m;
+    return m.release();
 }
 
 model::mesh *cylinder(float r, float h, unsigned rsegs,
@@ -195,7 +194,7 @@ model::mesh *cone(float r0, float r1, float h, unsigned rsegs,
     // fixme: out?, fixme cap map falsch, rest auch checken
     if (rsegs < 3)
         rsegs = 3;
-    model::mesh *m = new model::mesh("cone");
+    auto m = std::make_unique<model::mesh>("cone");
     m->name = name;
 
     unsigned nrvert = 2 * (rsegs + 1);
@@ -273,7 +272,7 @@ model::mesh *cone(float r0, float r1, float h, unsigned rsegs,
             m->indices[basei1 + j * 3 + 2] = basecap1 + (rsegs + 1);
         }
     }
-    return m;
+    return m.release();
 }
 
 model::mesh *torus(float outerr, float innerr, unsigned outerrsegs,
@@ -283,7 +282,7 @@ model::mesh *torus(float outerr, float innerr, unsigned outerrsegs,
         outerrsegs = 3;
     if (innerrsegs < 3)
         innerrsegs = 3;
-    model::mesh *m = new model::mesh("torus");
+    auto m = std::make_unique<model::mesh>("torus");
     m->name = name;
     unsigned nrvert = (outerrsegs + 1) * (innerrsegs + 1);
     m->vertices.resize(nrvert);
@@ -318,7 +317,7 @@ model::mesh *torus(float outerr, float innerr, unsigned outerrsegs,
             m->indices[(i * innerrsegs + j) * 6 + 5] = (i + 1) * (innerrsegs + 1) + j + 1;
         }
     }
-    return m;
+    return m.release();
 }
 
 /*
@@ -337,8 +336,8 @@ model::mesh *heightfield(unsigned resx, unsigned resy, const vector<Uint8> &heig
                          float xnoise, float ynoise, float znoise,
                          const string &name) {
     if (resx < 2 || resy < 2 || heights.size() != resx * resy)
-        return 0;
-    model::mesh *m = new model::mesh("heightfield");
+        return nullptr;
+    auto m = std::make_unique<model::mesh>("heightfield");
     m->name = name;
     unsigned nrvert = resx * resy;
     m->vertices.resize(nrvert);
@@ -398,7 +397,7 @@ model::mesh *heightfield(unsigned resx, unsigned resy, const vector<Uint8> &heig
         it->normalize();
     }
 
-    return m;
+    return m.release();
 }
 
 } // namespace make_mesh

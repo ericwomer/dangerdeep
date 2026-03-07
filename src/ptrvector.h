@@ -84,6 +84,10 @@ class ptrvector {
         delete data[n];
         data[n] = ptr;
     }
+    void reset(size_t n, std::unique_ptr<T> ptr) {
+        delete data[n];
+        data[n] = ptr.release();
+    }
     bool empty() const { return data.empty(); }
 
     T *release(unsigned n) {

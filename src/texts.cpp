@@ -31,7 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <sstream>
 using namespace std;
 
-#define TEXTS_DIR "texts/"
+static constexpr const char *TEXTS_DIR = "texts/";
 
 static const char *categoryfiles[texts::nr_of_categories] = {
     "common",
