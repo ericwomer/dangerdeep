@@ -20,9 +20,9 @@ Documentación sobre la suite de tests unitarios y la cobertura de cada archivo 
 |---------|-------|
 | **Total tests** | 101 |
 | **Framework** | Catch2 v3.5.2 (53 tests) + assert-based (48 tests) |
-| **Cobertura líneas (src/)** | ~49.4% |
-| **Cobertura funciones (src/)** | ~62.9% |
-| **Cobertura branches (src/)** | ~29.6% |
+| **Cobertura líneas (src/)** | ~58.7% |
+| **Cobertura funciones (src/)** | ~70.1% |
+| **Cobertura branches (src/)** | ~34.9% |
 | **Tiempo ejecución** | ~0.11 s |
 
 Los tests se compilan con `-DBUILD_UNIT_TESTS=ON` (por defecto ON) y se ejecutan con `ctest` o `./check.sh --unit`.
@@ -53,7 +53,7 @@ Mapeo de cada test a los archivos fuente que ejercita directamente:
 | `datadirs_test` | datadirs.cpp, filehelper.cpp, log.cpp, mutex.cpp, error.cpp |
 | `daysky_test` | daysky.h (smoke) |
 | `depth_charge_test` | depth_charge.h (smoke) |
-| `error_test` | error.h |
+| `error_test` | error.h, error.cpp (sdl_error) |
 | `event_manager_test` | event_manager.h (stub) |
 | `event_test` | event.h |
 | `faulthandler_test` | faulthandler.cpp |
@@ -204,17 +204,17 @@ Cobertura de líneas (L), branches (B) y funciones (F) para archivos en `src/`. 
 | bv_tree.cpp | 11.9% | 10.7% | 10% |
 | bv_tree.h | 33.3% | 17.5% | 33.3% |
 | bzip.h | 20% | 10% | 100% |
-| cfg.cpp | 33.7% | 9.8% | 52.2% |
+| cfg.cpp | 54.7% | ~20% | ~55% |
 | datadirs.cpp | 12.8% | 0% | 25% |
 | date.cpp | 24.4% | 18.4% | 26.7% |
-| error.cpp | 0% | 0% | 0% |
+| error.cpp | 37.5% | - | 50% |
 | faulthandler.cpp | 4.8% | 0% | 33.3% |
 | filehelper.cpp | 38.5% | 23.1% | 28.6% |
 | fixed.h | 55% | 2.8% | - |
 | frustum.cpp | 17.9% | 23.3% | 20% |
 | log.cpp | 61.1% | 32.7% | 71.4% |
 | matrix4.h | 62.8% | 41.7% | 37.5% |
-| perlinnoise.cpp | 2.5% | 2% | 4.5% |
+| perlinnoise.cpp | 62.5% | ~15% | ~45% |
 | perlinnoise.h | 50% | - | - |
 | ping_manager.cpp | 27.5% | 13.6% | 42.9% |
 | polygon.h | 43.4% | 33.1% | 83.3% |
@@ -272,3 +272,8 @@ Estos módulos tienen dependencias pesadas (OpenGL, SDL, sistema de ventanas) y 
 
 **Última actualización**: 2026-03-07  
 **Fuente de cobertura**: `./check.sh --coverage` (lcov)
+
+### Mejoras recientes (2026-03-07)
+- **perlinnoise.cpp**: 2.5% → 62.5% (perlinnoise_test ampliado con Catch2)
+- **error.cpp**: 0% → 37.5% (sdl_error test, error_test migrado a Catch2)
+- **cfg.cpp**: 33.7% → 54.7% (cfg_load_test: roundtrip save/load)

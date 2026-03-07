@@ -120,10 +120,8 @@ add_test(NAME parser_test COMMAND parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_
 # Configurar variable de entorno para que el test encuentre los datos
 set_tests_properties(parser_test PROPERTIES ENVIRONMENT "DFTD_DATA=${CMAKE_SOURCE_DIR}/data")
 
-# error_test: error.h (excepciones error, file_read_error)
-add_executable(error_test ${TEST_DIR}/error_test.cpp)
-target_link_libraries(error_test ${LIBS})
-add_test(NAME error_test COMMAND error_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# error_test: error.h + error.cpp (excepciones error, file_read_error, sdl_error)
+add_catch2_test(error_test ${SRC_PARENT}/error.cpp ${TEST_DIR}/display_backend_stub.cpp)
 
 # align16_allocator_test: align16_allocator.h
 add_executable(align16_allocator_test ${TEST_DIR}/align16_allocator_test.cpp)
@@ -223,9 +221,7 @@ add_executable(faulthandler_test ${TEST_DIR}/faulthandler_test.cpp ${SRC_PARENT}
 target_link_libraries(faulthandler_test ${LIBS})
 add_test(NAME faulthandler_test COMMAND faulthandler_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(perlinnoise_test ${TEST_DIR}/perlinnoise_test.cpp ${SRC_PARENT}/perlinnoise.cpp ${SRC_PARENT}/rnd.cpp)
-target_link_libraries(perlinnoise_test ${LIBS})
-add_test(NAME perlinnoise_test COMMAND perlinnoise_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_catch2_test(perlinnoise_test ${SRC_PARENT}/perlinnoise.cpp ${SRC_PARENT}/rnd.cpp)
 
 add_executable(simplex_noise_test ${TEST_DIR}/simplex_noise_test.cpp ${SRC_PARENT}/simplex_noise.cpp)
 target_link_libraries(simplex_noise_test ${LIBS})

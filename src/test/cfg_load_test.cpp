@@ -54,3 +54,41 @@ TEST_CASE("cfg_load - parseo int float bool string", "[cfg_load]") {
 
     cfg::destroy_instance();
 }
+
+TEST_CASE("cfg_load - save y roundtrip load", "[cfg_load]") {
+    cfg::destroy_instance();
+    char tmp[] = "/tmp/dftd_cfg_save_test_XXXXXX";
+    int fd = mkstemp(tmp);
+    REQUIRE(fd >= 0);
+    close(fd);
+    std::string path(tmp);
+
+    cfg &c = cfg::instance();
+    c.register_option("s_bool", true);
+    c.register_option("s_int", 99);
+    c.register_option("s_float", 2.71f);
+    c.register_option("s_str", std::string("world"));
+    c.set("s_bool", false);
+    c.set("s_int", -7);
+    c.set("s_float", 1.41f);
+    c.set("s_str", std::string("saved"));
+
+    c.save(path);
+
+    cfg::destroy_instance();
+    cfg &c2 = cfg::instance();
+    c2.register_option("s_bool", true);
+    c2.register_option("s_int", 0);
+    c2.register_option("s_float", 0.0f);
+    c2.register_option("s_str", std::string(""));
+    c2.load(path);
+    unlink(path.c_str());
+
+    REQUIRE(c2.getb("s_bool") == false);
+    REQUIRE(c2.geti("s_int") == -7);
+    REQUIRE(c2.getf("s_float") > 1.40f);
+    REQUIRE(c2.getf("s_float") < 1.42f);
+    REQUIRE(c2.gets("s_str") == "saved");
+
+    cfg::destroy_instance();
+}
