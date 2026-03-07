@@ -45,15 +45,15 @@ using std::string;
 using std::vector;
 
 unsigned particle::init_count = 0;
-vector<texture *> particle::tex_smoke;
-texture *particle::tex_spray = 0;
-vector<texture *> particle::tex_fire;
-vector<texture *> particle::explosionbig;
-vector<texture *> particle::explosionsml;
-vector<texture *> particle::watersplashes;
-texture *particle::tex_fireworks = 0;
-texture *particle::tex_fireworks_flare = 0;
-texture *particle::tex_marker = 0;
+std::vector<std::unique_ptr<texture>> particle::tex_smoke;
+std::unique_ptr<texture> particle::tex_spray;
+std::vector<std::unique_ptr<texture>> particle::tex_fire;
+std::vector<std::unique_ptr<texture>> particle::explosionbig;
+std::vector<std::unique_ptr<texture>> particle::explosionsml;
+std::vector<std::unique_ptr<texture>> particle::watersplashes;
+std::unique_ptr<texture> particle::tex_fireworks;
+std::unique_ptr<texture> particle::tex_fireworks_flare;
+std::unique_ptr<texture> particle::tex_marker;
 
 #define NR_OF_SMOKE_TEXTURES 16
 #define NR_OF_FIRE_TEXTURES 64
@@ -221,8 +221,8 @@ void particle::init() {
                 smoketmp[2 * (y * 64 + x) + 1] = (r < 64) ? 0 : r - 64;
             }
         }
-        tex_smoke[i] = new texture(smoketmp, 64, 64, GL_LUMINANCE_ALPHA,
-                                   texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP);
+        tex_smoke[i] = std::make_unique<texture>(smoketmp, 64, 64, GL_LUMINANCE_ALPHA,
+                                                 texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP);
     }
 
     // compute spray texture here
@@ -231,8 +231,8 @@ void particle::init() {
             smoketmp[(y * 64 + x) * 2] = 255;
         }
     }
-    tex_spray = new texture(smoketmp, 64, 64, GL_LUMINANCE_ALPHA,
-                            texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP);
+    tex_spray = std::make_unique<texture>(smoketmp, 64, 64, GL_LUMINANCE_ALPHA,
+                                          texture::LINEAR_MIPMAP_LINEAR, texture::CLAMP);
 
     // compute random fire textures here.
     tex_fire.resize(NR_OF_FIRE_TEXTURES);
@@ -273,8 +273,8 @@ void particle::init() {
         for (unsigned j = 0; j < firetmp.size() - 2 * FIRE_RES; ++j) {
             firepal[firetmp[j]].store_rgba(&tmp[4 * (j + 2 * FIRE_RES)]);
         }
-        tex_fire[i] = new texture(tmp, FIRE_RES, FIRE_RES, GL_RGBA,
-                                  texture::LINEAR, texture::CLAMP);
+        tex_fire[i] = std::make_unique<texture>(tmp, FIRE_RES, FIRE_RES, GL_RGBA,
+                                                texture::LINEAR, texture::CLAMP);
 
         /*
                         vector<Uint8> tmp2(firetmp.size() * 3);
@@ -297,43 +297,38 @@ void particle::init() {
     for (unsigned i = 0; i < EXPL_FRAMES; ++i) {
         char tmp[20];
         sprintf(tmp, "exbg%04u.png", i + 1);
-        explosionbig[i] = new texture(get_texture_dir() + "explosion01/" + tmp, texture::LINEAR, texture::CLAMP);
+        explosionbig[i] = std::make_unique<texture>(get_texture_dir() + "explosion01/" + tmp, texture::LINEAR, texture::CLAMP);
     }
     explosionsml.resize(EXPL_FRAMES);
     for (unsigned i = 0; i < EXPL_FRAMES; ++i) {
         char tmp[20];
         sprintf(tmp, "exsm%04u.png", i + 1);
-        explosionsml[i] = new texture(get_texture_dir() + "explosion02/" + tmp, texture::LINEAR, texture::CLAMP);
+        explosionsml[i] = std::make_unique<texture>(get_texture_dir() + "explosion02/" + tmp, texture::LINEAR, texture::CLAMP);
     }
 
     // read in water splash images (maybe replace later with run time generated images of water particles)
     watersplashes.resize(3);
-    watersplashes[0] = new texture(get_texture_dir() + "splash.png", texture::LINEAR);
-    watersplashes[1] = new texture(get_texture_dir() + "splash.png", texture::LINEAR);
-    watersplashes[2] = new texture(get_texture_dir() + "splash.png", texture::LINEAR);
+    watersplashes[0] = std::make_unique<texture>(get_texture_dir() + "splash.png", texture::LINEAR);
+    watersplashes[1] = std::make_unique<texture>(get_texture_dir() + "splash.png", texture::LINEAR);
+    watersplashes[2] = std::make_unique<texture>(get_texture_dir() + "splash.png", texture::LINEAR);
 
-    tex_fireworks = new texture(get_texture_dir() + "fireworks.png", texture::LINEAR, texture::CLAMP);
-    tex_fireworks_flare = new texture(get_texture_dir() + "fireworks_flare.png", texture::LINEAR, texture::CLAMP);
-    tex_marker = new texture(get_texture_dir() + "marker.png", texture::LINEAR, texture::CLAMP);
+    tex_fireworks = std::make_unique<texture>(get_texture_dir() + "fireworks.png", texture::LINEAR, texture::CLAMP);
+    tex_fireworks_flare = std::make_unique<texture>(get_texture_dir() + "fireworks_flare.png", texture::LINEAR, texture::CLAMP);
+    tex_marker = std::make_unique<texture>(get_texture_dir() + "marker.png", texture::LINEAR, texture::CLAMP);
 }
 
 void particle::deinit() {
     if (--init_count != 0)
         return;
-    for (unsigned i = 0; i < tex_smoke.size(); ++i)
-        delete tex_smoke[i];
-    delete tex_spray;
-    for (unsigned i = 0; i < tex_fire.size(); ++i)
-        delete tex_fire[i];
-    for (unsigned i = 0; i < explosionbig.size(); ++i)
-        delete explosionbig[i];
-    for (unsigned i = 0; i < explosionsml.size(); ++i)
-        delete explosionsml[i];
-    for (unsigned i = 0; i < watersplashes.size(); ++i)
-        delete watersplashes[i];
-    delete tex_fireworks;
-    delete tex_fireworks_flare;
-    delete tex_marker;
+    tex_smoke.clear();
+    tex_spray.reset();
+    tex_fire.clear();
+    explosionbig.clear();
+    explosionsml.clear();
+    watersplashes.clear();
+    tex_fireworks.reset();
+    tex_fireworks_flare.reset();
+    tex_marker.reset();
 }
 
 void particle::simulate(game &gm, double delta_t) {

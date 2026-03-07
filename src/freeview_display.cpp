@@ -503,10 +503,10 @@ void freeview_display::draw_view(game &gm, const vector3 &viewpos) const {
         glFogf(GL_FOG_START, max_view_dist * 0.75); // ships disappear earlier :-(
         glFogf(GL_FOG_END, max_view_dist);
     } else {
-        float underwater_fog = 100.0f;               // FIXME
+        static constexpr float UNDERWATER_VIEW_DIST = 100.0f; // visibility limit underwater (m)
         glFogf(GL_FOG_DENSITY, 0.005);               // not used in linear mode
-        glFogf(GL_FOG_START, underwater_fog * 0.75); // ships disappear earlier :-(
-        glFogf(GL_FOG_END, underwater_fog);
+        glFogf(GL_FOG_START, UNDERWATER_VIEW_DIST * 0.75); // ships disappear earlier :-(
+        glFogf(GL_FOG_END, UNDERWATER_VIEW_DIST);
     }
 
     glEnable(GL_FOG);

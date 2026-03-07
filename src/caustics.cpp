@@ -29,7 +29,7 @@ using namespace std;
 #include "caustics.h"
 #include "datadirs.h"
 
-#define FRAME_TEXTURE_COUNT 32
+static constexpr unsigned FRAME_TEXTURE_COUNT = 32;
 
 caustics::caustics()
     : mytime(-DBL_MAX), current_texture(0) {
@@ -43,12 +43,13 @@ caustics::caustics()
 }
 
 void caustics::set_time(double tm) {
-    //	FIXME add speed calculation
-    if ((tm - mytime) > 1.0 / 25) //	25 pictures per sec
-    {
-        mytime = tm;
+    const double frame_duration = 1.0 / 25.0; // 25 fps animation
+    while ((tm - mytime) >= frame_duration) {
+        mytime += frame_duration;
         current_texture = (current_texture + 1) % FRAME_TEXTURE_COUNT;
     }
+    if (tm > mytime + frame_duration * FRAME_TEXTURE_COUNT)
+        mytime = tm; // sync when far behind (e.g. after load)
 }
 
 texture *caustics::get_map() const {

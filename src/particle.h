@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "color.h"
 #include "vector3.h"
+#include <memory>
 #include <vector>
 
 class game;
@@ -62,15 +63,15 @@ class particle {
     // particle textures (generated and stored once)
     // fixme: why not use texture_cache here?
     static unsigned init_count;
-    static std::vector<texture *> tex_smoke;
-    static texture *tex_spray;
-    static std::vector<texture *> tex_fire;
-    static std::vector<texture *> explosionbig;
-    static std::vector<texture *> explosionsml;
-    static std::vector<texture *> watersplashes;
-    static texture *tex_fireworks;
-    static texture *tex_fireworks_flare;
-    static texture *tex_marker;
+    static std::vector<std::unique_ptr<texture>> tex_smoke;
+    static std::unique_ptr<texture> tex_spray;
+    static std::vector<std::unique_ptr<texture>> tex_fire;
+    static std::vector<std::unique_ptr<texture>> explosionbig;
+    static std::vector<std::unique_ptr<texture>> explosionsml;
+    static std::vector<std::unique_ptr<texture>> watersplashes;
+    static std::unique_ptr<texture> tex_fireworks;
+    static std::unique_ptr<texture> tex_fireworks_flare;
+    static std::unique_ptr<texture> tex_marker;
 
     // wh must be power of two (returns a square). 1 <= 2^low <= 2^high <= wh
     static std::vector<float> interpolate_func;
